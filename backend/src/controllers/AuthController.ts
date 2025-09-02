@@ -1,0 +1,318 @@
+import { Request, Response } from 'express';
+import { ErrorHandler } from '../middleware/ErrorHandler';
+import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import { UserService } from '../services/UserService';
+import { Logger } from '../utils/Logger';
+
+export class AuthController {
+  private static logger: Logger = new Logger();
+
+  public static async register(req: Request, res: Response): Promise<void> {
+    try {
+      this.logger.info('User registration attempt', {
+        email: req.body.email,
+        username: req.body.username,
+        ip: req.ip
+      });
+
+      const result = await UserService.createUser(req.body);
+
+      if (result.success) {
+        // Remove password from response
+        const userData = { ...result.data.toObject() };
+        delete userData.password;
+
+        res.status(201).json({
+          success: true,
+          message: 'User registered successfully',
+          data: userData,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Registration error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async login(req: Request, res: Response): Promise<void> {
+    try {
+      this.logger.info('User login attempt', {
+        email: req.body.email,
+        ip: req.ip
+      });
+
+      const result = await UserService.loginUser(req.body);
+
+      if (result.success) {
+        // Remove password from response
+        const userData = { ...result.data.user.toObject() };
+        delete userData.password;
+
+        res.status(200).json({
+          success: true,
+          message: 'Login successful',
+                  data: {
+          user: userData,
+          token: result.data['token']
+        },
+          timestamp: new Date()
+        });
+      } else {
+        res.status(401).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Login error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async getProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      this.logger.info('Profile retrieval request', {
+        userId,
+        ip: req.ip
+      });
+
+      const result = await UserService.getUserById(userId);
+
+      if (result.success) {
+        // Remove password from response
+        const userData = { ...result.data.toObject() };
+        delete userData.password;
+
+        res.status(200).json({
+          success: true,
+          message: 'Profile retrieved successfully',
+          data: userData,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Profile retrieval error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async updateProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const updateData = req.body;
+
+      // Remove sensitive fields that shouldn't be updated via this endpoint
+      delete updateData.password;
+      delete updateData.email; // Email updates should go through a separate process
+      delete updateData.subscriptionTier;
+      delete updateData.isAdmin;
+
+      this.logger.info('Profile update request', {
+        userId,
+        updateFields: Object.keys(updateData),
+        ip: req.ip
+      });
+
+      const result = await UserService.updateUser(userId, updateData);
+
+      if (result.success) {
+        // Remove password from response
+        const userData = { ...result.data.toObject() };
+        delete userData.password;
+
+        res.status(200).json({
+          success: true,
+          message: 'Profile updated successfully',
+          data: userData,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Profile update error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async changePassword(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        res.status(400).json({
+          success: false,
+          message: 'Current password and new password are required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Validate new password
+      const passwordValidation = ValidationMiddleware.validatePassword(newPassword);
+      if (!passwordValidation.isValid) {
+        res.status(400).json({
+          success: false,
+          message: 'Password validation failed',
+          errors: passwordValidation.errors,
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      this.logger.info('Password change request', {
+        userId,
+        ip: req.ip
+      });
+
+      const result = await UserService.changePassword(userId, currentPassword, newPassword);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Password changed successfully',
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Password change error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        res.status(400).json({
+          success: false,
+          message: 'Email is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Validate email
+      if (!ValidationMiddleware.validateEmail(email)) {
+        res.status(400).json({
+          success: false,
+          message: 'Valid email is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      this.logger.info('Password reset request', {
+        email: ValidationMiddleware.sanitizeEmail(email),
+        ip: req.ip
+      });
+
+      const result = await UserService.resetPassword(email);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Password reset email sent',
+          timestamp: new Date()
+        });
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Password reset error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async getUserStats(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      this.logger.info('User stats request', {
+        userId,
+        ip: req.ip
+      });
+
+      const result = await UserService.getUserStats(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'User stats retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error) {
+      this.logger.error('User stats error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async verifyToken(req: Request, res: Response): Promise<void> {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token as string;
+
+      if (!token) {
+        res.status(400).json({
+          success: false,
+          message: 'Token is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      this.logger.info('Token verification request', {
+        ip: req.ip
+      });
+
+      const result = await UserService.verifyToken(token);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Token verified successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(401).json(result);
+      }
+    } catch (error) {
+      this.logger.error('Token verification error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async logout(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      this.logger.info('User logout', {
+        userId,
+        ip: req.ip
+      });
+
+      // In a stateless JWT system, logout is handled client-side
+      // But we can log the action for audit purposes
+      res.status(200).json({
+        success: true,
+        message: 'Logout successful',
+        timestamp: new Date()
+      });
+    } catch (error) {
+      this.logger.error('Logout error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+}
