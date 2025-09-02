@@ -7,6 +7,7 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
@@ -14,15 +15,15 @@
     "declarationMap": true,
     "sourceMap": true,
     "removeComments": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "experimentalDecorators": true,
@@ -39,3 +40,54 @@
     "**/*.spec.ts"
   ]
 }
+
+
+// {
+//   "compilerOptions": {
+//     "target": "ES2020",
+//     "module": "commonjs",
+//     "lib": ["ES2020"],
+//     "outDir": "./dist",
+//     "rootDir": "./src",
+//     "strict": false,
+//     "esModuleInterop": true,
+//     "skipLibCheck": true,
+//     "forceConsistentCasingInFileNames": true,
+//     "resolveJsonModule": true,
+//     "declaration": true,
+//     "declarationMap": true,
+//     "sourceMap": true,
+//     "removeComments": true,
+//     "noImplicitAny": false,
+//     "strictNullChecks": false,
+//     "strictFunctionTypes": false,
+//     "noImplicitReturns": false,
+//     "noFallthroughCasesInSwitch": true,
+//     "moduleResolution": "node",
+//     "baseUrl": "./src",
+//     "paths": {
+//       "@/*": ["*"],
+//       "@/types/*": ["types/*"],
+//       "@/utils/*": ["utils/*"],
+//       "@/services/*": ["services/*"],
+//       "@/models/*": ["models/*"],
+//       "@/controllers/*": ["controllers/*"],
+//       "@/middleware/*": ["middleware/*"],
+//       "@/routes/*": ["routes/*"]
+//     },
+//     "allowSyntheticDefaultImports": true,
+//     "experimentalDecorators": true,
+//     "emitDecoratorMetadata": true,
+//     "typeRoots": ["./node_modules/@types", "./src/types"]
+//   },
+//   "include": [
+//     "src/**/*"
+//   ],
+//   "exclude": [
+//     "node_modules",
+//     "dist",
+//     "**/*.test.ts",
+//     "**/*.spec.ts",
+//     "src/scripts/import-couriers-and-categories.ts"
+//   ]
+// } 

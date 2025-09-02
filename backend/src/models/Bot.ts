@@ -84,7 +84,7 @@ export class BotModel {
     }, {
       timestamps: true,
       toJSON: {
-        transform: (doc, ret) => {
+        transform: (_doc, ret) => {
           const { password, ...rest } = ret;
           return rest;
         }

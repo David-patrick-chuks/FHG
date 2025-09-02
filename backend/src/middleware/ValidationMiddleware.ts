@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { Logger } from '../utils/Logger';
-import { ErrorHandler } from './ErrorHandler';
 
 // Extend Request interface to include file property for multer
 interface FileUploadRequest extends Request {
@@ -598,7 +597,7 @@ export class ValidationMiddleware {
     }
   }
 
-  public static sanitizeRequestBody(req: Request, res: Response, next: NextFunction): void {
+  public static sanitizeRequestBody(req: Request, _res: Response, next: NextFunction): void {
     try {
       // Recursively sanitize all string values in request body
       const sanitizeObject = (obj: any): any => {

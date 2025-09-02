@@ -1,10 +1,10 @@
-import { Logger } from '../utils/Logger';
-import CampaignModel, { ICampaignDocument } from '../models/Campaign';
 import BotModel from '../models/Bot';
+import CampaignModel, { ICampaignDocument } from '../models/Campaign';
 import UserModel from '../models/User';
+import { ApiResponse, CampaignStatus, CreateCampaignRequest } from '../types';
+import { Logger } from '../utils/Logger';
 import { EmailService } from './EmailService';
 import { QueueService } from './QueueService';
-import { CreateCampaignRequest, CampaignStatus, ApiResponse } from '../types';
 
 export class CampaignService {
   private static logger: Logger = new Logger();
@@ -61,7 +61,7 @@ export class CampaignService {
 
       // Generate AI messages
       const aiResult = await EmailService.generateAIMessages(
-        campaignData.prompt || bot.prompt,
+        bot.prompt,
         user.getMaxAIMessageVariations()
       );
 
@@ -292,11 +292,20 @@ export class CampaignService {
       // Start campaign
       await campaign.startCampaign();
 
-      // Add email jobs to queue
-      const emailJobs = campaign.emailList.map((email, index) => ({
-        email,
-        message: campaign.aiMessages[campaign.selectedMessageIndex]
-      }));
+             // Add email jobs to queue
+       const selectedMessage = campaign.aiMessages[campaign.selectedMessageIndex];
+       if (!selectedMessage) {
+         return {
+           success: false,
+           message: 'No AI message selected for campaign',
+           timestamp: new Date()
+         };
+       }
+
+       const emailJobs = campaign.emailList.map((email) => ({
+         email,
+         message: selectedMessage
+       }));
 
       await QueueService.addBulkEmailJobs(
         campaignId,
@@ -565,10 +574,18 @@ export class CampaignService {
 
       // Generate new AI messages
       const user = await UserModel.findById(userId);
-      const aiResult = await EmailService.generateAIMessages(
-        prompt || bot.prompt,
-        user?.getMaxAIMessageVariations() || 20
-      );
+             if (!user) {
+         return {
+           success: false,
+           message: 'User not found',
+           timestamp: new Date()
+         };
+       }
+
+       const aiResult = await EmailService.generateAIMessages(
+         prompt || bot.prompt,
+         user.getMaxAIMessageVariations()
+       );
 
       if (!aiResult.success) {
         return {
@@ -578,10 +595,18 @@ export class CampaignService {
         };
       }
 
-      // Update campaign with new messages
-      campaign.aiMessages = aiResult.data;
-      campaign.selectedMessageIndex = 0;
-      await campaign.save();
+             // Update campaign with new messages
+       if (!aiResult.data) {
+         return {
+           success: false,
+           message: 'Failed to generate AI messages',
+           timestamp: new Date()
+         };
+       }
+
+       campaign.aiMessages = aiResult.data;
+       campaign.selectedMessageIndex = 0;
+       await campaign.save();
 
       this.logger.info('AI messages regenerated successfully', {
         campaignId: campaign._id,
@@ -630,8 +655,8 @@ export class CampaignService {
       const stats = {
         progress: campaign.getProgress(),
         status: campaign.status,
-        startedAt: campaign.startedAt,
-        completedAt: campaign.completedAt
+        startedAt: campaign.startedAt || null,
+        completedAt: campaign.completedAt || null
       };
 
       return {

@@ -1,7 +1,7 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import { IQueueJob, QueueJobStatus } from '../types';
 
-export interface IQueueJobDocument extends IQueueJob, Document {
+export interface IQueueJobDocument extends Omit<IQueueJob, '_id'>, Document<unknown, any, any> {
   markAsProcessing(): Promise<void>;
   markAsCompleted(): Promise<void>;
   markAsFailed(errorMessage: string): Promise<void>;

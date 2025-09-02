@@ -189,7 +189,7 @@ export class AuthMiddleware {
     this.requireSubscriptionTier('ENTERPRISE', req, res, next);
   }
 
-  public static optionalAuth(req: Request, res: Response, next: NextFunction): void {
+  public static optionalAuth(req: Request, _res: Response, next: NextFunction): void {
     try {
       const token = this.extractToken(req);
       
@@ -294,23 +294,26 @@ export class AuthMiddleware {
         }
 
         // Check ownership based on resource type
-        let isOwner = false;
+        let isOwner: boolean = false;
 
         switch (resourceType.toLowerCase()) {
           case 'user':
             isOwner = userId === resourceId;
             break;
           case 'bot':
-            const bot = await require('../models/Bot').default.findById(resourceId);
-            isOwner = bot && bot.userId === userId;
+            const BotModel = await import('../models/Bot');
+            const bot = await BotModel.default.findById(resourceId);
+            isOwner = !!(bot && bot.userId === userId);
             break;
           case 'campaign':
-            const campaign = await require('../models/Campaign').default.findById(resourceId);
-            isOwner = campaign && campaign.userId === userId;
+            const CampaignModel = await import('../models/Campaign');
+            const campaign = await CampaignModel.default.findById(resourceId);
+            isOwner = !!(campaign && campaign.userId === userId);
             break;
           case 'subscription':
-            const subscription = await require('../models/Subscription').default.findById(resourceId);
-            isOwner = subscription && subscription.userId === userId;
+            const SubscriptionModel = await import('../models/Subscription');
+            const subscription = await SubscriptionModel.default.findById(resourceId);
+            isOwner = !!(subscription && subscription.userId === userId);
             break;
           default:
             isOwner = false;
@@ -367,21 +370,23 @@ export class AuthMiddleware {
 
         switch (limitType) {
           case 'bots':
-            const botCount = await require('../models/Bot').default.countDocuments({ userId });
+            const BotModel = await import('../models/Bot');
+            const botCount = await BotModel.default.countDocuments({ userId });
             const maxBots = user.getMaxBots();
             canProceed = botCount < maxBots;
             message = `Maximum bot limit (${maxBots}) reached for your subscription tier`;
             break;
           case 'campaigns':
-            const campaignCount = await require('../models/Campaign').default.countDocuments({ userId });
-            const maxCampaigns = user.getMaxBots(); // Using getMaxBots as a proxy for campaigns
+            const CampaignModel = await import('../models/Campaign');
+            const campaignCount = await CampaignModel.default.countDocuments({ userId });
+            const maxCampaigns = user.getMaxCampaigns();
             canProceed = campaignCount < maxCampaigns;
             message = `Maximum campaign limit (${maxCampaigns}) reached for your subscription tier`;
             break;
           case 'emails':
             const dailyEmailLimit = user.getDailyEmailLimit();
-            // For now, we'll assume they can send emails if they have an active subscription
-            canProceed = user.hasActiveSubscription();
+            // Check if user has an active subscription and daily email limit
+            canProceed = user.hasActiveSubscription() && dailyEmailLimit > 0;
             message = 'Daily email limit reached for your subscription tier';
             break;
           case 'aiVariations':

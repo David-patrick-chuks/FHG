@@ -9,6 +9,8 @@ export interface IUserDocument extends Omit<IUser, '_id'>, Document {
   canCreateBot(): boolean;
   getDailyEmailLimit(): number;
   getMaxBots(): number;
+  getMaxCampaigns(): number;
+  getMaxAIMessageVariations(): number;
 }
 
 export interface IUserModel extends Model<IUserDocument> {
@@ -85,16 +87,14 @@ export class UserModel {
     }, {
       timestamps: true,
       toJSON: {
-        transform: (doc, ret) => {
+        transform: (_doc, ret) => {
           const { password, ...rest } = ret;
           return rest;
         }
       }
     });
 
-    // Indexes
-    userSchema.index({ email: 1 });
-    userSchema.index({ username: 1 });
+    // Indexes (email and username are automatically indexed due to unique: true)
     userSchema.index({ subscription: 1 });
     userSchema.index({ isActive: 1 });
 
@@ -126,7 +126,6 @@ export class UserModel {
     };
 
     userSchema.methods['canCreateBot'] = function(): boolean {
-      const maxBots = this['getMaxBots']();
       // This will be checked against actual bot count in the service layer
       return this['hasActiveSubscription']();
     };
@@ -149,6 +148,26 @@ export class UserModel {
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxBots[subscription] || 1;
+    };
+
+    userSchema.methods['getMaxCampaigns'] = function(): number {
+      const maxCampaigns: Record<SubscriptionTier, number> = {
+        [SubscriptionTier.FREE]: 5,
+        [SubscriptionTier.PRO]: 15,
+        [SubscriptionTier.ENTERPRISE]: 50
+      };
+      const subscription = this['subscription'] as SubscriptionTier;
+      return maxCampaigns[subscription] || 5;
+    };
+
+    userSchema.methods['getMaxAIMessageVariations'] = function(): number {
+      const maxVariations: Record<SubscriptionTier, number> = {
+        [SubscriptionTier.FREE]: 10,
+        [SubscriptionTier.PRO]: 20,
+        [SubscriptionTier.ENTERPRISE]: 50
+      };
+      const subscription = this['subscription'] as SubscriptionTier;
+      return maxVariations[subscription] || 10;
     };
 
     // Static methods

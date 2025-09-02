@@ -285,7 +285,25 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.updateBotPrompt(botId, userId, prompt);
+             if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
+
+       if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
+
+       const result = await BotService.updateBotPrompt(botId, userId, prompt);
 
              if (result.success && result.data) {
          // Remove sensitive data from response
@@ -318,7 +336,25 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.getBotStats(botId, userId);
+             if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
+
+       if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
+
+       const result = await BotService.getBotStats(botId, userId);
 
       if (result.success) {
         res.status(200).json({
@@ -347,7 +383,16 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await EmailService.testBotConnection(botId);
+             if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
+
+       const result = await EmailService.testBotConnection(botId);
 
       if (result.success) {
         res.status(200).json({

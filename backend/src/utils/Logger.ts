@@ -193,4 +193,13 @@ export class Logger {
   public getLogger(): winston.Logger {
     return this.logger;
   }
+
+  public close(): void {
+    try {
+      this.logger.close();
+    } catch (error) {
+      // Ignore errors during cleanup
+      console.error('Error closing logger:', error);
+    }
+  }
 }
