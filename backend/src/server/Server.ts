@@ -89,12 +89,20 @@ export class Server {
   private setupRoutes(): void {
     // Basic health check (for load balancers/monitoring)
     this.app.get('/health', (_req, res) => {
-      res.status(200).json({
-        status: 'OK',
-        message: 'Server is healthy',
+      const dbStatus = this.getDatabaseStatus();
+      const isHealthy = this.isHealthy();
+      
+      res.status(isHealthy ? 200 : 503).json({
+        status: isHealthy ? 'OK' : 'SERVICE_UNAVAILABLE',
+        message: isHealthy ? 'Server is healthy' : 'Server is unhealthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        environment: process.env['NODE_ENV'] || 'development'
+        environment: process.env['NODE_ENV'] || 'development',
+        database: dbStatus,
+        server: {
+          listening: this.server ? this.server.listening : false,
+          port: this.port
+        }
       });
     });
 

@@ -8,6 +8,7 @@ dotenv.config();
 // Set default environment variables
 if (!process.env.PORT) process.env.PORT = '3000';
 if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development';
+if (!process.env.MONGODB_URI) process.env.MONGODB_URI = 'mongodb://localhost:27017/email-outreach-bot';
 if (!process.env.RATE_LIMIT_WINDOW_MS) process.env.RATE_LIMIT_WINDOW_MS = '900000';
 if (!process.env.RATE_LIMIT_MAX_REQUESTS) process.env.RATE_LIMIT_MAX_REQUESTS = '100';
 if (!process.env.LOG_LEVEL) process.env.LOG_LEVEL = 'info';
