@@ -17,7 +17,7 @@ export class AuthController {
 
       const result = await UserService.createUser(req.body);
 
-      if (result.success) {
+      if (result.success && result.data) {
         // Remove password from response
         const userData = { ...result.data.toObject() };
         delete userData.password;
@@ -46,7 +46,7 @@ export class AuthController {
 
       const result = await UserService.loginUser(req.body);
 
-      if (result.success) {
+      if (result.success && result.data) {
         // Remove password from response
         const userData = { ...result.data.user.toObject() };
         delete userData.password;
@@ -80,7 +80,7 @@ export class AuthController {
 
       const result = await UserService.getUserById(userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
         // Remove password from response
         const userData = { ...result.data.toObject() };
         delete userData.password;
@@ -119,10 +119,10 @@ export class AuthController {
 
       const result = await UserService.updateUser(userId, updateData);
 
-      if (result.success) {
-        // Remove password from response
-        const userData = { ...result.data.toObject() };
-        delete userData.password;
+             if (result.success && result.data) {
+         // Remove password from response
+         const userData = { ...result.data.toObject() };
+         delete userData.password;
 
         res.status(200).json({
           success: true,
@@ -261,7 +261,7 @@ export class AuthController {
 
   public static async verifyToken(req: Request, res: Response): Promise<void> {
     try {
-      const token = req.headers.authorization?.replace('Bearer ', '') || req.query.token as string;
+             const token = req.headers.authorization?.replace('Bearer ', '') || req.query['token'] as string;
 
       if (!token) {
         res.status(400).json({

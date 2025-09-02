@@ -18,12 +18,12 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.createBot(userId, req.body);
+             const result = await BotService.createBot(userId, req.body);
 
-      if (result.success) {
-        // Remove sensitive data from response
-        const botData = { ...result.data.toObject() };
-        delete botData.password;
+       if (result.success && result.data) {
+         // Remove sensitive data from response
+         const botData = { ...result.data.toObject() };
+         delete botData.password;
 
         res.status(201).json({
           success: true,
@@ -51,13 +51,13 @@ export class BotController {
 
       const result = await BotService.getBotsByUserId(userId);
 
-      if (result.success) {
-        // Remove sensitive data from response
-        const botsData = result.data.map(bot => {
-          const botData = { ...bot.toObject() };
-          delete botData.password;
-          return botData;
-        });
+             if (result.success && result.data) {
+         // Remove sensitive data from response
+         const botsData = result.data.map(bot => {
+           const botData = { ...bot.toObject() };
+           delete botData.password;
+           return botData;
+         });
 
         res.status(200).json({
           success: true,
@@ -93,12 +93,12 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.getBotById(botId, userId);
+             const result = await BotService.getBotById(botId, userId);
 
-      if (result.success) {
-        // Remove sensitive data from response
-        const botData = { ...result.data.toObject() };
-        delete botData.password;
+       if (result.success && result.data) {
+         // Remove sensitive data from response
+         const botData = { ...result.data.toObject() };
+         delete botData.password;
 
         res.status(200).json({
           success: true,
@@ -134,12 +134,21 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.updateBot(botId, userId, updateData);
+             if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
 
-      if (result.success) {
-        // Remove sensitive data from response
-        const botData = { ...result.data.toObject() };
-        delete botData.password;
+       const result = await BotService.updateBot(botId, userId, updateData);
+
+       if (result.success && result.data) {
+         // Remove sensitive data from response
+         const botData = { ...result.data.toObject() };
+         delete botData.password;
 
         res.status(200).json({
           success: true,
@@ -167,7 +176,16 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.deleteBot(botId, userId);
+             if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
+
+       const result = await BotService.deleteBot(botId, userId);
 
       if (result.success) {
         res.status(200).json({
@@ -195,12 +213,21 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.toggleBotStatus(botId, userId);
+             if (!botId) {
+         res.status(400).json({
+           success: false,
+           message: 'Bot ID is required',
+           timestamp: new Date()
+         });
+         return;
+       }
 
-      if (result.success) {
-        // Remove sensitive data from response
-        const botData = { ...result.data.toObject() };
-        delete botData.password;
+       const result = await BotService.toggleBotStatus(botId, userId);
+
+       if (result.success && result.data) {
+         // Remove sensitive data from response
+         const botData = { ...result.data.toObject() };
+         delete botData.password;
 
         res.status(200).json({
           success: true,
@@ -260,10 +287,10 @@ export class BotController {
 
       const result = await BotService.updateBotPrompt(botId, userId, prompt);
 
-      if (result.success) {
-        // Remove sensitive data from response
-        const botData = { ...result.data.toObject() };
-        delete botData.password;
+             if (result.success && result.data) {
+         // Remove sensitive data from response
+         const botData = { ...result.data.toObject() };
+         delete botData.password;
 
         res.status(200).json({
           success: true,
@@ -342,7 +369,7 @@ export class BotController {
     try {
       const userId = (req as any).user['id'];
       const botId = req.params['id'];
-      const days = parseInt(req.query.days as string) || 30;
+             const days = parseInt(req.query['days'] as string) || 30;
 
       if (!botId) {
         res.status(400).json({
@@ -390,9 +417,18 @@ export class BotController {
 
   public static async regenerateBotPrompt(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
       const { prompt } = req.body;
+
+      if (!botId) {
+        res.status(400).json({
+          success: false,
+          message: 'Bot ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       if (!prompt) {
         res.status(400).json({
