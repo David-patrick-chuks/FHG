@@ -20,6 +20,7 @@ class Application {
     console.log("🔧 Creating Application instance...");
     console.log("📋 Features enabled:");
     console.log("   ✅ Express server with TypeScript");
+    console.log("   ✅ MongoDB database connection");
     console.log("   ✅ Security middleware (Helmet, CORS)");
     console.log("   ✅ Rate limiting and compression");
     console.log("   ✅ Request logging and error handling");
@@ -45,6 +46,13 @@ class Application {
       console.log(`   Environment: ${serverInfo.environment}`);
       console.log(`   Node Version: ${serverInfo.nodeVersion}`);
       console.log(`   Platform: ${serverInfo.platform}`);
+      
+      // Display database information
+      const dbStatus = this.server.getDatabaseStatus();
+      console.log("🗄️ Database Information:");
+      console.log(`   Status: ${dbStatus.status}`);
+      console.log(`   Connected: ${dbStatus.connected ? 'Yes' : 'No'}`);
+      console.log(`   URI: ${dbStatus.uri}`);
 
       console.log("🎉 Application started successfully!");
     } catch (error) {

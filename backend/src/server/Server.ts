@@ -134,8 +134,13 @@ export class Server {
     try {
       // Connect to database first
       this.logger.info('🔄 Connecting to database...');
-      await this.database.connect();
-      this.logger.info('✅ Database connected successfully');
+      try {
+        await this.database.connect();
+        this.logger.info('✅ Database connected successfully');
+      } catch (dbError) {
+        this.logger.warn('⚠️ Database connection failed, continuing without database:', dbError);
+        // Continue without database for development/testing
+      }
 
       // Start the server
       return new Promise((resolve, reject) => {
@@ -158,7 +163,7 @@ export class Server {
         }
       });
     } catch (error) {
-      this.logger.error('Failed to start server or connect to database:', error);
+      this.logger.error('Failed to start server:', error);
       throw error;
     }
   }
@@ -187,9 +192,14 @@ export class Server {
       }
 
       // Disconnect from database
-      this.logger.info('🔄 Disconnecting from database...');
-      await this.database.disconnect();
-      this.logger.info('✅ Database disconnected successfully');
+      try {
+        this.logger.info('🔄 Disconnecting from database...');
+        await this.database.disconnect();
+        this.logger.info('✅ Database disconnected successfully');
+      } catch (dbError) {
+        this.logger.warn('⚠️ Database disconnection failed:', dbError);
+        // Continue with shutdown even if database disconnection fails
+      }
     } catch (error) {
       this.logger.error('Error during server shutdown:', error);
       throw error;
@@ -225,11 +235,21 @@ export class Server {
       return { status: 'not_initialized', message: 'Database not initialized' };
     }
     
-    return {
-      status: this.database.isConnected() ? 'connected' : 'disconnected',
-      connected: this.database.isConnected(),
-      uri: process.env['MONGODB_URI'] || 'mongodb://localhost:27017/email-outreach-bot'
-    };
+    try {
+      return {
+        status: this.database.isConnected() ? 'connected' : 'disconnected',
+        connected: this.database.isConnected(),
+        uri: process.env['MONGODB_URI'] || 'mongodb://localhost:27017/email-outreach-bot',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        connected: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      };
+    }
   }
 
   public getStats(): any {
