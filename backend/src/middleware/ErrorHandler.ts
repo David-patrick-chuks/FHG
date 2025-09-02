@@ -4,7 +4,7 @@ import { Logger } from '../utils/Logger';
 export class ErrorHandler {
   private static logger: Logger = new Logger();
 
-  public static handle(error: any, req: Request, res: Response, next: NextFunction): void {
+  public static handle(error: any, req: Request, res: Response, _next: NextFunction): void {
     // Log the error
     ErrorHandler.logger.error('Error occurred:', {
       error: error.message,
@@ -127,7 +127,7 @@ export class ErrorHandler {
   }
 
   // Method to handle 404 errors
-  public static notFound(req: Request, res: Response, next: NextFunction): void {
+  public static notFound(req: Request, _res: Response, next: NextFunction): void {
     const error = ErrorHandler.createError(`Route ${req.originalUrl} not found`, 404, 'NotFoundError');
     next(error);
   }

@@ -1,7 +1,7 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 import { IBot } from '../types';
 
-export interface IBotDocument extends IBot, Document {
+export interface IBotDocument extends Omit<IBot, '_id'>, Document {
   incrementDailyEmailCount(): Promise<void>;
   resetDailyEmailCount(): Promise<void>;
   canSendEmail(): boolean;
@@ -85,8 +85,8 @@ export class BotModel {
       timestamps: true,
       toJSON: {
         transform: (doc, ret) => {
-          delete ret.password;
-          return ret;
+          const { password, ...rest } = ret;
+          return rest;
         }
       }
     });
@@ -103,35 +103,35 @@ export class BotModel {
     botSchema.index({ userId: 1, dailyEmailCount: 1 });
 
     // Instance methods
-    botSchema.methods.incrementDailyEmailCount = async function(): Promise<void> {
-      this.dailyEmailCount += 1;
-      this.lastEmailSentAt = new Date();
-      await this.save();
+    botSchema.methods['incrementDailyEmailCount'] = async function(): Promise<void> {
+      this['dailyEmailCount'] += 1;
+      this['lastEmailSentAt'] = new Date();
+      await this['save']();
     };
 
-    botSchema.methods.resetDailyEmailCount = async function(): Promise<void> {
-      this.dailyEmailCount = 0;
-      await this.save();
+    botSchema.methods['resetDailyEmailCount'] = async function(): Promise<void> {
+      this['dailyEmailCount'] = 0;
+      await this['save']();
     };
 
-    botSchema.methods.canSendEmail = function(): boolean {
-      return this.isActive && this.dailyEmailCount < 500;
+    botSchema.methods['canSendEmail'] = function(): boolean {
+      return this['isActive'] && this['dailyEmailCount'] < 500;
     };
 
-    botSchema.methods.getDailyEmailLimit = function(): number {
+    botSchema.methods['getDailyEmailLimit'] = function(): number {
       return 500; // Gmail limit per bot
     };
 
     // Static methods
-    botSchema.statics.findByUserId = function(userId: string): Promise<IBotDocument[]> {
+    botSchema.statics['findByUserId'] = function(userId: string): Promise<IBotDocument[]> {
       return this.find({ userId }).sort({ createdAt: -1 });
     };
 
-    botSchema.statics.findActiveByUserId = function(userId: string): Promise<IBotDocument[]> {
+    botSchema.statics['findActiveByUserId'] = function(userId: string): Promise<IBotDocument[]> {
       return this.find({ userId, isActive: true }).sort({ createdAt: -1 });
     };
 
-    botSchema.statics.resetAllDailyCounts = async function(): Promise<void> {
+    botSchema.statics['resetAllDailyCounts'] = async function(): Promise<void> {
       await this.updateMany({}, { dailyEmailCount: 0 });
     };
 

@@ -10,7 +10,7 @@ export class EmailService {
   private static genAI: GoogleGenerativeAI;
 
   static {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+    this.genAI = new GoogleGenerativeAI(process.env['GEMINI_API_KEY']!);
   }
 
   public static async generateAIMessages(prompt: string, count: number = 20): Promise<ApiResponse<string[]>> {
@@ -102,9 +102,9 @@ export class EmailService {
       }
 
       // Create transporter
-      const transporter = nodemailer.createTransporter({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
+      const transporter = nodemailer.createTransport({
+        host: process.env['SMTP_HOST'] || 'smtp.gmail.com',
+        port: parseInt(process.env['SMTP_PORT'] || '587'),
         secure: false,
         auth: {
           user: bot.email,
@@ -206,7 +206,9 @@ export class EmailService {
       const total = emails.length;
 
       for (let i = 0; i < emails.length; i++) {
-        const { email, message } = emails[i];
+        const emailItem = emails[i];
+        if (!emailItem) continue;
+        const { email, message } = emailItem;
 
         // Check if bot can still send emails
         if (!bot.canSendEmail()) {
@@ -274,9 +276,9 @@ export class EmailService {
       }
 
       // Create transporter
-      const transporter = nodemailer.createTransporter({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
+      const transporter = nodemailer.createTransport({
+        host: process.env['SMTP_HOST'] || 'smtp.gmail.com',
+        port: parseInt(process.env['SMTP_PORT'] || '587'),
         secure: false,
         auth: {
           user: bot.email,
@@ -324,7 +326,7 @@ export class EmailService {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const stats = await SentEmailModel.getDeliveryStats(botId);
+      const stats = await SentEmailModel.getDeliveryStats(botId); // TODO: Fix this to use proper campaignId
 
       return {
         success: true,

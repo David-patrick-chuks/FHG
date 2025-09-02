@@ -1,7 +1,7 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 import { IAdminAction } from '../types';
 
-export interface IAdminActionDocument extends IAdminAction, Document {
+export interface IAdminActionDocument extends Omit<IAdminAction, '_id'>, Document {
   getActionSummary(): string;
   isRecentAction(minutes: number): boolean;
 }
@@ -94,32 +94,32 @@ export class AdminActionModel {
     adminActionSchema.index({ adminId: 1, targetType: 1 });
 
     // Instance methods
-    adminActionSchema.methods.getActionSummary = function(): string {
-      return `${this.action} on ${this.targetType} (${this.targetId})`;
+    adminActionSchema.methods['getActionSummary'] = function(): string {
+      return `${this['action']} on ${this['targetType']} (${this['targetId']})`;
     };
 
-    adminActionSchema.methods.isRecentAction = function(minutes: number): boolean {
+    adminActionSchema.methods['isRecentAction'] = function(minutes: number): boolean {
       const now = new Date();
-      const actionTime = this.createdAt;
+      const actionTime = this['createdAt'];
       const timeDiff = now.getTime() - actionTime.getTime();
       const minutesDiff = timeDiff / (1000 * 60);
       return minutesDiff <= minutes;
     };
 
     // Static methods
-    adminActionSchema.statics.findByAdminId = function(adminId: string): Promise<IAdminActionDocument[]> {
+    adminActionSchema.statics['findByAdminId'] = function(adminId: string): Promise<IAdminActionDocument[]> {
       return this.find({ adminId }).sort({ createdAt: -1 });
     };
 
-    adminActionSchema.statics.findByTargetType = function(targetType: string): Promise<IAdminActionDocument[]> {
+    adminActionSchema.statics['findByTargetType'] = function(targetType: string): Promise<IAdminActionDocument[]> {
       return this.find({ targetType }).sort({ createdAt: -1 });
     };
 
-    adminActionSchema.statics.findByTargetId = function(targetId: string): Promise<IAdminActionDocument[]> {
+    adminActionSchema.statics['findByTargetId'] = function(targetId: string): Promise<IAdminActionDocument[]> {
       return this.find({ targetId }).sort({ createdAt: -1 });
     };
 
-    adminActionSchema.statics.findByDateRange = function(startDate: Date, endDate: Date): Promise<IAdminActionDocument[]> {
+    adminActionSchema.statics['findByDateRange'] = function(startDate: Date, endDate: Date): Promise<IAdminActionDocument[]> {
       return this.find({
         createdAt: {
           $gte: startDate,
@@ -128,7 +128,7 @@ export class AdminActionModel {
       }).sort({ createdAt: -1 });
     };
 
-    adminActionSchema.statics.getAdminActivityStats = async function(adminId: string, days: number): Promise<{
+    adminActionSchema.statics['getAdminActivityStats'] = async function(adminId: string, days: number): Promise<{
       totalActions: number;
       actionsByType: Record<string, number>;
       recentActions: number;
@@ -183,7 +183,7 @@ export class AdminActionModel {
       };
     };
 
-    adminActionSchema.statics.getSystemActivityStats = async function(days: number): Promise<{
+    adminActionSchema.statics['getSystemActivityStats'] = async function(days: number): Promise<{
       totalActions: number;
       uniqueAdmins: number;
       actionsByType: Record<string, number>;

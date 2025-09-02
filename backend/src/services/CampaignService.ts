@@ -4,8 +4,7 @@ import BotModel from '../models/Bot';
 import UserModel from '../models/User';
 import { EmailService } from './EmailService';
 import { QueueService } from './QueueService';
-import { CreateCampaignRequest, CampaignStatus, ApiResponse, SubscriptionTier } from '../types';
-import { ErrorHandler } from '../middleware/ErrorHandler';
+import { CreateCampaignRequest, CampaignStatus, ApiResponse } from '../types';
 
 export class CampaignService {
   private static logger: Logger = new Logger();

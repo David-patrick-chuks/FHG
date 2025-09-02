@@ -1,8 +1,8 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 import { IUser, SubscriptionTier } from '../types';
 
-export interface IUserDocument extends IUser, Document {
+export interface IUserDocument extends Omit<IUser, '_id'>, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
   updateLastLogin(): Promise<void>;
   hasActiveSubscription(): boolean;
@@ -86,8 +86,8 @@ export class UserModel {
       timestamps: true,
       toJSON: {
         transform: (doc, ret) => {
-          delete ret.password;
-          return ret;
+          const { password, ...rest } = ret;
+          return rest;
         }
       }
     });
@@ -112,49 +112,51 @@ export class UserModel {
     });
 
     // Instance methods
-    userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
-      return bcrypt.compare(candidatePassword, this.password);
+    userSchema.methods['comparePassword'] = async function(candidatePassword: string): Promise<boolean> {
+      return bcrypt.compare(candidatePassword, this['password']);
     };
 
-    userSchema.methods.updateLastLogin = async function(): Promise<void> {
-      this.lastLoginAt = new Date();
-      await this.save();
+    userSchema.methods['updateLastLogin'] = async function(): Promise<void> {
+      this['lastLoginAt'] = new Date();
+      await this['save']();
     };
 
-    userSchema.methods.hasActiveSubscription = function(): boolean {
-      return this.subscriptionExpiresAt > new Date();
+    userSchema.methods['hasActiveSubscription'] = function(): boolean {
+      return this['subscriptionExpiresAt'] > new Date();
     };
 
-    userSchema.methods.canCreateBot = function(): boolean {
-      const maxBots = this.getMaxBots();
+    userSchema.methods['canCreateBot'] = function(): boolean {
+      const maxBots = this['getMaxBots']();
       // This will be checked against actual bot count in the service layer
-      return this.hasActiveSubscription();
+      return this['hasActiveSubscription']();
     };
 
-    userSchema.methods.getDailyEmailLimit = function(): number {
-      const limits = {
+    userSchema.methods['getDailyEmailLimit'] = function(): number {
+      const limits: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 500,
         [SubscriptionTier.PRO]: 1500,
         [SubscriptionTier.ENTERPRISE]: 3000
       };
-      return limits[this.subscription] || 500;
+      const subscription = this['subscription'] as SubscriptionTier;
+      return limits[subscription] || 500;
     };
 
-    userSchema.methods.getMaxBots = function(): number {
-      const maxBots = {
+    userSchema.methods['getMaxBots'] = function(): number {
+      const maxBots: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 1,
         [SubscriptionTier.PRO]: 3,
         [SubscriptionTier.ENTERPRISE]: 5
       };
-      return maxBots[this.subscription] || 1;
+      const subscription = this['subscription'] as SubscriptionTier;
+      return maxBots[subscription] || 1;
     };
 
     // Static methods
-    userSchema.statics.findByEmail = function(email: string): Promise<IUserDocument | null> {
+    userSchema.statics['findByEmail'] = function(email: string): Promise<IUserDocument | null> {
       return this.findOne({ email: email.toLowerCase() });
     };
 
-    userSchema.statics.createUser = async function(userData: Partial<IUser>): Promise<IUserDocument> {
+    userSchema.statics['createUser'] = async function(userData: Partial<IUser>): Promise<IUserDocument> {
       const user = new this(userData);
       return user.save();
     };

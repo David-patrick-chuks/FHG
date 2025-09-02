@@ -16,12 +16,17 @@ export class QueueService {
 
     try {
       // Create email queue
+      const redisConfig: any = {
+        host: process.env['REDIS_HOST'] || 'localhost',
+        port: parseInt(process.env['REDIS_PORT'] || '6379')
+      };
+      
+      if (process.env['REDIS_PASSWORD']) {
+        redisConfig.password = process.env['REDIS_PASSWORD'];
+      }
+
       this.emailQueue = new Bull('email-queue', {
-        redis: {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379'),
-          password: process.env.REDIS_PASSWORD || undefined
-        },
+        redis: redisConfig,
         defaultJobOptions: {
           removeOnComplete: 100,
           removeOnFail: 50,
@@ -108,7 +113,9 @@ export class QueueService {
       const now = Date.now();
 
       for (let i = 0; i < emails.length; i++) {
-        const { email, message } = emails[i];
+        const emailItem = emails[i];
+        if (!emailItem) continue;
+        const { email, message } = emailItem;
         const scheduledFor = new Date(now + (i * delayBetweenEmails));
 
         const job = await this.addEmailJob(
@@ -164,7 +171,7 @@ export class QueueService {
         completed: completed.length,
         failed: failed.length,
         delayed: delayed.length,
-        paused: this.emailQueue.isPaused()
+        paused: await this.emailQueue.isPaused()
       };
     } catch (error) {
       this.logger.error('Error getting queue status:', error);

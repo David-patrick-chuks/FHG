@@ -1,8 +1,7 @@
 import { Logger } from '../utils/Logger';
 import SubscriptionModel, { ISubscriptionDocument } from '../models/Subscription';
 import UserModel from '../models/User';
-import { CreateSubscriptionRequest, SubscriptionStatus, SubscriptionTier, PaymentMethod, ApiResponse } from '../types';
-import { ErrorHandler } from '../middleware/ErrorHandler';
+import { CreateSubscriptionRequest, SubscriptionStatus, SubscriptionTier, ApiResponse } from '../types';
 
 export class SubscriptionService {
   private static logger: Logger = new Logger();
@@ -47,7 +46,7 @@ export class SubscriptionService {
       await subscription.save();
 
       // Update user's subscription info
-      user.subscriptionTier = subscriptionData.tier;
+      user.subscription = subscriptionData.tier;
       user.subscriptionExpiresAt = endDate;
       await user.save();
 
@@ -252,7 +251,7 @@ export class SubscriptionService {
       // Update user's subscription info
       const user = await UserModel.findById(userId);
       if (user) {
-        user.subscriptionTier = 'FREE';
+        user.subscription = SubscriptionTier.FREE;
         user.subscriptionExpiresAt = new Date();
         await user.save();
       }
@@ -455,7 +454,7 @@ export class SubscriptionService {
           // Update user's subscription info
           const user = await UserModel.findById(subscription.userId);
           if (user) {
-            user.subscriptionTier = 'FREE';
+            user.subscription = SubscriptionTier.FREE;
             user.subscriptionExpiresAt = new Date();
             await user.save();
           }

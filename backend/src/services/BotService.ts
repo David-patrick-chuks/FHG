@@ -1,8 +1,7 @@
-import { Logger } from '../utils/Logger';
 import BotModel, { IBotDocument } from '../models/Bot';
 import UserModel from '../models/User';
-import { CreateBotRequest, ApiResponse, SubscriptionTier } from '../types';
-import { ErrorHandler } from '../middleware/ErrorHandler';
+import { ApiResponse, CreateBotRequest } from '../types';
+import { Logger } from '../utils/Logger';
 
 export class BotService {
   private static logger: Logger = new Logger();
@@ -322,7 +321,7 @@ export class BotService {
       const stats = {
         totalEmailsSent: 0, // TODO: Get from SentEmail model
         dailyEmailCount: bot.dailyEmailCount,
-        lastEmailSentAt: bot.lastEmailSentAt,
+        lastEmailSentAt: bot.lastEmailSentAt || null,
         isActive: bot.isActive,
         canSendEmail: bot.canSendEmail()
       };

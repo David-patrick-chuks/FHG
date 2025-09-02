@@ -1,8 +1,9 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
-import { ISubscription, SubscriptionStatus, SubscriptionTier, PaymentMethod } from '../types';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+import { ISubscription, PaymentMethod, SubscriptionStatus, SubscriptionTier } from '../types';
 
-export interface ISubscriptionDocument extends ISubscription, Document {
-  isActive(): boolean;
+export interface ISubscriptionDocument extends Omit<ISubscription, '_id'>, Document {
+  isActive: boolean; // Property for the boolean value
+  isActiveMethod(): boolean; // Method that returns boolean (renamed to avoid conflict)
   isExpired(): boolean;
   daysUntilExpiry(): number;
   renew(duration: number): Promise<void>;
@@ -101,61 +102,61 @@ export class SubscriptionModel {
     subscriptionSchema.index({ status: 1, endDate: 1 });
 
     // Instance methods
-    subscriptionSchema.methods.isActive = function(): boolean {
-      return this.status === SubscriptionStatus.ACTIVE && 
-             this.isActive === true && 
-             this.endDate > new Date();
+    subscriptionSchema.methods['isActiveMethod'] = function(): boolean {
+      return this['status'] === SubscriptionStatus.ACTIVE && 
+             this['isActive'] === true && 
+             this['endDate'] > new Date();
     };
 
-    subscriptionSchema.methods.isExpired = function(): boolean {
-      return this.endDate <= new Date();
+    subscriptionSchema.methods['isExpired'] = function(): boolean {
+      return this['endDate'] <= new Date();
     };
 
-    subscriptionSchema.methods.daysUntilExpiry = function(): number {
+    subscriptionSchema.methods['daysUntilExpiry'] = function(): number {
       const now = new Date();
-      const timeDiff = this.endDate.getTime() - now.getTime();
+      const timeDiff = this['endDate'].getTime() - now.getTime();
       return Math.ceil(timeDiff / (1000 * 3600 * 24));
     };
 
-    subscriptionSchema.methods.renew = async function(duration: number): Promise<void> {
-      const currentEndDate = this.endDate;
+    subscriptionSchema.methods['renew'] = async function(duration: number): Promise<void> {
+      const currentEndDate = this['endDate'];
       const newEndDate = new Date(currentEndDate);
       newEndDate.setMonth(newEndDate.getMonth() + duration);
       
-      this.endDate = newEndDate;
-      this.status = SubscriptionStatus.ACTIVE;
-      this.isActive = true;
-      await this.save();
+      this['endDate'] = newEndDate;
+      this['status'] = SubscriptionStatus.ACTIVE;
+      this['isActive'] = true;
+      await this['save']();
     };
 
-    subscriptionSchema.methods.cancel = async function(): Promise<void> {
-      this.status = SubscriptionStatus.CANCELLED;
-      this.isActive = false;
-      await this.save();
+    subscriptionSchema.methods['cancel'] = async function(): Promise<void> {
+      this['status'] = SubscriptionStatus.CANCELLED;
+      this['isActive'] = false;
+      await this['save']();
     };
 
-    subscriptionSchema.methods.suspend = async function(): Promise<void> {
-      this.status = SubscriptionStatus.SUSPENDED;
-      this.isActive = false;
-      await this.save();
+    subscriptionSchema.methods['suspend'] = async function(): Promise<void> {
+      this['status'] = SubscriptionStatus.SUSPENDED;
+      this['isActive'] = false;
+      await this['save']();
     };
 
-    subscriptionSchema.methods.activate = async function(): Promise<void> {
-      if (this.isExpired()) {
+    subscriptionSchema.methods['activate'] = async function(): Promise<void> {
+      if (this['isExpired']()) {
         throw new Error('Cannot activate expired subscription');
       }
       
-      this.status = SubscriptionStatus.ACTIVE;
-      this.isActive = true;
-      await this.save();
+      this['status'] = SubscriptionStatus.ACTIVE;
+      this['isActive'] = true;
+      await this['save']();
     };
 
     // Static methods
-    subscriptionSchema.statics.findByUserId = function(userId: string): Promise<ISubscriptionDocument[]> {
+    subscriptionSchema.statics['findByUserId'] = function(userId: string): Promise<ISubscriptionDocument[]> {
       return this.find({ userId }).sort({ startDate: -1 });
     };
 
-    subscriptionSchema.statics.findActiveByUserId = function(userId: string): Promise<ISubscriptionDocument | null> {
+    subscriptionSchema.statics['findActiveByUserId'] = function(userId: string): Promise<ISubscriptionDocument | null> {
       return this.findOne({ 
         userId, 
         status: SubscriptionStatus.ACTIVE, 
@@ -164,15 +165,15 @@ export class SubscriptionModel {
       });
     };
 
-    subscriptionSchema.statics.findByStatus = function(status: SubscriptionStatus): Promise<ISubscriptionDocument[]> {
+    subscriptionSchema.statics['findByStatus'] = function(status: SubscriptionStatus): Promise<ISubscriptionDocument[]> {
       return this.find({ status }).sort({ startDate: -1 });
     };
 
-    subscriptionSchema.statics.findByTier = function(tier: SubscriptionTier): Promise<ISubscriptionDocument[]> {
+    subscriptionSchema.statics['findByTier'] = function(tier: SubscriptionTier): Promise<ISubscriptionDocument[]> {
       return this.find({ tier }).sort({ startDate: -1 });
     };
 
-    subscriptionSchema.statics.getActiveSubscriptions = function(): Promise<ISubscriptionDocument[]> {
+    subscriptionSchema.statics['getActiveSubscriptions'] = function(): Promise<ISubscriptionDocument[]> {
       return this.find({ 
         status: SubscriptionStatus.ACTIVE, 
         isActive: true,
@@ -180,7 +181,7 @@ export class SubscriptionModel {
       }).sort({ startDate: -1 });
     };
 
-    subscriptionSchema.statics.getExpiredSubscriptions = function(): Promise<ISubscriptionDocument[]> {
+    subscriptionSchema.statics['getExpiredSubscriptions'] = function(): Promise<ISubscriptionDocument[]> {
       return this.find({ 
         $or: [
           { endDate: { $lte: new Date() } },
@@ -189,7 +190,7 @@ export class SubscriptionModel {
       }).sort({ endDate: -1 });
     };
 
-    subscriptionSchema.statics.getRevenueStats = async function(startDate: Date, endDate: Date): Promise<{
+    subscriptionSchema.statics['getRevenueStats'] = async function(startDate: Date, endDate: Date): Promise<{
       totalRevenue: number;
       subscriptionCount: number;
       averageRevenue: number;
@@ -227,7 +228,10 @@ export class SubscriptionModel {
       };
 
       result.revenueByTier.forEach((item: any) => {
-        revenueByTier[item.tier] = (revenueByTier[item.tier] || 0) + item.amount;
+        const tier = item.tier as SubscriptionTier;
+        if (tier && revenueByTier.hasOwnProperty(tier)) {
+          revenueByTier[tier] = (revenueByTier[tier] || 0) + item.amount;
+        }
       });
 
       return {

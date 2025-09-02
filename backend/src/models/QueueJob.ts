@@ -125,76 +125,76 @@ export class QueueJobModel {
     queueJobSchema.index({ campaignId: 1, status: 1 });
 
     // Instance methods
-    queueJobSchema.methods.markAsProcessing = async function(): Promise<void> {
-      this.status = QueueJobStatus.PROCESSING;
-      await this.save();
+    (queueJobSchema.methods as any)['markAsProcessing'] = async function(): Promise<void> {
+      (this as any)['status'] = QueueJobStatus.PROCESSING;
+      await (this as any)['save']();
     };
 
-    queueJobSchema.methods.markAsCompleted = async function(): Promise<void> {
-      this.status = QueueJobStatus.COMPLETED;
-      this.processedAt = new Date();
-      await this.save();
+    (queueJobSchema.methods as any)['markAsCompleted'] = async function(): Promise<void> {
+      (this as any)['status'] = QueueJobStatus.COMPLETED;
+      (this as any)['processedAt'] = new Date();
+      await (this as any)['save']();
     };
 
-    queueJobSchema.methods.markAsFailed = async function(errorMessage: string): Promise<void> {
-      this.status = QueueJobStatus.FAILED;
-      this.processedAt = new Date();
-      this.errorMessage = errorMessage;
-      await this.save();
+    (queueJobSchema.methods as any)['markAsFailed'] = async function(errorMessage: string): Promise<void> {
+      (this as any)['status'] = QueueJobStatus.FAILED;
+      (this as any)['processedAt'] = new Date();
+      (this as any)['errorMessage'] = errorMessage;
+      await (this as any)['save']();
     };
 
-    queueJobSchema.methods.markAsCancelled = async function(): Promise<void> {
-      this.status = QueueJobStatus.CANCELLED;
-      this.processedAt = new Date();
-      await this.save();
+    (queueJobSchema.methods as any)['markAsCancelled'] = async function(): Promise<void> {
+      (this as any)['status'] = QueueJobStatus.CANCELLED;
+      (this as any)['processedAt'] = new Date();
+      await (this as any)['save']();
     };
 
-    queueJobSchema.methods.incrementAttempts = async function(): Promise<void> {
-      this.attempts += 1;
-      await this.save();
+    (queueJobSchema.methods as any)['incrementAttempts'] = async function(): Promise<void> {
+      (this as any)['attempts'] += 1;
+      await (this as any)['save']();
     };
 
-    queueJobSchema.methods.canRetry = function(): boolean {
-      return this.attempts < this.maxAttempts && this.status === QueueJobStatus.FAILED;
+    (queueJobSchema.methods as any)['canRetry'] = function(): boolean {
+      return (this as any)['attempts'] < (this as any)['maxAttempts'] && (this as any)['status'] === QueueJobStatus.FAILED;
     };
 
-    queueJobSchema.methods.getProcessingTime = function(): number | null {
-      if (this.processedAt && this.scheduledFor) {
-        return this.processedAt.getTime() - this.scheduledFor.getTime();
+    (queueJobSchema.methods as any)['getProcessingTime'] = function(): number | null {
+      if ((this as any)['processedAt'] && (this as any)['scheduledFor']) {
+        return (this as any)['processedAt'].getTime() - (this as any)['scheduledFor'].getTime();
       }
       return null;
     };
 
-    queueJobSchema.methods.getQueueTime = function(): number {
+    (queueJobSchema.methods as any)['getQueueTime'] = function(): number {
       const now = new Date();
-      return now.getTime() - this.createdAt.getTime();
+      return now.getTime() - (this as any)['createdAt'].getTime();
     };
 
     // Static methods
-    queueJobSchema.statics.findByCampaignId = function(campaignId: string): Promise<IQueueJobDocument[]> {
+    (queueJobSchema.statics as any)['findByCampaignId'] = function(campaignId: string): Promise<IQueueJobDocument[]> {
       return this.find({ campaignId }).sort({ createdAt: -1 });
     };
 
-    queueJobSchema.statics.findByBotId = function(botId: string): Promise<IQueueJobDocument[]> {
+    (queueJobSchema.statics as any)['findByBotId'] = function(botId: string): Promise<IQueueJobDocument[]> {
       return this.find({ botId }).sort({ createdAt: -1 });
     };
 
-    queueJobSchema.statics.findPendingJobs = function(): Promise<IQueueJobDocument[]> {
+    (queueJobSchema.statics as any)['findPendingJobs'] = function(): Promise<IQueueJobDocument[]> {
       return this.find({ 
         status: QueueJobStatus.PENDING,
         scheduledFor: { $lte: new Date() }
       }).sort({ priority: -1, scheduledFor: 1 });
     };
 
-    queueJobSchema.statics.findFailedJobs = function(): Promise<IQueueJobDocument[]> {
+    (queueJobSchema.statics as any)['findFailedJobs'] = function(): Promise<IQueueJobDocument[]> {
       return this.find({ status: QueueJobStatus.FAILED }).sort({ createdAt: -1 });
     };
 
-    queueJobSchema.statics.findJobsByStatus = function(status: QueueJobStatus): Promise<IQueueJobDocument[]> {
+    (queueJobSchema.statics as any)['findJobsByStatus'] = function(status: QueueJobStatus): Promise<IQueueJobDocument[]> {
       return this.find({ status }).sort({ createdAt: -1 });
     };
 
-    queueJobSchema.statics.getQueueStats = async function(): Promise<{
+    (queueJobSchema.statics as any)['getQueueStats'] = async function(): Promise<{
       total: number;
       pending: number;
       processing: number;
@@ -260,7 +260,7 @@ export class QueueJobModel {
       };
     };
 
-    queueJobSchema.statics.cleanupOldJobs = async function(days: number): Promise<number> {
+    (queueJobSchema.statics as any)['cleanupOldJobs'] = async function(days: number): Promise<number> {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
 

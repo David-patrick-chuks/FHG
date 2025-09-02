@@ -205,6 +205,13 @@ export interface UpdateSubscriptionRequest {
   amount: number;
 }
 
+export interface CreateSubscriptionRequest {
+  tier: SubscriptionTier;
+  duration: number; // in months
+  paymentMethod: PaymentMethod;
+  amount: number;
+}
+
 // Utility Types
 export type ObjectId = string;
 export type Email = string;

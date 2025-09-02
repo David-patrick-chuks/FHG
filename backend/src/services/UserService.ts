@@ -1,9 +1,7 @@
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Logger } from '../utils/Logger';
 import UserModel, { IUserDocument } from '../models/User';
-import { CreateUserRequest, LoginRequest, SubscriptionTier, ApiResponse } from '../types';
-import { ErrorHandler } from '../middleware/ErrorHandler';
+import { ApiResponse, CreateUserRequest, LoginRequest } from '../types';
+import { Logger } from '../utils/Logger';
 
 export class UserService {
   private static logger: Logger = new Logger();
@@ -81,7 +79,7 @@ export class UserService {
       await user.updateLastLogin();
 
       // Generate JWT token
-      const token = this.generateToken(user._id);
+      const token = this.generateToken((user._id as any).toString());
 
       this.logger.info('User logged in successfully', { userId: user._id, email: user.email });
       
@@ -286,7 +284,7 @@ export class UserService {
 
   public static async verifyToken(token: string): Promise<ApiResponse<{ userId: string }>> {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+      const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as { userId: string };
       
       const user = await UserModel.findById(decoded.userId);
       if (!user || !user.isActive) {
@@ -316,8 +314,8 @@ export class UserService {
   private static generateToken(userId: string): string {
     return jwt.sign(
       { userId },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      process.env['JWT_SECRET']!,
+      { expiresIn: process.env['JWT_EXPIRES_IN'] || '7d' } as any
     );
   }
 

@@ -171,7 +171,16 @@ export class QueueController {
   public static async getJobsByCampaign(req: Request, res: Response): Promise<void> {
     try {
       const adminId = (req as any).user.id;
-      const campaignId = req.params.campaignId;
+      const campaignId = req.params['campaignId'];
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       this.logger.info('Campaign jobs retrieval request', {
         adminId,
@@ -196,7 +205,16 @@ export class QueueController {
   public static async getJobsByBot(req: Request, res: Response): Promise<void> {
     try {
       const adminId = (req as any).user.id;
-      const botId = req.params.botId;
+      const botId = req.params['botId'];
+
+      if (!botId) {
+        res.status(400).json({
+          success: false,
+          message: 'Bot ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       this.logger.info('Bot jobs retrieval request', {
         adminId,

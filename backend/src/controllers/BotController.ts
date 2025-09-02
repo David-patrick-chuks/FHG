@@ -117,8 +117,8 @@ export class BotController {
 
   public static async updateBot(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
       const updateData = req.body;
 
       // Remove sensitive fields that shouldn't be updated via this endpoint
@@ -158,8 +158,8 @@ export class BotController {
 
   public static async deleteBot(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
 
       this.logger.info('Bot deletion request', {
         userId,
@@ -186,8 +186,8 @@ export class BotController {
 
   public static async toggleBotStatus(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
 
       this.logger.info('Bot status toggle request', {
         userId,
@@ -219,8 +219,8 @@ export class BotController {
 
   public static async updateBotPrompt(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
       const { prompt } = req.body;
 
       if (!prompt) {
@@ -282,8 +282,8 @@ export class BotController {
 
   public static async getBotStats(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
 
       this.logger.info('Bot stats request', {
         userId,
@@ -311,8 +311,8 @@ export class BotController {
 
   public static async testBotConnection(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
 
       this.logger.info('Bot connection test request', {
         userId,
@@ -340,9 +340,18 @@ export class BotController {
 
   public static async getBotEmailStats(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const botId = req.params.id;
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
       const days = parseInt(req.query.days as string) || 30;
+
+      if (!botId) {
+        res.status(400).json({
+          success: false,
+          message: 'Bot ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       // Validate days parameter
       if (days < 1 || days > 365) {

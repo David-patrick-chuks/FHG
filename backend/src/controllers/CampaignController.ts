@@ -223,14 +223,23 @@ export class CampaignController {
 
   public static async pauseCampaign(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
 
       this.logger.info('Campaign pause request', {
         userId,
         campaignId,
         ip: req.ip
       });
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       const result = await CampaignService.pauseCampaign(campaignId, userId);
 
@@ -252,8 +261,17 @@ export class CampaignController {
 
   public static async resumeCampaign(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       this.logger.info('Campaign resume request', {
         userId,
@@ -281,8 +299,17 @@ export class CampaignController {
 
   public static async completeCampaign(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       this.logger.info('Campaign completion request', {
         userId,
@@ -310,8 +337,17 @@ export class CampaignController {
 
   public static async cancelCampaign(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       this.logger.info('Campaign cancellation request', {
         userId,
@@ -339,9 +375,18 @@ export class CampaignController {
 
   public static async regenerateAIMessages(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
       const { prompt } = req.body;
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       // Validate prompt if provided
       if (prompt && prompt.trim().length > 1000) {
@@ -380,8 +425,17 @@ export class CampaignController {
 
   public static async getCampaignStats(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       this.logger.info('Campaign stats request', {
         userId,
@@ -409,9 +463,18 @@ export class CampaignController {
 
   public static async uploadEmailList(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
       const { emailList } = req.body;
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       if (!emailList || !Array.isArray(emailList) || emailList.length === 0) {
         res.status(400).json({
@@ -487,9 +550,18 @@ export class CampaignController {
 
   public static async selectMessage(req: Request, res: Response): Promise<void> {
     try {
-      const userId = (req as any).user.id;
-      const campaignId = req.params.id;
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
       const { messageIndex } = req.body;
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
 
       if (messageIndex === undefined || messageIndex < 0) {
         res.status(400).json({
@@ -514,7 +586,7 @@ export class CampaignController {
         return;
       }
 
-      if (messageIndex >= campaign.data.aiMessages.length) {
+      if (campaign.data && messageIndex >= campaign.data.aiMessages.length) {
         res.status(400).json({
           success: false,
           message: 'Message index is out of range',
@@ -535,7 +607,7 @@ export class CampaignController {
           data: {
             campaignId,
             selectedMessageIndex: messageIndex,
-            selectedMessage: result.data.aiMessages[messageIndex]
+                         selectedMessage: result.data?.aiMessages?.[messageIndex]
           },
           timestamp: new Date()
         });
