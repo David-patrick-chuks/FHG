@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import {
     BarChart3,
     Bot,
-    FileText,
     LayoutDashboard,
     LogOut,
     Mail,
@@ -53,11 +52,6 @@ const sidebarItems: SidebarItem[] = [
     label: 'Analytics',
     href: '/dashboard/analytics',
     icon: BarChart3,
-  },
-  {
-    label: 'Templates',
-    href: '/dashboard/templates',
-    icon: FileText,
   },
 ];
 
