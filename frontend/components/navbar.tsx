@@ -123,7 +123,7 @@ export function Navbar() {
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-blue-500 text-white text-sm font-semibold">
-                          {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                          {user?.username?.charAt(0)?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -132,7 +132,7 @@ export function Navbar() {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
-                          {user?.firstName} {user?.lastName}
+                          {user?.username}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
                           {user?.email}
