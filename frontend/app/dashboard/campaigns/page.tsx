@@ -4,12 +4,12 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useDelete, useGet, usePost, usePut } from '@/hooks/useApi';
+import { useDelete, useGet, usePut } from '@/hooks/useApi';
 import { Bot, Campaign } from '@/types';
 import { BarChart3, Calendar, Edit, Eye, Mail, Plus, Trash2, Upload, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -36,32 +36,8 @@ export default function CampaignsPage() {
   const { data: bots, loading: botsLoading } = useGet<Bot[]>('/bots');
   
   // API operations
-  const { execute: createCampaign, loading: creating } = usePost('/campaigns');
   const { execute: updateCampaign, loading: updating } = usePut('/campaigns');
   const { execute: deleteCampaign, loading: deleting } = useDelete('/campaigns');
-
-  const handleCreateCampaign = async () => {
-    try {
-      const emailList = formData.emailList.split('\n').filter(email => email.trim());
-      const response = await createCampaign({
-        name: formData.name,
-        description: formData.description,
-        botId: formData.botId,
-        emailList,
-        aiPrompt: formData.aiPrompt
-      });
-      
-      if (response) {
-        setIsCreateDialogOpen(false);
-        setFormData({ name: '', description: '', botId: '', emailList: '', aiPrompt: '' });
-        setUploadedEmails([]);
-        setUploadedFileName('');
-        resetCampaigns();
-      }
-    } catch (error) {
-      console.error('Failed to create campaign:', error);
-    }
-  };
 
   const handleEditCampaign = async () => {
     if (!editingCampaign) return;
@@ -252,203 +228,6 @@ export default function CampaignsPage() {
             <Plus className="w-5 h-5 mr-2" />
             Create Campaign
           </Button>
-
-
-
-
-
-
-
-                        
-                        <div 
-                          className={`border-2 border-dashed transition-all duration-200 rounded-xl p-8 text-center ${
-                            isDragOver 
-                              ? 'border-green-500 bg-green-50/80 scale-105' 
-                              : 'border-gray-300 hover:border-green-400 bg-white hover:bg-green-50/50'
-                          }`}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={handleDrop}
-                        >
-                          <input
-                            type="file"
-                            id="fileUpload"
-                            accept=".csv,.txt"
-                            onChange={handleFileUpload}
-                            className="hidden"
-                            disabled={isUploading}
-                          />
-                          <label htmlFor="fileUpload" className="cursor-pointer block">
-                            {isUploading ? (
-                              <div className="space-y-4">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                                <p className="text-base font-medium text-green-600">Processing your file...</p>
-                              </div>
-                            ) : (
-                              <div className="space-y-4">
-                                <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                                  <Upload className="w-10 h-10 text-green-600" />
-                                </div>
-                                <div>
-                                  <p className="text-lg font-semibold text-gray-900">
-                                    {isDragOver ? 'Drop your file here!' : 'Upload Email List'}
-                                  </p>
-                                  <p className="text-sm text-gray-600 mt-2">
-                                    {isDragOver ? 'Release to upload' : 'Drag and drop your file here, or click to browse'}
-                                  </p>
-                                  <p className="text-xs text-gray-500 mt-3">
-                                    Supports CSV and text files up to 5MB
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                          </label>
-                        </div>
-
-                        {/* File Type Info */}
-                        <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                            <span>CSV files</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                            <span>Text files</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                            <span>Max 5MB</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Uploaded File Success */}
-                      {uploadedFileName && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                <Upload className="w-6 h-6 text-green-600" />
-                              </div>
-                              <div>
-                                <p className="text-base font-medium text-green-900">
-                                  {uploadedFileName}
-                                </p>
-                                <p className="text-sm text-green-700">
-                                  ✅ {uploadedEmails.length} valid emails extracted
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={clearUploadedEmails}
-                              className="text-green-600 hover:text-green-800 hover:bg-green-100"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Divider */}
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-gray-200" />
-                        </div>
-                        <div className="relative flex justify-center text-sm uppercase">
-                          <span className="bg-gray-50 px-4 text-gray-500 font-medium">Or</span>
-                        </div>
-                      </div>
-
-                      {/* Manual Email Input */}
-                      <div className="space-y-3">
-                        <div className="text-center">
-                          <h4 className="text-base font-medium text-gray-900">Enter Emails Manually</h4>
-                          <p className="text-sm text-gray-600">Type or paste email addresses directly</p>
-                        </div>
-                        <Textarea
-                          id="emailList"
-                          value={formData.emailList}
-                          onChange={(e) => setFormData({ ...formData, emailList: e.target.value })}
-                          placeholder="Enter email addresses, one per line&#10;example@domain.com&#10;another@domain.com&#10;contact@company.com"
-                          rows={5}
-                          className="focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-sm"
-                        />
-                        <p className="text-xs text-gray-500 text-center">
-                          Type or paste email addresses, one per line
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 3: AI Configuration */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-semibold text-sm">3</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">AI Configuration (Optional)</h3>
-                  </div>
-
-                  <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
-                    <div className="space-y-3">
-                      <Label htmlFor="aiPrompt" className="text-sm font-medium text-gray-700">
-                        AI Prompt <span className="text-gray-500 font-normal">(Optional)</span>
-                      </Label>
-                      <Textarea
-                        id="aiPrompt"
-                        value={formData.aiPrompt}
-                        onChange={(e) => setFormData({ ...formData, aiPrompt: e.target.value })}
-                        placeholder="Describe the type of email you want the AI to generate...&#10;Example: Write a professional email introducing our new product to potential customers"
-                        rows={4}
-                        className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
-                      />
-                      <div className="flex items-start space-x-2 text-xs text-purple-700">
-                        <div className="w-4 h-4 bg-purple-200 rounded-full flex items-center justify-center mt-0.5">
-                          <span className="text-purple-600 text-xs">i</span>
-                        </div>
-                        <p>
-                          This prompt defines how your AI bot will write emails. Be specific about tone, style, and goals. 
-                          <span className="font-medium"> This field is optional and can be configured later.</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsCreateDialogOpen(false)}
-                    className="px-6 py-3 text-base"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleCreateCampaign} 
-                    disabled={creating || !formData.name.trim() || !formData.botId}
-                    className="px-8 py-3 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    {creating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Creating Campaign...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-5 h-5 mr-2" />
-                        Create Campaign
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Campaigns List */}
@@ -570,7 +349,7 @@ export default function CampaignsPage() {
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   Create your first email campaign to get started
                 </p>
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Button onClick={() => router.push('/dashboard/campaigns/create')}>
                   <Plus className="w-4 h-4 mr-2" />
                   Create Campaign
                 </Button>
