@@ -82,20 +82,6 @@ export class Logger {
           maxFiles: 5,
           tailable: true
         })
-      ],
-      exceptionHandlers: [
-        new winston.transports.File({
-          filename: path.join(this.logDir, 'exceptions.log'),
-          maxsize: 5242880, // 5MB
-          maxFiles: 5
-        })
-      ],
-      rejectionHandlers: [
-        new winston.transports.File({
-          filename: path.join(this.logDir, 'rejections.log'),
-          maxsize: 5242880, // 5MB
-          maxFiles: 5
-        })
       ]
     });
   }

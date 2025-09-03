@@ -4,67 +4,67 @@ import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 
 export class BotRoutes {
-  private static router: Router = Router();
-
   public static getRouter(): Router {
+    const router = Router();
+
     // Apply global middleware
-    this.router.use(ValidationMiddleware.sanitizeRequestBody);
+    router.use(ValidationMiddleware.sanitizeRequestBody);
 
     // All bot routes require authentication
-    this.router.use(AuthMiddleware.authenticate);
-    this.router.use(AuthMiddleware.requireAuth);
-    this.router.use(AuthMiddleware.rateLimitByUser);
+    router.use(AuthMiddleware.authenticate);
+    router.use(AuthMiddleware.requireAuth);
+    router.use(AuthMiddleware.rateLimitByUser);
 
     // Bot management
-    this.router.post('/', 
+    router.post('/', 
       AuthMiddleware.validateSubscriptionLimits('bots'),
       ValidationMiddleware.validateCreateBot,
       BotController.createBot
     );
 
-    this.router.get('/', 
+    router.get('/', 
       ValidationMiddleware.validatePagination,
       BotController.getBots
     );
 
-    this.router.get('/:id', 
+    router.get('/:id', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.getBot
     );
 
-    this.router.put('/:id', 
+    router.put('/:id', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.updateBot
     );
 
-    this.router.delete('/:id', 
+    router.delete('/:id', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.deleteBot
     );
 
     // Bot status management
-    this.router.post('/:id/toggle', 
+    router.post('/:id/toggle', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.toggleBotStatus
     );
 
-    this.router.post('/:id/test-smtp', 
+    router.post('/:id/test-smtp', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.testBotConnection
     );
 
     // Bot statistics
-    this.router.get('/:id/stats', 
+    router.get('/:id/stats', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.getBotStats
     );
 
-    this.router.get('/:id/email-stats', 
+    router.get('/:id/email-stats', 
       AuthMiddleware.validateOwnership('bot', 'id'),
       BotController.getBotEmailStats
     );
 
-    return this.router;
+    return router;
   }
 
   public static getBasePath(): string {

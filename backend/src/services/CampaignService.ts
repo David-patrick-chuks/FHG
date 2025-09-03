@@ -3,7 +3,7 @@ import CampaignModel, { ICampaignDocument } from '../models/Campaign';
 import UserModel from '../models/User';
 import { ApiResponse, CampaignStatus, CreateCampaignRequest } from '../types';
 import { Logger } from '../utils/Logger';
-import { EmailService } from './EmailService';
+import { AIService } from './AIService';
 import { QueueService } from './QueueService';
 
 export class CampaignService {
@@ -60,7 +60,7 @@ export class CampaignService {
       }
 
       // Generate AI messages
-      const aiResult = await EmailService.generateAIMessages(
+      const aiResult = await AIService.generateEmailMessages(
         bot.prompt,
         user.getMaxAIMessageVariations()
       );
@@ -582,7 +582,7 @@ export class CampaignService {
          };
        }
 
-       const aiResult = await EmailService.generateAIMessages(
+       const aiResult = await AIService.generateEmailMessages(
          prompt || bot.prompt,
          user.getMaxAIMessageVariations()
        );

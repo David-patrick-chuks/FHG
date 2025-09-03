@@ -1,79 +1,16 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import nodemailer from 'nodemailer';
 import BotModel from '../models/Bot';
 import SentEmailModel from '../models/SentEmail';
 import { ApiResponse, EmailStatus } from '../types';
 import { Logger } from '../utils/Logger';
+import { AIService } from './AIService';
 
 export class EmailService {
   private static logger: Logger = new Logger();
-  private static genAI: GoogleGenerativeAI;
 
-  static {
-    this.genAI = new GoogleGenerativeAI(process.env['GEMINI_API_KEY']!);
-  }
-
-  public static async generateAIMessages(prompt: string, count: number = 20): Promise<ApiResponse<string[]>> {
-    try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-      const fullPrompt = `
-        Generate ${count} unique, professional email outreach messages based on the following prompt:
-        
-        "${prompt}"
-        
-        Requirements:
-        - Each message should be different and unique
-        - Keep messages professional and engaging
-        - Length: 100-200 words
-        - Include a clear call-to-action
-        - Avoid spam-like language
-        - Make each message feel personal and authentic
-        
-        Format each message as a separate paragraph. Return only the messages, one per line.
-      `;
-
-      const result = await model.generateContent(fullPrompt);
-      const response = await result.response;
-      const text = response.text();
-
-      // Split the response into individual messages
-      const messages = text
-        .split('\n')
-        .map(msg => msg.trim())
-        .filter(msg => msg.length > 50) // Filter out very short messages
-        .slice(0, count);
-
-      if (messages.length === 0) {
-        return {
-          success: false,
-          message: 'Failed to generate AI messages',
-          timestamp: new Date()
-        };
-      }
-
-      this.logger.info('AI messages generated successfully', { 
-        count: messages.length, 
-        promptLength: prompt.length 
-      });
-
-      return {
-        success: true,
-        message: `${messages.length} AI messages generated successfully`,
-        data: messages,
-        timestamp: new Date()
-      };
-    } catch (error) {
-      this.logger.error('Error generating AI messages:', error);
-      return {
-        success: false,
-        message: 'Failed to generate AI messages',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date()
-      };
-    }
-  }
-
+  /**
+   * Send a single email using a bot
+   */
   public static async sendEmail(
     botId: string,
     recipientEmail: string,
@@ -184,6 +121,9 @@ export class EmailService {
     }
   }
 
+  /**
+   * Send multiple emails in bulk with rate limiting
+   */
   public static async sendBulkEmails(
     botId: string,
     emails: Array<{ email: string; message: string }>,
@@ -264,6 +204,9 @@ export class EmailService {
     }
   }
 
+  /**
+   * Test bot SMTP connection
+   */
   public static async testBotConnection(botId: string): Promise<ApiResponse<{ connected: boolean; message: string }>> {
     try {
       const bot = await BotModel.findById(botId);
@@ -312,6 +255,9 @@ export class EmailService {
     }
   }
 
+  /**
+   * Get email statistics for a bot
+   */
   public static async getEmailStats(botId: string, days: number = 30): Promise<ApiResponse<{
     totalSent: number;
     totalDelivered: number;
@@ -354,6 +300,57 @@ export class EmailService {
     }
   }
 
+  /**
+   * Generate AI-powered email messages using AIService
+   */
+  public static async generateAIMessages(
+    prompt: string,
+    count: number = 3
+  ): Promise<ApiResponse<string[]>> {
+    try {
+      const result = await AIService.generateEmailMessages(prompt, count);
+      
+      if (result.success && result.data) {
+        this.logger.info('AI messages generated successfully', {
+          prompt,
+          count,
+          generatedCount: result.data.length
+        });
+        
+        return {
+          success: true,
+          message: 'AI messages generated successfully',
+          data: result.data,
+          timestamp: new Date()
+        };
+      } else {
+        this.logger.error('Failed to generate AI messages', {
+          prompt,
+          count,
+          error: result.message
+        });
+        
+        return {
+          success: false,
+          message: result.message || 'Failed to generate AI messages',
+          timestamp: new Date()
+        };
+      }
+    } catch (error) {
+      this.logger.error('Error generating AI messages:', error);
+      
+      return {
+        success: false,
+        message: 'Failed to generate AI messages',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Utility method to add delay between operations
+   */
   private static delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

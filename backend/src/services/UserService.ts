@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import UserModel, { IUserDocument } from '../models/User';
 import { ApiResponse, CreateUserRequest, LoginRequest } from '../types';
 import { Logger } from '../utils/Logger';
-import dotenv from 'dotenv';
-dotenv.config();
+
 export class UserService {
   private static logger: Logger = new Logger();
 

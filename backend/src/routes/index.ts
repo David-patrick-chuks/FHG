@@ -1,17 +1,17 @@
 import { Router } from 'express';
+import { AdminRoutes } from './AdminRoutes';
 import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
 import { CampaignRoutes } from './CampaignRoutes';
-import { SubscriptionRoutes } from './SubscriptionRoutes';
-import { AdminRoutes } from './AdminRoutes';
 import { QueueRoutes } from './QueueRoutes';
+import { SubscriptionRoutes } from './SubscriptionRoutes';
 
 export class Routes {
-  private static router: Router = Router();
-
   public static getRouter(): Router {
+    const router = Router();
+
     // Health check endpoint
-    this.router.get('/health', (_req, res) => {
+    router.get('/health', (_req, res) => {
       res.status(200).json({
         success: true,
         message: 'Service is healthy',
@@ -22,7 +22,7 @@ export class Routes {
     });
 
     // API version endpoint
-    this.router.get('/version', (_req, res) => {
+    router.get('/version', (_req, res) => {
       res.status(200).json({
         success: true,
         message: 'API version information',
@@ -36,15 +36,15 @@ export class Routes {
     });
 
     // Register all route modules
-    this.router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
-    this.router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
-    this.router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
-    this.router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
-    this.router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
-    this.router.use(QueueRoutes.getBasePath(), QueueRoutes.getRouter());
+    router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
+    router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
+    router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
+    router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
+    router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
+    router.use(QueueRoutes.getBasePath(), QueueRoutes.getRouter());
 
     // 404 handler for undefined routes
-    this.router.use('*', (req, res) => {
+    router.use('/', (req, res) => {
       res.status(404).json({
         success: false,
         message: 'Route not found',
@@ -54,7 +54,7 @@ export class Routes {
       });
     });
 
-    return this.router;
+    return router;
   }
 
   public static getRegisteredRoutes(): string[] {

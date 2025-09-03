@@ -1,7 +1,7 @@
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { DatabaseConnection } from '../database/DatabaseConnection';
@@ -14,24 +14,35 @@ export class Server {
   private app: Application;
   private port: number;
   private server: any;
-  private logger: Logger;
   private database: DatabaseConnection;
+  private logger: Logger;
 
   constructor() {
     this.app = express();
     this.port = parseInt(process.env['PORT'] || '3000', 10);
-    this.logger = new Logger();
     this.database = new DatabaseConnection();
+    this.logger = new Logger();
+    
+    this.initializeServer();
+  }
+
+  /**
+   * Initialize the server with all middleware, routes, and error handling
+   */
+  private initializeServer(): void {
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
   }
 
+  /**
+   * Configure all middleware for the application
+   */
   private setupMiddleware(): void {
-    // Compression middleware
+    // Compression for response optimization
     this.app.use(compression());
     
-    // Security middleware
+    // Security headers
     this.app.use(helmet({
       contentSecurityPolicy: {
         directives: {
@@ -50,214 +61,204 @@ export class Server {
     
     // CORS configuration
     this.app.use(cors({
-      origin: process.env['NODE_ENV'] === 'production' 
-        ? ['https://yourdomain.com'] 
-        : ['http://localhost:3000', 'http://localhost:3001'],
+      origin: this.getCorsOrigins(),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
     }));
 
     // Rate limiting
-    const limiter = rateLimit({
-      windowMs: parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000'), // 15 minutes
-      max: parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100'), // limit each IP to 100 requests per windowMs
+    this.app.use(this.createRateLimiter());
+
+    // Body parsing
+    this.app.use(express.json({ limit: '10mb' }));
+    this.app.use(express.urlencoded({ extended: true }));
+    
+    // Cookie parsing
+    this.app.use(cookieParser());
+    
+    // Request logging
+    this.app.use(RequestLogger.log);
+  }
+
+  /**
+   * Get CORS origins based on environment
+   */
+  private getCorsOrigins(): string[] {
+    return process.env['NODE_ENV'] === 'production' 
+      ? ['https://yourdomain.com'] 
+      : ['http://localhost:3000', 'http://localhost:3001'];
+  }
+
+  /**
+   * Create rate limiter configuration
+   */
+  private createRateLimiter() {
+    return rateLimit({
+      windowMs: parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000'),
+      max: parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100'),
       message: {
         error: 'Too many requests from this IP, please try again later.',
         retryAfter: Math.ceil(parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000') / 1000)
       },
       standardHeaders: true,
       legacyHeaders: false,
-      skip: (req: any) => {
-        // Skip rate limiting for health check and admin routes
-        return req.path === '/api/health' || req.path.startsWith('/api/admin');
+      skip: (req: Request) => {
+        return req.path === '/health' || req.path.startsWith('/api/admin');
       }
     });
-    this.app.use(limiter);
-
-    // Body parsing middleware
-    this.app.use(express.json({ limit: '10mb' }));
-    this.app.use(express.urlencoded({ extended: true }));
-
-    // Cookie parsing middleware
-    this.app.use(cookieParser());
-
-    // Request logging middleware
-    this.app.use(RequestLogger.log);
   }
 
+  /**
+   * Configure application routes
+   */
   private setupRoutes(): void {
-    // Basic health check (for load balancers/monitoring)
-    this.app.get('/health', (_req, res) => {
-      const dbStatus = this.getDatabaseStatus();
-      const isHealthy = this.isHealthy();
-      
-      res.status(isHealthy ? 200 : 503).json({
-        status: isHealthy ? 'OK' : 'SERVICE_UNAVAILABLE',
-        message: isHealthy ? 'Server is healthy' : 'Server is unhealthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: process.env['NODE_ENV'] || 'development',
-        database: dbStatus,
-        server: {
-          listening: this.server ? this.server.listening : false,
-          port: this.port
-        }
-      });
-    });
+    // Health check endpoint
+    this.app.get('/health', this.handleHealthCheck.bind(this));
 
     // API routes
     this.app.use('/api', Routes.getRouter());
 
-    // Log registered routes
-    const registeredRoutes = Routes.getRegisteredRoutes();
-    this.logger.info('Registered API routes:', { routes: registeredRoutes });
-
     // 404 handler for undefined routes
-    this.app.use('*', (req, res) => {
-      res.status(404).json({
-        success: false,
-        message: 'Route not found',
-        path: req.originalUrl,
-        method: req.method,
-        timestamp: new Date().toISOString()
-      });
+    this.app.use('/', this.handleNotFound.bind(this));
+  }
+
+  /**
+   * Handle health check requests
+   */
+  private handleHealthCheck(_req: Request, res: Response): void {
+    res.status(200).json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env['NODE_ENV'] || 'development'
     });
   }
 
+  /**
+   * Handle 404 requests
+   */
+  private handleNotFound(req: Request, res: Response): void {
+    res.status(404).json({
+      success: false,
+      message: 'Route not found',
+      path: req.originalUrl,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
+   * Configure error handling middleware
+   */
   private setupErrorHandling(): void {
-    // Global error handler
     this.app.use(ErrorHandler.handle);
   }
 
+  /**
+   * Start the server and establish database connection
+   */
   public async start(): Promise<void> {
     try {
+      this.logger.info('Starting server initialization...');
+      
       // Connect to database first
-      this.logger.info('🔄 Connecting to database...');
-      try {
-        await this.database.connect();
-        this.logger.info('✅ Database connected successfully');
-      } catch (dbError) {
-        this.logger.warn('⚠️ Database connection failed, continuing without database:', dbError);
-        // Continue without database for development/testing
-      }
-
-      // Start the server
-      return new Promise((resolve, reject) => {
-        try {
-          this.server = this.app.listen(this.port, () => {
-            this.logger.info(`🚀 Main server running on port ${this.port}`);
-            this.logger.info(`📍 Health check: http://localhost:${this.port}/api/health`);
-            this.logger.info(`📍 API version: http://localhost:${this.port}/api/version`);
-            this.logger.info(`📍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
-            resolve();
-          });
-
-          this.server.on('error', (error: Error) => {
-            this.logger.error('Server error:', error);
-            reject(error);
-          });
-        } catch (error) {
-          this.logger.error('Failed to start server:', error);
-          reject(error);
-        }
-      });
+      await this.database.connect();
+      this.logger.info('Database connection established');
+      
+      // Start HTTP server
+      await this.startHttpServer();
+      
+      this.logger.info(`Server successfully started on port ${this.port}`);
+      this.logServerInfo();
+      
     } catch (error) {
       this.logger.error('Failed to start server:', error);
       throw error;
     }
   }
 
+  /**
+   * Start the HTTP server
+   */
+  private async startHttpServer(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.server = this.app.listen(this.port, () => {
+        resolve();
+      });
+
+      this.server.on('error', (error: Error) => {
+        this.logger.error('Server error occurred:', error);
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * Log server information
+   */
+  private logServerInfo(): void {
+    this.logger.info('Server Information:', {
+      port: this.port,
+      environment: process.env['NODE_ENV'] || 'development',
+      nodeVersion: process.version,
+      platform: process.platform,
+      uptime: process.uptime()
+    });
+  }
+
+  /**
+   * Gracefully stop the server
+   */
   public async stop(): Promise<void> {
+    this.logger.info('Initiating server shutdown...');
+    
     try {
-      // Stop the server first
+      // Stop HTTP server
       if (this.server) {
-        // Remove all listeners to prevent memory leaks
-        this.server.removeAllListeners('error');
-        this.server.removeAllListeners('close');
-        this.server.removeAllListeners('listening');
-        
-        await new Promise<void>((resolve, reject) => {
-          this.server.close((error: Error) => {
-            if (error) {
-              this.logger.error('Error closing server:', error);
-              reject(error);
-            } else {
-              this.logger.info('✅ Server stopped successfully');
-              this.server = null;
-              resolve();
-            }
-          });
-        });
+        await this.stopHttpServer();
+        this.logger.info('HTTP server stopped');
       }
 
-      // Disconnect from database
-      try {
-        this.logger.info('🔄 Disconnecting from database...');
-        await this.database.disconnect();
-        this.logger.info('✅ Database disconnected successfully');
-      } catch (dbError) {
-        this.logger.warn('⚠️ Database disconnection failed:', dbError);
-        // Continue with shutdown even if database disconnection fails
-      }
+      // Disconnect database
+      await this.database.disconnect();
+      this.logger.info('Database connection closed');
+      
+      this.logger.info('Server shutdown completed successfully');
+      
     } catch (error) {
       this.logger.error('Error during server shutdown:', error);
       throw error;
     }
   }
 
+  /**
+   * Stop the HTTP server
+   */
+  private async stopHttpServer(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      this.server.close(() => {
+        this.server = null;
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Get the Express application instance
+   */
   public getApp(): Application {
     return this.app;
   }
 
-  public getServerInfo(): any {
+  /**
+   * Get server status information
+   */
+  public getStatus(): { running: boolean; port: number; uptime: number } {
     return {
+      running: this.server && this.server.listening,
       port: this.port,
-      environment: process.env['NODE_ENV'] || 'development',
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      nodeVersion: process.version,
-      platform: process.platform,
-      arch: process.arch,
-      database: {
-        connected: this.database ? this.database.isConnected() : false,
-        uri: process.env['MONGODB_URI'] || 'mongodb://localhost:27017/email-outreach-bot'
-      }
-    };
-  }
-
-  public isHealthy(): boolean {
-    return this.server && this.server.listening && this.database && this.database.isConnected();
-  }
-
-  public getDatabaseStatus(): any {
-    if (!this.database) {
-      return { status: 'not_initialized', message: 'Database not initialized' };
-    }
-    
-    try {
-      return {
-        status: this.database.isConnected() ? 'connected' : 'disconnected',
-        connected: this.database.isConnected(),
-        uri: process.env['MONGODB_URI'] || 'mongodb://localhost:27017/email-outreach-bot',
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      return {
-        status: 'error',
-        connected: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      };
-    }
-  }
-
-  public getStats(): any {
-    return {
-      ...this.getServerInfo(),
-      healthy: this.isHealthy(),
-      connections: this.server ? this.server.connections : 0,
-      maxConnections: this.server ? this.server.maxConnections : 0
+      uptime: process.uptime()
     };
   }
 }
