@@ -17,14 +17,29 @@ import { useState } from 'react';
 // Updated interface to match backend model
 interface Bot {
   _id: string;
-  userId: string;
   name: string;
-  description: string;
-  email: string;
-  prompt: string;
+  description?: string;
   isActive: boolean;
-  dailyEmailCount: number;
+  smtpConfig: {
+    host: string;
+    port: number;
+    secure: boolean;
+    username: string;
+    password: string;
+    fromEmail: string;
+    fromName: string;
+  };
+  emailSignature?: string;
+  dailyEmailLimit: number;
+  emailsSentToday: number;
   lastEmailSentAt?: Date;
+  performance: {
+    totalEmailsSent: number;
+    openRate: number;
+    clickRate: number;
+    replyRate: number;
+    bounceRate: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,41 +63,110 @@ export default function BotsPage() {
   const mockBots: Bot[] = [
     {
       _id: '1',
-      userId: 'user1',
       name: 'Sales Outreach Bot',
       description: 'AI-powered sales outreach bot for cold emailing prospects',
-      email: 'sales@company.com',
-      prompt: 'You are a professional sales representative reaching out to potential clients. Be friendly, professional, and focus on how our solution can help solve their business problems. Keep the tone conversational and avoid being too pushy.',
       isActive: true,
-      dailyEmailCount: 45,
-      lastEmailSentAt: new Date('2024-01-15T10:30:00Z'),
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'sales@company.com',
+        password: 'password123',
+        fromEmail: 'sales@company.com',
+        fromName: 'Sales Team'
+      },
+      dailyEmailLimit: 100,
+      emailsSentToday: 45,
+      lastEmailSentAt: new Date('2024-01-20T10:30:00Z'),
+      performance: {
+        totalEmailsSent: 1250,
+        openRate: 0.68,
+        clickRate: 0.12,
+        replyRate: 0.08,
+        bounceRate: 0.02
+      },
       createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-15')
+      updatedAt: new Date('2024-01-20')
     },
     {
       _id: '2',
-      userId: 'user1',
       name: 'Customer Support Bot',
       description: 'Automated customer support and follow-up bot',
-      email: 'support@company.com',
-      prompt: 'You are a helpful customer support representative. Your goal is to provide excellent customer service, answer questions clearly, and ensure customer satisfaction. Be empathetic and solution-oriented.',
       isActive: true,
-      dailyEmailCount: 28,
-      lastEmailSentAt: new Date('2024-01-15T09:15:00Z'),
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'support@company.com',
+        password: 'password123',
+        fromEmail: 'support@company.com',
+        fromName: 'Support Team'
+      },
+      dailyEmailLimit: 50,
+      emailsSentToday: 28,
+      lastEmailSentAt: new Date('2024-01-20T09:15:00Z'),
+      performance: {
+        totalEmailsSent: 890,
+        openRate: 0.72,
+        clickRate: 0.15,
+        replyRate: 0.12,
+        bounceRate: 0.01
+      },
       createdAt: new Date('2024-01-05'),
-      updatedAt: new Date('2024-01-15')
+      updatedAt: new Date('2024-01-20')
     },
     {
       _id: '3',
-      userId: 'user1',
       name: 'Newsletter Bot',
       description: 'Weekly newsletter and content distribution bot',
-      email: 'newsletter@company.com',
-      prompt: 'You are a content curator sharing valuable industry insights and company updates. Make the content engaging, informative, and relevant to our audience. Include clear calls-to-action when appropriate.',
-      isActive: false,
-      dailyEmailCount: 0,
+      isActive: true,
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'newsletter@company.com',
+        password: 'password123',
+        fromEmail: 'newsletter@company.com',
+        fromName: 'Newsletter Team'
+      },
+      dailyEmailLimit: 200,
+      emailsSentToday: 15,
+      lastEmailSentAt: new Date('2024-01-19T14:00:00Z'),
+      performance: {
+        totalEmailsSent: 2100,
+        openRate: 0.58,
+        clickRate: 0.18,
+        replyRate: 0.05,
+        bounceRate: 0.03
+      },
       createdAt: new Date('2024-01-10'),
-      updatedAt: new Date('2024-01-12')
+      updatedAt: new Date('2024-01-19')
+    },
+    {
+      _id: '4',
+      name: 'Lead Nurturing Bot',
+      description: 'Automated lead nurturing and follow-up sequences',
+      isActive: false,
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'leads@company.com',
+        password: 'password123',
+        fromEmail: 'leads@company.com',
+        fromName: 'Lead Generation Team'
+      },
+      dailyEmailLimit: 75,
+      emailsSentToday: 0,
+      performance: {
+        totalEmailsSent: 450,
+        openRate: 0.65,
+        clickRate: 0.14,
+        replyRate: 0.06,
+        bounceRate: 0.02
+      },
+      createdAt: new Date('2024-01-15'),
+      updatedAt: new Date('2024-01-18')
     }
   ];
 
@@ -129,9 +213,9 @@ export default function BotsPage() {
     setFormData({
       name: bot.name,
       description: bot.description,
-      email: bot.email,
+      email: bot.smtpConfig.username, // Use username for email
       password: '', // Don't show existing password
-      prompt: bot.prompt,
+      prompt: '', // No prompt field in this interface
       isActive: bot.isActive
     });
     setIsEditDialogOpen(true);
@@ -222,11 +306,11 @@ export default function BotsPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
                       <span>Bot Email</span>
-                      <span className="font-medium">{bot.email}</span>
+                      <span className="font-medium">{bot.smtpConfig.username}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span>Daily Emails</span>
-                      <span className="font-medium">{bot.dailyEmailCount}</span>
+                      <span className="font-medium">{bot.emailsSentToday} / {bot.dailyEmailLimit}</span>
                     </div>
                     {bot.lastEmailSentAt && (
                       <div className="flex items-center justify-between text-sm">
@@ -238,12 +322,13 @@ export default function BotsPage() {
                     )}
                     
                     <div className="pt-2">
-                      <div className="text-xs text-gray-500 mb-2">AI Prompt Preview:</div>
+                      <div className="text-xs text-gray-500 mb-2">Performance:</div>
                       <div className="text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded border max-h-20 overflow-y-auto">
-                        {bot.prompt.length > 100 
-                          ? `${bot.prompt.substring(0, 100)}...` 
-                          : bot.prompt
-                        }
+                        <p>Total Emails Sent: {bot.performance.totalEmailsSent}</p>
+                        <p>Open Rate: {bot.performance.openRate * 100}%</p>
+                        <p>Click Rate: {bot.performance.clickRate * 100}%</p>
+                        <p>Reply Rate: {bot.performance.replyRate * 100}%</p>
+                        <p>Bounce Rate: {bot.performance.bounceRate * 100}%</p>
                       </div>
                     </div>
 

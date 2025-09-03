@@ -1,18 +1,17 @@
 'use client';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
     BarChart3,
-    Bell,
     Bot,
     FileText,
     LayoutDashboard,
     LogOut,
     Mail,
     Menu,
-    Settings,
     User,
     Users,
     X
@@ -60,11 +59,6 @@ const sidebarItems: SidebarItem[] = [
     href: '/dashboard/templates',
     icon: FileText,
   },
-  {
-    label: 'Settings',
-    href: '/dashboard/settings',
-    icon: Settings,
-  },
 ];
 
 interface DashboardLayoutProps {
@@ -103,7 +97,7 @@ export function DashboardLayout({
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:relative lg:flex-shrink-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700">
@@ -120,7 +114,7 @@ export function DashboardLayout({
           </Button>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {sidebarItems.map((item) => {
             // Simplified active state logic
             let isActive = false;
@@ -129,8 +123,6 @@ export function DashboardLayout({
             } else {
               isActive = pathname.startsWith(item.href);
             }
-            
-
             
             return (
               <Link
@@ -162,97 +154,81 @@ export function DashboardLayout({
         {/* User section */}
         <div className="border-t border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-              <span className="text-sm font-medium text-white">
-                {user?.username?.charAt(0)?.toUpperCase()}
-              </span>
-            </div>
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-blue-600 text-white text-sm font-medium">
+                {user?.username?.charAt(0).toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {user?.username}
+                {user?.username || 'User'}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {user?.email}
+                {user?.email || 'user@example.com'}
               </p>
             </div>
           </div>
           <div className="mt-3 space-y-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              asChild
+            <Link
+              href="/dashboard/profile"
+              className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              onClick={() => setSidebarOpen(false)}
             >
-              <Link href="/dashboard/profile">
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              <User className="mr-3 h-4 w-4" />
+              Profile
+            </Link>
+            <button
               onClick={handleLogout}
+              className="flex w-full items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-3 h-4 w-4" />
               Logout
-            </Button>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-0">
-        {/* Top header - only show if title/description provided */}
-        {(title || description || actions) && (
-          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-              <div className="flex items-center">
+      <div className="flex-1 lg:ml-64">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          {/* Header */}
+          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="lg:hidden mr-2"
+                  className="lg:hidden"
                   onClick={() => setSidebarOpen(true)}
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
-                
                 <div>
                   {title && (
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                       {title}
                     </h1>
                   )}
                   {description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
                       {description}
                     </p>
                   )}
                 </div>
               </div>
-
-              <div className="flex items-center space-x-4">
-                {/* Notifications */}
-                <Button variant="ghost" size="sm" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-                </Button>
-
-                {/* Actions */}
-                {actions && (
-                  <div className="flex items-center space-x-2">
-                    {actions}
-                  </div>
-                )}
-              </div>
+              {actions && (
+                <div className="flex items-center space-x-3">
+                  {actions}
+                </div>
+              )}
             </div>
           </header>
-        )}
 
-        {/* Page content */}
-        <main className="p-4 sm:p-6">
-          {children}
-        </main>
+          {/* Page content */}
+          <main className="p-6">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
       </AuthGuard>

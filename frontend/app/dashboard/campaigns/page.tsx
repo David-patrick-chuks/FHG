@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useDelete, useGet, usePut } from '@/hooks/useApi';
+import { useDelete, usePut } from '@/hooks/useApi';
 import { Bot, Campaign } from '@/types';
 import { BarChart3, Calendar, Edit, Eye, Mail, Plus, Trash2, Upload, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -31,9 +31,157 @@ export default function CampaignsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Fetch data
-  const { data: campaigns, loading: campaignsLoading, error: campaignsError, reset: resetCampaigns } = useGet<Campaign[]>('/campaigns');
-  const { data: bots, loading: botsLoading } = useGet<Bot[]>('/bots');
+  // Dummy data for demonstration
+  const dummyCampaigns: Campaign[] = [
+    {
+      _id: '1',
+      name: 'Q1 Sales Outreach',
+      description: 'Targeted sales campaign for Q1 prospects in the tech industry',
+      botId: 'bot1',
+      emailList: ['john@techcorp.com', 'sarah@startup.io', 'mike@enterprise.com', 'lisa@innovation.co'],
+      aiPrompt: 'Write a professional sales email introducing our new AI solution. Focus on ROI and problem-solving.',
+      status: 'running',
+      sentEmails: ['john@techcorp.com', 'sarah@startup.io'],
+      aiMessages: ['ai_message_1', 'ai_message_2'],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-15'),
+      updatedAt: new Date('2024-01-20')
+    },
+    {
+      _id: '2',
+      name: 'Customer Onboarding',
+      description: 'Welcome series for new customers to ensure successful product adoption',
+      botId: 'bot2',
+      emailList: ['newuser1@company.com', 'newuser2@company.com', 'newuser3@company.com'],
+      aiPrompt: 'Create a warm, helpful welcome email series. Be encouraging and provide clear next steps.',
+      status: 'completed',
+      sentEmails: ['newuser1@company.com', 'newuser2@company.com', 'newuser3@company.com'],
+      aiMessages: ['ai_message_3', 'ai_message_4', 'ai_message_5'],
+      selectedMessageIndex: 1,
+      createdAt: new Date('2024-01-10'),
+      updatedAt: new Date('2024-01-18')
+    },
+    {
+      _id: '3',
+      name: 'Product Launch Announcement',
+      description: 'Exciting announcement for our new AI-powered email automation platform',
+      botId: 'bot3',
+      emailList: ['subscriber1@newsletter.com', 'subscriber2@newsletter.com', 'subscriber3@newsletter.com', 'subscriber4@newsletter.com', 'subscriber5@newsletter.com'],
+      aiPrompt: 'Write an exciting product launch email. Use compelling language and include a clear call-to-action.',
+      status: 'paused',
+      sentEmails: ['subscriber1@newsletter.com', 'subscriber2@newsletter.com'],
+      aiMessages: ['ai_message_6', 'ai_message_7'],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-05'),
+      updatedAt: new Date('2024-01-16')
+    },
+    {
+      _id: '4',
+      name: 'Holiday Special Offer',
+      description: 'Limited-time holiday promotion for existing customers',
+      botId: 'bot1',
+      emailList: ['customer1@company.com', 'customer2@company.com', 'customer3@company.com', 'customer4@company.com'],
+      aiPrompt: 'Create an email highlighting our holiday special offer. Be festive and create urgency.',
+      status: 'draft',
+      sentEmails: [],
+      aiMessages: [],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-12'),
+      updatedAt: new Date('2024-01-12')
+    }
+  ];
+
+  const dummyBots: Bot[] = [
+    {
+      _id: 'bot1',
+      name: 'Sales Outreach Bot',
+      description: 'AI-powered sales outreach bot for cold emailing prospects',
+      isActive: true,
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'sales@company.com',
+        password: 'password123',
+        fromEmail: 'sales@company.com',
+        fromName: 'Sales Team'
+      },
+      dailyEmailLimit: 100,
+      emailsSentToday: 45,
+      lastEmailSentAt: new Date('2024-01-20T10:30:00Z'),
+      performance: {
+        totalEmailsSent: 1250,
+        openRate: 0.68,
+        clickRate: 0.12,
+        replyRate: 0.08,
+        bounceRate: 0.02
+      },
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-20')
+    },
+    {
+      _id: 'bot2',
+      name: 'Customer Support Bot',
+      description: 'Automated customer support and follow-up bot',
+      isActive: true,
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'support@company.com',
+        password: 'password123',
+        fromEmail: 'support@company.com',
+        fromName: 'Support Team'
+      },
+      dailyEmailLimit: 50,
+      emailsSentToday: 28,
+      lastEmailSentAt: new Date('2024-01-20T09:15:00Z'),
+      performance: {
+        totalEmailsSent: 890,
+        openRate: 0.72,
+        clickRate: 0.15,
+        replyRate: 0.12,
+        bounceRate: 0.01
+      },
+      createdAt: new Date('2024-01-05'),
+      updatedAt: new Date('2024-01-20')
+    },
+    {
+      _id: 'bot3',
+      name: 'Newsletter Bot',
+      description: 'Weekly newsletter and content distribution bot',
+      isActive: true,
+      smtpConfig: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        username: 'newsletter@company.com',
+        password: 'password123',
+        fromEmail: 'newsletter@company.com',
+        fromName: 'Newsletter Team'
+      },
+      dailyEmailLimit: 200,
+      emailsSentToday: 15,
+      lastEmailSentAt: new Date('2024-01-19T14:00:00Z'),
+      performance: {
+        totalEmailsSent: 2100,
+        openRate: 0.58,
+        clickRate: 0.18,
+        replyRate: 0.05,
+        bounceRate: 0.03
+      },
+      createdAt: new Date('2024-01-10'),
+      updatedAt: new Date('2024-01-19')
+    }
+  ];
+
+  // Use dummy data instead of API calls for demonstration
+  const campaigns = dummyCampaigns;
+  const bots = dummyBots;
+  const campaignsLoading = false;
+  const botsLoading = false;
+  const campaignsError = null;
+  const resetCampaigns = () => {};
   
   // API operations
   const { execute: updateCampaign, loading: updating } = usePut('/campaigns');

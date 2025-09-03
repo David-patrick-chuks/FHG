@@ -3,24 +3,23 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  Bot,
-  Brain,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  Settings,
-  User,
-  X
+    Bot,
+    Brain,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    User,
+    X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -153,12 +152,6 @@ export function Navbar() {
                         <span>Profile</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/settings" className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -240,14 +233,6 @@ export function Navbar() {
                     >
                       <User className="w-4 h-4" />
                       <span>Profile</span>
-                    </Link>
-                    <Link
-                      href="/dashboard/settings"
-                      className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white block px-3 py-2 text-base font-medium transition-colors flex items-center space-x-2"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>Settings</span>
                     </Link>
                     <button
                       onClick={handleLogout}

@@ -17,10 +17,146 @@ export default function AudiencePage() {
 
   // Mock data for now - will be replaced with API calls later
   const mockSubscribers = [
-    { id: 1, email: 'john@example.com', status: 'active', subscribedAt: '2024-01-15', tags: ['newsletter', 'product'] },
-    { id: 2, email: 'sarah@example.com', status: 'active', subscribedAt: '2024-01-10', tags: ['newsletter'] },
-    { id: 3, email: 'mike@example.com', status: 'inactive', subscribedAt: '2024-01-05', tags: ['product'] },
-    { id: 4, email: 'emma@example.com', status: 'active', subscribedAt: '2024-01-20', tags: ['newsletter', 'product', 'events'] },
+    { 
+      id: 1, 
+      email: 'john@techcorp.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-15', 
+      tags: ['newsletter', 'product', 'sales'],
+      lastEmailSent: '2024-01-20',
+      openRate: 85,
+      clickRate: 12
+    },
+    { 
+      id: 2, 
+      email: 'sarah@startup.io', 
+      status: 'active', 
+      subscribedAt: '2024-01-10', 
+      tags: ['newsletter', 'product'],
+      lastEmailSent: '2024-01-20',
+      openRate: 92,
+      clickRate: 18
+    },
+    { 
+      id: 3, 
+      email: 'mike@enterprise.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-05', 
+      tags: ['product', 'enterprise'],
+      lastEmailSent: '2024-01-19',
+      openRate: 78,
+      clickRate: 8
+    },
+    { 
+      id: 4, 
+      email: 'lisa@innovation.co', 
+      status: 'active', 
+      subscribedAt: '2024-01-20', 
+      tags: ['newsletter', 'product', 'events'],
+      lastEmailSent: '2024-01-20',
+      openRate: 88,
+      clickRate: 15
+    },
+    { 
+      id: 5, 
+      email: 'newuser1@company.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-12', 
+      tags: ['onboarding', 'product'],
+      lastEmailSent: '2024-01-18',
+      openRate: 95,
+      clickRate: 22
+    },
+    { 
+      id: 6, 
+      email: 'newuser2@company.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-14', 
+      tags: ['onboarding', 'product'],
+      lastEmailSent: '2024-01-18',
+      openRate: 89,
+      clickRate: 19
+    },
+    { 
+      id: 7, 
+      email: 'newuser3@company.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-16', 
+      tags: ['onboarding', 'product'],
+      lastEmailSent: '2024-01-18',
+      openRate: 91,
+      clickRate: 21
+    },
+    { 
+      id: 8, 
+      email: 'subscriber1@newsletter.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-08', 
+      tags: ['newsletter', 'content'],
+      lastEmailSent: '2024-01-19',
+      openRate: 82,
+      clickRate: 14
+    },
+    { 
+      id: 9, 
+      email: 'subscriber2@newsletter.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-09', 
+      tags: ['newsletter', 'content'],
+      lastEmailSent: '2024-01-19',
+      openRate: 87,
+      clickRate: 16
+    },
+    { 
+      id: 10, 
+      email: 'subscriber3@newsletter.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-10', 
+      tags: ['newsletter', 'content'],
+      lastEmailSent: '2024-01-19',
+      openRate: 79,
+      clickRate: 11
+    },
+    { 
+      id: 11, 
+      email: 'customer1@company.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-01', 
+      tags: ['customer', 'loyalty'],
+      lastEmailSent: '2024-01-17',
+      openRate: 94,
+      clickRate: 25
+    },
+    { 
+      id: 12, 
+      email: 'customer2@company.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-02', 
+      tags: ['customer', 'loyalty'],
+      lastEmailSent: '2024-01-17',
+      openRate: 91,
+      clickRate: 23
+    },
+    { 
+      id: 13, 
+      email: 'customer3@company.com', 
+      status: 'inactive', 
+      subscribedAt: '2024-01-03', 
+      tags: ['customer', 'loyalty'],
+      lastEmailSent: '2024-01-10',
+      openRate: 45,
+      clickRate: 3
+    },
+    { 
+      id: 14, 
+      email: 'customer4@company.com', 
+      status: 'active', 
+      subscribedAt: '2024-01-04', 
+      tags: ['customer', 'loyalty'],
+      lastEmailSent: '2024-01-17',
+      openRate: 89,
+      clickRate: 20
+    }
   ];
 
   const filteredSubscribers = mockSubscribers.filter(subscriber => {
@@ -84,7 +220,7 @@ export default function AudiencePage() {
               <div className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-purple-600" />
                 <div>
-                  <p className="text-2xl font-bold">3</p>
+                  <p className="text-2xl font-bold">5</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Audience Segments</p>
                 </div>
               </div>
