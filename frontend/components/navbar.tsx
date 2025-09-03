@@ -23,11 +23,18 @@ import {
   X
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const pathname = usePathname();
+  
+  // Hide navbar on dashboard pages
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   const handleLogout = () => {
     logout();

@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Mail, Play, Pause, Edit, Trash2, Eye, BarChart3, Users, Calendar } from 'lucide-react';
-import { useGet, usePost, usePut, useDelete } from '@/hooks/useApi';
-import { Campaign, Bot } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { useDelete, useGet, usePost, usePut } from '@/hooks/useApi';
+import { Bot, Campaign } from '@/types';
+import { BarChart3, Calendar, Edit, Eye, Mail, Plus, Trash2, Users } from 'lucide-react';
+import { useState } from 'react';
 
 export default function CampaignsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -98,8 +98,8 @@ export default function CampaignsPage() {
       name: campaign.name,
       description: campaign.description || '',
       botId: campaign.botId,
-      emailList: campaign.emailList.join('\n'),
-      aiPrompt: campaign.aiMessages?.[0] || ''
+      emailList: campaign.targetAudience.emails.join('\n'),
+      aiPrompt: campaign.template.aiPrompt || ''
     });
     setIsEditDialogOpen(true);
   };
@@ -254,7 +254,7 @@ export default function CampaignsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div className="flex items-center space-x-2">
                           <Users className="w-4 h-4 text-gray-400" />
-                          <span>{campaign.emailList.length} recipients</span>
+                          <span>{campaign.targetAudience.emails.length} recipients</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4 text-gray-400" />
@@ -262,11 +262,11 @@ export default function CampaignsPage() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <BarChart3 className="w-4 h-4 text-gray-400" />
-                          <span>{campaign.sentEmails?.length || 0} sent</span>
+                          <span>{campaign.stats.sentEmails} sent</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Mail className="w-4 h-4 text-gray-400" />
-                          <span>{campaign.aiMessages?.length || 0} AI messages</span>
+                          <span>{campaign.template.aiGenerated ? 'AI Generated' : 'Manual'} template</span>
                         </div>
                       </div>
                     </div>

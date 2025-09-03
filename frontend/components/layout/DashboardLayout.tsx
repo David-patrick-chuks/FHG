@@ -1,25 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Mail, 
-  Bot, 
-  Users, 
-  Settings, 
-  BarChart3, 
-  FileText,
-  Menu,
-  X,
-  LogOut,
-  User,
-  Bell
+import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
+import {
+    BarChart3,
+    Bell,
+    Bot,
+    FileText,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    Settings,
+    User,
+    Users,
+    X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react';
+import { AuthGuard } from '../auth/AuthGuard';
 
 interface SidebarItem {
   label: string;
@@ -82,13 +83,16 @@ export function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  
+
 
   const handleLogout = () => {
     logout();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <AuthGuard requireAuth={true}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -99,7 +103,7 @@ export function DashboardLayout({
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:relative lg:flex-shrink-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700">
@@ -118,7 +122,16 @@ export function DashboardLayout({
 
         <nav className="flex-1 px-4 py-6 space-y-2">
           {sidebarItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            // Simplified active state logic
+            let isActive = false;
+            if (item.href === '/dashboard') {
+              isActive = pathname === '/dashboard';
+            } else {
+              isActive = pathname.startsWith(item.href);
+            }
+            
+
+            
             return (
               <Link
                 key={item.href}
@@ -189,56 +202,59 @@ export function DashboardLayout({
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top header */}
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden mr-2"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              
-              <div>
-                {title && (
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {title}
-                  </h1>
-                )}
-                {description && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {description}
-                  </p>
+      <div className="flex-1 lg:ml-0">
+        {/* Top header - only show if title/description provided */}
+        {(title || description || actions) && (
+          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+              <div className="flex items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="lg:hidden mr-2"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+                
+                <div>
+                  {title && (
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                      {title}
+                    </h1>
+                  )}
+                  {description && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {description}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                {/* Notifications */}
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+                </Button>
+
+                {/* Actions */}
+                {actions && (
+                  <div className="flex items-center space-x-2">
+                    {actions}
+                  </div>
                 )}
               </div>
             </div>
-
-            <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-              </Button>
-
-              {/* Actions */}
-              {actions && (
-                <div className="flex items-center space-x-2">
-                  {actions}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 sm:p-6">
           {children}
         </main>
       </div>
     </div>
+      </AuthGuard>
   );
 }

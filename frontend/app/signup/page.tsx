@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Icons } from '@/components/ui/icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { Brain, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 
 const signupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -62,7 +63,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -234,5 +236,6 @@ export default function SignupPage() {
         </Card>
       </div>
     </div>
+      </AuthGuard>
   );
 }

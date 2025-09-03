@@ -3,6 +3,7 @@
 import { apiClient } from '@/lib/api-client';
 import { config } from '@/lib/config';
 import { AuthResponse, LoginCredentials, RegisterData, User } from '@/types';
+import { useRouter } from 'next/navigation';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
@@ -30,6 +31,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -134,9 +136,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Logout function
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     try {
-      // Clear tokens
+      // Get the current token before clearing it
+      const token = localStorage.getItem(config.auth.jwtStorageKey);
+      
+      // Try to call logout endpoint with the token FIRST (before clearing)
+      if (token) {
+        try {
+          await apiClient.post('/auth/logout');
+        } catch (error) {
+          // Ignore logout API errors - user will still be logged out locally
+          console.log('Logout API call failed (this is normal if backend is down):', error);
+        }
+      }
+      
+      // Now clear tokens and update state
       localStorage.removeItem(config.auth.jwtStorageKey);
       localStorage.removeItem('refresh_token');
       
@@ -144,12 +159,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       
-      // Optional: Call logout endpoint to invalidate token on server
-      apiClient.post('/auth/logout').catch(console.error);
+      // Navigate to login page
+      router.push('/login');
+      
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if there's an error, ensure user is logged out locally
+      localStorage.removeItem(config.auth.jwtStorageKey);
+      localStorage.removeItem('refresh_token');
+      setUser(null);
+      setIsAuthenticated(false);
+      
+      // Navigate to login page even on error
+      router.push('/login');
     }
-  }, []);
+  }, [router]);
 
   
 

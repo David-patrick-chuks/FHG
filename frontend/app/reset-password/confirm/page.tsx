@@ -1,5 +1,6 @@
 "use client"
 
+import { AuthGuard } from "@/components/auth/AuthGuard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,9 +42,12 @@ function ResetPasswordConfirmContent() {
     try {
       const response = await apiClient.get(`/auth/reset-password/verify/${token}`)
       
-      if (response.success && response.data?.valid) {
+      // Type assertion to handle the response data structure
+      const data = response.data as { valid?: boolean; email?: string }
+      
+      if (response.success && data?.valid) {
         setIsValidToken(true)
-        setUserEmail(response.data.email || '')
+        setUserEmail(data.email || '')
       } else {
         setIsValidToken(false)
         setError('This reset link is invalid or has expired. Please request a new one.')
@@ -345,15 +349,17 @@ function ResetPasswordConfirmContent() {
 
 export default function ResetPasswordConfirmPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+    <AuthGuard requireAuth={false}>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <ResetPasswordConfirmContent />
-    </Suspense>
+      }>
+        <ResetPasswordConfirmContent />
+      </Suspense>
+    </AuthGuard>
   )
 }

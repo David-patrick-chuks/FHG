@@ -158,3 +158,5 @@ coverage/
 # Optional: Uncomment if you want to ignore specific files
 # config/local.js
 # config/production.js
+
+env.yaml

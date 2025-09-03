@@ -1,5 +1,6 @@
 "use client"
 
+import { AuthGuard } from "@/components/auth/AuthGuard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -109,7 +110,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -199,5 +201,6 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     </div>
+      </AuthGuard>
   )
 }

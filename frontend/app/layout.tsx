@@ -1,4 +1,5 @@
 import type React from "react"
+import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
@@ -41,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${dmSansHeading.variable} ${dmSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}>
-        <ThemeProvider
+         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
@@ -50,6 +51,7 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             {children}
+            <Analytics/>
           </AuthProvider>
         </ThemeProvider>
       </body>

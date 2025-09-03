@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -53,7 +54,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -184,5 +186,6 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+      </AuthGuard>
   );
 }
