@@ -1,6 +1,8 @@
 import BotModel, { IBotDocument } from '../models/Bot';
+import CampaignModel from '../models/Campaign';
+import SentEmailModel from '../models/SentEmail';
 import UserModel from '../models/User';
-import { ApiResponse, CreateBotRequest } from '../types';
+import { ApiResponse, CampaignStatus, CreateBotRequest } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class BotService {
@@ -57,7 +59,7 @@ export class BotService {
 
       await bot.save();
 
-      this.logger.info('Bot created successfully', { 
+      BotService.logger.info('Bot created successfully', { 
         botId: bot._id, 
         userId, 
         botName: bot.name 
@@ -70,7 +72,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error creating bot:', error);
+      BotService.logger.error('Error creating bot:', error);
       throw error;
     }
   }
@@ -86,7 +88,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving bots:', error);
+      BotService.logger.error('Error retrieving bots:', error);
       throw error;
     }
   }
@@ -118,7 +120,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving bot:', error);
+      BotService.logger.error('Error retrieving bot:', error);
       throw error;
     }
   }
@@ -147,7 +149,7 @@ export class BotService {
       Object.assign(bot, updateData);
       await bot.save();
 
-      this.logger.info('Bot updated successfully', { 
+      BotService.logger.info('Bot updated successfully', { 
         botId: bot._id, 
         userId, 
         botName: bot.name 
@@ -160,7 +162,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error updating bot:', error);
+      BotService.logger.error('Error updating bot:', error);
       throw error;
     }
   }
@@ -186,11 +188,24 @@ export class BotService {
       }
 
       // Check if bot has active campaigns
-      // TODO: Check campaign status before deletion
+      const activeCampaigns = await CampaignModel.findByBotId(botId);
+      const hasActiveCampaigns = activeCampaigns.some(campaign => 
+        campaign.status === CampaignStatus.RUNNING || 
+        campaign.status === CampaignStatus.PAUSED ||
+        campaign.status === CampaignStatus.READY
+      );
+
+      if (hasActiveCampaigns) {
+        return {
+          success: false,
+          message: 'Cannot delete bot with active campaigns. Please pause or cancel all campaigns first.',
+          timestamp: new Date()
+        };
+      }
 
       await BotModel.findByIdAndDelete(botId);
 
-      this.logger.info('Bot deleted successfully', { 
+      BotService.logger.info('Bot deleted successfully', { 
         botId: bot._id, 
         userId, 
         botName: bot.name 
@@ -202,7 +217,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error deleting bot:', error);
+      BotService.logger.error('Error deleting bot:', error);
       throw error;
     }
   }
@@ -231,7 +246,7 @@ export class BotService {
       bot.isActive = !bot.isActive;
       await bot.save();
 
-      this.logger.info('Bot status toggled', { 
+      BotService.logger.info('Bot status toggled', { 
         botId: bot._id, 
         userId, 
         botName: bot.name, 
@@ -245,7 +260,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error toggling bot status:', error);
+      BotService.logger.error('Error toggling bot status:', error);
       throw error;
     }
   }
@@ -274,7 +289,7 @@ export class BotService {
       bot.prompt = prompt;
       await bot.save();
 
-      this.logger.info('Bot prompt updated', { 
+      BotService.logger.info('Bot prompt updated', { 
         botId: bot._id, 
         userId, 
         botName: bot.name 
@@ -287,7 +302,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error updating bot prompt:', error);
+      BotService.logger.error('Error updating bot prompt:', error);
       throw error;
     }
   }
@@ -318,12 +333,17 @@ export class BotService {
         };
       }
 
+      // Get total emails sent from SentEmail model
+      const totalEmailsSent = await SentEmailModel.countDocuments({ botId });
+
+      const canSendEmail = await bot.canSendEmail();
+      
       const stats = {
-        totalEmailsSent: 0, // TODO: Get from SentEmail model
+        totalEmailsSent,
         dailyEmailCount: bot.dailyEmailCount,
         lastEmailSentAt: bot.lastEmailSentAt || null,
         isActive: bot.isActive,
-        canSendEmail: bot.canSendEmail()
+        canSendEmail
       };
 
       return {
@@ -333,7 +353,7 @@ export class BotService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error getting bot stats:', error);
+      BotService.logger.error('Error getting bot stats:', error);
       throw error;
     }
   }
@@ -341,9 +361,9 @@ export class BotService {
   public static async resetDailyEmailCounts(): Promise<void> {
     try {
       await BotModel.resetAllDailyCounts();
-      this.logger.info('Daily email counts reset for all bots');
+      BotService.logger.info('Daily email counts reset for all bots');
     } catch (error) {
-      this.logger.error('Error resetting daily email counts:', error);
+      BotService.logger.error('Error resetting daily email counts:', error);
       throw error;
     }
   }
@@ -355,9 +375,9 @@ export class BotService {
         return false;
       }
 
-      return bot.canSendEmail();
+      return await bot.canSendEmail();
     } catch (error) {
-      this.logger.error('Error checking if bot can send email:', error);
+      BotService.logger.error('Error checking if bot can send email:', error);
       return false;
     }
   }
@@ -371,7 +391,7 @@ export class BotService {
 
       await bot.incrementDailyEmailCount();
     } catch (error) {
-      this.logger.error('Error incrementing bot email count:', error);
+      BotService.logger.error('Error incrementing bot email count:', error);
       throw error;
     }
   }

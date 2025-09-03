@@ -10,7 +10,7 @@ export class SubscriptionController {
     try {
       const userId = (req as any).user.id;
 
-      this.logger.info('Subscription creation request', {
+      SubscriptionController.logger.info('Subscription creation request', {
         userId,
         tier: req.body.tier,
         duration: req.body.duration,
@@ -31,7 +31,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription creation error:', error);
+      SubscriptionController.logger.error('Subscription creation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -40,7 +40,7 @@ export class SubscriptionController {
     try {
       const userId = (req as any).user.id;
 
-      this.logger.info('User subscriptions retrieval request', {
+      SubscriptionController.logger.info('User subscriptions retrieval request', {
         userId,
         ip: req.ip
       });
@@ -58,7 +58,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('User subscriptions retrieval error:', error);
+      SubscriptionController.logger.error('User subscriptions retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -67,7 +67,7 @@ export class SubscriptionController {
     try {
       const userId = (req as any).user.id;
 
-      this.logger.info('Active subscription retrieval request', {
+      SubscriptionController.logger.info('Active subscription retrieval request', {
         userId,
         ip: req.ip
       });
@@ -85,7 +85,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Active subscription retrieval error:', error);
+      SubscriptionController.logger.error('Active subscription retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -103,7 +103,7 @@ export class SubscriptionController {
         return;
       }
 
-      this.logger.info('Subscription retrieval request', {
+      SubscriptionController.logger.info('Subscription retrieval request', {
         userId,
         subscriptionId,
         ip: req.ip
@@ -122,7 +122,7 @@ export class SubscriptionController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription retrieval error:', error);
+      SubscriptionController.logger.error('Subscription retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -146,7 +146,7 @@ export class SubscriptionController {
       delete updateData.startDate;
       delete updateData.endDate;
 
-      this.logger.info('Subscription update request', {
+      SubscriptionController.logger.info('Subscription update request', {
         userId,
         subscriptionId,
         updateFields: Object.keys(updateData),
@@ -166,7 +166,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription update error:', error);
+      SubscriptionController.logger.error('Subscription update error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -194,7 +194,7 @@ export class SubscriptionController {
         return;
       }
 
-      this.logger.info('Subscription renewal request', {
+      SubscriptionController.logger.info('Subscription renewal request', {
         userId,
         subscriptionId,
         duration,
@@ -214,7 +214,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription renewal error:', error);
+      SubscriptionController.logger.error('Subscription renewal error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -232,7 +232,7 @@ export class SubscriptionController {
         return;
       }
 
-      this.logger.info('Subscription cancellation request', {
+      SubscriptionController.logger.info('Subscription cancellation request', {
         userId,
         subscriptionId,
         ip: req.ip
@@ -251,7 +251,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription cancellation error:', error);
+      SubscriptionController.logger.error('Subscription cancellation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -269,7 +269,7 @@ export class SubscriptionController {
         return;
       }
 
-      this.logger.info('Subscription suspension request', {
+      SubscriptionController.logger.info('Subscription suspension request', {
         userId,
         subscriptionId,
         ip: req.ip
@@ -288,7 +288,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription suspension error:', error);
+      SubscriptionController.logger.error('Subscription suspension error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -306,7 +306,7 @@ export class SubscriptionController {
         return;
       }
 
-      this.logger.info('Subscription activation request', {
+      SubscriptionController.logger.info('Subscription activation request', {
         userId,
         subscriptionId,
         ip: req.ip
@@ -325,7 +325,7 @@ export class SubscriptionController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Subscription activation error:', error);
+      SubscriptionController.logger.error('Subscription activation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

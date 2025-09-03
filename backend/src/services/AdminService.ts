@@ -30,9 +30,9 @@ export class AdminService {
       });
 
       await adminAction.save();
-      this.logger.info('Admin action logged', { adminId, action, targetType, targetId });
+      AdminService.logger.info('Admin action logged', { adminId, action, targetType, targetId });
     } catch (error) {
-      this.logger.error('Error logging admin action:', error);
+      AdminService.logger.error('Error logging admin action:', error);
     }
   }
 
@@ -47,7 +47,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving users:', error);
+      AdminService.logger.error('Error retrieving users:', error);
       throw error;
     }
   }
@@ -70,7 +70,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving user:', error);
+      AdminService.logger.error('Error retrieving user:', error);
       throw error;
     }
   }
@@ -143,7 +143,7 @@ export class AdminService {
         userAgent
       );
 
-      this.logger.info('User subscription updated by admin', {
+      AdminService.logger.info('User subscription updated by admin', {
         adminId,
         userId,
         tier,
@@ -158,7 +158,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error updating user subscription:', error);
+      AdminService.logger.error('Error updating user subscription:', error);
       throw error;
     }
   }
@@ -197,7 +197,7 @@ export class AdminService {
         userAgent
       );
 
-      this.logger.info('User suspended by admin', {
+      AdminService.logger.info('User suspended by admin', {
         adminId,
         userId,
         reason
@@ -210,7 +210,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error suspending user:', error);
+      AdminService.logger.error('Error suspending user:', error);
       throw error;
     }
   }
@@ -241,7 +241,7 @@ export class AdminService {
         userAgent
       );
 
-      this.logger.info('User activated by admin', {
+      AdminService.logger.info('User activated by admin', {
         adminId,
         userId
       });
@@ -253,7 +253,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error activating user:', error);
+      AdminService.logger.error('Error activating user:', error);
       throw error;
     }
   }
@@ -300,7 +300,7 @@ export class AdminService {
         userAgent
       );
 
-      this.logger.info('User deleted by admin', {
+      AdminService.logger.info('User deleted by admin', {
         adminId,
         userId
       });
@@ -311,7 +311,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error deleting user:', error);
+      AdminService.logger.error('Error deleting user:', error);
       throw error;
     }
   }
@@ -373,7 +373,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving platform stats:', error);
+      AdminService.logger.error('Error retrieving platform stats:', error);
       throw error;
     }
   }
@@ -400,7 +400,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving admin actions:', error);
+      AdminService.logger.error('Error retrieving admin actions:', error);
       throw error;
     }
   }
@@ -421,7 +421,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving admin activity stats:', error);
+      AdminService.logger.error('Error retrieving admin activity stats:', error);
       throw error;
     }
   }
@@ -443,7 +443,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving system activity stats:', error);
+      AdminService.logger.error('Error retrieving system activity stats:', error);
       throw error;
     }
   }
@@ -509,7 +509,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving subscription stats:', error);
+      AdminService.logger.error('Error retrieving subscription stats:', error);
       throw error;
     }
   }
@@ -562,7 +562,7 @@ export class AdminService {
         deletedAdminActions: deletedAdminActions.deletedCount || 0
       };
 
-      this.logger.info('Data cleanup completed', cleanupStats);
+      AdminService.logger.info('Data cleanup completed', cleanupStats);
 
       return {
         success: true,
@@ -571,7 +571,7 @@ export class AdminService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error during data cleanup:', error);
+      AdminService.logger.error('Error during data cleanup:', error);
       throw error;
     }
   }

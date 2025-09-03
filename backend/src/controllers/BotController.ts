@@ -11,7 +11,7 @@ export class BotController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('Bot creation request', {
+      BotController.logger.info('Bot creation request', {
         userId,
         botName: req.body.name,
         botEmail: req.body.email,
@@ -35,7 +35,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot creation error:', error);
+      BotController.logger.error('Bot creation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -44,7 +44,7 @@ export class BotController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('Bots retrieval request', {
+      BotController.logger.info('Bots retrieval request', {
         userId,
         ip: req.ip
       });
@@ -69,7 +69,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bots retrieval error:', error);
+      BotController.logger.error('Bots retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -87,7 +87,7 @@ export class BotController {
         return;
       }
 
-      this.logger.info('Bot retrieval request', {
+      BotController.logger.info('Bot retrieval request', {
         userId,
         botId,
         ip: req.ip
@@ -110,7 +110,7 @@ export class BotController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot retrieval error:', error);
+      BotController.logger.error('Bot retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -127,7 +127,7 @@ export class BotController {
       delete updateData.dailyEmailCount;
       delete updateData.lastEmailSentAt;
 
-      this.logger.info('Bot update request', {
+      BotController.logger.info('Bot update request', {
         userId,
         botId,
         updateFields: Object.keys(updateData),
@@ -160,7 +160,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot update error:', error);
+      BotController.logger.error('Bot update error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -170,7 +170,7 @@ export class BotController {
       const userId = (req as any).user['id'];
       const botId = req.params['id'];
 
-      this.logger.info('Bot deletion request', {
+      BotController.logger.info('Bot deletion request', {
         userId,
         botId,
         ip: req.ip
@@ -197,7 +197,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot deletion error:', error);
+      BotController.logger.error('Bot deletion error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -207,7 +207,7 @@ export class BotController {
       const userId = (req as any).user['id'];
       const botId = req.params['id'];
 
-      this.logger.info('Bot status toggle request', {
+      BotController.logger.info('Bot status toggle request', {
         userId,
         botId,
         ip: req.ip
@@ -239,7 +239,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot status toggle error:', error);
+      BotController.logger.error('Bot status toggle error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -278,7 +278,7 @@ export class BotController {
         return;
       }
 
-      this.logger.info('Bot prompt update request', {
+      BotController.logger.info('Bot prompt update request', {
         userId,
         botId,
         promptLength: prompt.length,
@@ -320,7 +320,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot prompt update error:', error);
+      BotController.logger.error('Bot prompt update error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -330,7 +330,7 @@ export class BotController {
       const userId = (req as any).user['id'];
       const botId = req.params['id'];
 
-      this.logger.info('Bot stats request', {
+      BotController.logger.info('Bot stats request', {
         userId,
         botId,
         ip: req.ip
@@ -367,7 +367,7 @@ export class BotController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot stats error:', error);
+      BotController.logger.error('Bot stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -377,7 +377,7 @@ export class BotController {
       const userId = (req as any).user['id'];
       const botId = req.params['id'];
 
-      this.logger.info('Bot connection test request', {
+      BotController.logger.info('Bot connection test request', {
         userId,
         botId,
         ip: req.ip
@@ -405,7 +405,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot connection test error:', error);
+      BotController.logger.error('Bot connection test error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -435,7 +435,7 @@ export class BotController {
         return;
       }
 
-      this.logger.info('Bot email stats request', {
+      BotController.logger.info('Bot email stats request', {
         userId,
         botId,
         days,
@@ -455,7 +455,7 @@ export class BotController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Bot email stats error:', error);
+      BotController.logger.error('Bot email stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -503,7 +503,7 @@ export class BotController {
         return;
       }
 
-      this.logger.info('Bot prompt regeneration request', {
+      BotController.logger.info('Bot prompt regeneration request', {
         userId,
         botId,
         promptLength: prompt.length,
@@ -528,7 +528,7 @@ export class BotController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Bot prompt regeneration error:', error);
+      BotController.logger.error('Bot prompt regeneration error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

@@ -1,4 +1,5 @@
 import Bull from 'bull';
+import CampaignModel from '../models/Campaign';
 import QueueJobModel from '../models/QueueJob';
 import { Logger } from '../utils/Logger';
 import { BotService } from './BotService';
@@ -189,7 +190,6 @@ export class QueueService {
       this.logger.info('Email queue paused');
     } catch (error) {
       this.logger.error('Error pausing queue:', error);
-      throw error;
     }
   }
 
@@ -203,7 +203,6 @@ export class QueueService {
       this.logger.info('Email queue resumed');
     } catch (error) {
       this.logger.error('Error resuming queue:', error);
-      throw error;
     }
   }
 
@@ -217,7 +216,6 @@ export class QueueService {
       this.logger.info('Email queue cleared');
     } catch (error) {
       this.logger.error('Error clearing queue:', error);
-      throw error;
     }
   }
 
@@ -296,11 +294,25 @@ export class QueueService {
         throw new Error('Bot has reached daily email limit');
       }
 
+      // Get campaign to extract subject
+      let emailSubject = 'Campaign Email'; // Fallback subject
+      try {
+        const campaign = await CampaignModel.findById(campaignId);
+        if (campaign) {
+          emailSubject = campaign.name;
+        }
+      } catch (error) {
+        this.logger.warn('Could not fetch campaign for subject, using fallback', {
+          campaignId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+
       // Send email
       const result = await EmailService.sendEmail(
         botId,
         recipientEmail,
-        'Campaign Email', // TODO: Get subject from campaign
+        emailSubject,
         message,
         campaignId
       );

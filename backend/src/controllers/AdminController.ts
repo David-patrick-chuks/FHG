@@ -10,7 +10,7 @@ export class AdminController {
     try {
       const adminId = (req as any).user.id;
 
-      this.logger.info('Admin users retrieval request', {
+      AdminController.logger.info('Admin users retrieval request', {
         adminId,
         ip: req.ip
       });
@@ -28,7 +28,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin users retrieval error:', error);
+      AdminController.logger.error('Admin users retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -46,7 +46,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin user retrieval request', {
+      AdminController.logger.info('Admin user retrieval request', {
         adminId,
         userId,
         ip: req.ip
@@ -65,7 +65,7 @@ export class AdminController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin user retrieval error:', error);
+      AdminController.logger.error('Admin user retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -136,7 +136,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin subscription update request', {
+      AdminController.logger.info('Admin subscription update request', {
         adminId,
         userId,
         tier,
@@ -168,7 +168,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin subscription update error:', error);
+      AdminController.logger.error('Admin subscription update error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -196,7 +196,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin user suspension request', {
+      AdminController.logger.info('Admin user suspension request', {
         adminId,
         userId,
         reason,
@@ -222,7 +222,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin user suspension error:', error);
+      AdminController.logger.error('Admin user suspension error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -240,7 +240,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin user activation request', {
+      AdminController.logger.info('Admin user activation request', {
         adminId,
         userId,
         ip: req.ip
@@ -264,7 +264,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin user activation error:', error);
+      AdminController.logger.error('Admin user activation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -282,7 +282,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin user deletion request', {
+      AdminController.logger.info('Admin user deletion request', {
         adminId,
         userId,
         ip: req.ip
@@ -305,7 +305,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin user deletion error:', error);
+      AdminController.logger.error('Admin user deletion error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -314,7 +314,7 @@ export class AdminController {
     try {
       const adminId = (req as any).user.id;
 
-      this.logger.info('Admin platform stats request', {
+      AdminController.logger.info('Admin platform stats request', {
         adminId,
         ip: req.ip
       });
@@ -332,7 +332,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin platform stats error:', error);
+      AdminController.logger.error('Admin platform stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -342,7 +342,7 @@ export class AdminController {
       const adminId = (req as any).user.id;
       const { targetAdminId, targetType, days } = req.query;
 
-      this.logger.info('Admin actions retrieval request', {
+      AdminController.logger.info('Admin actions retrieval request', {
         adminId,
         targetAdminId: targetAdminId as string,
         targetType: targetType as string,
@@ -367,7 +367,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin actions retrieval error:', error);
+      AdminController.logger.error('Admin actions retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -396,7 +396,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin activity stats request', {
+      AdminController.logger.info('Admin activity stats request', {
         adminId,
         targetAdminId,
         days,
@@ -416,7 +416,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin activity stats error:', error);
+      AdminController.logger.error('Admin activity stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -436,7 +436,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('System activity stats request', {
+      AdminController.logger.info('System activity stats request', {
         adminId,
         days,
         ip: req.ip
@@ -455,7 +455,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('System activity stats error:', error);
+      AdminController.logger.error('System activity stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -464,7 +464,7 @@ export class AdminController {
     try {
       const adminId = (req as any).user.id;
 
-      this.logger.info('Admin subscription stats request', {
+      AdminController.logger.info('Admin subscription stats request', {
         adminId,
         ip: req.ip
       });
@@ -482,7 +482,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin subscription stats error:', error);
+      AdminController.logger.error('Admin subscription stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -502,7 +502,7 @@ export class AdminController {
         return;
       }
 
-      this.logger.info('Admin data cleanup request', {
+      AdminController.logger.info('Admin data cleanup request', {
         adminId,
         days,
         ip: req.ip
@@ -521,7 +521,7 @@ export class AdminController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Admin data cleanup error:', error);
+      AdminController.logger.error('Admin data cleanup error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

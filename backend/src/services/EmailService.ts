@@ -7,6 +7,468 @@ import { AIService } from './AIService';
 
 export class EmailService {
   private static logger: Logger = new Logger();
+  private static transporter: nodemailer.Transporter | null = null;
+
+  /**
+   * Initialize the email transporter
+   */
+  private static async getTransporter(): Promise<nodemailer.Transporter> {
+    if (!this.transporter) {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_AUTH_USER || '',
+          pass: process.env.SMTP_AUTH_PASS || ''
+        }
+      });
+
+      // Verify connection configuration
+      try {
+        await this.transporter.verify();
+        this.logger.info('Email transporter configured successfully');
+      } catch (error) {
+        this.logger.error('Email transporter configuration failed:', error);
+        throw new Error('Email service configuration failed');
+      }
+    }
+
+    return this.transporter;
+  }
+
+  /**
+   * Send password reset link email
+   */
+  public static async sendPasswordResetLink(
+    email: string, 
+    username: string, 
+    resetLink: string
+  ): Promise<void> {
+    try {
+      const transporter = await this.getTransporter();
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        to: email,
+        subject: 'Password Reset - Email Outreach Bot',
+        html: this.generatePasswordResetLinkHTML(username, resetLink),
+        text: this.generatePasswordResetLinkText(username, resetLink)
+      };
+
+      await transporter.sendMail(mailOptions);
+      this.logger.info('Password reset link email sent successfully', { email });
+    } catch (error) {
+      this.logger.error('Failed to send password reset link email:', error);
+      throw new Error('Failed to send password reset link email');
+    }
+  }
+
+  /**
+   * Send welcome email to new users
+   */
+  public static async sendWelcomeEmail(email: string, username: string): Promise<void> {
+    try {
+      const transporter = await this.getTransporter();
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        to: email,
+        subject: 'Welcome to Email Outreach Bot!',
+        html: this.generateWelcomeEmailHTML(username),
+        text: this.generateWelcomeEmailText(username)
+      };
+
+      await transporter.sendMail(mailOptions);
+      this.logger.info('Welcome email sent successfully', { email });
+    } catch (error) {
+      this.logger.error('Failed to send welcome email:', error);
+      throw new Error('Failed to send welcome email');
+    }
+  }
+
+  /**
+   * Send campaign completion notification
+   */
+  public static async sendCampaignCompletionEmail(
+    email: string, 
+    campaignName: string, 
+    totalEmails: number, 
+    successCount: number
+  ): Promise<void> {
+    try {
+      const transporter = await this.getTransporter();
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        to: email,
+        subject: `Campaign Completed: ${campaignName}`,
+        html: this.generateCampaignCompletionHTML(campaignName, totalEmails, successCount),
+        text: this.generateCampaignCompletionText(campaignName, totalEmails, successCount)
+      };
+
+      await transporter.sendMail(mailOptions);
+      this.logger.info('Campaign completion email sent successfully', { email, campaignName });
+    } catch (error) {
+      this.logger.error('Failed to send campaign completion email:', error);
+      throw new Error('Failed to send campaign completion email');
+    }
+  }
+
+  /**
+   * Send subscription expiry reminder
+   */
+  public static async sendSubscriptionExpiryReminder(
+    email: string, 
+    username: string, 
+    daysUntilExpiry: number
+  ): Promise<void> {
+    try {
+      const transporter = await this.getTransporter();
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        to: email,
+        subject: `Subscription Expires in ${daysUntilExpiry} Days`,
+        html: this.generateSubscriptionExpiryHTML(username, daysUntilExpiry),
+        text: this.generateSubscriptionExpiryText(username, daysUntilExpiry)
+      };
+
+      await transporter.sendMail(mailOptions);
+      this.logger.info('Subscription expiry reminder sent successfully', { email, daysUntilExpiry });
+    } catch (error) {
+      this.logger.error('Failed to send subscription expiry reminder:', error);
+      throw new Error('Failed to send subscription expiry reminder');
+    }
+  }
+
+  /**
+   * Generate HTML for password reset link email
+   */
+  private static generatePasswordResetLinkHTML(username: string, resetLink: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Password Reset</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #007bff; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .cta { text-align: center; margin: 20px 0; }
+          .btn { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Password Reset</h1>
+          </div>
+          <div class="content">
+            <p>Hello ${username},</p>
+            <p>We received a request to reset your password for your Email Outreach Bot account.</p>
+            <p>Click the button below to reset your password:</p>
+            <div class="cta">
+              <a href="${resetLink}" class="btn">Reset Password</a>
+            </div>
+            <p><strong>Important:</strong> This link will expire in 1 hour for security reasons.</p>
+            <p>If you didn't request this password reset, please ignore this email or contact our support team immediately.</p>
+            <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #666;">${resetLink}</p>
+            <p>Best regards,<br>The Email Outreach Bot Team</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated email. Please do not reply to this message.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate plain text for password reset link email
+   */
+  private static generatePasswordResetLinkText(username: string, resetLink: string): string {
+    return `
+Password Reset - Email Outreach Bot
+
+Hello ${username},
+
+We received a request to reset your password for your Email Outreach Bot account.
+
+Click the link below to reset your password:
+${resetLink}
+
+IMPORTANT: This link will expire in 1 hour for security reasons.
+
+If you didn't request this password reset, please ignore this email or contact our support team immediately.
+
+Best regards,
+The Email Outreach Bot Team
+
+---
+This is an automated email. Please do not reply to this message.
+    `;
+  }
+
+  /**
+   * Generate HTML for welcome email
+   */
+  private static generateWelcomeEmailHTML(username: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Welcome to Email Outreach Bot!</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #28a745; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .cta { text-align: center; margin: 20px 0; }
+          .btn { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome to Email Outreach Bot!</h1>
+          </div>
+          <div class="content">
+            <p>Hello ${username},</p>
+            <p>Welcome to Email Outreach Bot! We're excited to have you on board.</p>
+            <p>With our AI-powered platform, you can:</p>
+            <ul>
+              <li>Create intelligent email bots</li>
+              <li>Run targeted outreach campaigns</li>
+              <li>Generate personalized messages with AI</li>
+              <li>Track email performance and engagement</li>
+              <li>Scale your outreach efforts efficiently</li>
+            </ul>
+            <div class="cta">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" class="btn">Get Started</a>
+            </div>
+            <p>If you have any questions, our support team is here to help!</p>
+            <p>Best regards,<br>The Email Outreach Bot Team</p>
+          </div>
+          <div class="footer">
+            <p>Thank you for choosing Email Outreach Bot!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate plain text for welcome email
+   */
+  private static generateWelcomeEmailText(username: string): string {
+    return `
+Welcome to Email Outreach Bot!
+
+Hello ${username},
+
+Welcome to Email Outreach Bot! We're excited to have you on board.
+
+With our AI-powered platform, you can:
+- Create intelligent email bots
+- Run targeted outreach campaigns
+- Generate personalized messages with AI
+- Track email performance and engagement
+- Scale your outreach efforts efficiently
+
+Get started now: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard
+
+If you have any questions, our support team is here to help!
+
+Best regards,
+The Email Outreach Bot Team
+
+---
+Thank you for choosing Email Outreach Bot!
+    `;
+  }
+
+  /**
+   * Generate HTML for campaign completion email
+   */
+  private static generateCampaignCompletionHTML(
+    campaignName: string, 
+    totalEmails: number, 
+    successCount: number
+  ): string {
+    const successRate = totalEmails > 0 ? Math.round((successCount / totalEmails) * 100) : 0;
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Campaign Completed: ${campaignName}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #17a2b8; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .stats { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
+          .stat-item { display: flex; justify-content: space-between; margin: 10px 0; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Campaign Completed!</h1>
+          </div>
+          <div class="content">
+            <p>Your campaign <strong>${campaignName}</strong> has been completed successfully!</p>
+            <div class="stats">
+              <div class="stat-item">
+                <span>Total Emails:</span>
+                <strong>${totalEmails}</strong>
+              </div>
+              <div class="stat-item">
+                <span>Successfully Sent:</span>
+                <strong>${successCount}</strong>
+              </div>
+              <div class="stat-item">
+                <span>Success Rate:</span>
+                <strong>${successRate}%</strong>
+              </div>
+            </div>
+            <p>View detailed analytics and performance metrics in your dashboard.</p>
+            <p>Best regards,<br>The Email Outreach Bot Team</p>
+          </div>
+          <div class="footer">
+            <p>This is an automated notification from Email Outreach Bot.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate plain text for campaign completion email
+   */
+  private static generateCampaignCompletionText(
+    campaignName: string, 
+    totalEmails: number, 
+    successCount: number
+  ): string {
+    const successRate = totalEmails > 0 ? Math.round((successCount / totalEmails) * 100) : 0;
+    
+    return `
+Campaign Completed: ${campaignName}
+
+Your campaign "${campaignName}" has been completed successfully!
+
+Campaign Summary:
+- Total Emails: ${totalEmails}
+- Successfully Sent: ${successCount}
+- Success Rate: ${successRate}%
+
+View detailed analytics and performance metrics in your dashboard.
+
+Best regards,
+The Email Outreach Bot Team
+
+---
+This is an automated notification from Email Outreach Bot.
+    `;
+  }
+
+  /**
+   * Generate HTML for subscription expiry reminder
+   */
+  private static generateSubscriptionExpiryHTML(username: string, daysUntilExpiry: number): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Subscription Expires Soon</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #ffc107; color: #333; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .cta { text-align: center; margin: 20px 0; }
+          .btn { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Subscription Expires Soon</h1>
+          </div>
+          <div class="content">
+            <p>Hello ${username},</p>
+            <div class="warning">
+              <p><strong>Important:</strong> Your Email Outreach Bot subscription will expire in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}.</p>
+            </div>
+            <p>To avoid any interruption to your email outreach campaigns, please renew your subscription before it expires.</p>
+            <p>Current subscription benefits:</p>
+            <ul>
+              <li>AI-powered email generation</li>
+              <li>Campaign management tools</li>
+              <li>Performance analytics</li>
+              <li>Priority support</li>
+            </ul>
+            <div class="cta">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/subscriptions" class="btn">Renew Subscription</a>
+            </div>
+            <p>If you have any questions about your subscription, please contact our support team.</p>
+            <p>Best regards,<br>The Email Outreach Bot Team</p>
+          </div>
+          <div class="footer">
+            <p>Thank you for using Email Outreach Bot!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate plain text for subscription expiry reminder
+   */
+  private static generateSubscriptionExpiryText(username: string, daysUntilExpiry: number): string {
+    return `
+Subscription Expires Soon
+
+Hello ${username},
+
+IMPORTANT: Your Email Outreach Bot subscription will expire in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}.
+
+To avoid any interruption to your email outreach campaigns, please renew your subscription before it expires.
+
+Current subscription benefits:
+- AI-powered email generation
+- Campaign management tools
+- Performance analytics
+- Priority support
+
+Renew your subscription: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/subscriptions
+
+If you have any questions about your subscription, please contact our support team.
+
+Best regards,
+The Email Outreach Bot Team
+
+---
+Thank you for using Email Outreach Bot!
+    `;
+  }
 
   /**
    * Send a single email using a bot

@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken';
+import { BotModel } from '../models/Bot';
+import { CampaignModel } from '../models/Campaign';
+import { SentEmailModel } from '../models/SentEmail';
 import UserModel, { IUserDocument } from '../models/User';
 import { ApiResponse, CreateUserRequest, LoginRequest } from '../types';
 import { Logger } from '../utils/Logger';
+import { EmailService } from './EmailService';
 
 export class UserService {
   private static logger: Logger = new Logger();
@@ -196,21 +200,98 @@ export class UserService {
         };
       }
 
-      // Generate temporary password
-      const tempPassword = this.generateTemporaryPassword();
-      user.password = tempPassword;
+      // Generate secure reset token
+      const resetToken = this.generateResetToken((user._id as string).toString());
+      const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
+
+      // Store reset token in user document (you might want to create a separate collection for this)
+      user.passwordResetToken = resetToken;
+      user.passwordResetExpires = resetTokenExpiry;
       await user.save();
 
-      // TODO: Send email with temporary password
+      // Send email with reset link
+      try {
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        await EmailService.sendPasswordResetLink(user.email, user.username, resetLink);
+        this.logger.info('Password reset link sent successfully', { userId: user._id, email: user.email });
+      } catch (emailError) {
+        this.logger.error('Failed to send password reset email:', emailError);
+        // Don't fail the entire operation if email fails
+        // The reset token was still generated
+      }
+      
       this.logger.info('Password reset initiated', { userId: user._id, email: user.email });
       
       return {
         success: true,
-        message: 'Password reset email sent',
+        message: 'Password reset link sent',
         timestamp: new Date()
       };
     } catch (error) {
       this.logger.error('Error resetting password:', error);
+      throw error;
+    }
+  }
+
+  public static async resetPasswordWithToken(token: string, newPassword: string): Promise<ApiResponse<void>> {
+    try {
+      // Find user with valid reset token
+      const user = await UserModel.findOne({
+        passwordResetToken: token,
+        passwordResetExpires: { $gt: new Date() }
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'Invalid or expired reset token',
+          timestamp: new Date()
+        };
+      }
+
+      // Update password and clear reset token
+      user.password = newPassword;
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save();
+
+      this.logger.info('Password reset completed successfully', { userId: user._id });
+      
+      return {
+        success: true,
+        message: 'Password reset successfully',
+        timestamp: new Date()
+      };
+    } catch (error) {
+      this.logger.error('Error completing password reset:', error);
+      throw error;
+    }
+  }
+
+  public static async verifyResetToken(token: string): Promise<ApiResponse<{ valid: boolean; email?: string }>> {
+    try {
+      const user = await UserModel.findOne({
+        passwordResetToken: token,
+        passwordResetExpires: { $gt: new Date() }
+      });
+
+      if (!user) {
+        return {
+          success: true,
+          message: 'Invalid or expired reset token',
+          data: { valid: false },
+          timestamp: new Date()
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Reset token is valid',
+        data: { valid: true, email: user.email },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      this.logger.error('Error verifying reset token:', error);
       throw error;
     }
   }
@@ -249,6 +330,13 @@ export class UserService {
     totalEmailsSent: number;
     subscriptionStatus: string;
     daysUntilExpiry: number;
+    activeCampaigns: number;
+    pausedCampaigns: number;
+    completedCampaigns: number;
+    totalRecipients: number;
+    averageOpenRate: number;
+    averageReplyRate: number;
+    lastActivityDate: Date | null;
   }>> {
     try {
       const user = await UserModel.findById(userId);
@@ -260,15 +348,111 @@ export class UserService {
         };
       }
 
-      // TODO: Get actual stats from other models
+      // Get actual stats from other models
+      const [
+        totalBots,
+        totalCampaigns,
+        totalEmailsSent,
+        campaignStats,
+        lastActivity
+      ] = await Promise.all([
+        // Count user's bots
+        BotModel.getInstance().countDocuments({ userId, isActive: true }),
+        
+        // Count user's campaigns
+        CampaignModel.getInstance().countDocuments({ userId }),
+        
+        // Count total emails sent by user
+        SentEmailModel.getInstance().countDocuments({ 
+          campaignId: { 
+            $in: await CampaignModel.getInstance().find({ userId }).distinct('_id') 
+          } 
+        }),
+        
+        // Get campaign status breakdown
+        CampaignModel.getInstance().aggregate([
+          { $match: { userId } },
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 }
+            }
+          }
+        ]),
+        
+        // Get last activity date
+        SentEmailModel.getInstance().findOne({
+          campaignId: { 
+            $in: await CampaignModel.getInstance().find({ userId }).distinct('_id') 
+          }
+        }).sort({ sentAt: -1 }).select('sentAt')
+      ]);
+
+      // Calculate campaign status counts
+      const statusCounts = campaignStats.reduce((acc, stat) => {
+        acc[stat._id] = stat.count;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const activeCampaigns = statusCounts.running || 0;
+      const pausedCampaigns = statusCounts.paused || 0;
+      const completedCampaigns = statusCounts.completed || 0;
+
+      // Calculate total recipients across all campaigns
+      const totalRecipients = await CampaignModel.getInstance().aggregate([
+        { $match: { userId } },
+        {
+          $group: {
+            _id: null,
+            totalRecipients: { $sum: { $size: '$emailList' } }
+          }
+        }
+      ]).then(result => result[0]?.totalRecipients || 0);
+
+      // Calculate email performance metrics
+      const emailMetrics = await SentEmailModel.getInstance().aggregate([
+        {
+          $match: {
+            campaignId: { 
+              $in: await CampaignModel.getInstance().find({ userId }).distinct('_id') 
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalEmails: { $sum: 1 },
+            openedEmails: { $sum: { $cond: [{ $ne: ['$openedAt', null] }, 1, 0] } },
+            repliedEmails: { $sum: { $cond: [{ $ne: ['$repliedAt', null] }, 1, 0] } }
+          }
+        }
+      ]).then(result => result[0] || { totalEmails: 0, openedEmails: 0, repliedEmails: 0 });
+
+      const averageOpenRate = emailMetrics.totalEmails > 0 
+        ? Math.round((emailMetrics.openedEmails / emailMetrics.totalEmails) * 100 * 100) / 100 
+        : 0;
+      
+      const averageReplyRate = emailMetrics.totalEmails > 0 
+        ? Math.round((emailMetrics.repliedEmails / emailMetrics.totalEmails) * 100 * 100) / 100 
+        : 0;
+
       const stats = {
-        totalBots: 0,
-        totalCampaigns: 0,
-        totalEmailsSent: 0,
+        totalBots,
+        totalCampaigns,
+        totalEmailsSent,
         subscriptionStatus: user.hasActiveSubscription() ? 'active' : 'expired',
         daysUntilExpiry: user.hasActiveSubscription() ? 
-          Math.ceil((user.subscriptionExpiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0
+          Math.ceil((user.subscriptionExpiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0,
+        activeCampaigns,
+        pausedCampaigns,
+        completedCampaigns,
+        totalRecipients,
+        averageOpenRate,
+        averageReplyRate,
+        lastActivityDate: lastActivity?.sentAt || null
       };
+
+      this.logger.info('User stats retrieved successfully', { userId, stats });
 
       return {
         success: true,
@@ -319,12 +503,11 @@ export class UserService {
     );
   }
 
-  private static generateTemporaryPassword(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 12; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+  private static generateResetToken(userId: string): string {
+    return jwt.sign(
+      { userId },
+      process.env['JWT_SECRET']!,
+      { expiresIn: '1h' } as any // 1 hour expiry
+    );
   }
 }

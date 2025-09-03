@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Logger } from '../utils/Logger';
 
 // Extend Request interface to include file property for multer
@@ -86,7 +86,7 @@ export class ValidationMiddleware {
       const errors: string[] = [];
 
       // Validate email
-      if (!email || !this.validateEmail(email)) {
+      if (!email || !ValidationMiddleware.validateEmail(email)) {
         errors.push('Valid email is required');
       }
 
@@ -94,7 +94,7 @@ export class ValidationMiddleware {
       if (!username) {
         errors.push('Username is required');
       } else {
-        const usernameValidation = this.validateUsername(username);
+        const usernameValidation = ValidationMiddleware.validateUsername(username);
         if (!usernameValidation.isValid) {
           errors.push(...usernameValidation.errors);
         }
@@ -104,7 +104,7 @@ export class ValidationMiddleware {
       if (!password) {
         errors.push('Password is required');
       } else {
-        const passwordValidation = this.validatePassword(password);
+        const passwordValidation = ValidationMiddleware.validatePassword(password);
         if (!passwordValidation.isValid) {
           errors.push(...passwordValidation.errors);
         }
@@ -121,12 +121,12 @@ export class ValidationMiddleware {
       }
 
       // Sanitize inputs
-      req.body.email = this.sanitizeEmail(email);
-      req.body.username = this.sanitizeString(username);
+      req.body.email = ValidationMiddleware.sanitizeEmail(email);
+      req.body.username = ValidationMiddleware.sanitizeString(username);
 
       next();
     } catch (error) {
-      this.logger.error('Error in create user validation:', error);
+      ValidationMiddleware.logger.error('Error in create user validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -141,7 +141,7 @@ export class ValidationMiddleware {
       const errors: string[] = [];
 
       // Validate email
-      if (!email || !this.validateEmail(email)) {
+      if (!email || !ValidationMiddleware.validateEmail(email)) {
         errors.push('Valid email is required');
       }
 
@@ -161,11 +161,11 @@ export class ValidationMiddleware {
       }
 
       // Sanitize email
-      req.body.email = this.sanitizeEmail(email);
+      req.body.email = ValidationMiddleware.sanitizeEmail(email);
 
       next();
     } catch (error) {
-      this.logger.error('Error in login validation:', error);
+      ValidationMiddleware.logger.error('Error in login validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -189,7 +189,7 @@ export class ValidationMiddleware {
       }
 
       // Validate email
-      if (!email || !this.validateEmail(email)) {
+      if (!email || !ValidationMiddleware.validateEmail(email)) {
         errors.push('Valid email is required');
       }
 
@@ -218,13 +218,13 @@ export class ValidationMiddleware {
       }
 
       // Sanitize inputs
-      req.body.name = this.sanitizeString(name);
-      req.body.email = this.sanitizeEmail(email);
-      req.body.prompt = this.sanitizeString(prompt);
+      req.body.name = ValidationMiddleware.sanitizeString(name);
+      req.body.email = ValidationMiddleware.sanitizeEmail(email);
+      req.body.prompt = ValidationMiddleware.sanitizeString(prompt);
 
       next();
     } catch (error) {
-      this.logger.error('Error in create bot validation:', error);
+      ValidationMiddleware.logger.error('Error in create bot validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -261,7 +261,7 @@ export class ValidationMiddleware {
         }
 
         for (let i = 0; i < emailList.length; i++) {
-          if (!this.validateEmail(emailList[i])) {
+          if (!ValidationMiddleware.validateEmail(emailList[i])) {
             errors.push(`Invalid email at position ${i + 1}: ${emailList[i]}`);
           }
         }
@@ -288,18 +288,18 @@ export class ValidationMiddleware {
       }
 
       // Sanitize inputs
-      req.body.name = this.sanitizeString(name);
+      req.body.name = ValidationMiddleware.sanitizeString(name);
       if (description) {
-        req.body.description = this.sanitizeString(description);
+        req.body.description = ValidationMiddleware.sanitizeString(description);
       }
       if (prompt) {
-        req.body.prompt = this.sanitizeString(prompt);
+        req.body.prompt = ValidationMiddleware.sanitizeString(prompt);
       }
-      req.body.emailList = emailList.map((email: string) => this.sanitizeEmail(email));
+      req.body.emailList = emailList.map((email: string) => ValidationMiddleware.sanitizeEmail(email));
 
       next();
     } catch (error) {
-      this.logger.error('Error in create campaign validation:', error);
+      ValidationMiddleware.logger.error('Error in create campaign validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -339,7 +339,7 @@ export class ValidationMiddleware {
           }
 
           for (let i = 0; i < emailList.length; i++) {
-            if (!this.validateEmail(emailList[i])) {
+          if (!ValidationMiddleware.validateEmail(emailList[i])) {
               errors.push(`Invalid email at position ${i + 1}: ${emailList[i]}`);
             }
           }
@@ -363,21 +363,21 @@ export class ValidationMiddleware {
 
       // Sanitize inputs
       if (name !== undefined) {
-        req.body.name = this.sanitizeString(name);
+        req.body.name = ValidationMiddleware.sanitizeString(name);
       }
       if (description !== undefined) {
-        req.body.description = this.sanitizeString(description);
+        req.body.description = ValidationMiddleware.sanitizeString(description);
       }
       if (prompt !== undefined) {
-        req.body.prompt = this.sanitizeString(prompt);
+        req.body.prompt = ValidationMiddleware.sanitizeString(prompt);
       }
       if (emailList !== undefined) {
-        req.body.emailList = emailList.map((email: string) => this.sanitizeEmail(email));
+        req.body.emailList = emailList.map((email: string) => ValidationMiddleware.sanitizeEmail(email));
       }
 
       next();
     } catch (error) {
-      this.logger.error('Error in update campaign validation:', error);
+      ValidationMiddleware.logger.error('Error in update campaign validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -425,7 +425,7 @@ export class ValidationMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error('Error in create subscription validation:', error);
+      ValidationMiddleware.logger.error('Error in create subscription validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -471,7 +471,7 @@ export class ValidationMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error('Error in file upload validation:', error);
+      ValidationMiddleware.logger.error('Error in file upload validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -530,7 +530,7 @@ export class ValidationMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error('Error in pagination validation:', error);
+      ValidationMiddleware.logger.error('Error in pagination validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -588,7 +588,7 @@ export class ValidationMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error('Error in date range validation:', error);
+      ValidationMiddleware.logger.error('Error in date range validation:', error);
       res.status(500).json({
         success: false,
         message: 'Validation error',
@@ -602,7 +602,7 @@ export class ValidationMiddleware {
       // Recursively sanitize all string values in request body
       const sanitizeObject = (obj: any): any => {
         if (typeof obj === 'string') {
-          return this.sanitizeString(obj);
+          return ValidationMiddleware.sanitizeString(obj);
         }
         
         if (Array.isArray(obj)) {
@@ -626,8 +626,83 @@ export class ValidationMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error('Error in request body sanitization:', error);
+      ValidationMiddleware.logger.error('Error in request body sanitization:', error);
       next(); // Continue even if sanitization fails
+    }
+  }
+
+  public static validateResetPassword(req: Request, res: Response, next: NextFunction): void {
+    try {
+      const { token, newPassword } = req.body;
+      const errors: string[] = [];
+
+      // Validate token
+      if (!token || typeof token !== 'string') {
+        errors.push('Valid reset token is required');
+      }
+
+      // Validate new password
+      if (!newPassword) {
+        errors.push('New password is required');
+      } else {
+        const passwordValidation = ValidationMiddleware.validatePassword(newPassword);
+        if (!passwordValidation.isValid) {
+          errors.push(...passwordValidation.errors);
+        }
+      }
+
+      if (errors.length > 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors,
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      next();
+    } catch (error) {
+      ValidationMiddleware.logger.error('Error in reset password validation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Validation error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  public static validateEmailOnly(req: Request, res: Response, next: NextFunction): void {
+    try {
+      const { email } = req.body;
+      const errors: string[] = [];
+
+      // Validate email
+      if (!email || !ValidationMiddleware.validateEmail(email)) {
+        errors.push('Valid email is required');
+      }
+
+      if (errors.length > 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors,
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Sanitize email
+      req.body.email = ValidationMiddleware.sanitizeEmail(email);
+
+      next();
+    } catch (error) {
+      ValidationMiddleware.logger.error('Error in email-only validation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal validation error',
+        timestamp: new Date()
+      });
     }
   }
 }

@@ -9,7 +9,7 @@ export class AuthController {
 
   public static async register(req: Request, res: Response): Promise<void> {
     try {
-      this.logger.info('User registration attempt', {
+      AuthController.logger.info('User registration attempt', {
         email: req.body.email,
         username: req.body.username,
         ip: req.ip
@@ -32,14 +32,14 @@ export class AuthController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Registration error:', error);
+      AuthController.logger.error('Registration error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
 
   public static async login(req: Request, res: Response): Promise<void> {
     try {
-      this.logger.info('User login attempt', {
+      AuthController.logger.info('User login attempt', {
         email: req.body.email,
         ip: req.ip
       });
@@ -64,7 +64,7 @@ export class AuthController {
         res.status(401).json(result);
       }
     } catch (error) {
-      this.logger.error('Login error:', error);
+      AuthController.logger.error('Login error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -73,7 +73,7 @@ export class AuthController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('Profile retrieval request', {
+      AuthController.logger.info('Profile retrieval request', {
         userId,
         ip: req.ip
       });
@@ -95,7 +95,7 @@ export class AuthController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Profile retrieval error:', error);
+      AuthController.logger.error('Profile retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -111,7 +111,7 @@ export class AuthController {
       delete updateData.subscriptionTier;
       delete updateData.isAdmin;
 
-      this.logger.info('Profile update request', {
+      AuthController.logger.info('Profile update request', {
         userId,
         updateFields: Object.keys(updateData),
         ip: req.ip
@@ -134,7 +134,7 @@ export class AuthController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Profile update error:', error);
+      AuthController.logger.error('Profile update error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -165,7 +165,7 @@ export class AuthController {
         return;
       }
 
-      this.logger.info('Password change request', {
+      AuthController.logger.info('Password change request', {
         userId,
         ip: req.ip
       });
@@ -182,7 +182,7 @@ export class AuthController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Password change error:', error);
+      AuthController.logger.error('Password change error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -210,7 +210,7 @@ export class AuthController {
         return;
       }
 
-      this.logger.info('Password reset request', {
+      AuthController.logger.info('Password reset request', {
         email: ValidationMiddleware.sanitizeEmail(email),
         ip: req.ip
       });
@@ -220,14 +220,69 @@ export class AuthController {
       if (result.success) {
         res.status(200).json({
           success: true,
-          message: 'Password reset email sent',
+          message: 'Password reset link sent',
           timestamp: new Date()
         });
       } else {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Password reset error:', error);
+      AuthController.logger.error('Password reset error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async resetPasswordWithToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        res.status(400).json({
+          success: false,
+          message: 'Token and new password are required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AuthController.logger.info('Password reset with token request', {   
+        ip: req.ip
+      });
+
+      const result = await UserService.resetPasswordWithToken(token, newPassword);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Password reset successfully',
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AuthController.logger.error('Password reset with token error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async verifyResetToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.params;
+
+      AuthController.logger.info('Reset token verification request', {
+        ip: req.ip
+      });
+
+      const result = await UserService.verifyResetToken(token);
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AuthController.logger.error('Reset token verification error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -236,7 +291,7 @@ export class AuthController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('User stats request', {
+      AuthController.logger.info('User stats request', {
         userId,
         ip: req.ip
       });
@@ -254,7 +309,7 @@ export class AuthController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('User stats error:', error);
+      AuthController.logger.error('User stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -272,7 +327,7 @@ export class AuthController {
         return;
       }
 
-      this.logger.info('Token verification request', {
+      AuthController.logger.info('Token verification request', {
         ip: req.ip
       });
 
@@ -289,7 +344,7 @@ export class AuthController {
         res.status(401).json(result);
       }
     } catch (error) {
-      this.logger.error('Token verification error:', error);
+      AuthController.logger.error('Token verification error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -298,7 +353,7 @@ export class AuthController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('User logout', {
+      AuthController.logger.info('User logout', {
         userId,
         ip: req.ip
       });
@@ -311,7 +366,7 @@ export class AuthController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Logout error:', error);
+      AuthController.logger.error('Logout error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

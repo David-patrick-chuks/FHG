@@ -83,6 +83,13 @@ export class UserModel {
       },
       lastLoginAt: {
         type: Date
+      },
+      passwordResetToken: {
+        type: String,
+        sparse: true
+      },
+      passwordResetExpires: {
+        type: Date
       }
     }, {
       timestamps: true,

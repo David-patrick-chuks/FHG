@@ -1,11 +1,12 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import { IBot } from '../types';
+import UserModel from './User';
 
 export interface IBotDocument extends Omit<IBot, '_id'>, Document {
   incrementDailyEmailCount(): Promise<void>;
   resetDailyEmailCount(): Promise<void>;
-  canSendEmail(): boolean;
-  getDailyEmailLimit(): number;
+  canSendEmail(): Promise<boolean>;
+  getDailyEmailLimit(): Promise<number>;
 }
 
 export interface IBotModel extends Model<IBotDocument> {
@@ -75,8 +76,7 @@ export class BotModel {
       dailyEmailCount: {
         type: Number,
         default: 0,
-        min: 0,
-        max: 500
+        min: 0
       },
       lastEmailSentAt: {
         type: Date
@@ -114,12 +114,35 @@ export class BotModel {
       await this['save']();
     };
 
-    botSchema.methods['canSendEmail'] = function(): boolean {
-      return this['isActive'] && this['dailyEmailCount'] < 500;
+    botSchema.methods['canSendEmail'] = async function(): Promise<boolean> {
+      if (!this['isActive']) {
+        return false;
+      }
+
+      try {
+        const user = await UserModel.findById(this['userId']);
+        if (!user || !user.hasActiveSubscription()) {
+          return false;
+        }
+
+        const dailyLimit = user.getDailyEmailLimit();
+        return this['dailyEmailCount'] < dailyLimit;
+      } catch (error) {
+        // If we can't get user info, fall back to a safe default
+        return this['dailyEmailCount'] < 500;
+      }
     };
 
-    botSchema.methods['getDailyEmailLimit'] = function(): number {
-      return 500; // Gmail limit per bot
+    botSchema.methods['getDailyEmailLimit'] = async function(): Promise<number> {
+      try {
+        const user = await UserModel.findById(this['userId']);
+        if (user && user.hasActiveSubscription()) {
+          return user.getDailyEmailLimit();
+        }
+        return 500; // Fallback to default limit
+      } catch (error) {
+        return 500; // Fallback to default limit
+      }
     };
 
     // Static methods
@@ -136,11 +159,29 @@ export class BotModel {
     };
 
     // Pre-save middleware for validation
-    botSchema.pre('save', function(next) {
-      if (this.dailyEmailCount > 500) {
-        next(new Error('Daily email count cannot exceed 500'));
+    botSchema.pre('save', async function(next) {
+      try {
+        const user = await UserModel.findById(this['userId']);
+        if (user && user.hasActiveSubscription()) {
+          const dailyLimit = user.getDailyEmailLimit();
+          if (this['dailyEmailCount'] > dailyLimit) {
+            next(new Error(`Daily email count cannot exceed ${dailyLimit} for your subscription tier`));
+            return;
+          }
+        } else if (this['dailyEmailCount'] > 500) {
+          // Fallback validation for users without subscription info
+          next(new Error('Daily email count cannot exceed 500'));
+          return;
+        }
+        next();
+      } catch (error) {
+        // If we can't validate against user subscription, use default limit
+        if (this['dailyEmailCount'] > 500) {
+          next(new Error('Daily email count cannot exceed 500'));
+          return;
+        }
+        next();
       }
-      next();
     });
 
     return mongoose.model<IBotDocument, IBotModel>('Bot', botSchema);

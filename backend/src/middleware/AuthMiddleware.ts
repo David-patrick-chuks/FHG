@@ -8,7 +8,7 @@ export class AuthMiddleware {
 
   public static async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const token = this.extractToken(req);
+      const token = AuthMiddleware.extractToken(req);
       
       if (!token) {
         res.status(401).json({
@@ -41,7 +41,7 @@ export class AuthMiddleware {
         isAdmin: user.isAdmin
       };
 
-      this.logger.info('User authenticated successfully', {
+      AuthMiddleware.logger.info('User authenticated successfully', {
         userId: user._id,
         email: user.email,
         ip: req.ip
@@ -49,7 +49,7 @@ export class AuthMiddleware {
 
       next();
     } catch (error) {
-      this.logger.error('Authentication error:', error);
+      AuthMiddleware.logger.error('Authentication error:', error);
       
       if (error instanceof jwt.JsonWebTokenError) {
         res.status(401).json({
@@ -182,16 +182,16 @@ export class AuthMiddleware {
   }
 
   public static requireProOrHigher(req: Request, res: Response, next: NextFunction): void {
-    this.requireSubscriptionTier('PRO', req, res, next);
+    AuthMiddleware.requireSubscriptionTier('PRO', req, res, next);
   }
 
   public static requireEnterprise(req: Request, res: Response, next: NextFunction): void {
-    this.requireSubscriptionTier('ENTERPRISE', req, res, next);
+    AuthMiddleware.requireSubscriptionTier('ENTERPRISE', req, res, next);
   }
 
   public static optionalAuth(req: Request, _res: Response, next: NextFunction): void {
     try {
-      const token = this.extractToken(req);
+      const token = AuthMiddleware.extractToken(req);
       
       if (token) {
         const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as { userId: string };
@@ -330,7 +330,7 @@ export class AuthMiddleware {
 
         next();
       } catch (error) {
-        this.logger.error(`Error validating ${resourceType} ownership:`, error);
+        AuthMiddleware.logger.error(`Error validating ${resourceType} ownership:`, error);
         res.status(500).json({
           success: false,
           message: 'Internal server error',
@@ -407,7 +407,7 @@ export class AuthMiddleware {
 
         next();
       } catch (error) {
-        this.logger.error(`Error validating ${limitType} limits:`, error);
+        AuthMiddleware.logger.error(`Error validating ${limitType} limits:`, error);
         res.status(500).json({
           success: false,
           message: 'Internal server error',

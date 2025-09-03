@@ -10,7 +10,7 @@ export class QueueController {
     try {
       const adminId = (req as any).user['id'];
 
-      this.logger.info('Queue status request', {
+      QueueController.logger.info('Queue status request', {
         adminId,
         ip: req.ip
       });
@@ -24,7 +24,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Queue status error:', error);
+      QueueController.logger.error('Queue status error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -33,7 +33,7 @@ export class QueueController {
     try {
       const adminId = (req as any).user['id'];
 
-      this.logger.info('Queue pause request', {
+      QueueController.logger.info('Queue pause request', {
         adminId,
         ip: req.ip
       });
@@ -46,7 +46,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Queue pause error:', error);
+      QueueController.logger.error('Queue pause error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -55,7 +55,7 @@ export class QueueController {
     try {
       const adminId = (req as any).user['id'];
 
-      this.logger.info('Queue resume request', {
+      QueueController.logger.info('Queue resume request', {
         adminId,
         ip: req.ip
       });
@@ -68,7 +68,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Queue resume error:', error);
+      QueueController.logger.error('Queue resume error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -77,7 +77,7 @@ export class QueueController {
     try {
       const adminId = (req as any).user['id'];
 
-      this.logger.info('Queue clear request', {
+      QueueController.logger.info('Queue clear request', {
         adminId,
         ip: req.ip
       });
@@ -90,7 +90,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Queue clear error:', error);
+      QueueController.logger.error('Queue clear error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -108,7 +108,7 @@ export class QueueController {
         return;
       }
 
-      this.logger.info('Job retrieval request', {
+      QueueController.logger.info('Job retrieval request', {
         adminId,
         jobId,
         ip: req.ip
@@ -131,7 +131,7 @@ export class QueueController {
         });
       }
     } catch (error) {
-      this.logger.error('Job retrieval error:', error);
+      QueueController.logger.error('Job retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -149,7 +149,7 @@ export class QueueController {
         return;
       }
 
-      this.logger.info('Job removal request', {
+      QueueController.logger.info('Job removal request', {
         adminId,
         jobId,
         ip: req.ip
@@ -163,7 +163,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Job removal error:', error);
+      QueueController.logger.error('Job removal error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -182,7 +182,7 @@ export class QueueController {
         return;
       }
 
-      this.logger.info('Campaign jobs retrieval request', {
+      QueueController.logger.info('Campaign jobs retrieval request', {
         adminId,
         campaignId,
         ip: req.ip
@@ -197,7 +197,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Campaign jobs retrieval error:', error);
+      QueueController.logger.error('Campaign jobs retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -216,7 +216,7 @@ export class QueueController {
         return;
       }
 
-      this.logger.info('Bot jobs retrieval request', {
+      QueueController.logger.info('Bot jobs retrieval request', {
         adminId,
         botId,
         ip: req.ip
@@ -231,7 +231,7 @@ export class QueueController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Bot jobs retrieval error:', error);
+      QueueController.logger.error('Bot jobs retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

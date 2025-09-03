@@ -11,7 +11,7 @@ export class CampaignController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('Campaign creation request', {
+      CampaignController.logger.info('Campaign creation request', {
         userId,
         campaignName: req.body.name,
         emailCount: req.body.emailList?.length || 0,
@@ -32,7 +32,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign creation error:', error);
+      CampaignController.logger.error('Campaign creation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -41,7 +41,7 @@ export class CampaignController {
     try {
       const userId = (req as any).user['id'];
 
-      this.logger.info('Campaigns retrieval request', {
+      CampaignController.logger.info('Campaigns retrieval request', {
         userId,
         ip: req.ip
       });
@@ -59,7 +59,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaigns retrieval error:', error);
+      CampaignController.logger.error('Campaigns retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -77,7 +77,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign retrieval request', {
+      CampaignController.logger.info('Campaign retrieval request', {
         userId,
         campaignId,
         ip: req.ip
@@ -96,7 +96,7 @@ export class CampaignController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign retrieval error:', error);
+      CampaignController.logger.error('Campaign retrieval error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -123,7 +123,7 @@ export class CampaignController {
       delete updateData.completedAt;
       delete updateData.sentEmails;
 
-      this.logger.info('Campaign update request', {
+      CampaignController.logger.info('Campaign update request', {
         userId,
         campaignId,
         updateFields: Object.keys(updateData),
@@ -143,7 +143,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign update error:', error);
+      CampaignController.logger.error('Campaign update error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -161,7 +161,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign deletion request', {
+      CampaignController.logger.info('Campaign deletion request', {
         userId,
         campaignId,
         ip: req.ip
@@ -179,7 +179,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign deletion error:', error);
+      CampaignController.logger.error('Campaign deletion error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -197,7 +197,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign start request', {
+      CampaignController.logger.info('Campaign start request', {
         userId,
         campaignId,
         ip: req.ip
@@ -216,7 +216,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign start error:', error);
+      CampaignController.logger.error('Campaign start error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -226,7 +226,7 @@ export class CampaignController {
       const userId = (req as any).user['id'];
       const campaignId = req.params['id'];
 
-      this.logger.info('Campaign pause request', {
+      CampaignController.logger.info('Campaign pause request', {
         userId,
         campaignId,
         ip: req.ip
@@ -254,7 +254,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign pause error:', error);
+      CampaignController.logger.error('Campaign pause error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -273,7 +273,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign resume request', {
+      CampaignController.logger.info('Campaign resume request', {
         userId,
         campaignId,
         ip: req.ip
@@ -292,7 +292,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign resume error:', error);
+      CampaignController.logger.error('Campaign resume error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -311,7 +311,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign completion request', {
+      CampaignController.logger.info('Campaign completion request', {
         userId,
         campaignId,
         ip: req.ip
@@ -330,7 +330,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign completion error:', error);
+      CampaignController.logger.error('Campaign completion error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -349,7 +349,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign cancellation request', {
+      CampaignController.logger.info('Campaign cancellation request', {
         userId,
         campaignId,
         ip: req.ip
@@ -368,7 +368,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign cancellation error:', error);
+      CampaignController.logger.error('Campaign cancellation error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -398,7 +398,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('AI message regeneration request', {
+      CampaignController.logger.info('AI message regeneration request', {
         userId,
         campaignId,
         hasCustomPrompt: !!prompt,
@@ -418,7 +418,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('AI message regeneration error:', error);
+      CampaignController.logger.error('AI message regeneration error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -437,7 +437,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Campaign stats request', {
+      CampaignController.logger.info('Campaign stats request', {
         userId,
         campaignId,
         ip: req.ip
@@ -456,7 +456,7 @@ export class CampaignController {
         res.status(404).json(result);
       }
     } catch (error) {
-      this.logger.error('Campaign stats error:', error);
+      CampaignController.logger.error('Campaign stats error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -512,7 +512,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Email list upload request', {
+      CampaignController.logger.info('Email list upload request', {
         userId,
         campaignId,
         emailCount: emailList.length,
@@ -543,7 +543,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Email list upload error:', error);
+      CampaignController.logger.error('Email list upload error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -572,7 +572,7 @@ export class CampaignController {
         return;
       }
 
-      this.logger.info('Message selection request', {
+      CampaignController.logger.info('Message selection request', {
         userId,
         campaignId,
         messageIndex,
@@ -615,7 +615,7 @@ export class CampaignController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Message selection error:', error);
+      CampaignController.logger.error('Message selection error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

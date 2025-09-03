@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/AuthController';
-import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
+import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 
 export class AuthRoutes {
   public static getRouter(): Router {
@@ -22,8 +22,17 @@ export class AuthRoutes {
     );
 
     router.post('/reset-password', 
-      ValidationMiddleware.validateLogin, // Reuse email validation
+      ValidationMiddleware.validateEmailOnly, // Only validate email for password reset
       AuthController.resetPassword
+    );
+
+    router.post('/reset-password/confirm', 
+      ValidationMiddleware.validateResetPassword,
+      AuthController.resetPasswordWithToken
+    );
+
+    router.get('/reset-password/verify/:token', 
+      AuthController.verifyResetToken
     );
 
     router.get('/verify-token', 
