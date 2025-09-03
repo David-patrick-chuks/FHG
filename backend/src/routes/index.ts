@@ -3,6 +3,7 @@ import { AdminRoutes } from './AdminRoutes';
 import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
 import { CampaignRoutes } from './CampaignRoutes';
+import { DashboardRoutes } from './DashboardRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
 
@@ -39,6 +40,7 @@ export class Routes {
     router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
     router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
     router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
+    router.use(DashboardRoutes.getBasePath(), DashboardRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
     router.use(QueueRoutes.getBasePath(), QueueRoutes.getRouter());
@@ -62,6 +64,7 @@ export class Routes {
       AuthRoutes.getBasePath(),
       BotRoutes.getBasePath(),
       CampaignRoutes.getBasePath(),
+      DashboardRoutes.getBasePath(),
       SubscriptionRoutes.getBasePath(),
       AdminRoutes.getBasePath(),
       QueueRoutes.getBasePath()

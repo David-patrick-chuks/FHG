@@ -29,15 +29,9 @@ export default function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" defaultValue="John" />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" defaultValue="Doe" />
-              </div>
+            <div>
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" defaultValue="johndoe" />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>

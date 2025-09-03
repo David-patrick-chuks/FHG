@@ -66,7 +66,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Welcome back, {user?.firstName}! 👋
+                  Welcome back, {user?.username}! 👋
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
                   Here's what's happening with your email campaigns today.
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               <div className="text-right">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
                 <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
-                  {user?.subscription?.plan}
+                  {user?.subscription}
                 </p>
               </div>
             </div>

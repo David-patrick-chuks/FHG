@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
-import { LoadingState, ApiResponse } from '@/types';
+import { apiClient } from '@/lib/api-client';
+import { ApiResponse, LoadingState } from '@/types';
+import { useCallback, useRef, useState } from 'react';
 
 interface UseApiOptions<T> {
   onSuccess?: (data: T) => void;
@@ -133,7 +134,6 @@ export function useGet<T = any>(
   endpoint: string,
   options?: Omit<UseApiOptions<T>, 'autoExecute'>
 ) {
-  const { apiClient } = require('@/lib/api-client');
   return useApi(() => apiClient.get<T>(endpoint), { ...options, autoExecute: true });
 }
 
@@ -141,7 +141,6 @@ export function usePost<T = any>(
   endpoint: string,
   options?: Omit<UseApiOptions<T>, 'autoExecute'>
 ) {
-  const { apiClient } = require('@/lib/api-client');
   return useApi((data: any) => apiClient.post<T>(endpoint, data), options);
 }
 
@@ -149,7 +148,6 @@ export function usePut<T = any>(
   endpoint: string,
   options?: Omit<UseApiOptions<T>, 'autoExecute'>
 ) {
-  const { apiClient } = require('@/lib/api-client');
   return useApi((data: any) => apiClient.put<T>(endpoint, data), options);
 }
 
@@ -157,6 +155,5 @@ export function useDelete<T = any>(
   endpoint: string,
   options?: Omit<UseApiOptions<T>, 'autoExecute'>
 ) {
-  const { apiClient } = require('@/lib/api-client');
   return useApi(() => apiClient.delete<T>(endpoint), options);
 }

@@ -3,24 +3,24 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    Bot,
-    Brain,
-    LayoutDashboard,
-    LogOut,
-    Mail,
-    Menu,
-    Settings,
-    User,
-    X
+  Bot,
+  Brain,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  Settings,
+  User,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -219,7 +219,7 @@ export function Navbar() {
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user?.firstName} {user?.lastName}
+                      {user?.username}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {user?.email}

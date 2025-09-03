@@ -151,12 +151,12 @@ export function DashboardLayout({
           <div className="flex items-center space-x-3">
             <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
               <span className="text-sm font-medium text-white">
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                {user?.username?.charAt(0)?.toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {user?.firstName} {user?.lastName}
+                {user?.username}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user?.email}
