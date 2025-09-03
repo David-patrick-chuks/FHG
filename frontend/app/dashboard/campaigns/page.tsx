@@ -12,10 +12,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { useDelete, useGet, usePost, usePut } from '@/hooks/useApi';
 import { Bot, Campaign } from '@/types';
 import { BarChart3, Calendar, Edit, Eye, Mail, Plus, Trash2, Upload, Users, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function CampaignsPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [formData, setFormData] = useState({
@@ -244,260 +245,202 @@ export default function CampaignsPage() {
             </div>
           </div>
           
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200">
-                <Plus className="w-5 h-5 mr-2" />
-                Create Campaign
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader className="text-center border-b border-gray-200 pb-6">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <Mail className="w-10 h-10 text-white" />
-                </div>
-                <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Create New Campaign
-                </DialogTitle>
-                <DialogDescription className="text-lg text-gray-600 mt-2">
-                  Build your email campaign step by step
-                </DialogDescription>
-              </DialogHeader>
+          <Button 
+            onClick={() => router.push('/dashboard/campaigns/create')}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Create Campaign
+          </Button>
 
-              <div className="space-y-8 pt-6">
-                {/* Step 1: Campaign Basics */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">1</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Campaign Basics</h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="name" className="text-sm font-medium text-gray-700 flex items-center">
-                        Campaign Name <span className="text-red-500 ml-1">*</span>
-                      </Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="e.g., Q1 Sales Outreach"
-                        className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 text-base"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="botId" className="text-sm font-medium text-gray-700 flex items-center">
-                        Select Bot <span className="text-red-500 ml-1">*</span>
-                      </Label>
-                      <Select value={formData.botId} onValueChange={(value) => setFormData({ ...formData, botId: value })}>
-                        <SelectTrigger className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 text-base">
-                          <SelectValue placeholder="Choose your AI email bot" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {bots?.map((bot) => (
-                            <SelectItem key={bot._id} value={bot._id}>
-                              <div className="flex items-center space-x-2">
-                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                <span>{bot.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-                      Campaign Description
-                    </Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Describe your campaign goals, target audience, and what you want to achieve..."
-                      rows={3}
-                      className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                    />
-                  </div>
-                </div>
-                {/* Step 2: Target Audience */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-semibold text-sm">2</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Target Audience</h3>
-                  </div>
 
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <div className="space-y-6">
-                      {/* File Upload Section */}
-                      <div className="space-y-4">
-                        <div className="text-center">
-                          <h4 className="text-base font-medium text-gray-900 mb-2">Upload Email List</h4>
-                          <p className="text-sm text-gray-600">Choose your preferred method to add recipients</p>
-                        </div>
+
+
+
+
+
                         
-                        <div className="space-y-4">
-                      <div 
-                        className={`border-2 border-dashed transition-all duration-200 rounded-xl p-6 text-center ${
-                          isDragOver 
-                            ? 'border-blue-500 bg-blue-50/80 scale-105' 
-                            : 'border-gray-300 hover:border-blue-400 bg-gray-50/50 hover:bg-blue-50/50'
-                        }`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        <input
-                          type="file"
-                          id="fileUpload"
-                          accept=".csv,.txt"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                          disabled={isUploading}
-                        />
-                        <label htmlFor="fileUpload" className="cursor-pointer block">
-                          {isUploading ? (
-                            <div className="space-y-3">
-                              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
-                              <p className="text-sm font-medium text-blue-600">Processing your file...</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                                <Upload className="w-8 h-8 text-blue-600" />
+                        <div 
+                          className={`border-2 border-dashed transition-all duration-200 rounded-xl p-8 text-center ${
+                            isDragOver 
+                              ? 'border-green-500 bg-green-50/80 scale-105' 
+                              : 'border-gray-300 hover:border-green-400 bg-white hover:bg-green-50/50'
+                          }`}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                        >
+                          <input
+                            type="file"
+                            id="fileUpload"
+                            accept=".csv,.txt"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            disabled={isUploading}
+                          />
+                          <label htmlFor="fileUpload" className="cursor-pointer block">
+                            {isUploading ? (
+                              <div className="space-y-4">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                                <p className="text-base font-medium text-green-600">Processing your file...</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                                  <Upload className="w-10 h-10 text-green-600" />
+                                </div>
+                                <div>
+                                  <p className="text-lg font-semibold text-gray-900">
+                                    {isDragOver ? 'Drop your file here!' : 'Upload Email List'}
+                                  </p>
+                                  <p className="text-sm text-gray-600 mt-2">
+                                    {isDragOver ? 'Release to upload' : 'Drag and drop your file here, or click to browse'}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-3">
+                                    Supports CSV and text files up to 5MB
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </label>
+                        </div>
+
+                        {/* File Type Info */}
+                        <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span>CSV files</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <span>Text files</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                            <span>Max 5MB</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Uploaded File Success */}
+                      {uploadedFileName && (
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <Upload className="w-6 h-6 text-green-600" />
                               </div>
                               <div>
-                                <p className="text-base font-semibold text-gray-900">
-                                  Upload Email List
+                                <p className="text-base font-medium text-green-900">
+                                  {uploadedFileName}
                                 </p>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {isDragOver ? 'Drop your file here!' : 'Drag and drop your file here, or click to browse'}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-2">
-                                  Supports CSV and text files up to 5MB
+                                <p className="text-sm text-green-700">
+                                  ✅ {uploadedEmails.length} valid emails extracted
                                 </p>
                               </div>
                             </div>
-                          )}
-                        </label>
-                      </div>
-
-                      {/* File Type Info */}
-                      <div className="flex items-center justify-center space-x-6 text-xs text-gray-500">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span>CSV files</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                          <span>Text files</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                          <span>Max 5MB</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Uploaded File Info */}
-                    {uploadedFileName && (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                              <Upload className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-green-900">
-                                {uploadedFileName}
-                              </p>
-                              <p className="text-xs text-green-700">
-                                {uploadedEmails.length} valid emails extracted
-                              </p>
-                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={clearUploadedEmails}
+                              className="text-green-600 hover:text-green-800 hover:bg-green-100"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={clearUploadedEmails}
-                            className="text-green-600 hover:text-green-800 hover:bg-green-100"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
+                        </div>
+                      )}
+
+                      {/* Divider */}
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-gray-200" />
+                        </div>
+                        <div className="relative flex justify-center text-sm uppercase">
+                          <span className="bg-gray-50 px-4 text-gray-500 font-medium">Or</span>
                         </div>
                       </div>
-                    )}
 
-                    {/* Divider */}
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-gray-200" />
+                      {/* Manual Email Input */}
+                      <div className="space-y-3">
+                        <div className="text-center">
+                          <h4 className="text-base font-medium text-gray-900">Enter Emails Manually</h4>
+                          <p className="text-sm text-gray-600">Type or paste email addresses directly</p>
+                        </div>
+                        <Textarea
+                          id="emailList"
+                          value={formData.emailList}
+                          onChange={(e) => setFormData({ ...formData, emailList: e.target.value })}
+                          placeholder="Enter email addresses, one per line&#10;example@domain.com&#10;another@domain.com&#10;contact@company.com"
+                          rows={5}
+                          className="focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-sm"
+                        />
+                        <p className="text-xs text-gray-500 text-center">
+                          Type or paste email addresses, one per line
+                        </p>
                       </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white px-2 text-gray-500">Or</span>
-                      </div>
-                    </div>
-
-                    {/* Manual Email Input */}
-                    <div className="space-y-2">
-                      <Label htmlFor="emailList" className="text-sm font-medium text-gray-700">
-                        Enter emails manually
-                      </Label>
-                      <Textarea
-                        id="emailList"
-                        value={formData.emailList}
-                        onChange={(e) => setFormData({ ...formData, emailList: e.target.value })}
-                        placeholder="Enter email addresses, one per line&#10;example@domain.com&#10;another@domain.com"
-                        rows={4}
-                        className="resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Type or paste email addresses, one per line
-                      </p>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="aiPrompt" className="text-sm font-medium text-gray-700">AI Prompt (optional)</Label>
-                  <Textarea
-                    id="aiPrompt"
-                    value={formData.aiPrompt}
-                    onChange={(e) => setFormData({ ...formData, aiPrompt: e.target.value })}
-                    placeholder="Describe the type of email you want the AI to generate&#10;Example: Write a professional email introducing our new product to potential customers"
-                    rows={3}
-                    className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Provide context about your audience and desired email style
-                  </p>
+
+                {/* Step 3: AI Configuration */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <span className="text-purple-600 font-semibold text-sm">3</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">AI Configuration (Optional)</h3>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                    <div className="space-y-3">
+                      <Label htmlFor="aiPrompt" className="text-sm font-medium text-gray-700">
+                        AI Prompt <span className="text-gray-500 font-normal">(Optional)</span>
+                      </Label>
+                      <Textarea
+                        id="aiPrompt"
+                        value={formData.aiPrompt}
+                        onChange={(e) => setFormData({ ...formData, aiPrompt: e.target.value })}
+                        placeholder="Describe the type of email you want the AI to generate...&#10;Example: Write a professional email introducing our new product to potential customers"
+                        rows={4}
+                        className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                      />
+                      <div className="flex items-start space-x-2 text-xs text-purple-700">
+                        <div className="w-4 h-4 bg-purple-200 rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-purple-600 text-xs">i</span>
+                        </div>
+                        <p>
+                          This prompt defines how your AI bot will write emails. Be specific about tone, style, and goals. 
+                          <span className="font-medium"> This field is optional and can be configured later.</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                   <Button 
                     variant="outline" 
                     onClick={() => setIsCreateDialogOpen(false)}
-                    className="px-6 py-2"
+                    className="px-6 py-3 text-base"
                   >
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleCreateCampaign} 
-                    disabled={creating}
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700"
+                    disabled={creating || !formData.name.trim() || !formData.botId}
+                    className="px-8 py-3 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     {creating ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creating...
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Creating Campaign...
                       </>
                     ) : (
                       <>
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="w-5 h-5 mr-2" />
                         Create Campaign
                       </>
                     )}
@@ -639,46 +582,59 @@ export default function CampaignsPage() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Campaign</DialogTitle>
-            <DialogDescription>Update your campaign settings</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Campaign Name</Label>
-              <Input
-                id="edit-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Enter campaign name"
-              />
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="text-center border-b border-gray-200 pb-6">
+            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <Edit className="w-8 h-8 text-blue-600" />
             </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
+            <DialogTitle className="text-2xl font-bold">Edit Campaign</DialogTitle>
+            <DialogDescription className="text-base">
+              Update your campaign settings and configuration
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700">Campaign Name</Label>
+                <Input
+                  id="edit-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter campaign name"
+                  className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="edit-botId" className="text-sm font-medium text-gray-700">Select Bot</Label>
+                <Select value={formData.botId} onValueChange={(value) => setFormData({ ...formData, botId: value })}>
+                  <SelectTrigger className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <SelectValue placeholder="Choose a bot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bots?.map((bot) => (
+                      <SelectItem key={bot._id} value={bot._id}>
+                        {bot.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700">Description</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe your campaign"
+                rows={3}
+                className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               />
             </div>
-            <div>
-              <Label htmlFor="edit-botId">Select Bot</Label>
-              <Select value={formData.botId} onValueChange={(value) => setFormData({ ...formData, botId: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a bot" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bots?.map((bot) => (
-                    <SelectItem key={bot._id} value={bot._id}>
-                      {bot.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
+
+            <div className="space-y-4">
               <Label htmlFor="edit-emailList" className="text-base font-medium">Email List</Label>
               <div className="space-y-4">
                 {/* File Upload Section */}
@@ -712,17 +668,17 @@ export default function CampaignsPage() {
                           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                             <Upload className="w-8 h-8 text-blue-600" />
                           </div>
-                                                        <div>
-                                <p className="text-base font-semibold text-gray-900">
-                                  Update Email List
-                                </p>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {isDragOver ? 'Drop your file here!' : 'Upload a new file to replace current emails'}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-2">
-                                  Supports CSV and text files up to 5MB
-                                </p>
-                              </div>
+                          <div>
+                            <p className="text-base font-semibold text-gray-900">
+                              Update Email List
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {isDragOver ? 'Drop your file here!' : 'Upload a new file to replace current emails'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Supports CSV and text files up to 5MB
+                            </p>
+                          </div>
                         </div>
                       )}
                     </label>
@@ -804,17 +760,22 @@ export default function CampaignsPage() {
                 </div>
               </div>
             </div>
-            <div>
-              <Label htmlFor="edit-aiPrompt">AI Prompt (optional)</Label>
+            
+            <div className="space-y-3">
+              <Label htmlFor="edit-aiPrompt" className="text-sm font-medium text-gray-700">
+                AI Prompt <span className="text-gray-500 font-normal">(Optional)</span>
+              </Label>
               <Textarea
                 id="edit-aiPrompt"
                 value={formData.aiPrompt}
                 onChange={(e) => setFormData({ ...formData, aiPrompt: e.target.value })}
                 placeholder="Describe the type of email you want the AI to generate"
                 rows={3}
+                className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancel
               </Button>

@@ -2,84 +2,140 @@ import dotenv from "dotenv";
 import { Server } from "./server/Server";
 import { Logger } from "./utils/Logger";
 
-// Initialize logger
-const logger = new Logger();
-
-// Load environment variables
-dotenv.config();
-
-// Set default environment variables
-if (!process.env.PORT) process.env.PORT = '3000';
-if (!process.env.NODE_ENV) process.env.NODE_ENV = 'development';
-if (!process.env.MONGODB_URI) process.env.MONGODB_URI = 'mongodb://localhost:27017/email-outreach-bot';
-
 /**
- * Main application bootstrap function
+ * Main Application class responsible for bootstrapping and managing the backend service
  */
-async function bootstrap(): Promise<void> {
-  try {
-    logger.info('🚀 Starting Email Outreach Bot Backend...');
-    logger.info('Environment:', { 
-      NODE_ENV: process.env.NODE_ENV,
-      PORT: process.env.PORT,
-      MONGODB_URI: process.env.MONGODB_URI?.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') // Hide credentials
+export class Application {
+  private server: Server;
+  private logger: Logger;
+  private isShuttingDown: boolean = false;
+
+  constructor() {
+    this.logger = new Logger();
+    this.server = new Server();
+  }
+
+  /**
+   * Initialize and start the application
+   */
+  public async bootstrap(): Promise<void> {
+    try {
+      this.logger.info('🚀 Starting Email Outreach Bot Backend...');
+      
+      // Load environment variables
+      this.loadEnvironment();
+      
+      // Start the server
+      await this.server.start();
+      
+      this.logger.info('✅ Backend server started successfully');
+      
+      // Setup graceful shutdown handlers
+      this.setupGracefulShutdown();
+      
+    } catch (error) {
+      this.logger.error('❌ Failed to start backend server:', error);
+      await this.shutdown(1);
+    }
+  }
+
+  /**
+   * Load environment configuration
+   */
+  private loadEnvironment(): void {
+    dotenv.config();
+    this.logger.info('📋 Environment configuration loaded');
+  }
+
+  /**
+   * Setup graceful shutdown handlers for various signals
+   */
+  private setupGracefulShutdown(): void {
+    // Handle shutdown signals
+    process.on("SIGTERM", () => this.handleShutdownSignal("SIGTERM"));
+    process.on("SIGINT", () => this.handleShutdownSignal("SIGINT"));
+
+    // Handle uncaught exceptions
+    process.on("uncaughtException", (error: Error) => {
+      this.logger.error('💥 Uncaught Exception:', error);
+      this.handleShutdownSignal("uncaughtException");
     });
 
-    const server = new Server();
-    
-    // Start the server
-    await server.start();
-    
-    logger.info('✅ Backend server started successfully');
-    
-    // Handle graceful shutdown
-    setupGracefulShutdown(server);
-    
-  } catch (error) {
-    logger.error('❌ Failed to start backend server:', error);
-    process.exit(1);
+    // Handle unhandled promise rejections
+    process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
+      this.logger.error('💥 Unhandled Rejection:', { reason, promise });
+      this.handleShutdownSignal("unhandledRejection");
+    });
+
+    this.logger.info('🛡️ Graceful shutdown handlers configured');
+  }
+
+  /**
+   * Handle shutdown signals gracefully
+   */
+  private async handleShutdownSignal(signal: string): Promise<void> {
+    if (this.isShuttingDown) {
+      this.logger.warn(`⚠️ Shutdown already in progress, ignoring ${signal}`);
+      return;
+    }
+
+    this.logger.info(`⚠️ Received ${signal}. Initiating graceful shutdown...`);
+    await this.shutdown(0);
+  }
+
+  /**
+   * Perform graceful shutdown with proper cleanup
+   */
+  private async shutdown(exitCode: number): Promise<void> {
+    if (this.isShuttingDown) {
+      return;
+    }
+
+    this.isShuttingDown = true;
+
+    try {
+      // Stop the server
+      await this.server.stop();
+      this.logger.info('✅ Graceful shutdown completed successfully');
+      
+    } catch (error) {
+      this.logger.error('❌ Error during graceful shutdown:', error);
+      exitCode = 1;
+    }
+
+    // Exit with appropriate code
+    process.exit(exitCode);
+  }
+
+  /**
+   * Get application status
+   */
+  public getStatus(): { running: boolean; uptime: number } {
+    const serverStatus = this.server.getStatus();
+    return {
+      running: serverStatus.running,
+      uptime: serverStatus.uptime
+    };
   }
 }
 
 /**
- * Setup graceful shutdown handlers
+ * Application entry point
  */
-function setupGracefulShutdown(server: Server): void {
-  const gracefulShutdown = async (signal: string) => {
-    logger.info(`⚠️ Received ${signal}. Initiating graceful shutdown...`);
-    
-    try {
-      await server.stop();
-      logger.info('✅ Graceful shutdown completed successfully');
-      process.exit(0);
-      
-    } catch (error) {
-      logger.error('❌ Error during graceful shutdown:', error);
-      process.exit(1);
-    }
-  };
-
-  // Handle shutdown signals
-  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-
-  // Handle uncaught exceptions
-  process.on("uncaughtException", (error: Error) => {
-    logger.error('💥 Uncaught Exception:', error);
-    gracefulShutdown("uncaughtException");
-  });
-
-  // Handle unhandled promise rejections
-  process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
-    logger.error('💥 Unhandled Rejection:', { reason, promise });
-    gracefulShutdown("unhandledRejection");
-  });
-
-  logger.info('🛡️ Graceful shutdown handlers configured');
+async function main(): Promise<void> {
+  try {
+    const app = new Application();
+    await app.bootstrap();
+  } catch (error) {
+    console.error('💥 Application bootstrap failed:', error);
+    process.exit(1);
+  }
 }
 
-// Start the application
-bootstrap().catch((error) => {
-  logger.error('💥 Bootstrap failed:', error);
-  process.exit(1);
-});
+// Start the application if this file is run directly
+if (require.main === module) {
+  main().catch((error) => {
+    console.error('💥 Fatal error in main:', error);
+    process.exit(1);
+  });
+}

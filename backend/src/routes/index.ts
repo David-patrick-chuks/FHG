@@ -70,6 +70,53 @@ export class Routes {
       QueueRoutes.getBasePath()
     ];
   }
+
+  /**
+   * Get the total count of all registered routes
+   */
+  public static getRouteCount(): number {
+    try {
+      let totalRoutes = 0;
+      
+      // Count routes from each module
+      totalRoutes += this.countRoutesInModule(AuthRoutes);
+      totalRoutes += this.countRoutesInModule(BotRoutes);
+      totalRoutes += this.countRoutesInModule(CampaignRoutes);
+      totalRoutes += this.countRoutesInModule(DashboardRoutes);
+      totalRoutes += this.countRoutesInModule(SubscriptionRoutes);
+      totalRoutes += this.countRoutesInModule(AdminRoutes);
+      totalRoutes += this.countRoutesInModule(QueueRoutes);
+      
+      // Add main routes from this class
+      totalRoutes += 2; // /health and /version
+      
+      return totalRoutes;
+    } catch (error) {
+      console.warn('Could not count routes:', error);
+      return -1;
+    }
+  }
+
+  /**
+   * Count routes in a specific route module
+   */
+  private static countRoutesInModule(routeModule: any): number {
+    try {
+      const router = routeModule.getRouter();
+      if (!router || !router.stack) return 0;
+      
+      let count = 0;
+      for (const layer of router.stack) {
+        if (layer.route) {
+          count++;
+        }
+      }
+      return count;
+    } catch (error) {
+      console.warn(`Could not count routes in ${routeModule.name}:`, error);
+      return 0;
+    }
+  }
 }
 
 export default Routes;
