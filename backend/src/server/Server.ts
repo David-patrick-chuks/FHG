@@ -4,6 +4,7 @@ import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import os from 'os';
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { RequestLogger } from '../middleware/RequestLogger';
@@ -126,13 +127,181 @@ export class Server {
   /**
    * Handle health check requests
    */
-  private handleHealthCheck(_req: Request, res: Response): void {
-    res.status(200).json({
-      status: 'OK',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env['NODE_ENV'] || 'development'
-    });
+  private async handleHealthCheck(_req: Request, res: Response): Promise<void> {
+    try {
+      const startTime = Date.now();
+      
+      // Get database health status
+      const dbStatus = await this.getDatabaseHealth();
+      
+      // Get system metrics
+      const systemMetrics = this.getSystemMetrics();
+      
+      // Get application metrics
+      const appMetrics = this.getApplicationMetrics();
+      
+      const responseTime = Date.now() - startTime;
+      
+      res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env['NODE_ENV'] || 'development',
+        
+        // Database health
+        database: {
+          status: dbStatus.status,
+          connected: dbStatus.connected,
+          responseTime: `${dbStatus.responseTime}ms`,
+          lastCheck: dbStatus.lastCheck,
+          stats: dbStatus.stats
+        },
+        
+        // System metrics
+        system: {
+          memory: systemMetrics.memory,
+          cpu: systemMetrics.cpu,
+          platform: systemMetrics.platform,
+          nodeVersion: systemMetrics.nodeVersion,
+          processId: systemMetrics.processId
+        },
+        
+        // Application metrics
+        application: {
+          version: process.env['APP_VERSION'] || '1.0.0',
+          buildNumber: process.env['BUILD_NUMBER'] || 'dev',
+          responseTime: `${responseTime}ms`,
+          activeConnections: this.server ? this.server.connections : 0,
+          routes: this.getRouteCount()
+        },
+        
+        // Performance indicators
+        performance: {
+          responseTime: responseTime,
+          memoryUsage: systemMetrics.memory.usage,
+          uptime: process.uptime()
+        }
+      });
+      
+    } catch (error) {
+      this.logger.error('Health check failed:', error);
+      res.status(503).json({
+        status: 'ERROR',
+        timestamp: new Date().toISOString(),
+        error: 'Health check failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * Get database health status
+   */
+  private async getDatabaseHealth(): Promise<{
+    connected: boolean;
+    responseTime: number;
+    lastCheck: string;
+    status: string;
+    stats?: any;
+  }> {
+    const startTime = Date.now();
+    try {
+      const isConnected = this.database.isConnected();
+      const healthCheck = await this.database.healthCheck();
+      const stats = await this.database.getStats();
+      const responseTime = Date.now() - startTime;
+      
+      return {
+        connected: isConnected && healthCheck,
+        responseTime,
+        lastCheck: new Date().toISOString(),
+        status: healthCheck ? 'healthy' : 'unhealthy',
+        stats: stats ? {
+          collections: stats.collections,
+          indexes: stats.indexes,
+          dataSize: `${Math.round(stats.dataSize / 1024 / 1024)} MB`,
+          storageSize: `${Math.round(stats.storageSize / 1024 / 1024)} MB`
+        } : null
+      };
+    } catch (error) {
+      return {
+        connected: false,
+        responseTime: Date.now() - startTime,
+        lastCheck: new Date().toISOString(),
+        status: 'error'
+      };
+    }
+  }
+
+  /**
+   * Get system metrics
+   */
+  private getSystemMetrics(): {
+    memory: {
+      usage: number;
+      total: number;
+      free: number;
+      percentage: number;
+    };
+    cpu: {
+      loadAverage: number[];
+      uptime: number;
+    };
+    platform: string;
+    nodeVersion: string;
+    processId: number;
+  } {
+    const memUsage = process.memoryUsage();
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    
+    return {
+      memory: {
+        usage: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
+        total: Math.round(totalMem / 1024 / 1024), // MB
+        free: Math.round(freeMem / 1024 / 1024), // MB
+        percentage: Math.round((memUsage.heapUsed / totalMem) * 100)
+      },
+      cpu: {
+        loadAverage: os.loadavg(),
+        uptime: os.uptime()
+      },
+      platform: process.platform,
+      nodeVersion: process.version,
+      processId: process.pid
+    };
+  }
+
+  /**
+   * Get application metrics
+   */
+  private getApplicationMetrics(): {
+    version: string;
+    buildNumber: string;
+    responseTime: string;
+    activeConnections: number;
+    routes: number;
+  } {
+    return {
+      version: process.env['APP_VERSION'] || '1.0.0',
+      buildNumber: process.env['BUILD_NUMBER'] || 'dev',
+      responseTime: '0ms',
+      activeConnections: this.server ? this.server.connections : 0,
+      routes: this.getRouteCount()
+    };
+  }
+
+  /**
+   * Get route count for metrics
+   */
+  private getRouteCount(): number {
+    try {
+      return this.app._router.stack
+        .filter((layer: any) => layer.route)
+        .length;
+    } catch {
+      return 0;
+    }
   }
 
   /**

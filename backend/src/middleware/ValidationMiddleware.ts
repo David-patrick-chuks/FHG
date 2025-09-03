@@ -3,11 +3,7 @@ import { Logger } from '../utils/Logger';
 
 // Extend Request interface to include file property for multer
 interface FileUploadRequest extends Request {
-  file?: {
-    mimetype: string;
-    size: number;
-    originalname?: string;
-  };
+  file?: any; // Using any for now to avoid type conflicts
 }
 
 export class ValidationMiddleware {

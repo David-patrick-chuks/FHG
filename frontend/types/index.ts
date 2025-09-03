@@ -105,66 +105,18 @@ export interface BotPerformance {
 export interface Campaign extends BaseEntity {
   name: string;
   description?: string;
-  status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled';
+  status: 'draft' | 'ready' | 'running' | 'paused' | 'completed' | 'cancelled';
   botId: string;
-  template: EmailTemplate;
-  targetAudience: TargetAudience;
-  schedule: CampaignSchedule;
-  stats: CampaignStats;
-  settings: CampaignSettings;
-}
-
-export interface EmailTemplate {
-  subject: string;
-  body: string;
-  variables: string[];
-  aiGenerated: boolean;
+  emailList: string[];
+  aiMessages: string[];
+  selectedMessageIndex: number;
   aiPrompt?: string;
+  sentEmails: string[];
+  startedAt?: Date;
+  completedAt?: Date;
 }
 
-export interface TargetAudience {
-  emails: string[];
-  filters: AudienceFilter[];
-  estimatedSize: number;
-}
 
-export interface AudienceFilter {
-  field: string;
-  operator: 'equals' | 'contains' | 'starts_with' | 'ends_with';
-  value: string;
-}
-
-export interface CampaignSchedule {
-  type: 'immediate' | 'scheduled' | 'recurring';
-  startDate?: Date;
-  endDate?: Date;
-  timezone: string;
-  dailyLimit?: number;
-  sendDays: number[];
-  sendTime: string;
-}
-
-export interface CampaignStats {
-  totalEmails: number;
-  sentEmails: number;
-  deliveredEmails: number;
-  openedEmails: number;
-  clickedEmails: number;
-  repliedEmails: number;
-  bouncedEmails: number;
-  unsubscribedEmails: number;
-  openRate: number;
-  clickRate: number;
-  replyRate: number;
-}
-
-export interface CampaignSettings {
-  enableTracking: boolean;
-  enableUnsubscribe: boolean;
-  enableReplyHandling: boolean;
-  maxRetries: number;
-  retryDelay: number;
-}
 
 // Queue types
 export interface QueueJob extends BaseEntity {

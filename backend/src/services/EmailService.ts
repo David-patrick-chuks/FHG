@@ -667,6 +667,63 @@ Thank you for using Email Outreach Bot!
   }
 
   /**
+   * Verify bot email credentials before creation
+   */
+  public static async verifyBotCredentials(email: string, password: string): Promise<ApiResponse<{ verified: boolean; message: string }>> {
+    try {
+      // Create transporter with the provided credentials
+      const transporter = nodemailer.createTransport({
+        host: process.env['SMTP_HOST'] || 'smtp.gmail.com',
+        port: parseInt(process.env['SMTP_PORT'] || '587'),
+        secure: false,
+        auth: {
+          user: email,
+          pass: password
+        }
+      });
+
+      // Verify connection
+      await transporter.verify();
+
+      this.logger.info('Bot credentials verification successful', { botEmail: email });
+
+      return {
+        success: true,
+        message: 'Email credentials verified successfully',
+        data: { verified: true, message: 'SMTP connection verified successfully' },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      this.logger.error('Bot credentials verification failed:', error);
+
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid login')) {
+          errorMessage = 'Invalid email or password';
+        } else if (error.message.includes('Authentication failed')) {
+          errorMessage = 'Authentication failed - check your email and password';
+        } else if (error.message.includes('Connection timeout')) {
+          errorMessage = 'Connection timeout - check your internet connection';
+        } else if (error.message.includes('ENOTFOUND')) {
+          errorMessage = 'SMTP server not found - check your email provider settings';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      return {
+        success: false,
+        message: 'Email verification failed',
+        data: { 
+          verified: false, 
+          message: errorMessage
+        },
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
    * Test bot SMTP connection
    */
   public static async testBotConnection(botId: string): Promise<ApiResponse<{ connected: boolean; message: string }>> {

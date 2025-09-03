@@ -532,4 +532,45 @@ export class BotController {
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
+
+  /**
+   * Test bot credentials before creation/update
+   */
+  public static async testBotCredentials(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        res.status(400).json({
+          success: false,
+          message: 'Email and password are required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      BotController.logger.info('Bot credentials test request', {
+        userId,
+        botEmail: email,
+        ip: req.ip
+      });
+
+      const result = await EmailService.verifyBotCredentials(email, password);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Bot credentials test completed',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      BotController.logger.error('Bot credentials test error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
 }

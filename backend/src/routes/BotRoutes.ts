@@ -22,6 +22,11 @@ export class BotRoutes {
       BotController.createBot
     );
 
+    // Test bot credentials before creation
+    router.post('/test-credentials', 
+      BotController.testBotCredentials
+    );
+
     router.get('/', 
       ValidationMiddleware.validatePagination,
       BotController.getBots

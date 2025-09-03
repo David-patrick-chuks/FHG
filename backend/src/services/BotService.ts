@@ -4,6 +4,7 @@ import SentEmailModel from '../models/SentEmail';
 import UserModel from '../models/User';
 import { ApiResponse, CampaignStatus, CreateBotRequest } from '../types';
 import { Logger } from '../utils/Logger';
+import { EmailService } from './EmailService';
 
 export class BotService {
   private static logger: Logger = new Logger();
@@ -46,6 +47,29 @@ export class BotService {
         return {
           success: false,
           message: 'Email address is already used by another bot',
+          timestamp: new Date()
+        };
+      }
+
+      // Verify email credentials before creating bot
+      try {
+        const verificationResult = await EmailService.verifyBotCredentials(
+          botData.email, 
+          botData.password
+        );
+        
+        if (!verificationResult.success || !verificationResult.data?.verified) {
+          return {
+            success: false,
+            message: `Email verification failed: ${verificationResult.message}`,
+            timestamp: new Date()
+          };
+        }
+      } catch (error) {
+        BotService.logger.error('Email verification error during bot creation:', error);
+        return {
+          success: false,
+          message: 'Failed to verify email credentials. Please check your email and password.',
           timestamp: new Date()
         };
       }
@@ -143,6 +167,34 @@ export class BotService {
           message: 'Access denied',
           timestamp: new Date()
         };
+      }
+
+      // If email or password is being updated, verify the new credentials
+      if (updateData.email || updateData.password) {
+        const emailToVerify = updateData.email || bot.email;
+        const passwordToVerify = updateData.password || bot.password;
+        
+        try {
+          const verificationResult = await EmailService.verifyBotCredentials(
+            emailToVerify, 
+            passwordToVerify
+          );
+          
+          if (!verificationResult.success || !verificationResult.data?.verified) {
+            return {
+              success: false,
+              message: `Email verification failed: ${verificationResult.message}`,
+              timestamp: new Date()
+            };
+          }
+        } catch (error) {
+          BotService.logger.error('Email verification error during bot update:', error);
+          return {
+            success: false,
+            message: 'Failed to verify email credentials. Please check your email and password.',
+            timestamp: new Date()
+          };
+        }
       }
 
       // Update bot data

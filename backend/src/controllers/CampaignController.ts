@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import { CampaignService } from '../services/CampaignService';
+import { FileUploadService } from '../services/FileUploadService';
 import { Logger } from '../utils/Logger';
 
 export class CampaignController {
@@ -33,6 +34,59 @@ export class CampaignController {
       }
     } catch (error) {
       CampaignController.logger.error('Campaign creation error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async uploadEmailFile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const file = (req as any).file;
+
+      if (!file) {
+        res.status(400).json({
+          success: false,
+          message: 'No file uploaded',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      CampaignController.logger.info('Email file upload request', {
+        userId,
+        fileName: file.originalname,
+        fileSize: file.size,
+        fileType: file.mimetype,
+        ip: req.ip
+      });
+
+      // Parse the uploaded file
+      const parsedResult = await FileUploadService.parseFile(file.buffer, file.mimetype);
+
+      if (parsedResult.emails.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'No valid email addresses found in the uploaded file',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+          message: 'Email file uploaded and parsed successfully',
+          data: {
+            emails: parsedResult.emails,
+            totalCount: parsedResult.totalCount,
+            validCount: parsedResult.validCount,
+            invalidEmails: parsedResult.invalidEmails,
+            fileName: file.originalname
+          },
+          timestamp: new Date()
+        });
+
+    } catch (error) {
+      CampaignController.logger.error('Email file upload error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

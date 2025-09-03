@@ -32,7 +32,7 @@ export default function TemplatesPage() {
       name: 'Welcome Email',
       category: 'onboarding',
       subject: 'Welcome to our platform!',
-      content: 'Hi {{name}},\n\nWelcome to our platform! We\'re excited to have you on board...',
+             content: 'Hi {name},\n\nWelcome to our platform! We\'re excited to have you on board...',
       usageCount: 1250,
       lastUsed: '2024-01-15',
       isActive: true
@@ -42,7 +42,7 @@ export default function TemplatesPage() {
       name: 'Product Launch',
       category: 'marketing',
       subject: '🚀 New Product Launch!',
-      content: 'Hi {{name}},\n\nWe\'re thrilled to announce our latest product launch...',
+             content: 'Hi {name},\n\nWe\'re thrilled to announce our latest product launch...',
       usageCount: 890,
       lastUsed: '2024-01-12',
       isActive: true
@@ -52,7 +52,7 @@ export default function TemplatesPage() {
       name: 'Newsletter',
       category: 'newsletter',
       subject: 'This Week\'s Updates',
-      content: 'Hi {{name}},\n\nHere\'s what\'s new this week...',
+             content: 'Hi {name},\n\nHere\'s what\'s new this week...',
       usageCount: 2100,
       lastUsed: '2024-01-14',
       isActive: true
@@ -62,7 +62,7 @@ export default function TemplatesPage() {
       name: 'Abandoned Cart',
       category: 'ecommerce',
       subject: 'Complete your purchase',
-      content: 'Hi {{name}},\n\nWe noticed you left some items in your cart...',
+             content: 'Hi {name},\n\nWe noticed you left some items in your cart...',
       usageCount: 450,
       lastUsed: '2024-01-10',
       isActive: false
@@ -178,9 +178,9 @@ export default function TemplatesPage() {
                   placeholder="Enter your email content here..."
                   rows={8}
                 />
-                <p className="text-sm text-gray-500">
-                  Use {{variable}} for personalization
-                </p>
+                                 <p className="text-sm text-gray-500">
+                   Use {'{{'}variable{'}}'} for personalization
+                 </p>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>

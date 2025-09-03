@@ -2,10 +2,26 @@ import { Router } from 'express';
 import { CampaignController } from '../controllers/CampaignController';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import multer from 'multer';
 
 export class CampaignRoutes {
   public static getRouter(): Router {
     const router = Router();
+
+    // Configure multer for file uploads
+    const upload = multer({
+      storage: multer.memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      },
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'text/csv' || file.mimetype === 'text/plain') {
+          cb(null, true);
+        } else {
+          cb(new Error('Only CSV and text files are allowed'));
+        }
+      }
+    });
 
     // Apply global middleware
     router.use(ValidationMiddleware.sanitizeRequestBody);
@@ -20,6 +36,13 @@ export class CampaignRoutes {
       AuthMiddleware.validateSubscriptionLimits('campaigns'),
       ValidationMiddleware.validateCreateCampaign,
       CampaignController.createCampaign
+    );
+
+    // File upload for email lists
+    router.post('/upload-emails', 
+      upload.single('file'),
+      ValidationMiddleware.validateFileUpload,
+      CampaignController.uploadEmailFile
     );
 
     router.get('/', 
