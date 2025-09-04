@@ -146,113 +146,167 @@ export default function CreateCampaignPage() {
   ];
 
   return (
-    <DashboardLayout title="Create Campaign" description="Build your email campaign step by step">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <DashboardLayout>
+      <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/dashboard/campaigns')}
-              className="p-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Create New Campaign</h1>
-              <p className="text-gray-600">Build your email campaign step by step</p>
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-800">
+          <div className="relative z-10">
+            <div className="flex items-center space-x-4 mb-6">
+              <Button
+                variant="ghost"
+                onClick={() => router.push('/dashboard/campaigns')}
+                className="p-3 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Create New Campaign
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
+                  Build your email campaign step by step with AI-powered automation
+                </p>
+              </div>
+            </div>
+            
+            {/* Progress Overview */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-full">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Step {currentStep} of {steps.length}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-full">
+                <Mail className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {steps[currentStep - 1]?.title}
+                </span>
+              </div>
             </div>
           </div>
+          
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full translate-y-12 -translate-x-12"></div>
         </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center justify-between">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div className={`flex items-center space-x-3 ${
-                currentStep >= step.id ? 'text-blue-600' : 'text-gray-400'
-              }`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                  currentStep > step.id 
-                    ? 'bg-green-500 border-green-500 text-white' 
-                    : currentStep === step.id 
-                    ? 'bg-blue-500 border-blue-500 text-white' 
-                    : 'bg-white border-gray-300 text-gray-400'
+        {/* Enhanced Progress Steps */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center flex-1">
+                <div className={`flex items-center space-x-4 transition-all duration-300 ${
+                  currentStep >= step.id ? 'text-blue-600' : 'text-gray-400'
                 }`}>
-                  {currentStep > step.id ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    <span className="font-semibold">{step.id}</span>
-                  )}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                    currentStep > step.id 
+                      ? 'bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/25' 
+                      : currentStep === step.id 
+                      ? 'bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-400'
+                  }`}>
+                    {currentStep > step.id ? (
+                      <CheckCircle className="w-6 h-6" />
+                    ) : (
+                      <span className="font-bold text-lg">{step.id}</span>
+                    )}
+                  </div>
+                  <div className="hidden lg:block">
+                    <p className={`font-semibold text-base transition-colors ${
+                      currentStep >= step.id ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {step.title}
+                    </p>
+                    <p className={`text-sm transition-colors ${
+                      currentStep >= step.id ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
+                    }`}>
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="hidden md:block">
-                  <p className="font-medium">{step.title}</p>
-                  <p className="text-sm">{step.description}</p>
-                </div>
+                {index < steps.length - 1 && (
+                  <div className={`flex-1 h-1 mx-6 rounded-full transition-all duration-500 ${
+                    currentStep > step.id 
+                      ? 'bg-gradient-to-r from-green-500 to-blue-500' 
+                      : 'bg-gray-200 dark:bg-gray-600'
+                  }`} />
+                )}
               </div>
-              {index < steps.length - 1 && (
-                <div className={`w-16 h-0.5 mx-4 ${
-                  currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
-                }`} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Step Content */}
         <div className="space-y-6">
           {/* Step 1: Campaign Basics */}
           {currentStep === 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">1</span>
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/20">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center space-x-3 text-2xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold">1</span>
                   </div>
-                  <span>Campaign Basics</span>
+                  <div>
+                    <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                      Campaign Basics
+                    </span>
+                    <p className="text-gray-600 dark:text-gray-400 text-base font-normal mt-1">
+                      Set up the foundation of your email campaign
+                    </p>
+                  </div>
                 </CardTitle>
-                <CardDescription>
-                  Set up the foundation of your email campaign
-                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700 flex items-center">
-                      Campaign Name <span className="text-red-500 ml-1">*</span>
+              <CardContent className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                      <Mail className="w-4 h-4 mr-2 text-blue-500" />
+                      Campaign Name 
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g., Q1 Sales Outreach"
-                      className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 text-base"
+                      className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200"
                     />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Choose a descriptive name that reflects your campaign's purpose
+                    </p>
                   </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="botId" className="text-sm font-medium text-gray-700 flex items-center">
-                      Select Bot <span className="text-red-500 ml-1">*</span>
+                  
+                  <div className="space-y-4">
+                    <Label htmlFor="botId" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                      <Bot className="w-4 h-4 mr-2 text-green-500" />
+                      Select Bot 
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Select value={formData.botId} onValueChange={(value) => setFormData({ ...formData, botId: value })}>
-                      <SelectTrigger className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-12 text-base">
+                      <SelectTrigger className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200">
                         <SelectValue placeholder="Choose your AI email bot" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-xl border-2">
                         {bots?.map((bot) => (
-                          <SelectItem key={bot._id} value={bot._id}>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                              <span>{bot.name}</span>
+                          <SelectItem key={bot._id} value={bot._id} className="rounded-lg">
+                            <div className="flex items-center space-x-3 py-2">
+                              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="font-medium">{bot.name}</span>
                             </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Select the AI bot that will handle your email campaigns
+                    </p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                <div className="space-y-4">
+                  <Label htmlFor="description" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                    <Users className="w-4 h-4 mr-2 text-purple-500" />
                     Campaign Description
                   </Label>
                   <Textarea
@@ -260,18 +314,22 @@ export default function CreateCampaignPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe your campaign goals, target audience, and what you want to achieve..."
-                    rows={4}
-                    className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    rows={5}
+                    className="border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl resize-none transition-all duration-200"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Provide context to help the AI understand your campaign objectives
+                  </p>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-end pt-4">
                   <Button
                     onClick={() => setCurrentStep(2)}
                     disabled={!canProceedToStep2}
-                    className="bg-blue-600 hover:bg-blue-700 px-6 py-3"
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     Continue to Target Audience
+                    <ArrowLeft className="w-5 h-5 ml-2 rotate-180" />
                   </Button>
                 </div>
               </CardContent>
@@ -280,17 +338,21 @@ export default function CreateCampaignPage() {
 
           {/* Step 2: Target Audience */}
           {currentStep === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-semibold text-sm">2</span>
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-green-50/30 dark:from-gray-800 dark:to-green-900/20">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center space-x-3 text-2xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold">2</span>
                   </div>
-                  <span>Target Audience</span>
+                  <div>
+                    <span className="bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+                      Target Audience
+                    </span>
+                    <p className="text-gray-600 dark:text-gray-400 text-base font-normal mt-1">
+                      Define who will receive your emails
+                    </p>
+                  </div>
                 </CardTitle>
-                <CardDescription>
-                  Define who will receive your emails
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">

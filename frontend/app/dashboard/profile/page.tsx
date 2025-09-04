@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Icons } from '@/components/ui/icons';
+import { PricingModal } from '@/components/PricingModal';
 import { apiClient } from '@/lib/api-client';
 import { User } from '@/types';
 import { 
@@ -31,6 +32,7 @@ export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     username: user?.username || ''
@@ -68,9 +70,9 @@ export default function ProfilePage() {
 
   const getSubscriptionColor = (tier: string) => {
     switch (tier) {
-      case 'enterprise':
+      case 'ENTERPRISE':
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'pro':
+      case 'PRO':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
@@ -208,12 +210,12 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {user.subscriptionExpiresAt && (
+              {user.subscription !== 'FREE' && (
                 <div className="space-y-2">
                   <Label>Plan Expires</Label>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{formatDate(user.subscriptionExpiresAt)}</span>
+                    <span className="text-sm">Contact support for expiry details</span>
                   </div>
                 </div>
               )}
@@ -246,30 +248,30 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  {user.subscription === 'enterprise' ? '∞' : 
-                   user.subscription === 'pro' ? '50' : '10'}
+                  {user.subscription === 'ENTERPRISE' ? '∞' : 
+                   user.subscription === 'PRO' ? '50' : '2'}
                 </div>
                 <div className="text-sm text-gray-600">Bots</div>
               </div>
               
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {user.subscription === 'enterprise' ? '∞' : 
-                   user.subscription === 'pro' ? '1000' : '100'}
+                  {user.subscription === 'ENTERPRISE' ? '∞' : 
+                   user.subscription === 'PRO' ? '5000' : '1000'}
                 </div>
                 <div className="text-sm text-gray-600">Daily Emails</div>
               </div>
               
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-purple-600">
-                  {user.subscription === 'enterprise' ? '∞' : 
-                   user.subscription === 'pro' ? '100' : '25'}
+                  {user.subscription === 'ENTERPRISE' ? '∞' : 
+                   user.subscription === 'PRO' ? '500' : '100'}
                 </div>
                 <div className="text-sm text-gray-600">Campaigns</div>
               </div>
             </div>
 
-            {user.subscription === 'free' && (
+            {user.subscription === 'FREE' && (
               <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
                   Upgrade Your Plan
@@ -277,7 +279,10 @@ export default function ProfilePage() {
                 <p className="text-blue-700 dark:text-blue-300 mb-4">
                   Get more bots, higher email limits, and advanced features with our Pro or Enterprise plans.
                 </p>
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button 
+                  onClick={() => setIsPricingModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
                   View Plans
                 </Button>
               </div>
@@ -285,6 +290,13 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pricing Modal */}
+      <PricingModal 
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
+        currentPlan={user.subscription}
+      />
     </DashboardLayout>
   );
 }

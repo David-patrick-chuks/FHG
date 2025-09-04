@@ -78,7 +78,8 @@ export class BotService {
       const bot = new BotModel({
         ...botData,
         userId,
-        dailyEmailCount: 0
+        dailyEmailCount: 0,
+        profileImage: botData.profileImage || `https://robohash.org/${encodeURIComponent(botData.name)}?set=set3&size=200x200`
       });
 
       await bot.save();

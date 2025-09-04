@@ -27,6 +27,7 @@ export interface IBot {
   isActive: boolean;
   dailyEmailCount: number;
   lastEmailSentAt?: Date;
+  profileImage?: string; // RoboHash URL for bot profile image
   createdAt: Date;
   updatedAt: Date;
 }
@@ -190,6 +191,17 @@ export interface CreateBotRequest {
   email: string;
   password: string;
   prompt: string;
+  profileImage?: string; // Optional custom profile image URL
+}
+
+export interface UpdateBotRequest {
+  name?: string;
+  description?: string;
+  email?: string;
+  password?: string;
+  prompt?: string;
+  isActive?: boolean;
+  profileImage?: string; // Optional custom profile image URL
 }
 
 export interface CreateCampaignRequest {

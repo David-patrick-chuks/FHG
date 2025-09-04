@@ -4,7 +4,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import {
   Activity,
   BarChart3,
@@ -14,6 +13,7 @@ import {
   Users,
   Zap
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -124,118 +124,51 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Mail className="w-5 h-5 text-blue-600" />
+        {/* Key Metrics */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600"></div>
+            <CardContent className="relative p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.totalCampaigns}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Campaigns</p>
+                  <p className="text-3xl font-bold">{dashboardStats.totalBots}</p>
+                  <p className="text-blue-100 text-sm">Total Bots</p>
+                  <p className="text-blue-200 text-xs mt-1">Active & Ready</p>
+                </div>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Bot className="w-6 h-6" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Bot className="w-5 h-5 text-purple-600" />
+          <Card className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-600"></div>
+            <CardContent className="relative p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.totalBots}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Bots</p>
+                  <p className="text-3xl font-bold">{dashboardStats.totalCampaigns}</p>
+                  <p className="text-purple-100 text-sm">Total Campaigns</p>
+                  <p className="text-purple-200 text-xs mt-1">+3 this week</p>
+                </div>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <BarChart3 className="w-6 h-6" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-green-600" />
+          <Card className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-600"></div>
+            <CardContent className="relative p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.activeCampaigns}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Campaigns</p>
+                  <p className="text-3xl font-bold">{dashboardStats.totalEmailsSent.toLocaleString()}</p>
+                  <p className="text-green-100 text-sm">Emails Sent</p>
+                  <p className="text-green-200 text-xs mt-1">+12% from last week</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.totalEmailsSent.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Emails Sent</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Performance Metrics */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-indigo-600" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.totalRecipients}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Recipients</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.averageOpenRate}%
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Avg Open Rate</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-purple-600" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.averageClickRate}%
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Avg Click Rate</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Mail className="w-5 h-5 text-orange-600" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {dashboardStats.totalReplies}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Replies</p>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Mail className="w-6 h-6" />
                 </div>
               </div>
             </CardContent>
@@ -249,42 +182,74 @@ export default function DashboardPage() {
             <CardDescription>Get started with common tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col space-y-2"
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <div 
+                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
                 onClick={() => handleQuickAction('create_campaign')}
               >
-                <Mail className="w-6 h-6" />
-                <span>Create Campaign</span>
-              </Button>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-blue-500 rounded-lg group-hover:bg-blue-600 transition-colors">
+                      <Mail className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Create Campaign</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Launch a new email campaign</p>
+                </div>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-200 dark:bg-blue-800 rounded-full -translate-y-10 translate-x-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              </div>
               
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col space-y-2"
+              <div 
+                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
                 onClick={() => handleQuickAction('add_bot')}
               >
-                <Bot className="w-6 h-6" />
-                <span>Add Bot</span>
-              </Button>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-green-500 rounded-lg group-hover:bg-green-600 transition-colors">
+                      <Bot className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Add Bot</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Create a new AI bot</p>
+                </div>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-green-200 dark:bg-green-800 rounded-full -translate-y-10 translate-x-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              </div>
               
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col space-y-2"
+              <div 
+                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
                 onClick={() => handleQuickAction('import_contacts')}
               >
-                <Users className="w-6 h-6" />
-                <span>Import Contacts</span>
-              </Button>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-purple-500 rounded-lg group-hover:bg-purple-600 transition-colors">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Import Contacts</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Add new audience members</p>
+                </div>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 dark:bg-purple-800 rounded-full -translate-y-10 translate-x-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              </div>
               
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col space-y-2"
+              <div 
+                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border border-orange-200 dark:border-orange-700 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
                 onClick={() => handleQuickAction('view_reports')}
               >
-                <BarChart3 className="w-6 h-6" />
-                <span>View Reports</span>
-              </Button>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-orange-500 rounded-lg group-hover:bg-orange-600 transition-colors">
+                      <BarChart3 className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">View Reports</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Analyze campaign performance</p>
+                </div>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-orange-200 dark:bg-orange-800 rounded-full -translate-y-10 translate-x-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -292,8 +257,20 @@ export default function DashboardPage() {
         {/* Recent Activity */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates from your campaigns</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Latest updates from your campaigns</CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/dashboard/activity')}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+              >
+                View All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

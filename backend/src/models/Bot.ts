@@ -7,6 +7,7 @@ export interface IBotDocument extends Omit<IBot, '_id'>, Document {
   resetDailyEmailCount(): Promise<void>;
   canSendEmail(): Promise<boolean>;
   getDailyEmailLimit(): Promise<number>;
+  updateProfileImage(): void;
 }
 
 export interface IBotModel extends Model<IBotDocument> {
@@ -80,6 +81,10 @@ export class BotModel {
       },
       lastEmailSentAt: {
         type: Date
+      },
+      profileImage: {
+        type: String,
+        default: 'https://robohash.org/bot?set=set3&size=200x200'
       }
     }, {
       timestamps: true,
@@ -112,6 +117,12 @@ export class BotModel {
     botSchema.methods['resetDailyEmailCount'] = async function(): Promise<void> {
       this['dailyEmailCount'] = 0;
       await this['save']();
+    };
+
+    botSchema.methods['updateProfileImage'] = function(): void {
+      const botName = this['name'] || 'bot';
+      const encodedName = encodeURIComponent(botName);
+      this['profileImage'] = `https://robohash.org/${encodedName}?set=set3&size=200x200`;
     };
 
     botSchema.methods['canSendEmail'] = async function(): Promise<boolean> {
@@ -158,9 +169,19 @@ export class BotModel {
       await this.updateMany({}, { dailyEmailCount: 0 });
     };
 
+    botSchema.statics['generateProfileImage'] = function(botName: string): string {
+      const encodedName = encodeURIComponent(botName);
+      return `https://robohash.org/${encodedName}?set=set3&size=200x200`;
+    };
+
     // Pre-save middleware for validation
     botSchema.pre('save', async function(next) {
       try {
+        // Update profile image if name has changed
+        if (this['isModified']('name')) {
+          this['updateProfileImage']();
+        }
+
         const user = await UserModel.findById(this['userId']);
         if (user && user.hasActiveSubscription()) {
           const dailyLimit = user.getDailyEmailLimit();
