@@ -6,30 +6,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useDelete, usePut } from '@/hooks/useApi';
+import { usePut } from '@/hooks/useApi';
 import { Bot, Campaign } from '@/types';
-import { BarChart3, Calendar, Edit, Eye, Mail, Plus, Trash2, Upload, Users, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Grid3X3, List, Mail, Pause, Play, Plus, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function CampaignsPage() {
   const router = useRouter();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    botId: '',
-    emailList: '',
-    aiPrompt: ''
-  });
-  const [uploadedEmails, setUploadedEmails] = useState<string[]>([]);
-  const [uploadedFileName, setUploadedFileName] = useState<string>('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const [isPauseDialogOpen, setIsPauseDialogOpen] = useState(false);
+  const [pausingCampaign, setPausingCampaign] = useState<Campaign | null>(null);
+  const [isPausing, setIsPausing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
 
   // Dummy data for demonstration
   const dummyCampaigns: Campaign[] = [
@@ -88,6 +81,90 @@ export default function CampaignsPage() {
       selectedMessageIndex: 0,
       createdAt: new Date('2024-01-12'),
       updatedAt: new Date('2024-01-12')
+    },
+    {
+      _id: '5',
+      name: 'Weekly Newsletter',
+      description: 'Regular weekly newsletter with industry updates and company news',
+      botId: 'bot3',
+      emailList: ['subscriber1@newsletter.com', 'subscriber2@newsletter.com', 'subscriber3@newsletter.com', 'subscriber4@newsletter.com', 'subscriber5@newsletter.com', 'subscriber6@newsletter.com'],
+      aiPrompt: 'Write an engaging weekly newsletter. Include industry insights and company updates.',
+      status: 'running',
+      sentEmails: ['subscriber1@newsletter.com', 'subscriber2@newsletter.com', 'subscriber3@newsletter.com'],
+      aiMessages: ['ai_message_8', 'ai_message_9', 'ai_message_10'],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-08'),
+      updatedAt: new Date('2024-01-19')
+    },
+    {
+      _id: '6',
+      name: 'Product Feedback Request',
+      description: 'Collect feedback from recent product users to improve our offerings',
+      botId: 'bot2',
+      emailList: ['user1@feedback.com', 'user2@feedback.com', 'user3@feedback.com', 'user4@feedback.com'],
+      aiPrompt: 'Write a friendly email requesting product feedback. Be appreciative and offer incentives.',
+      status: 'completed',
+      sentEmails: ['user1@feedback.com', 'user2@feedback.com', 'user3@feedback.com', 'user4@feedback.com'],
+      aiMessages: ['ai_message_11', 'ai_message_12', 'ai_message_13', 'ai_message_14'],
+      selectedMessageIndex: 1,
+      createdAt: new Date('2024-01-03'),
+      updatedAt: new Date('2024-01-17')
+    },
+    {
+      _id: '7',
+      name: 'Event Invitation',
+      description: 'Invite customers to our upcoming product launch event',
+      botId: 'bot1',
+      emailList: ['vip1@event.com', 'vip2@event.com', 'vip3@event.com', 'vip4@event.com', 'vip5@event.com'],
+      aiPrompt: 'Create an exclusive event invitation email. Make it feel special and include event details.',
+      status: 'paused',
+      sentEmails: ['vip1@event.com', 'vip2@event.com'],
+      aiMessages: ['ai_message_15', 'ai_message_16'],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-14'),
+      updatedAt: new Date('2024-01-18')
+    },
+    {
+      _id: '8',
+      name: 'Renewal Reminder',
+      description: 'Remind customers about upcoming subscription renewals',
+      botId: 'bot2',
+      emailList: ['customer1@renewal.com', 'customer2@renewal.com', 'customer3@renewal.com'],
+      aiPrompt: 'Write a professional renewal reminder email. Highlight benefits and provide easy renewal options.',
+      status: 'draft',
+      sentEmails: [],
+      aiMessages: [],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-11'),
+      updatedAt: new Date('2024-01-11')
+    },
+    {
+      _id: '9',
+      name: 'Feature Announcement',
+      description: 'Announce new features to existing customers',
+      botId: 'bot3',
+      emailList: ['customer1@feature.com', 'customer2@feature.com', 'customer3@feature.com', 'customer4@feature.com', 'customer5@feature.com', 'customer6@feature.com', 'customer7@feature.com'],
+      aiPrompt: 'Write an exciting feature announcement email. Show the value and include usage examples.',
+      status: 'running',
+      sentEmails: ['customer1@feature.com', 'customer2@feature.com', 'customer3@feature.com', 'customer4@feature.com'],
+      aiMessages: ['ai_message_17', 'ai_message_18', 'ai_message_19', 'ai_message_20'],
+      selectedMessageIndex: 2,
+      createdAt: new Date('2024-01-07'),
+      updatedAt: new Date('2024-01-20')
+    },
+    {
+      _id: '10',
+      name: 'Survey Campaign',
+      description: 'Send customer satisfaction survey to gather insights',
+      botId: 'bot2',
+      emailList: ['survey1@customer.com', 'survey2@customer.com', 'survey3@customer.com', 'survey4@customer.com'],
+      aiPrompt: 'Create a survey invitation email. Explain the importance and keep it brief.',
+      status: 'completed',
+      sentEmails: ['survey1@customer.com', 'survey2@customer.com', 'survey3@customer.com', 'survey4@customer.com'],
+      aiMessages: ['ai_message_21', 'ai_message_22', 'ai_message_23', 'ai_message_24'],
+      selectedMessageIndex: 0,
+      createdAt: new Date('2024-01-02'),
+      updatedAt: new Date('2024-01-16')
     }
   ];
 
@@ -182,145 +259,74 @@ export default function CampaignsPage() {
   const botsLoading = false;
   const campaignsError = null;
   const resetCampaigns = () => {};
+
+  // Filter campaigns based on search and status
+  const filteredCampaigns = campaigns.filter(campaign => {
+    const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         campaign.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || campaign.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCampaigns = filteredCampaigns.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+  };
   
   // API operations
   const { execute: updateCampaign, loading: updating } = usePut('/campaigns');
-  const { execute: deleteCampaign, loading: deleting } = useDelete('/campaigns');
 
-  const handleEditCampaign = async () => {
-    if (!editingCampaign) return;
+  const handlePauseCampaign = async () => {
+    if (!pausingCampaign) return;
     
+    setIsPausing(true);
     try {
-      const emailList = formData.emailList.split('\n').filter(email => email.trim());
+      const newStatus = pausingCampaign.status === 'running' ? 'paused' : 'running';
       const response = await updateCampaign({
-        id: editingCampaign._id,
-        name: formData.name,
-        description: formData.description,
-        botId: formData.botId,
-        emailList,
-        aiPrompt: formData.aiPrompt
+        id: pausingCampaign._id,
+        status: newStatus
       });
       
       if (response) {
-        setIsEditDialogOpen(false);
-        setEditingCampaign(null);
-        setFormData({ name: '', description: '', botId: '', emailList: '', aiPrompt: '' });
-        setUploadedEmails([]);
-        setUploadedFileName('');
+        setIsPauseDialogOpen(false);
+        setPausingCampaign(null);
         resetCampaigns();
       }
     } catch (error) {
-      console.error('Failed to update campaign:', error);
-    }
-  };
-
-  const handleDeleteCampaign = async (campaignId: string) => {
-    if (confirm('Are you sure you want to delete this campaign?')) {
-      try {
-        await deleteCampaign(`/campaigns/${campaignId}`);
-        resetCampaigns();
-      } catch (error) {
-        console.error('Failed to delete campaign:', error);
-      }
-    }
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!['text/csv', 'text/plain'].includes(file.type)) {
-      alert('Please upload a CSV or text file');
-      return;
-    }
-
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
-      return;
-    }
-
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch('/api/campaigns/upload-emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setUploadedEmails(result.data.emails);
-        setUploadedFileName(result.data.fileName);
-        // Update the email list in the form
-        setFormData(prev => ({ ...prev, emailList: result.data.emails.join('\n') }));
-        
-        if (result.data.invalidEmails.length > 0) {
-          alert(`File uploaded successfully! Found ${result.data.validCount} valid emails and ${result.data.invalidEmails.length} invalid emails.`);
-        } else {
-          alert(`File uploaded successfully! Found ${result.data.validCount} valid emails.`);
-        }
-      } else {
-        alert(result.message || 'Failed to upload file');
-      }
-    } catch (error) {
-      console.error('File upload error:', error);
-      alert('Failed to upload file');
+      console.error('Failed to update campaign status:', error);
     } finally {
-      setIsUploading(false);
+      setIsPausing(false);
     }
   };
 
-  const clearUploadedEmails = () => {
-    setUploadedEmails([]);
-    setUploadedFileName('');
-    setFormData(prev => ({ ...prev, emailList: '' }));
+  const openPauseDialog = (campaign: Campaign) => {
+    setPausingCampaign(campaign);
+    setIsPauseDialogOpen(true);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      const file = files[0];
-      if (file.type === 'text/csv' || file.type === 'text/plain' || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
-        handleFileUpload({ target: { files: [file] } } as any);
-      }
-    }
-  };
-
-  const openEditDialog = (campaign: Campaign) => {
-    setEditingCampaign(campaign);
-    setFormData({
-      name: campaign.name,
-      description: campaign.description || '',
-      botId: campaign.botId,
-      emailList: campaign.emailList.join('\n'),
-      aiPrompt: campaign.aiPrompt || ''
-    });
-    // Set uploaded emails state for edit mode
-    setUploadedEmails(campaign.emailList);
-    setUploadedFileName(`Campaign: ${campaign.name}`);
-    setIsEditDialogOpen(true);
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -353,32 +359,92 @@ export default function CampaignsPage() {
   }
 
   return (
-    <DashboardLayout title="Campaigns" description="Manage your email campaigns">
+    <DashboardLayout 
+      title="Campaigns" 
+      description="Manage your email campaigns"
+      actions={
+        <Button 
+          onClick={() => router.push('/dashboard/campaigns/create')}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Create Campaign
+        </Button>
+      }
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Mail className="w-6 h-6 text-white" />
+        {/* Sticky Search and View Controls */}
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 -mx-6 px-6 py-4 mb-6">
+          <div className="w-full space-y-4">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search campaigns by name or description..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10 w-full h-12 text-base"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="flex items-center gap-2 px-4 py-2"
+                  >
+                    <List className="h-4 w-4" />
+                    List
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="flex items-center gap-2 px-4 py-2"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                    Grid
+                  </Button>
+                </div>
+                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="running">Running</SelectItem>
+                    <SelectItem value="paused">Paused</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Campaigns</h1>
-                <p className="text-gray-600 dark:text-gray-400 text-lg">Create and manage your email campaigns</p>
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {filteredCampaigns.length} of {campaigns.length} campaigns
+                  {searchQuery && ` matching "${searchQuery}"`}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Show:</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="6">6</SelectItem>
+                      <SelectItem value="9">9</SelectItem>
+                      <SelectItem value="12">12</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
-          
-          <Button 
-            onClick={() => router.push('/dashboard/campaigns/create')}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Create Campaign
-          </Button>
         </div>
 
-        {/* Campaigns List */}
+        {/* Campaigns Display */}
         {campaignsError ? (
           <Card>
             <CardContent className="pt-6">
@@ -387,105 +453,209 @@ export default function CampaignsPage() {
               </div>
             </CardContent>
           </Card>
-        ) : campaigns && campaigns.length > 0 ? (
-          <div className="grid gap-6">
-            {campaigns.map((campaign) => (
-              <Card key={campaign._id} className="hover:shadow-lg transition-shadow duration-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {campaign.name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            Created {new Date(campaign.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge className={`${getStatusColor(campaign.status)} px-3 py-1 text-xs font-medium`}>
-                          {campaign.status}
-                        </Badge>
-                      </div>
-                      
-                      {campaign.description && (
-                        <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm leading-relaxed">
-                          {campaign.description}
-                        </p>
-                      )}
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                          <Users className="w-4 h-4 text-blue-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{campaign.emailList.length}</p>
-                            <p className="text-xs text-gray-500">Recipients</p>
+        ) : paginatedCampaigns && paginatedCampaigns.length > 0 ? (
+          <>
+            {/* List View */}
+            {viewMode === 'list' && (
+              <div className="space-y-4">
+                {paginatedCampaigns.map((campaign) => (
+                  <Card key={campaign._id} className="relative hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                          <BarChart3 className="w-4 h-4 text-green-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{campaign.sentEmails.length}</p>
-                            <p className="text-xs text-gray-500">Sent</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                          <Mail className="w-4 h-4 text-purple-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {campaign.aiMessages.length > 0 ? 'AI' : 'Manual'}
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{campaign.name}</h3>
+                              <Badge className={`${getStatusColor(campaign.status)} px-2 py-1 text-xs font-medium`}>
+                                {campaign.status}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-1">
+                              {campaign.description || 'No description'}
                             </p>
-                            <p className="text-xs text-gray-500">Template</p>
+                            <div className="flex items-center gap-6 text-sm text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <span className="text-gray-400">Recipients:</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">{campaign.emailList.length}</span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <span className="text-gray-400">Sent:</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">{campaign.sentEmails.length}</span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <span className="text-gray-400">Created:</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">
+                                  {new Date(campaign.createdAt).toLocaleDateString()} {new Date(campaign.createdAt).toLocaleTimeString()}
+                                </span>
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                          <Calendar className="w-4 h-4 text-orange-600" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {campaign.aiPrompt ? 'Custom' : 'Default'}
-                            </p>
-                            <p className="text-xs text-gray-500">Prompt</p>
-                          </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openPauseDialog(campaign)}
+                            className={`h-8 px-3 ${
+                              campaign.status === 'running' 
+                                ? 'text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-950'
+                                : 'text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-950'
+                            }`}
+                          >
+                            {campaign.status === 'running' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-1 ml-6">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => openEditDialog(campaign)}
-                        className="hover:bg-blue-50 hover:text-blue-600"
-                        title="Edit Campaign"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="hover:bg-green-50 hover:text-green-600"
-                        title="View Campaign"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleDeleteCampaign(campaign._id)}
-                        className="hover:bg-red-50 hover:text-red-600"
-                        title="Delete Campaign"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Grid View */}
+            {viewMode === 'grid' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedCampaigns.map((campaign) => (
+                  <Card key={campaign._id} className="relative hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200 dark:hover:border-blue-800">
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate block max-w-full">{campaign.name}</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 break-words max-w-full overflow-hidden">
+                                {campaign.description || 'No description'}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge className={`${getStatusColor(campaign.status)} px-2 py-1 text-xs font-medium flex-shrink-0`}>
+                            {campaign.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Recipients</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{campaign.emailList.length}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Sent</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{campaign.sentEmails.length}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">Created</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-right">
+                              {new Date(campaign.createdAt).toLocaleDateString()} {new Date(campaign.createdAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`w-full ${
+                              campaign.status === 'running' 
+                                ? 'hover:bg-orange-50 hover:border-orange-300 dark:hover:bg-orange-950 dark:hover:border-orange-700 text-orange-600 dark:text-orange-400'
+                                : 'hover:bg-green-50 hover:border-green-300 dark:hover:bg-green-950 dark:hover:border-green-700 text-green-600 dark:text-green-400'
+                            }`}
+                            onClick={() => openPauseDialog(campaign)}
+                          >
+                            {campaign.status === 'running' ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                            {campaign.status === 'running' ? 'Pause' : 'Resume'}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span>
+                    Showing {startIndex + 1} to {Math.min(endIndex, filteredCampaigns.length)} of {filteredCampaigns.length} campaigns
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Previous Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3 py-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current page
+                      const shouldShow = 
+                        page === 1 || 
+                        page === totalPages || 
+                        (page >= currentPage - 1 && page <= currentPage + 1);
+                      
+                      if (!shouldShow) {
+                        // Show ellipsis for gaps
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return (
+                            <span key={page} className="px-2 py-1 text-gray-400">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(page)}
+                          className={`w-10 h-10 p-0 ${
+                            currentPage === page 
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+
+                  {/* Next Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-3 py-2"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <Card>
             <CardContent className="pt-6">
@@ -507,209 +677,66 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="text-center border-b border-gray-200 pb-6">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <Edit className="w-8 h-8 text-blue-600" />
+      {/* Pause/Resume Confirmation Dialog */}
+      <Dialog open={isPauseDialogOpen} onOpenChange={setIsPauseDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mb-4">
+              {pausingCampaign?.status === 'running' ? (
+                <Pause className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+              ) : (
+                <Play className="w-8 h-8 text-green-600 dark:text-green-400" />
+              )}
             </div>
-            <DialogTitle className="text-2xl font-bold">Edit Campaign</DialogTitle>
+            <DialogTitle className="text-xl font-bold">
+              {pausingCampaign?.status === 'running' ? 'Pause Campaign' : 'Resume Campaign'}
+            </DialogTitle>
             <DialogDescription className="text-base">
-              Update your campaign settings and configuration
+              {pausingCampaign?.status === 'running' 
+                ? `Are you sure you want to pause "${pausingCampaign?.name}"? This will stop the campaign from sending emails.`
+                : `Are you sure you want to resume "${pausingCampaign?.name}"? This will continue sending emails from where it left off.`
+              }
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6 pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700">Campaign Name</Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter campaign name"
-                  className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div className="space-y-3">
-                <Label htmlFor="edit-botId" className="text-sm font-medium text-gray-700">Select Bot</Label>
-                <Select value={formData.botId} onValueChange={(value) => setFormData({ ...formData, botId: value })}>
-                  <SelectTrigger className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <SelectValue placeholder="Choose a bot" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bots?.map((bot) => (
-                      <SelectItem key={bot._id} value={bot._id}>
-                        {bot.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe your campaign"
-                rows={3}
-                className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label htmlFor="edit-emailList" className="text-base font-medium">Email List</Label>
-              <div className="space-y-4">
-                {/* File Upload Section */}
-                <div className="space-y-3">
-                  <div 
-                    className={`border-2 border-dashed transition-all duration-200 rounded-xl p-6 text-center ${
-                      isDragOver 
-                        ? 'border-blue-500 bg-blue-50/80 scale-105' 
-                        : 'border-gray-300 hover:border-blue-400 bg-gray-50/50 hover:bg-blue-50/50'
-                    }`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                  >
-                    <input
-                      type="file"
-                      id="editFileUpload"
-                      accept=".csv,.txt"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      disabled={isUploading}
-                    />
-                    <label htmlFor="editFileUpload" className="cursor-pointer block">
-                      {isUploading ? (
-                        <div className="space-y-3">
-                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
-                          <p className="text-sm font-medium text-blue-600">Processing your file...</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Upload className="w-8 h-8 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="text-base font-semibold text-gray-900">
-                              Update Email List
-                            </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {isDragOver ? 'Drop your file here!' : 'Upload a new file to replace current emails'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-2">
-                              Supports CSV and text files up to 5MB
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-
-                  {/* File Type Info */}
-                  <div className="flex items-center justify-center space-x-6 text-xs text-gray-500">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span>CSV files</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span>Text files</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                      <span>Max 5MB</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Uploaded File Info */}
-                {uploadedFileName && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                          <Upload className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-green-900">
-                            {uploadedFileName}
-                          </p>
-                          <p className="text-xs text-green-700">
-                            {uploadedEmails.length} valid emails extracted
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={clearUploadedEmails}
-                        className="text-green-600 hover:text-green-800 hover:bg-green-100"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or</span>
-                  </div>
-                </div>
-
-                {/* Manual Email Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="edit-emailList" className="text-sm font-medium text-gray-700">
-                    Edit emails manually
-                  </Label>
-                  <Textarea
-                    id="edit-emailList"
-                    value={formData.emailList}
-                    onChange={(e) => setFormData({ ...formData, emailList: e.target.value })}
-                    placeholder="Enter email addresses, one per line&#10;example@domain.com&#10;another@domain.com"
-                    rows={4}
-                    className="resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Type or paste email addresses, one per line
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <Label htmlFor="edit-aiPrompt" className="text-sm font-medium text-gray-700">
-                AI Prompt <span className="text-gray-500 font-normal">(Optional)</span>
-              </Label>
-              <Textarea
-                id="edit-aiPrompt"
-                value={formData.aiPrompt}
-                onChange={(e) => setFormData({ ...formData, aiPrompt: e.target.value })}
-                placeholder="Describe the type of email you want the AI to generate"
-                rows={3}
-                className="focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleEditCampaign} disabled={updating}>
-                {updating ? 'Updating...' : 'Update Campaign'}
-              </Button>
-            </div>
+          <div className="flex justify-end space-x-3 pt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPauseDialogOpen(false)}
+              disabled={isPausing}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handlePauseCampaign} 
+              disabled={isPausing}
+              className={
+                pausingCampaign?.status === 'running'
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }
+            >
+              {isPausing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {pausingCampaign?.status === 'running' ? 'Pausing...' : 'Resuming...'}
+                </>
+              ) : (
+                <>
+                  {pausingCampaign?.status === 'running' ? (
+                    <>
+                      <Pause className="mr-2 h-4 w-4" />
+                      Pause Campaign
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2 h-4 w-4" />
+                      Resume Campaign
+                    </>
+                  )}
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

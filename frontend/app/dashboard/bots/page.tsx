@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Bot as BotIcon, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
+import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Updated interface to match backend model
 interface Bot {
@@ -50,102 +51,190 @@ export default function BotsPage() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageSize, setPageSize] = useState(12);
 
-  // Mock data for now - will be replaced with API calls later
-  const mockBots: Bot[] = [
+  // Generate mock data with more bots for pagination testing
+  const generateMockBots = (): Bot[] => {
+    const baseBots: Bot[] = [
     {
       _id: '1',
       name: 'Sales Outreach Bot',
       description: 'AI-powered sales outreach bot for cold emailing prospects',
       isActive: true,
-      smtpConfig: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        username: 'sales@company.com',
-        password: 'password123',
-        fromEmail: 'sales@company.com',
-        fromName: 'Sales Team'
-      },
-      dailyEmailLimit: 500,
-      emailsSentToday: 45,
-      lastEmailSentAt: new Date('2024-01-20T10:30:00Z'),
+        smtpConfig: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          username: 'sales@company.com',
+          password: 'password123',
+          fromEmail: 'sales@company.com',
+          fromName: 'Sales Team'
+        },
+        dailyEmailLimit: 500,
+        emailsSentToday: 45,
+        lastEmailSentAt: new Date('2024-01-20T10:30:00Z'),
       createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-20')
+        updatedAt: new Date('2024-01-20')
     },
     {
       _id: '2',
       name: 'Customer Support Bot',
       description: 'Automated customer support and follow-up bot',
       isActive: true,
-      smtpConfig: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        username: 'support@company.com',
-        password: 'password123',
-        fromEmail: 'support@company.com',
-        fromName: 'Support Team'
-      },
-      dailyEmailLimit: 500,
-      emailsSentToday: 28,
-      lastEmailSentAt: new Date('2024-01-20T09:15:00Z'),
+        smtpConfig: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          username: 'support@company.com',
+          password: 'password123',
+          fromEmail: 'support@company.com',
+          fromName: 'Support Team'
+        },
+        dailyEmailLimit: 500,
+        emailsSentToday: 28,
+        lastEmailSentAt: new Date('2024-01-20T09:15:00Z'),
       createdAt: new Date('2024-01-05'),
-      updatedAt: new Date('2024-01-20')
+        updatedAt: new Date('2024-01-20')
     },
     {
       _id: '3',
       name: 'Newsletter Bot',
       description: 'Weekly newsletter and content distribution bot',
-      isActive: true,
-      smtpConfig: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        username: 'newsletter@company.com',
-        password: 'password123',
-        fromEmail: 'newsletter@company.com',
-        fromName: 'Newsletter Team'
+        isActive: true,
+        smtpConfig: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          username: 'newsletter@company.com',
+          password: 'password123',
+          fromEmail: 'newsletter@company.com',
+          fromName: 'Newsletter Team'
+        },
+        dailyEmailLimit: 500,
+        emailsSentToday: 15,
+        lastEmailSentAt: new Date('2024-01-19T14:00:00Z'),
+        createdAt: new Date('2024-01-10'),
+        updatedAt: new Date('2024-01-19')
       },
-      dailyEmailLimit: 500,
-      emailsSentToday: 15,
-      lastEmailSentAt: new Date('2024-01-19T14:00:00Z'),
-      createdAt: new Date('2024-01-10'),
-      updatedAt: new Date('2024-01-19')
-    },
-    {
-      _id: '4',
-      name: 'Lead Nurturing Bot',
-      description: 'Automated lead nurturing and follow-up sequences',
+      {
+        _id: '4',
+        name: 'Lead Nurturing Bot',
+        description: 'Automated lead nurturing and follow-up sequences',
       isActive: false,
-      smtpConfig: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        username: 'leads@company.com',
-        password: 'password123',
-        fromEmail: 'leads@company.com',
-        fromName: 'Lead Generation Team'
-      },
-      dailyEmailLimit: 500,
-      emailsSentToday: 0,
-      createdAt: new Date('2024-01-15'),
-      updatedAt: new Date('2024-01-18')
+        smtpConfig: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          username: 'leads@company.com',
+          password: 'password123',
+          fromEmail: 'leads@company.com',
+          fromName: 'Lead Generation Team'
+        },
+        dailyEmailLimit: 500,
+        emailsSentToday: 0,
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-18')
+      }
+    ];
+
+    // Generate additional bots for pagination demo
+    const additionalBots: Bot[] = [];
+    const botTypes = [
+      'Marketing', 'Support', 'Sales', 'Newsletter', 'Follow-up', 'Welcome', 'Onboarding', 'Retention',
+      'Promotion', 'Survey', 'Feedback', 'Reminder', 'Notification', 'Alert', 'Update', 'Announcement'
+    ];
+    
+    for (let i = 5; i <= 30; i++) {
+      const botType = botTypes[Math.floor(Math.random() * botTypes.length)];
+      const isActive = Math.random() > 0.3; // 70% active
+      const emailsSentToday = isActive ? Math.floor(Math.random() * 100) : 0;
+      
+      additionalBots.push({
+        _id: i.toString(),
+        name: `${botType} Bot ${i}`,
+        description: `Automated ${botType.toLowerCase()} bot for email campaigns and customer engagement`,
+        isActive,
+        smtpConfig: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          username: `${botType.toLowerCase()}${i}@company.com`,
+          password: 'password123',
+          fromEmail: `${botType.toLowerCase()}${i}@company.com`,
+          fromName: `${botType} Team`
+        },
+        dailyEmailLimit: 500,
+        emailsSentToday,
+        lastEmailSentAt: isActive ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : undefined,
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
+      });
     }
-  ];
 
-  // Load mock data on component mount
-  useState(() => {
-    setBots(mockBots);
-    setIsLoading(false);
-  });
+    return [...baseBots, ...additionalBots];
+  };
 
-  // Filter bots based on search query
-  const filteredBots = bots.filter(bot => 
-    bot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    bot.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    bot.smtpConfig.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const allBots = generateMockBots();
+
+  // Fetch bots with pagination
+  const fetchBots = async (page: number, limit: number, search: string = '') => {
+    setIsLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Filter bots based on search query
+      let filteredBots = allBots.filter(bot => 
+        bot.name.toLowerCase().includes(search.toLowerCase()) ||
+        bot.description?.toLowerCase().includes(search.toLowerCase()) ||
+        bot.smtpConfig.username.toLowerCase().includes(search.toLowerCase())
+      );
+      
+      // Calculate pagination
+      const totalItems = filteredBots.length;
+      const totalPages = Math.ceil(totalItems / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedBots = filteredBots.slice(startIndex, endIndex);
+      
+      setBots(paginatedBots);
+      setTotalItems(totalItems);
+      setTotalPages(totalPages);
+    } catch (error) {
+      console.error('Failed to fetch bots:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load bots on component mount and when page/size/search changes
+  useEffect(() => {
+    fetchBots(currentPage, pageSize, searchQuery);
+  }, [currentPage, pageSize, searchQuery]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (size: string) => {
+    setPageSize(Number(size));
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  // Handle search with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1); // Reset to first page when searching
+      fetchBots(1, pageSize, searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   const handleEditBot = () => {
     if (!editingBot) return;
@@ -307,7 +396,7 @@ export default function BotsPage() {
             {/* Grid View */}
             {viewMode === 'grid' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBots.map((bot) => (
+            {bots.map((bot) => (
                   <Card key={bot._id} className="relative hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200 dark:hover:border-blue-800">
                     <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
@@ -327,7 +416,7 @@ export default function BotsPage() {
                         </div>
                                                 <div className="flex items-center gap-2 flex-shrink-0">
                           <div className={`w-3 h-3 rounded-full ${bot.isActive ? `bg-green-500 animate-pulse ${getBotAnimationDelay(bot._id)}` : 'bg-red-500'}`}></div>
-                        </div>
+                  </div>
                   </div>
                 </CardHeader>
                     <CardContent className="pt-0">
@@ -397,7 +486,7 @@ export default function BotsPage() {
             {/* List View */}
             {viewMode === 'list' && (
               <div className="space-y-4">
-                {filteredBots.map((bot) => (
+                {bots.map((bot) => (
                   <Card key={bot._id} className="relative hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -471,6 +560,83 @@ export default function BotsPage() {
           </div>
             )}
           </>
+        )}
+
+        {/* Pagination Controls */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Show:</span>
+                <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6">6</SelectItem>
+                    <SelectItem value="12">12</SelectItem>
+                    <SelectItem value="24">24</SelectItem>
+                    <SelectItem value="48">48</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-gray-600 dark:text-gray-400">per page</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 

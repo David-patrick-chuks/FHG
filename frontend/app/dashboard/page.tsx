@@ -85,7 +85,7 @@ export default function DashboardPage() {
       case 'create_campaign':
         router.push('/dashboard/campaigns/create');
         break;
-      case 'add_bot':
+      case 'create_bot':
         router.push('/dashboard/bots/create');
         break;
       case 'import_contacts':
@@ -202,7 +202,7 @@ export default function DashboardPage() {
               
               <div 
                 className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
-                onClick={() => handleQuickAction('add_bot')}
+                onClick={() => handleQuickAction('create_bot')}
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="w-2 h-2 bg-green-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Add Bot</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Create Bot</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Create a new AI bot</p>
                 </div>
                 <div className="absolute top-0 right-0 w-20 h-20 bg-green-200 dark:bg-green-800 rounded-full -translate-y-10 translate-x-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
@@ -228,8 +228,8 @@ export default function DashboardPage() {
                     </div>
                     <div className="w-2 h-2 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Import Contacts</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Add new audience members</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">View Email Lists</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Manage your email lists</p>
                 </div>
                 <div className="absolute top-0 right-0 w-20 h-20 bg-purple-200 dark:bg-purple-800 rounded-full -translate-y-10 translate-x-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
               </div>

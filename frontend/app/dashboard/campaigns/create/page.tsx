@@ -2,13 +2,13 @@
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useGet, usePost } from '@/hooks/useApi';
-import { Bot, Campaign } from '@/types';
+import { Bot } from '@/types';
 import { ArrowLeft, CheckCircle, Mail, Plus, Upload, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -354,21 +354,21 @@ export default function CreateCampaignPage() {
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                  <div className="space-y-6">
+              <CardContent className="space-y-8">
+                <div className="bg-gradient-to-br from-gray-50 to-green-50/50 dark:from-gray-700 dark:to-green-900/20 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+                  <div className="space-y-8">
                     {/* File Upload Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="text-center">
-                        <h4 className="text-lg font-medium text-gray-900 mb-2">Upload Email List</h4>
-                        <p className="text-gray-600">Choose your preferred method to add recipients</p>
+                        <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Upload Email List</h4>
+                        <p className="text-gray-600 dark:text-gray-400 text-lg">Choose your preferred method to add recipients</p>
                       </div>
                       
                       <div 
-                        className={`border-2 border-dashed transition-all duration-200 rounded-xl p-8 text-center ${
+                        className={`border-2 border-dashed transition-all duration-300 rounded-2xl p-12 text-center ${
                           isDragOver 
-                            ? 'border-green-500 bg-green-50/80 scale-105' 
-                            : 'border-gray-300 hover:border-green-400 bg-white hover:bg-green-50/50'
+                            ? 'border-green-500 bg-green-50/80 dark:bg-green-900/20 scale-105 shadow-lg' 
+                            : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 bg-white dark:bg-gray-800 hover:bg-green-50/50 dark:hover:bg-green-900/10 hover:shadow-md'
                         }`}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
@@ -384,62 +384,72 @@ export default function CreateCampaignPage() {
                         />
                         <label htmlFor="fileUpload" className="cursor-pointer block">
                           {isUploading ? (
-                            <div className="space-y-4">
-                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                              <p className="text-base font-medium text-green-600">Processing your file...</p>
+                            <div className="space-y-6">
+                              <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
+                              <div>
+                                <p className="text-xl font-semibold text-green-600 dark:text-green-400">Processing your file...</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Please wait while we extract email addresses</p>
+                              </div>
                             </div>
                           ) : (
-                            <div className="space-y-4">
-                              <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                                <Upload className="w-10 h-10 text-green-600" />
+                            <div className="space-y-6">
+                              <div className={`mx-auto w-24 h-24 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                                isDragOver 
+                                  ? 'bg-green-500 scale-110 shadow-lg shadow-green-500/25' 
+                                  : 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30'
+                              }`}>
+                                <Upload className={`w-12 h-12 transition-colors duration-300 ${
+                                  isDragOver ? 'text-white' : 'text-green-600 dark:text-green-400'
+                                }`} />
                               </div>
                               <div>
-                                <p className="text-lg font-semibold text-gray-900">
+                                <p className={`text-2xl font-bold transition-colors duration-300 ${
+                                  isDragOver 
+                                    ? 'text-green-600 dark:text-green-400' 
+                                    : 'text-gray-900 dark:text-white'
+                                }`}>
                                   {isDragOver ? 'Drop your file here!' : 'Upload Email List'}
                                 </p>
-                                <p className="text-sm text-gray-600 mt-2">
+                                <p className="text-base text-gray-600 dark:text-gray-400 mt-3">
                                   {isDragOver ? 'Release to upload' : 'Drag and drop your file here, or click to browse'}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-3">
-                                  Supports CSV and text files up to 5MB
-                                </p>
+                                <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
+                                  <span className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>CSV files</span>
+                                  </span>
+                                  <span className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    <span>Text files</span>
+                                  </span>
+                                  <span className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                    <span>Max 5MB</span>
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           )}
                         </label>
                       </div>
 
-                      {/* File Type Info */}
-                      <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span>CSV files</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                          <span>Text files</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                          <span>Max 5MB</span>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Uploaded File Success */}
                     {uploadedFileName && (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-200 dark:border-green-700 rounded-2xl p-6 shadow-lg">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                              <Upload className="w-6 h-6 text-green-600" />
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl flex items-center justify-center">
+                              <Upload className="w-8 h-8 text-green-600 dark:text-green-400" />
                             </div>
                             <div>
-                              <p className="text-base font-medium text-green-900">
+                              <p className="text-lg font-bold text-green-900 dark:text-green-100">
                                 {uploadedFileName}
                               </p>
-                              <p className="text-sm text-green-700">
-                                ✅ {uploadedEmails.length} valid emails extracted
+                              <p className="text-base text-green-700 dark:text-green-300 flex items-center space-x-2">
+                                <CheckCircle className="w-5 h-5" />
+                                <span>{uploadedEmails.length} valid emails extracted</span>
                               </p>
                             </div>
                           </div>
@@ -448,9 +458,9 @@ export default function CreateCampaignPage() {
                             variant="ghost"
                             size="sm"
                             onClick={clearUploadedEmails}
-                            className="text-green-600 hover:text-green-800 hover:bg-green-100"
+                            className="text-green-600 hover:text-green-800 hover:bg-green-100 dark:text-green-400 dark:hover:text-green-200 dark:hover:bg-green-800/30 p-3 rounded-xl"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-5 h-5" />
                           </Button>
                         </div>
                       </div>
@@ -459,18 +469,18 @@ export default function CreateCampaignPage() {
                     {/* Divider */}
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-gray-200" />
+                        <span className="w-full border-t-2 border-gray-200 dark:border-gray-600" />
                       </div>
-                      <div className="relative flex justify-center text-sm uppercase">
-                        <span className="bg-gray-50 px-4 text-gray-500 font-medium">Or</span>
+                      <div className="relative flex justify-center">
+                        <span className="bg-white dark:bg-gray-800 px-6 text-gray-500 dark:text-gray-400 font-semibold text-lg">Or</span>
                       </div>
                     </div>
 
                     {/* Manual Email Input */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="text-center">
-                        <h4 className="text-base font-medium text-gray-900">Enter Emails Manually</h4>
-                        <p className="text-sm text-gray-600">Type or paste email addresses directly</p>
+                        <h4 className="text-xl font-bold text-gray-900 dark:text-white">Enter Emails Manually</h4>
+                        <p className="text-base text-gray-600 dark:text-gray-400">Type or paste email addresses directly</p>
                       </div>
                       <Textarea
                         id="emailList"
@@ -478,29 +488,31 @@ export default function CreateCampaignPage() {
                         onChange={(e) => setFormData({ ...formData, emailList: e.target.value })}
                         placeholder="Enter email addresses, one per line&#10;example@domain.com&#10;another@domain.com&#10;contact@company.com"
                         rows={6}
-                        className="focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-sm"
+                        className="border-2 border-gray-200 dark:border-gray-600 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 resize-none text-base rounded-xl transition-all duration-200"
                       />
-                      <p className="text-xs text-gray-500 text-center">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                         Type or paste email addresses, one per line
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between pt-6">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentStep(1)}
-                    className="px-6 py-3"
+                    className="px-8 py-4 text-lg font-semibold rounded-xl border-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
                   >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
                     Back to Basics
                   </Button>
                   <Button
                     onClick={() => setCurrentStep(3)}
                     disabled={!canProceedToStep3}
-                    className="bg-green-600 hover:bg-green-700 px-6 py-3"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     Continue to AI Configuration
+                    <ArrowLeft className="w-5 h-5 ml-2 rotate-180" />
                   </Button>
                 </div>
               </CardContent>
@@ -509,23 +521,29 @@ export default function CreateCampaignPage() {
 
           {/* Step 3: AI Configuration */}
           {currentStep === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 font-semibold text-sm">3</span>
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-purple-50/30 dark:from-gray-800 dark:to-purple-900/20">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center space-x-3 text-2xl">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold">3</span>
                   </div>
-                  <span>AI Configuration</span>
+                  <div>
+                    <span className="bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                      AI Configuration
+                    </span>
+                    <p className="text-gray-600 dark:text-gray-400 text-base font-normal mt-1">
+                      Configure how your AI bot will write emails
+                    </p>
+                  </div>
                 </CardTitle>
-                <CardDescription>
-                  Configure how your AI bot will write emails
-                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
-                  <div className="space-y-4">
-                    <Label htmlFor="aiPrompt" className="text-sm font-medium text-gray-700">
-                      AI Prompt <span className="text-purple-600 font-normal">(Optional)</span>
+              <CardContent className="space-y-8">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
+                  <div className="space-y-6">
+                    <Label htmlFor="aiPrompt" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                      <Bot className="w-5 h-5 mr-2 text-purple-500" />
+                      AI Prompt 
+                      <span className="text-purple-600 font-normal ml-2">(Optional)</span>
                     </Label>
                     <Textarea
                       id="aiPrompt"
@@ -533,41 +551,49 @@ export default function CreateCampaignPage() {
                       onChange={(e) => setFormData({ ...formData, aiPrompt: e.target.value })}
                       placeholder="Describe the type of email you want the AI to generate...&#10;Example: Write a professional email introducing our new product to potential customers"
                       rows={6}
-                      className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                      className="border-2 border-gray-200 dark:border-gray-600 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 resize-none text-base rounded-xl transition-all duration-200"
                     />
-                    <div className="flex items-start space-x-2 text-sm text-purple-700">
-                      <div className="w-4 h-4 bg-purple-200 rounded-full flex items-center justify-center mt-0.5">
-                        <span className="text-purple-600 text-xs">i</span>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-white text-sm font-bold">i</span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                            AI Prompt Guidelines
+                          </p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            This prompt defines how your AI bot will write emails. Be specific about tone, style, and goals. 
+                            <span className="font-semibold"> This field is optional and can be configured later.</span>
+                          </p>
+                        </div>
                       </div>
-                      <p>
-                        This prompt defines how your AI bot will write emails. Be specific about tone, style, and goals. 
-                        <span className="font-medium"> This field is optional and can be configured later.</span>
-                      </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex justify-between pt-6">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentStep(2)}
-                    className="px-6 py-3"
+                    className="px-8 py-4 text-lg font-semibold rounded-xl border-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
                   >
+                    <ArrowLeft className="w-5 h-5 mr-2" />
                     Back to Target Audience
                   </Button>
                   <Button
                     onClick={handleCreateCampaign}
                     disabled={!canCreateCampaign || creating}
-                    className="bg-purple-600 hover:bg-purple-700 px-8 py-3 text-lg"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 px-10 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     {creating ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3"></div>
                         Creating Campaign...
                       </>
                     ) : (
                       <>
-                        <Plus className="w-5 h-5 mr-2" />
+                        <Plus className="w-6 h-6 mr-3" />
                         Create Campaign
                       </>
                     )}
