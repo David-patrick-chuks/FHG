@@ -10,32 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { BotsAPI } from '@/lib/api';
+import { Bot } from '@/types';
 import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
-// Updated interface to match backend model
-interface Bot {
-  _id: string;
-  name: string;
-  description?: string;
-  isActive: boolean;
-  smtpConfig: {
-    host: string;
-    port: number;
-    secure: boolean;
-    username: string;
-    password: string;
-    fromEmail: string;
-    fromName: string;
-  };
-  emailSignature?: string;
-  dailyEmailLimit: number;
-  emailsSentToday: number;
-  lastEmailSentAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export default function BotsPage() {
   const router = useRouter();
@@ -55,209 +34,41 @@ export default function BotsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [pageSize, setPageSize] = useState(12);
+  const [error, setError] = useState<string | null>(null);
 
-  // Generate mock data with more bots for pagination testing
-  const generateMockBots = (): Bot[] => {
-    const baseBots: Bot[] = [
-    {
-      _id: '1',
-      name: 'Sales Outreach Bot',
-      description: 'AI-powered sales outreach bot for cold emailing prospects',
-      isActive: true,
-        smtpConfig: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          username: 'sales@company.com',
-          password: 'password123',
-          fromEmail: 'sales@company.com',
-          fromName: 'Sales Team'
-        },
-        dailyEmailLimit: 500,
-        emailsSentToday: 45,
-        lastEmailSentAt: new Date('2024-01-20T10:30:00Z'),
-      createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-20')
-    },
-    {
-      _id: '2',
-      name: 'Customer Support Bot',
-      description: 'Automated customer support and follow-up bot',
-      isActive: true,
-        smtpConfig: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          username: 'support@company.com',
-          password: 'password123',
-          fromEmail: 'support@company.com',
-          fromName: 'Support Team'
-        },
-        dailyEmailLimit: 500,
-        emailsSentToday: 28,
-        lastEmailSentAt: new Date('2024-01-20T09:15:00Z'),
-      createdAt: new Date('2024-01-05'),
-        updatedAt: new Date('2024-01-20')
-    },
-    {
-      _id: '3',
-      name: 'Newsletter Bot',
-      description: 'Weekly newsletter and content distribution bot',
-        isActive: true,
-        smtpConfig: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          username: 'newsletter@company.com',
-          password: 'password123',
-          fromEmail: 'newsletter@company.com',
-          fromName: 'Newsletter Team'
-        },
-        dailyEmailLimit: 500,
-        emailsSentToday: 15,
-        lastEmailSentAt: new Date('2024-01-19T14:00:00Z'),
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-19')
-      },
-      {
-        _id: '4',
-        name: 'Lead Nurturing Bot',
-        description: 'Automated lead nurturing and follow-up sequences',
-      isActive: false,
-        smtpConfig: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          username: 'leads@company.com',
-          password: 'password123',
-          fromEmail: 'leads@company.com',
-          fromName: 'Lead Generation Team'
-        },
-        dailyEmailLimit: 500,
-        emailsSentToday: 0,
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-18')
-      }
-    ];
-
-    // Generate additional bots for pagination demo
-    const additionalBots: Bot[] = [];
-    const botTypes = [
-      'Marketing', 'Support', 'Sales', 'Newsletter', 'Follow-up', 'Welcome', 'Onboarding', 'Retention',
-      'Promotion', 'Survey', 'Feedback', 'Reminder', 'Notification', 'Alert', 'Update', 'Announcement'
-    ];
-    
-    for (let i = 5; i <= 30; i++) {
-      const botType = botTypes[Math.floor(Math.random() * botTypes.length)];
-      const isActive = Math.random() > 0.3; // 70% active
-      const emailsSentToday = isActive ? Math.floor(Math.random() * 100) : 0;
-      
-      additionalBots.push({
-        _id: i.toString(),
-        name: `${botType} Bot ${i}`,
-        description: `Automated ${botType.toLowerCase()} bot for email campaigns and customer engagement`,
-        isActive,
-        smtpConfig: {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          username: `${botType.toLowerCase()}${i}@company.com`,
-          password: 'password123',
-          fromEmail: `${botType.toLowerCase()}${i}@company.com`,
-          fromName: `${botType} Team`
-        },
-        dailyEmailLimit: 500,
-        emailsSentToday,
-        lastEmailSentAt: isActive ? new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) : undefined,
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
-      });
-    }
-
-    return [...baseBots, ...additionalBots];
-  };
-
-  const allBots = generateMockBots();
-
-  // Fetch bots with pagination
-  const fetchBots = async (page: number, limit: number, search: string = '') => {
-    setIsLoading(true);
+  // Fetch bots data
+  const fetchBots = async () => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 300));
+      setIsLoading(true);
+      setError(null);
       
-      // Filter bots based on search query
-      let filteredBots = allBots.filter(bot => 
-        bot.name.toLowerCase().includes(search.toLowerCase()) ||
-        bot.description?.toLowerCase().includes(search.toLowerCase()) ||
-        bot.smtpConfig.username.toLowerCase().includes(search.toLowerCase())
-      );
-      
-      // Calculate pagination
-      const totalItems = filteredBots.length;
-      const totalPages = Math.ceil(totalItems / limit);
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedBots = filteredBots.slice(startIndex, endIndex);
-      
-      setBots(paginatedBots);
-      setTotalItems(totalItems);
-      setTotalPages(totalPages);
+      const response = await BotsAPI.getBots({
+        page: currentPage,
+        limit: pageSize,
+        search: searchQuery,
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
+
+      if (response.success && response.data) {
+        setBots(response.data.data);
+        setTotalPages(response.data.pagination.totalPages);
+        setTotalItems(response.data.pagination.total);
+      } else {
+        setError(response.error || 'Failed to fetch bots');
+      }
     } catch (error) {
-      console.error('Failed to fetch bots:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch bots');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Load bots on component mount and when page/size/search changes
   useEffect(() => {
-    fetchBots(currentPage, pageSize, searchQuery);
+    fetchBots();
   }, [currentPage, pageSize, searchQuery]);
 
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  // Handle page size change
-  const handlePageSizeChange = (size: string) => {
-    setPageSize(Number(size));
-    setCurrentPage(1); // Reset to first page when changing page size
-  };
-
-  // Handle search with debouncing
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setCurrentPage(1); // Reset to first page when searching
-      fetchBots(1, pageSize, searchQuery);
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  const handleEditBot = () => {
-    if (!editingBot) return;
-
-    // TODO: Implement bot editing API call
-    const updateData = { ...formData };
-    
-    const updatedBots = bots.map(bot => 
-      bot._id === editingBot._id 
-        ? { ...bot, ...updateData, updatedAt: new Date() }
-        : bot
-    );
-
-    setBots(updatedBots);
-    setIsEditDialogOpen(false);
-    setEditingBot(null);
-    setFormData({
-      name: '',
-      description: ''
-    });
-  };
-
-  const openEditDialog = (bot: Bot) => {
+  const handleEditBot = (bot: Bot) => {
     setEditingBot(bot);
     setFormData({
       name: bot.name,
@@ -266,148 +77,263 @@ export default function BotsPage() {
     setIsEditDialogOpen(true);
   };
 
-  const openDeleteDialog = (bot: Bot) => {
+  const handleDeleteBot = (bot: Bot) => {
     setDeletingBot(bot);
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDeleteBot = () => {
+  const handleSaveEdit = async () => {
+    if (!editingBot) return;
+
+    try {
+      const response = await BotsAPI.updateBot(editingBot._id, {
+        name: formData.name,
+        description: formData.description
+      });
+
+      if (response.success) {
+        await fetchBots(); // Refresh the list
+        setIsEditDialogOpen(false);
+        setEditingBot(null);
+        setFormData({ name: '', description: '' });
+      } else {
+        console.error('Failed to update bot:', response.error);
+      }
+    } catch (error) {
+      console.error('Error updating bot:', error);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
     if (!deletingBot) return;
 
-      // TODO: Implement bot deletion API call
-    setBots(prev => prev.filter(bot => bot._id !== deletingBot._id));
-    setIsDeleteDialogOpen(false);
-    setDeletingBot(null);
+    try {
+      const response = await BotsAPI.deleteBot(deletingBot._id);
+
+      if (response.success) {
+        await fetchBots(); // Refresh the list
+        setIsDeleteDialogOpen(false);
+        setDeletingBot(null);
+      } else {
+        console.error('Failed to delete bot:', response.error);
+      }
+    } catch (error) {
+      console.error('Error deleting bot:', error);
+    }
   };
 
-  const toggleBotStatus = (botId: string) => {
-    // TODO: Implement bot status toggle API call
-    setBots(prev => prev.map(bot => 
-      bot._id === botId 
-        ? { ...bot, isActive: !bot.isActive, updatedAt: new Date() }
-        : bot
-    ));
+  const handleToggleBotStatus = async (bot: Bot) => {
+    try {
+      const response = await BotsAPI.updateBot(bot._id, {
+        isActive: !bot.isActive
+      });
+
+      if (response.success) {
+        await fetchBots(); // Refresh the list
+      } else {
+        console.error('Failed to toggle bot status:', response.error);
+      }
+    } catch (error) {
+      console.error('Error toggling bot status:', error);
+    }
   };
 
-  // Generate bot avatar colors
-  const getBotAvatarColor = (botId: string) => {
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'];
-    const index = parseInt(botId) % colors.length;
-    return colors[index];
+  const getBotAvatar = (bot: Bot) => {
+    // Generate a consistent avatar based on bot name
+    const initials = bot.name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+    
+    return initials;
   };
 
-  // Generate random animation delay for each bot
-  const getBotAnimationDelay = (botId: string) => {
-    const delays = ['delay-0', 'delay-75', 'delay-150', 'delay-300', 'delay-500', 'delay-700', 'delay-1000'];
-    const index = parseInt(botId) % delays.length;
-    return delays[index];
+  const getBotStatusColor = (isActive: boolean) => {
+    return isActive 
+      ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20'
+      : 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
   };
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Bots" description="Manage your email bots">
-        <div className="flex items-center justify-center h-64">
-          <Icons.spinner className="h-8 w-8 animate-spin" />
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+                <Button 
+                  onClick={() => fetchBots()} 
+                  className="mt-4"
+                >
+                  Retry
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout
-      title="Bots"
-      description="Manage your email bots and their configurations"
-      actions={
-        <Button 
-          onClick={() => router.push('/dashboard/bots/create')}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-        >
-          <Plus className="mr-2 h-5 w-5" />
-          Create Bot
-        </Button>
-          
-      }
-    >
-      {/* Sticky Search and View Controls */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 -mx-6 px-6 py-4 mb-6">
-        <div className="w-full space-y-4">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bots</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Manage your AI-powered email bots and their configurations
+            </p>
+          </div>
+          <Button 
+            onClick={() => router.push('/dashboard/bots/create')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Bot
+          </Button>
+        </div>
+
+        {/* Filters and Search */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-              placeholder="Search bots by name, description, or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full h-12 text-base"
+                    placeholder="Search bots..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
                   />
                 </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="flex items-center gap-2 px-4 py-2"
-              >
-                <Grid3X3 className="h-4 w-4" />
-                Grid
-              </Button>
-                  <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="flex items-center gap-2 px-4 py-2"
-              >
-                <List className="h-4 w-4" />
-                List
-                  </Button>
-                </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {totalItems} bots
-              {searchQuery && ` matching "${searchQuery}"`}
-                  </div>
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
               </div>
-              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="space-y-6">
-        {isLoading ? (
-          <div className="space-y-6">
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(pageSize)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="h-14 w-14 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+        {/* Bots List */}
+        {bots.length === 0 ? (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <BotIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No bots found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {searchQuery 
+                    ? 'Try adjusting your search criteria.'
+                    : 'Get started by creating your first AI-powered email bot.'
+                  }
+                </p>
+                {!searchQuery && (
+                  <Button 
+                    onClick={() => router.push('/dashboard/bots/create')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Your First Bot
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {viewMode === 'list' ? (
+              <div className="space-y-4">
+                {bots.map((bot) => (
+                  <Card key={bot._id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
+                            <AvatarFallback>{getBotAvatar(bot)}</AvatarFallback>
+                          </Avatar>
                           <div className="flex-1">
-                            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {bot.name}
+                              </h3>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
+                                {bot.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-400 mb-2">
+                              {bot.description || 'No description provided'}
+                            </p>
+                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                              <span>Daily Limit: {bot.dailyEmailLimit}</span>
+                              <span>Sent Today: {bot.emailsSentToday}</span>
+                              <span>From: {bot.smtpConfig.fromEmail}</span>
+                              <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex justify-between">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                          </div>
-                          <div className="flex justify-between">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                          </div>
-                          <div className="flex justify-between">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
-                          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleBotStatus(bot)}
+                          >
+                            {bot.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditBot(bot)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteBot(bot)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -415,398 +341,206 @@ export default function BotsPage() {
                 ))}
               </div>
             ) : (
-              <div className="space-y-4">
-                {[...Array(pageSize)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                          <div className="flex-1">
-                            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2"></div>
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                          <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : bots.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BotIcon className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {searchQuery ? 'No bots found' : 'No bots created yet'}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4 text-center">
-                {searchQuery 
-                  ? `No bots match "${searchQuery}". Try adjusting your search.`
-                  : 'Create your first email bot to start sending personalized emails'
-                }
-              </p>
-              {!searchQuery && (
-                <Button onClick={() => router.push('/dashboard/bots/create')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Your First Bot
-              </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            {/* Grid View */}
-            {viewMode === 'grid' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bots.map((bot) => (
-                  <Card key={bot._id} className="relative hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-200 dark:hover:border-blue-800">
-                    <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <Avatar className="h-14 w-14 flex-shrink-0 ring-2 ring-gray-100 dark:ring-gray-700">
-                            <AvatarImage src={`/api/bots/${bot._id}/avatar`} alt={bot.name} />
-                            <AvatarFallback className={`${getBotAvatarColor(bot._id)} text-white text-xl font-semibold`}>
-                              {bot.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-lg font-bold text-gray-900 dark:text-white truncate block max-w-full">{bot.name}</CardTitle>
-                            <CardDescription className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 break-words max-w-full overflow-hidden">
-                              {bot.description || 'No description'}
-                      </CardDescription>
-                    </div>
-                        </div>
-                                                <div className="flex items-center gap-2 flex-shrink-0">
-                          <div className={`w-3 h-3 rounded-full ${bot.isActive ? `bg-green-500 animate-pulse ${getBotAnimationDelay(bot._id)}` : 'bg-red-500'}`}></div>
-                  </div>
-                  </div>
-                </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Bot Email</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{bot.smtpConfig.username}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Daily Emails</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{bot.emailsSentToday} / {bot.dailyEmailLimit}</span>
-                    </div>
-                    {bot.lastEmailSentAt && (
-                      <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-600 dark:text-gray-400">Last Email</span>
-                              <span className="font-medium text-gray-900 dark:text-white">
-                                {new Date(bot.lastEmailSentAt).toLocaleDateString()} {new Date(bot.lastEmailSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    )}
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 dark:text-gray-400">Reset Time</span>
-                            <span className="font-medium text-gray-900 dark:text-white">
-                              {bot.lastEmailSentAt 
-                                ? new Date(bot.lastEmailSentAt).toLocaleDateString() + ' ' + new Date(bot.lastEmailSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                : 'Not set'
-                              }
-                            </span>
-                      </div>
-                    </div>
-
-                        <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                            className="flex-1 hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-950 dark:hover:border-blue-700"
-                        onClick={() => openEditDialog(bot)}
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                            className="hover:bg-orange-50 hover:border-orange-300 dark:hover:bg-orange-950 dark:hover:border-orange-700"
-                        onClick={() => toggleBotStatus(bot._id)}
-                      >
-                        {bot.isActive ? 'Deactivate' : 'Activate'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                            className="hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-950 dark:hover:border-red-700"
-                            onClick={() => openDeleteDialog(bot)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-
-            {/* List View */}
-            {viewMode === 'list' && (
-              <div className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {bots.map((bot) => (
-                  <Card key={bot._id} className="relative hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-gray-700">
-                    <CardContent className="p-6">
+                  <Card key={bot._id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-4">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                          <Avatar className="h-12 w-12 flex-shrink-0">
-                            <AvatarImage src={`/api/bots/${bot._id}/avatar`} alt={bot.name} />
-                            <AvatarFallback className={`${getBotAvatarColor(bot._id)} text-white font-semibold`}>
-                              {bot.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=40x40`} />
+                            <AvatarFallback>{getBotAvatar(bot)}</AvatarFallback>
                           </Avatar>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{bot.name}</h3>
-                              <div className={`w-2 h-2 rounded-full ${bot.isActive ? `bg-green-500 animate-pulse ${getBotAnimationDelay(bot._id)}` : 'bg-red-500'}`}></div>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-1">
-                              {bot.description || 'No description'}
-                            </p>
-                            <div className="flex items-center gap-6 text-sm text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <span className="text-gray-400">Email:</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">{bot.smtpConfig.username}</span>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <span className="text-gray-400">Daily:</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">{bot.emailsSentToday} / {bot.dailyEmailLimit}</span>
-                              </span>
-                              {bot.lastEmailSentAt && (
-                                <span className="flex items-center gap-1">
-                                  <span className="text-gray-400">Last:</span>
-                                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                                    {new Date(bot.lastEmailSentAt).toLocaleDateString()} {new Date(bot.lastEmailSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                </span>
-                              )}
-                            </div>
+                          <div>
+                            <CardTitle className="text-lg">{bot.name}</CardTitle>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
+                              {bot.isActive ? 'Active' : 'Inactive'}
+                            </span>
                           </div>
                         </div>
+                      </div>
+                      <CardDescription className="line-clamp-2">
+                        {bot.description || 'No description provided'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Daily Limit:</span>
+                          <span className="font-medium">{bot.dailyEmailLimit}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Sent Today:</span>
+                          <span className="font-medium">{bot.emailsSentToday}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">From Email:</span>
+                          <span className="font-medium text-xs truncate max-w-24">{bot.smtpConfig.fromEmail}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Created:</span>
+                          <span className="font-medium">{new Date(bot.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleToggleBotStatus(bot)}
+                        >
+                          {bot.isActive ? 'Deactivate' : 'Activate'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditBot(bot)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteBot(bot)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(bot)}
-                            className="h-8 px-3"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleBotStatus(bot._id)}
-                            className="h-8 px-3"
-                          >
-                            {bot.isActive ? 'Stop' : 'Start'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openDeleteDialog(bot)}
-                            className="h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNum = i + 1;
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
             )}
           </>
         )}
 
-        {/* Pagination Controls */}
-        {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Show:</span>
-                <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-                  <SelectTrigger className="w-20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6">6</SelectItem>
-                    <SelectItem value="12">12</SelectItem>
-                    <SelectItem value="24">24</SelectItem>
-                    <SelectItem value="48">48</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-sm text-gray-600 dark:text-gray-400">per page</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="flex items-center gap-1"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </Button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(pageNum)}
-                      className="w-8 h-8 p-0"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-1"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Edit Bot Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Bot</DialogTitle>
-            <DialogDescription>
-              Update your bot name and description
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Bot Name</Label>
+        {/* Edit Bot Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Bot</DialogTitle>
+              <DialogDescription>
+                Update the bot's name and description.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Name</Label>
                 <Input
-                  id="edit-name"
+                  id="name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                maxLength={50}
-                placeholder="Enter bot name (max 50 characters)"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Bot name should be descriptive and unique</span>
-                <span className={formData.name.length > 45 ? 'text-orange-500' : ''}>
-                  {formData.name.length}/50
-                </span>
+                  placeholder="Enter bot name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter bot description"
+                  rows={3}
+                />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                maxLength={200}
-                placeholder="Describe what this bot does (max 200 characters)"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Brief description of the bot's purpose</span>
-                <span className={formData.description.length > 180 ? 'text-orange-500' : ''}>
-                  {formData.description.length}/200
-                </span>
-            </div>
-            </div>
-
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleEditBot}
-                disabled={!formData.name.trim() || formData.name.length > 50 || formData.description.length > 200}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingBot(null);
+                  setFormData({ name: '', description: '' });
+                }}
               >
-                Update Bot
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete Bot</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this bot? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {deletingBot && (
-              <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className={`${getBotAvatarColor(deletingBot._id)} text-white`}>
-                      {deletingBot.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-red-900 dark:text-red-100">{deletingBot.name}</p>
-                    <p className="text-sm text-red-700 dark:text-red-300">{deletingBot.description}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                variant="destructive"
-                onClick={confirmDeleteBot}
+              <Button onClick={handleSaveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Bot Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Bot</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{deletingBot?.name}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setDeletingBot(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmDelete}
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Delete Bot
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </DashboardLayout>
   );
 }

@@ -6,6 +6,7 @@ import { CampaignRoutes } from './CampaignRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
+import { TrackingRoutes } from './TrackingRoutes';
 
 export class Routes {
   public static getRouter(): Router {
@@ -44,6 +45,7 @@ export class Routes {
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
     router.use(QueueRoutes.getBasePath(), QueueRoutes.getRouter());
+    router.use(TrackingRoutes.getBasePath(), TrackingRoutes.getRouter());
 
     // 404 handler for undefined routes
     router.use('/', (req, res) => {
@@ -67,7 +69,8 @@ export class Routes {
       DashboardRoutes.getBasePath(),
       SubscriptionRoutes.getBasePath(),
       AdminRoutes.getBasePath(),
-      QueueRoutes.getBasePath()
+      QueueRoutes.getBasePath(),
+      TrackingRoutes.getBasePath()
     ];
   }
 
@@ -86,6 +89,7 @@ export class Routes {
       totalRoutes += this.countRoutesInModule(SubscriptionRoutes);
       totalRoutes += this.countRoutesInModule(AdminRoutes);
       totalRoutes += this.countRoutesInModule(QueueRoutes);
+      totalRoutes += this.countRoutesInModule(TrackingRoutes);
       
       // Add main routes from this class
       totalRoutes += 2; // /health and /version

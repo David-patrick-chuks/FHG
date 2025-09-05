@@ -1,7 +1,8 @@
-import { Logger } from '../utils/Logger';
 import SubscriptionModel, { ISubscriptionDocument } from '../models/Subscription';
 import UserModel from '../models/User';
-import { CreateSubscriptionRequest, SubscriptionStatus, SubscriptionTier, ApiResponse } from '../types';
+import { ApiResponse, CreateSubscriptionRequest, SubscriptionStatus, SubscriptionTier } from '../types';
+import { Logger } from '../utils/Logger';
+import { PaginationParams, PaginationResult, PaginationUtils } from '../utils/PaginationUtils';
 
 export class SubscriptionService {
   private static logger: Logger = new Logger();
@@ -50,7 +51,7 @@ export class SubscriptionService {
       user.subscriptionExpiresAt = endDate;
       await user.save();
 
-      this.logger.info('Subscription created successfully', {
+      SubscriptionService.logger.info('Subscription created successfully', {
         subscriptionId: subscription._id,
         userId,
         tier: subscription.tier,
@@ -65,7 +66,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error creating subscription:', error);
+      SubscriptionService.logger.error('Error creating subscription:', error);
       throw error;
     }
   }
@@ -81,7 +82,58 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving subscriptions:', error);
+      SubscriptionService.logger.error('Error retrieving subscriptions:', error);
+      throw error;
+    }
+  }
+
+  public static async getSubscriptionsByUserIdWithPagination(
+    userId: string, 
+    paginationParams: PaginationParams
+  ): Promise<ApiResponse<PaginationResult<ISubscriptionDocument>>> {
+    try {
+      // Build query
+      const query: any = { userId };
+      
+      // Add search filter if provided
+      if (paginationParams.search) {
+        const searchRegex = PaginationUtils.createSearchRegex(paginationParams.search);
+        query.$or = [
+          { tier: searchRegex },
+          { status: searchRegex }
+        ];
+      }
+
+      // Build sort object
+      const sortBy = paginationParams.sortBy || 'createdAt';
+      const sortOrder = paginationParams.sortOrder || 'desc';
+      const sort = PaginationUtils.createSortObject(sortBy, sortOrder);
+
+      // Get total count
+      const total = await SubscriptionModel.countDocuments(query);
+
+      // Get paginated results
+      const subscriptions = await SubscriptionModel.find(query)
+        .sort(sort)
+        .skip(paginationParams.offset)
+        .limit(paginationParams.limit);
+
+      // Create pagination result
+      const paginationResult = PaginationUtils.createPaginationResult(
+        subscriptions,
+        total,
+        paginationParams.page,
+        paginationParams.limit
+      );
+      
+      return {
+        success: true,
+        message: 'Subscriptions retrieved successfully',
+        data: paginationResult,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      SubscriptionService.logger.error('Error retrieving subscriptions with pagination:', error);
       throw error;
     }
   }
@@ -97,7 +149,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving active subscription:', error);
+      SubscriptionService.logger.error('Error retrieving active subscription:', error);
       throw error;
     }
   }
@@ -129,7 +181,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving subscription:', error);
+      SubscriptionService.logger.error('Error retrieving subscription:', error);
       throw error;
     }
   }
@@ -158,7 +210,7 @@ export class SubscriptionService {
       Object.assign(subscription, updateData);
       await subscription.save();
 
-      this.logger.info('Subscription updated successfully', {
+      SubscriptionService.logger.info('Subscription updated successfully', {
         subscriptionId: subscription._id,
         userId,
         tier: subscription.tier
@@ -171,7 +223,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error updating subscription:', error);
+      SubscriptionService.logger.error('Error updating subscription:', error);
       throw error;
     }
   }
@@ -206,7 +258,7 @@ export class SubscriptionService {
         await user.save();
       }
 
-      this.logger.info('Subscription renewed successfully', {
+      SubscriptionService.logger.info('Subscription renewed successfully', {
         subscriptionId: subscription._id,
         userId,
         newEndDate: subscription.endDate,
@@ -220,7 +272,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error renewing subscription:', error);
+      SubscriptionService.logger.error('Error renewing subscription:', error);
       throw error;
     }
   }
@@ -256,7 +308,7 @@ export class SubscriptionService {
         await user.save();
       }
 
-      this.logger.info('Subscription cancelled successfully', {
+      SubscriptionService.logger.info('Subscription cancelled successfully', {
         subscriptionId: subscription._id,
         userId,
         tier: subscription.tier
@@ -269,7 +321,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error cancelling subscription:', error);
+      SubscriptionService.logger.error('Error cancelling subscription:', error);
       throw error;
     }
   }
@@ -297,7 +349,7 @@ export class SubscriptionService {
       // Suspend subscription
       await subscription.suspend();
 
-      this.logger.info('Subscription suspended successfully', {
+      SubscriptionService.logger.info('Subscription suspended successfully', {
         subscriptionId: subscription._id,
         userId,
         tier: subscription.tier
@@ -310,7 +362,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error suspending subscription:', error);
+      SubscriptionService.logger.error('Error suspending subscription:', error);
       throw error;
     }
   }
@@ -338,7 +390,7 @@ export class SubscriptionService {
       // Activate subscription
       await subscription.activate();
 
-      this.logger.info('Subscription activated successfully', {
+      SubscriptionService.logger.info('Subscription activated successfully', {
         subscriptionId: subscription._id,
         userId,
         tier: subscription.tier
@@ -351,7 +403,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error activating subscription:', error);
+      SubscriptionService.logger.error('Error activating subscription:', error);
       throw error;
     }
   }
@@ -367,7 +419,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving subscriptions by status:', error);
+      SubscriptionService.logger.error('Error retrieving subscriptions by status:', error);
       throw error;
     }
   }
@@ -383,7 +435,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving subscriptions by tier:', error);
+      SubscriptionService.logger.error('Error retrieving subscriptions by tier:', error);
       throw error;
     }
   }
@@ -399,7 +451,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving active subscriptions:', error);
+      SubscriptionService.logger.error('Error retrieving active subscriptions:', error);
       throw error;
     }
   }
@@ -415,7 +467,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving expired subscriptions:', error);
+      SubscriptionService.logger.error('Error retrieving expired subscriptions:', error);
       throw error;
     }
   }
@@ -436,7 +488,7 @@ export class SubscriptionService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving revenue stats:', error);
+      SubscriptionService.logger.error('Error retrieving revenue stats:', error);
       throw error;
     }
   }
@@ -459,7 +511,7 @@ export class SubscriptionService {
             await user.save();
           }
 
-          this.logger.info('Subscription expired and updated', {
+          SubscriptionService.logger.info('Subscription expired and updated', {
             subscriptionId: subscription._id,
             userId: subscription.userId,
             tier: subscription.tier
@@ -467,11 +519,11 @@ export class SubscriptionService {
         }
       }
 
-      this.logger.info('Subscription expiry check completed', {
+      SubscriptionService.logger.info('Subscription expiry check completed', {
         expiredCount: expiredSubscriptions.length
       });
     } catch (error) {
-      this.logger.error('Error checking subscription expiry:', error);
+      SubscriptionService.logger.error('Error checking subscription expiry:', error);
     }
   }
 }

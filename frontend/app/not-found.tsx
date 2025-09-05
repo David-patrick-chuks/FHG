@@ -22,32 +22,6 @@ export default function NotFound() {
             The page you're looking for doesn't exist or has been moved.
           </p>
         </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button asChild className="w-full">
-            <Link href="/" className="flex items-center justify-center gap-2">
-              <Home className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/login" className="flex items-center justify-center gap-2">
-                <LogIn className="h-4 w-4" />
-                Sign In
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/dashboard" className="flex items-center justify-center gap-2">
-                <Mail className="h-4 w-4" />
-                Dashboard
-              </Link>
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   )

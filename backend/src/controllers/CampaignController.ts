@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import SentEmailModel from '../models/SentEmail';
 import { CampaignService } from '../services/CampaignService';
 import { FileUploadService } from '../services/FileUploadService';
 import { Logger } from '../utils/Logger';
+import { PaginationUtils } from '../utils/PaginationUtils';
 
 export class CampaignController {
   private static logger: Logger = new Logger();
@@ -95,18 +97,36 @@ export class CampaignController {
     try {
       const userId = (req as any).user['id'];
 
+      // Extract pagination parameters
+      const paginationParams = PaginationUtils.extractPaginationParams(req);
+      
+      // Validate pagination parameters
+      const validation = PaginationUtils.validatePaginationParams(paginationParams);
+      if (!validation.isValid) {
+        res.status(400).json({
+          success: false,
+          message: validation.error,
+          timestamp: new Date()
+        });
+        return;
+      }
+
       CampaignController.logger.info('Campaigns retrieval request', {
         userId,
+        pagination: paginationParams,
         ip: req.ip
       });
 
-      const result = await CampaignService.getCampaignsByUserId(userId);
+      const result = await CampaignService.getCampaignsByUserIdWithPagination(userId, paginationParams);
 
       if (result.success) {
         res.status(200).json({
           success: true,
           message: 'Campaigns retrieved successfully',
-          data: result.data,
+          data: {
+            data: result.data?.data || [],
+            pagination: result.data?.pagination
+          },
           timestamp: new Date()
         });
       } else {
@@ -670,6 +690,138 @@ export class CampaignController {
       }
     } catch (error) {
       CampaignController.logger.error('Message selection error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get tracking statistics for a campaign
+   */
+  public static async getCampaignTrackingStats(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      CampaignController.logger.info('Campaign tracking stats request', {
+        userId,
+        campaignId,
+        ip: req.ip
+      });
+
+      // Verify user owns the campaign
+      const campaign = await CampaignService.getCampaignById(campaignId, userId);
+      if (!campaign.success) {
+        res.status(404).json({
+          success: false,
+          message: 'Campaign not found',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Get tracking statistics
+      const stats = await SentEmailModel.getDeliveryStats(campaignId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Campaign tracking statistics retrieved successfully',
+        data: {
+          campaignId,
+          ...stats,
+          openRate: stats.delivered > 0 ? Math.round((stats.opened / stats.delivered) * 100) : 0
+        },
+        timestamp: new Date()
+      });
+    } catch (error) {
+      CampaignController.logger.error('Campaign tracking stats error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get detailed tracking logs for a campaign
+   */
+  public static async getCampaignTrackingLogs(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+      const { limit = 50, offset = 0, status } = req.query;
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      CampaignController.logger.info('Campaign tracking logs request', {
+        userId,
+        campaignId,
+        limit,
+        offset,
+        status,
+        ip: req.ip
+      });
+
+      // Verify user owns the campaign
+      const campaign = await CampaignService.getCampaignById(campaignId, userId);
+      if (!campaign.success) {
+        res.status(404).json({
+          success: false,
+          message: 'Campaign not found',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Build query
+      const query: any = { campaignId };
+      if (status) {
+        query.status = status;
+      }
+
+      // Get tracking logs
+      const emails = await SentEmailModel.find(query)
+        .sort({ sentAt: -1 })
+        .limit(parseInt(limit as string))
+        .skip(parseInt(offset as string));
+
+      const trackingLogs = emails.map(email => ({
+        emailId: email._id,
+        recipientEmail: email.recipientEmail,
+        status: email.status,
+        sentAt: email.sentAt,
+        deliveredAt: email.deliveredAt,
+        openedAt: email.openedAt,
+        repliedAt: email.repliedAt,
+        errorMessage: email.errorMessage
+      }));
+
+      res.status(200).json({
+        success: true,
+        message: 'Campaign tracking logs retrieved successfully',
+        data: {
+          campaignId,
+          logs: trackingLogs,
+          total: trackingLogs.length,
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string)
+        },
+        timestamp: new Date()
+      });
+    } catch (error) {
+      CampaignController.logger.error('Campaign tracking logs error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

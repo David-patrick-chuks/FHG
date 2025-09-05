@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Bot as BotIcon, Plus } from 'lucide-react';
+import { ArrowLeft, Bot as BotIcon, Check, Plus, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -17,10 +16,54 @@ export default function CreateBotPage() {
     name: '',
     description: '',
     email: '',
-    password: '',
-    isActive: true
+    password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [verificationMessage, setVerificationMessage] = useState('');
+
+  const handleVerifyCredentials = async () => {
+    if (!formData.email.trim() || !formData.password.trim()) {
+      setVerificationStatus('error');
+      setVerificationMessage('Please enter both email and password');
+      return;
+    }
+
+    setIsVerifying(true);
+    setVerificationStatus('idle');
+    setVerificationMessage('');
+
+    try {
+      const response = await fetch('/api/bots/test-credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setVerificationStatus('success');
+        setVerificationMessage('Credentials verified successfully!');
+      } else {
+        setVerificationStatus('error');
+        setVerificationMessage(result.message || 'Failed to verify credentials');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      setVerificationStatus('error');
+      setVerificationMessage('Network error. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,18 +71,42 @@ export default function CreateBotPage() {
       return;
     }
 
+    if (verificationStatus !== 'success') {
+      setVerificationStatus('error');
+      setVerificationMessage('Please verify your email credentials before creating the bot');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Implement bot creation API call
-      console.log('Creating bot:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Redirect back to bots page
-      router.push('/dashboard/bots');
+      const response = await fetch('/api/bots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Redirect back to bots page
+        router.push('/dashboard/bots');
+      } else {
+        console.error('Failed to create bot:', result.message);
+        setVerificationStatus('error');
+        setVerificationMessage(result.message || 'Failed to create bot');
+      }
     } catch (error) {
       console.error('Failed to create bot:', error);
+      setVerificationStatus('error');
+      setVerificationMessage('Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +116,8 @@ export default function CreateBotPage() {
                      formData.name.length <= 50 && 
                      formData.description.length <= 200 &&
                      formData.email.trim() &&
-                     formData.password.trim();
+                     formData.password.trim() &&
+                     verificationStatus === 'success';
 
   return (
     <DashboardLayout
@@ -161,23 +229,54 @@ export default function CreateBotPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="password">Email Password *</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="Enter email password"
-                  required
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isActive"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
-                />
-                <Label htmlFor="isActive">Bot is active</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, password: e.target.value }));
+                      // Reset verification status when password changes
+                      if (verificationStatus !== 'idle') {
+                        setVerificationStatus('idle');
+                        setVerificationMessage('');
+                      }
+                    }}
+                    placeholder="Enter email password"
+                    required
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleVerifyCredentials}
+                    disabled={isVerifying || !formData.email.trim() || !formData.password.trim()}
+                    className="px-4"
+                  >
+                    {isVerifying ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                    ) : verificationStatus === 'success' ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : verificationStatus === 'error' ? (
+                      <X className="h-4 w-4 text-red-600" />
+                    ) : (
+                      'Verify'
+                    )}
+                  </Button>
+                </div>
+                
+                {/* Verification Status */}
+                {verificationMessage && (
+                  <div className={`text-sm p-2 rounded-md ${
+                    verificationStatus === 'success' 
+                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      : verificationStatus === 'error'
+                      ? 'bg-red-50 text-red-700 border border-red-200'
+                      : 'bg-gray-50 text-gray-700 border border-gray-200'
+                  }`}>
+                    {verificationMessage}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4">

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { SubscriptionService } from '../services/SubscriptionService';
 import { Logger } from '../utils/Logger';
+import { PaginationUtils } from '../utils/PaginationUtils';
 
 export class SubscriptionController {
   private static logger: Logger = new Logger();
@@ -40,18 +41,36 @@ export class SubscriptionController {
     try {
       const userId = (req as any).user.id;
 
+      // Extract pagination parameters
+      const paginationParams = PaginationUtils.extractPaginationParams(req);
+      
+      // Validate pagination parameters
+      const validation = PaginationUtils.validatePaginationParams(paginationParams);
+      if (!validation.isValid) {
+        res.status(400).json({
+          success: false,
+          message: validation.error,
+          timestamp: new Date()
+        });
+        return;
+      }
+
       SubscriptionController.logger.info('User subscriptions retrieval request', {
         userId,
+        pagination: paginationParams,
         ip: req.ip
       });
 
-      const result = await SubscriptionService.getSubscriptionsByUserId(userId);
+      const result = await SubscriptionService.getSubscriptionsByUserIdWithPagination(userId, paginationParams);
 
       if (result.success) {
         res.status(200).json({
           success: true,
           message: 'Subscriptions retrieved successfully',
-          data: result.data,
+          data: {
+            data: result.data?.data || [],
+            pagination: result.data?.pagination
+          },
           timestamp: new Date()
         });
       } else {

@@ -34,7 +34,7 @@ export class UserService {
       // Create new user
       const user = await UserModel.createUser(userData);
       
-      this.logger.info('User created successfully', { userId: user._id, email: user.email });
+      UserService.logger.info('User created successfully', { userId: user._id, email: user.email });
       
       return {
         success: true,
@@ -43,7 +43,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error creating user:', error);
+      UserService.logger.error('Error creating user:', error);
       throw error;
     }
   }
@@ -85,7 +85,7 @@ export class UserService {
       // Generate JWT token
       const token = this.generateToken((user._id as any).toString());
 
-      this.logger.info('User logged in successfully', { userId: user._id, email: user.email });
+      UserService.logger.info('User logged in successfully', { userId: user._id, email: user.email });
       
       return {
         success: true,
@@ -94,7 +94,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error during login:', error);
+      UserService.logger.error('Error during login:', error);
       throw error;
     }
   }
@@ -117,7 +117,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving user:', error);
+      UserService.logger.error('Error retrieving user:', error);
       throw error;
     }
   }
@@ -137,7 +137,7 @@ export class UserService {
       Object.assign(user, updateData);
       await user.save();
 
-      this.logger.info('User updated successfully', { userId: user._id });
+      UserService.logger.info('User updated successfully', { userId: user._id });
       
       return {
         success: true,
@@ -146,7 +146,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error updating user:', error);
+      UserService.logger.error('Error updating user:', error);
       throw error;
     }
   }
@@ -176,7 +176,7 @@ export class UserService {
       user.password = newPassword;
       await user.save();
 
-      this.logger.info('Password changed successfully', { userId: user._id });
+      UserService.logger.info('Password changed successfully', { userId: user._id });
       
       return {
         success: true,
@@ -184,7 +184,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error changing password:', error);
+      UserService.logger.error('Error changing password:', error);
       throw error;
     }
   }
@@ -213,14 +213,14 @@ export class UserService {
       try {
         const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
         await EmailService.sendPasswordResetLink(user.email, user.username, resetLink);
-        this.logger.info('Password reset link sent successfully', { userId: user._id, email: user.email });
+        UserService.logger.info('Password reset link sent successfully', { userId: user._id, email: user.email });
       } catch (emailError) {
-        this.logger.error('Failed to send password reset email:', emailError);
+        UserService.logger.error('Failed to send password reset email:', emailError);
         // Don't fail the entire operation if email fails
         // The reset token was still generated
       }
       
-      this.logger.info('Password reset initiated', { userId: user._id, email: user.email });
+      UserService.logger.info('Password reset initiated', { userId: user._id, email: user.email });
       
       return {
         success: true,
@@ -228,7 +228,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error resetting password:', error);
+      UserService.logger.error('Error resetting password:', error);
       throw error;
     }
   }
@@ -255,7 +255,7 @@ export class UserService {
       user.passwordResetExpires = undefined;
       await user.save();
 
-      this.logger.info('Password reset completed successfully', { userId: user._id });
+      UserService.logger.info('Password reset completed successfully', { userId: user._id });
       
       return {
         success: true,
@@ -263,7 +263,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error completing password reset:', error);
+      UserService.logger.error('Error completing password reset:', error);
       throw error;
     }
   }
@@ -291,7 +291,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error verifying reset token:', error);
+      UserService.logger.error('Error verifying reset token:', error);
       throw error;
     }
   }
@@ -311,7 +311,7 @@ export class UserService {
       user.isActive = false;
       await user.save();
 
-      this.logger.info('User deleted successfully', { userId: user._id });
+      UserService.logger.info('User deleted successfully', { userId: user._id });
       
       return {
         success: true,
@@ -319,7 +319,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error deleting user:', error);
+      UserService.logger.error('Error deleting user:', error);
       throw error;
     }
   }
@@ -452,7 +452,7 @@ export class UserService {
         lastActivityDate: lastActivity?.sentAt || null
       };
 
-      this.logger.info('User stats retrieved successfully', { userId, stats });
+      UserService.logger.info('User stats retrieved successfully', { userId, stats });
 
       return {
         success: true,
@@ -461,7 +461,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error getting user stats:', error);
+      UserService.logger.error('Error getting user stats:', error);
       throw error;
     }
   }
@@ -486,7 +486,7 @@ export class UserService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error verifying token:', error);
+      UserService.logger.error('Error verifying token:', error);
       return {
         success: false,
         message: 'Invalid or expired token',

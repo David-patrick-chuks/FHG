@@ -3,6 +3,7 @@ import CampaignModel, { ICampaignDocument } from '../models/Campaign';
 import UserModel from '../models/User';
 import { ApiResponse, CampaignStatus, CreateCampaignRequest } from '../types';
 import { Logger } from '../utils/Logger';
+import { PaginationParams, PaginationResult, PaginationUtils } from '../utils/PaginationUtils';
 import { AIService } from './AIService';
 import { QueueService } from './QueueService';
 
@@ -115,6 +116,57 @@ export class CampaignService {
       };
     } catch (error) {
       this.logger.error('Error retrieving campaigns:', error);
+      throw error;
+    }
+  }
+
+  public static async getCampaignsByUserIdWithPagination(
+    userId: string, 
+    paginationParams: PaginationParams
+  ): Promise<ApiResponse<PaginationResult<ICampaignDocument>>> {
+    try {
+      // Build query
+      const query: any = { userId };
+      
+      // Add search filter if provided
+      if (paginationParams.search) {
+        const searchRegex = PaginationUtils.createSearchRegex(paginationParams.search);
+        query.$or = [
+          { name: searchRegex },
+          { description: searchRegex }
+        ];
+      }
+
+      // Build sort object
+      const sortBy = paginationParams.sortBy || 'createdAt';
+      const sortOrder = paginationParams.sortOrder || 'desc';
+      const sort = PaginationUtils.createSortObject(sortBy, sortOrder);
+
+      // Get total count
+      const total = await CampaignModel.countDocuments(query);
+
+      // Get paginated results
+      const campaigns = await CampaignModel.find(query)
+        .sort(sort)
+        .skip(paginationParams.offset)
+        .limit(paginationParams.limit);
+
+      // Create pagination result
+      const paginationResult = PaginationUtils.createPaginationResult(
+        campaigns,
+        total,
+        paginationParams.page,
+        paginationParams.limit
+      );
+      
+      return {
+        success: true,
+        message: 'Campaigns retrieved successfully',
+        data: paginationResult,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      this.logger.error('Error retrieving campaigns with pagination:', error);
       throw error;
     }
   }

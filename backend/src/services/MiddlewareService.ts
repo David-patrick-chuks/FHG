@@ -61,7 +61,6 @@ export class MiddlewareService {
       ? ['https://www.agentworld.online'] 
       : ['http://localhost:3000', 'http://localhost:3001'];
   }
-
   /**
    * Create rate limiter configuration
    */

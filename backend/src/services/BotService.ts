@@ -4,6 +4,7 @@ import SentEmailModel from '../models/SentEmail';
 import UserModel from '../models/User';
 import { ApiResponse, CampaignStatus, CreateBotRequest } from '../types';
 import { Logger } from '../utils/Logger';
+import { PaginationUtils, PaginationParams, PaginationResult } from '../utils/PaginationUtils';
 import { EmailService } from './EmailService';
 
 export class BotService {
@@ -114,6 +115,58 @@ export class BotService {
       };
     } catch (error) {
       BotService.logger.error('Error retrieving bots:', error);
+      throw error;
+    }
+  }
+
+  public static async getBotsByUserIdWithPagination(
+    userId: string, 
+    paginationParams: PaginationParams
+  ): Promise<ApiResponse<PaginationResult<IBotDocument>>> {
+    try {
+      // Build query
+      const query: any = { userId };
+      
+      // Add search filter if provided
+      if (paginationParams.search) {
+        const searchRegex = PaginationUtils.createSearchRegex(paginationParams.search);
+        query.$or = [
+          { name: searchRegex },
+          { description: searchRegex },
+          { email: searchRegex }
+        ];
+      }
+
+      // Build sort object
+      const sortBy = paginationParams.sortBy || 'createdAt';
+      const sortOrder = paginationParams.sortOrder || 'desc';
+      const sort = PaginationUtils.createSortObject(sortBy, sortOrder);
+
+      // Get total count
+      const total = await BotModel.countDocuments(query);
+
+      // Get paginated results
+      const bots = await BotModel.find(query)
+        .sort(sort)
+        .skip(paginationParams.offset)
+        .limit(paginationParams.limit);
+
+      // Create pagination result
+      const paginationResult = PaginationUtils.createPaginationResult(
+        bots,
+        total,
+        paginationParams.page,
+        paginationParams.limit
+      );
+      
+      return {
+        success: true,
+        message: 'Bots retrieved successfully',
+        data: paginationResult,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      BotService.logger.error('Error retrieving bots with pagination:', error);
       throw error;
     }
   }

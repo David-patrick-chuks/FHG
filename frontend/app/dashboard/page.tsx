@@ -4,6 +4,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { DashboardAPI } from '@/lib/api';
+import { DashboardStats, RecentActivity } from '@/types';
 import {
   Activity,
   BarChart3,
@@ -14,71 +16,80 @@ import {
   Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   
-  // Dummy dashboard data
-  const dashboardStats = {
-    totalCampaigns: 4,
-    totalBots: 4,
-    activeCampaigns: 2,
-    totalEmailsSent: 2847,
-    totalRecipients: 156,
-    averageOpenRate: 68,
-    averageClickRate: 14,
-    totalReplies: 23
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [statsResponse, activityResponse] = await Promise.all([
+          DashboardAPI.getDashboardStats(),
+          DashboardAPI.getRecentActivity()
+        ]);
+
+        if (statsResponse.success && statsResponse.data) {
+          setDashboardStats(statsResponse.data);
+        }
+
+        if (activityResponse.success && activityResponse.data) {
+          setRecentActivity(activityResponse.data);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  // Helper function to get icon component based on activity type
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'campaign_completed':
+        return Activity;
+      case 'bot_activated':
+        return Zap;
+      case 'performance_improved':
+        return TrendingUp;
+      case 'campaign_started':
+        return Mail;
+      case 'bot_updated':
+        return Bot;
+      default:
+        return Activity;
+    }
   };
 
-  // Dummy recent activity data
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'campaign_completed',
-      title: 'Campaign "Q1 Sales Outreach" completed',
-      description: 'Sent 156 emails successfully with 23% open rate',
-      icon: Activity,
-      iconColor: 'text-blue-600',
-      time: '2 hours ago'
-    },
-    {
-      id: 2,
-      type: 'bot_activated',
-      title: 'New bot "Customer Support Bot" activated',
-      description: 'Ready to handle customer inquiries and support tickets',
-      icon: Zap,
-      iconColor: 'text-green-600',
-      time: '1 day ago'
-    },
-    {
-      id: 3,
-      type: 'performance_improved',
-      title: 'Open rate improved by 18%',
-      description: 'Campaign performance trending up across all segments',
-      icon: TrendingUp,
-      iconColor: 'text-purple-600',
-      time: '3 days ago'
-    },
-    {
-      id: 4,
-      type: 'campaign_started',
-      title: 'Campaign "Product Launch" started',
-      description: 'AI-generated content ready and campaign launched',
-      icon: Mail,
-      iconColor: 'text-orange-600',
-      time: '5 days ago'
-    },
-    {
-      id: 5,
-      type: 'bot_updated',
-      title: 'Bot "Newsletter Bot" updated',
-      description: 'New AI prompts and email templates added',
-      icon: Bot,
-      iconColor: 'text-indigo-600',
-      time: '1 week ago'
+  // Helper function to get icon color based on activity type
+  const getActivityIconColor = (type: string) => {
+    switch (type) {
+      case 'campaign_completed':
+        return 'text-blue-600';
+      case 'bot_activated':
+        return 'text-green-600';
+      case 'performance_improved':
+        return 'text-purple-600';
+      case 'campaign_started':
+        return 'text-orange-600';
+      case 'bot_updated':
+        return 'text-indigo-600';
+      default:
+        return 'text-gray-600';
     }
-  ];
+  };
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -98,6 +109,45 @@ export default function DashboardPage() {
         break;
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="animate-pulse">
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <div className="grid gap-6 md:grid-cols-3 mt-6">
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="mt-4"
+                >
+                  Retry
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -131,9 +181,9 @@ export default function DashboardPage() {
             <CardContent className="relative p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-3xl font-bold">{dashboardStats.totalBots}</p>
+                  <p className="text-3xl font-bold">{dashboardStats?.totalBots || 0}</p>
                   <p className="text-blue-100 text-sm">Total Bots</p>
-                  <p className="text-blue-200 text-xs mt-1">Active & Ready</p>
+                  <p className="text-blue-200 text-xs mt-1">{dashboardStats?.activeBots || 0} Active</p>
                 </div>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <Bot className="w-6 h-6" />
@@ -147,9 +197,9 @@ export default function DashboardPage() {
             <CardContent className="relative p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-3xl font-bold">{dashboardStats.totalCampaigns}</p>
+                  <p className="text-3xl font-bold">{dashboardStats?.totalCampaigns || 0}</p>
                   <p className="text-purple-100 text-sm">Total Campaigns</p>
-                  <p className="text-purple-200 text-xs mt-1">+3 this week</p>
+                  <p className="text-purple-200 text-xs mt-1">{dashboardStats?.activeCampaigns || 0} Active</p>
                 </div>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <BarChart3 className="w-6 h-6" />
@@ -163,9 +213,9 @@ export default function DashboardPage() {
             <CardContent className="relative p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-3xl font-bold">{dashboardStats.totalEmailsSent.toLocaleString()}</p>
+                  <p className="text-3xl font-bold">{(dashboardStats?.totalEmailsSent || 0).toLocaleString()}</p>
                   <p className="text-green-100 text-sm">Emails Sent</p>
-                  <p className="text-green-200 text-xs mt-1">+12% from last week</p>
+                  <p className="text-green-200 text-xs mt-1">{dashboardStats?.totalEmailsToday || 0} Today</p>
                 </div>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <Mail className="w-6 h-6" />
@@ -274,21 +324,29 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity) => {
-                const IconComponent = activity.icon;
-                return (
-                  <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <IconComponent className={`w-5 h-5 ${activity.iconColor}`} />
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {activity.description}
-                      </p>
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity) => {
+                  const IconComponent = getActivityIcon(activity.type);
+                  const iconColor = getActivityIconColor(activity.type);
+                  return (
+                    <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <IconComponent className={`w-5 h-5 ${iconColor}`} />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {activity.description}
+                        </p>
+                      </div>
+                      <span className="text-sm text-gray-500">{activity.time}</span>
                     </div>
-                    <span className="text-sm text-gray-500">{activity.time}</span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No recent activity to show</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

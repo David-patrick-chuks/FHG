@@ -1,8 +1,8 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { CampaignController } from '../controllers/CampaignController';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
-import multer from 'multer';
 
 export class CampaignRoutes {
   public static getRouter(): Router {
@@ -102,6 +102,17 @@ export class CampaignRoutes {
     router.get('/:id/stats', 
       AuthMiddleware.validateOwnership('campaign', 'id'),
       CampaignController.getCampaignStats
+    );
+
+    // Campaign tracking
+    router.get('/:id/tracking/stats', 
+      AuthMiddleware.validateOwnership('campaign', 'id'),
+      CampaignController.getCampaignTrackingStats
+    );
+
+    router.get('/:id/tracking/logs', 
+      AuthMiddleware.validateOwnership('campaign', 'id'),
+      CampaignController.getCampaignTrackingLogs
     );
 
     return router;

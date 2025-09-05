@@ -13,7 +13,7 @@ export class DatabaseConnection {
   }
 
   /**
-   * Establish connection to MongoDB database
+   * Establish connection to MongoDB database with retry logic
    */
   public async connect(): Promise<void> {
     if (this.connection?.readyState === 1) {
@@ -26,36 +26,62 @@ export class DatabaseConnection {
       return;
     }
 
-    try {
-      this.isConnecting = true;
-      this.logger.info('Initiating database connection...');
+    const maxRetries = 3;
+    let retryCount = 0;
 
-      const options: ConnectOptions = {
-        maxPoolSize: parseInt(process.env['MONGODB_MAX_POOL_SIZE'] || '10'),
-        serverSelectionTimeoutMS: parseInt(process.env['MONGODB_SERVER_SELECTION_TIMEOUT'] || '5000'),
-        socketTimeoutMS: parseInt(process.env['MONGODB_SOCKET_TIMEOUT'] || '45000'),
-        bufferCommands: false,
-        connectTimeoutMS: parseInt(process.env['MONGODB_CONNECT_TIMEOUT'] || '10000'),
-        retryWrites: true,
-        w: 'majority'
-      };
+    while (retryCount < maxRetries) {
+      try {
+        this.isConnecting = true;
+        this.logger.info(`Initiating database connection... (Attempt ${retryCount + 1}/${maxRetries})`);
 
-      await mongoose.connect(this.uri, options);
-      this.connection = mongoose.connection;
+        const options: ConnectOptions = {
+          maxPoolSize: parseInt(process.env['MONGODB_MAX_POOL_SIZE'] || '10'),
+          serverSelectionTimeoutMS: parseInt(process.env['MONGODB_SERVER_SELECTION_TIMEOUT'] || '30000'), // Increased to 30 seconds
+          socketTimeoutMS: parseInt(process.env['MONGODB_SOCKET_TIMEOUT'] || '45000'),
+          bufferCommands: false,
+          connectTimeoutMS: parseInt(process.env['MONGODB_CONNECT_TIMEOUT'] || '30000'), // Increased to 30 seconds
+          retryWrites: true,
+          w: 'majority',
+          // Additional options for Atlas cluster stability
+          heartbeatFrequencyMS: 10000,
+          maxIdleTimeMS: 30000,
+          // Retry configuration
+          retryReads: true,
+          // Connection pool options
+          minPoolSize: 1,
+          // Atlas specific options
+          directConnection: false,
+          // Handle replica set issues
+          readPreference: 'primaryPreferred'
+        };
 
-      // Wait for connection to be ready
-      if (this.connection.readyState !== 1) {
-        throw new Error('Database connection not ready after connect');
+        await mongoose.connect(this.uri, options);
+        this.connection = mongoose.connection;
+
+        // Wait for connection to be ready
+        if (this.connection.readyState !== 1) {
+          throw new Error('Database connection not ready after connect');
+        }
+
+        this.setupConnectionEventHandlers();
+        this.logger.info('✅ Database connected successfully');
+        return; // Success, exit retry loop
+
+      } catch (error) {
+        retryCount++;
+        this.logger.error(`Failed to connect to database (Attempt ${retryCount}/${maxRetries}):`, error);
+        
+        if (retryCount < maxRetries) {
+          const waitTime = Math.pow(2, retryCount) * 1000; // Exponential backoff: 2s, 4s, 8s
+          this.logger.info(`Retrying connection in ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else {
+          this.logger.error('❌ All database connection attempts failed');
+          throw error;
+        }
+      } finally {
+        this.isConnecting = false;
       }
-
-      this.setupConnectionEventHandlers();
-      // Removed duplicate success message - Server class will log this
-
-    } catch (error) {
-      this.logger.error('Failed to connect to database:', error);
-      throw error;
-    } finally {
-      this.isConnecting = false;
     }
   }
 
@@ -213,7 +239,7 @@ export class DatabaseConnection {
       };
       
     } catch (error) {
-      this.logger.error('Failed to get database stats:', error);
+      this.logger.error('Failed to get database stats:', (error as Error).message);
       return null;
     }
   }

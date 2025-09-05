@@ -70,17 +70,17 @@ export interface SubscriptionFeature {
   limit?: number;
 }
 
-// Bot types
+// Bot types - Updated to match backend Bot model
 export interface Bot extends BaseEntity {
+  userId: string;
   name: string;
-  description?: string;
+  description: string;
+  email: string;
+  password: string; // encrypted
+  prompt: string;
   isActive: boolean;
-  smtpConfig: SMTPConfig;
-  emailSignature?: string;
-  dailyEmailLimit: number;
-  emailsSentToday: number;
+  dailyEmailCount: number;
   lastEmailSentAt?: Date;
-  performance: BotPerformance;
   profileImage?: string; // RoboHash URL for bot profile image
 }
 
@@ -104,6 +104,7 @@ export interface BotPerformance {
 
 // Campaign types
 export interface Campaign extends BaseEntity {
+  userId: string;
   name: string;
   description?: string;
   status: 'draft' | 'ready' | 'running' | 'paused' | 'completed' | 'cancelled';
@@ -111,7 +112,6 @@ export interface Campaign extends BaseEntity {
   emailList: string[];
   aiMessages: string[];
   selectedMessageIndex: number;
-  aiPrompt?: string;
   sentEmails: string[];
   startedAt?: Date;
   completedAt?: Date;
@@ -191,8 +191,10 @@ export interface DashboardStats {
 
 export interface RecentActivity {
   id: string;
-  type: 'campaign_created' | 'email_sent' | 'campaign_completed' | 'bot_activated';
+  type: 'campaign_created' | 'email_sent' | 'campaign_completed' | 'bot_activated' | 'campaign_started' | 'bot_updated' | 'performance_improved';
+  title: string;
   description: string;
+  time: string;
   timestamp: Date;
   metadata?: any;
 }
@@ -203,6 +205,52 @@ export interface ApiError {
   status: number;
   code?: string;
   details?: any;
+}
+
+// Tracking types
+export interface TrackingStats {
+  campaignId: string;
+  total: number;
+  sent: number;
+  delivered: number;
+  opened: number;
+  replied: number;
+  failed: number;
+  bounced: number;
+  deliveryRate: number;
+  openRate: number;
+  replyRate: number;
+}
+
+export interface TrackingLog {
+  emailId: string;
+  recipientEmail: string;
+  status: string;
+  sentAt: Date;
+  deliveredAt?: Date;
+  openedAt?: Date;
+  repliedAt?: Date;
+  errorMessage?: string;
+}
+
+export interface TrackingLogsResponse {
+  campaignId: string;
+  logs: TrackingLog[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface UserTrackingSummary {
+  totalCampaigns: number;
+  totalEmails: number;
+  totalOpened: number;
+  averageOpenRate: number;
+  topPerformingCampaigns: Array<{
+    campaignId: string;
+    openRate: number;
+    totalEmails: number;
+  }>;
 }
 
 // Utility types

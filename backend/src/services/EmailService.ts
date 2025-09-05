@@ -3,6 +3,7 @@ import BotModel from '../models/Bot';
 import SentEmailModel from '../models/SentEmail';
 import { ApiResponse, EmailStatus } from '../types';
 import { Logger } from '../utils/Logger';
+import { TrackingUtils } from '../utils/TrackingUtils';
 import { AIService } from './AIService';
 
 export class EmailService {
@@ -511,24 +512,7 @@ Thank you for using Email Outreach Bot!
         }
       });
 
-      // Send email
-      const mailOptions = {
-        from: bot.email,
-        to: recipientEmail,
-        subject: subject,
-        html: message,
-        headers: {
-          'X-Campaign-ID': campaignId,
-          'X-Bot-ID': botId
-        }
-      };
-
-      const info = await transporter.sendMail(mailOptions);
-
-      // Increment bot's daily email count
-      await bot.incrementDailyEmailCount();
-
-      // Save sent email record
+      // Save sent email record first to get the ID for tracking
       const sentEmail = new SentEmailModel({
         campaignId,
         botId,
@@ -539,11 +523,34 @@ Thank you for using Email Outreach Bot!
       });
       await sentEmail.save();
 
+      // Add tracking pixel to the email content
+      const trackingUrl = TrackingUtils.generateTrackingUrl(campaignId, (sentEmail._id as any).toString());
+      const trackedMessage = TrackingUtils.addTrackingPixel(message, trackingUrl);
+
+      // Send email
+      const mailOptions = {
+        from: bot.email,
+        to: recipientEmail,
+        subject: subject,
+        html: trackedMessage,
+        headers: {
+          'X-Campaign-ID': campaignId,
+          'X-Bot-ID': botId,
+          'X-Email-ID': (sentEmail._id as any).toString()
+        }
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+
+      // Increment bot's daily email count
+      await bot.incrementDailyEmailCount();
+
       this.logger.info('Email sent successfully', {
         messageId: info.messageId,
         botId,
         recipientEmail,
-        campaignId
+        campaignId,
+        emailId: (sentEmail._id as any)
       });
 
       return {
@@ -866,6 +873,7 @@ Thank you for using Email Outreach Bot!
       };
     }
   }
+
 
   /**
    * Utility method to add delay between operations

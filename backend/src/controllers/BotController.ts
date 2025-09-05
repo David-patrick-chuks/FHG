@@ -3,6 +3,7 @@ import { ErrorHandler } from '../middleware/ErrorHandler';
 import { BotService } from '../services/BotService';
 import { EmailService } from '../services/EmailService';
 import { Logger } from '../utils/Logger';
+import { PaginationUtils } from '../utils/PaginationUtils';
 
 export class BotController {
   private static logger: Logger = new Logger();
@@ -44,25 +45,43 @@ export class BotController {
     try {
       const userId = (req as any).user['id'];
 
+      // Extract pagination parameters
+      const paginationParams = PaginationUtils.extractPaginationParams(req);
+      
+      // Validate pagination parameters
+      const validation = PaginationUtils.validatePaginationParams(paginationParams);
+      if (!validation.isValid) {
+        res.status(400).json({
+          success: false,
+          message: validation.error,
+          timestamp: new Date()
+        });
+        return;
+      }
+
       BotController.logger.info('Bots retrieval request', {
         userId,
+        pagination: paginationParams,
         ip: req.ip
       });
 
-      const result = await BotService.getBotsByUserId(userId);
+      const result = await BotService.getBotsByUserIdWithPagination(userId, paginationParams);
 
-             if (result.success && result.data) {
-         // Remove sensitive data from response
-         const botsData = result.data.map(bot => {
-           const botData = { ...bot.toObject() };
-           delete botData.password;
-           return botData;
-         });
+      if (result.success && result.data) {
+        // Remove sensitive data from response
+        const botsData = result.data.data.map(bot => {
+          const botData = { ...bot.toObject() };
+          delete botData.password;
+          return botData;
+        });
 
         res.status(200).json({
           success: true,
           message: 'Bots retrieved successfully',
-          data: botsData,
+          data: {
+            data: botsData,
+            pagination: result.data.pagination
+          },
           timestamp: new Date()
         });
       } else {

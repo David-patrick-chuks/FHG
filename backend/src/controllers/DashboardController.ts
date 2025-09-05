@@ -14,6 +14,26 @@ interface AuthenticatedRequest extends Request {
 export class DashboardController {
   private static logger: Logger = new Logger();
 
+  private static formatTimeAgo(timestamp: Date): string {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - new Date(timestamp).getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 2592000) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    } else {
+      return new Date(timestamp).toLocaleDateString();
+    }
+  }
+
   public static async getDashboardStats(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const user = req.user;
@@ -127,14 +147,18 @@ export class DashboardController {
         ...recentCampaigns.map(campaign => ({
           id: campaign._id,
           type: 'campaign_created',
-          description: `Campaign "${campaign.name}" created`,
+          title: `Campaign "${campaign.name}" created`,
+          description: `New campaign created with status: ${campaign.status}`,
+          time: this.formatTimeAgo(campaign.createdAt),
           timestamp: campaign.createdAt,
           metadata: { campaignId: campaign._id, status: campaign.status }
         })),
         ...recentEmails.map(email => ({
           id: email._id,
           type: 'email_sent',
-          description: `Email sent to ${email.recipientEmail}`,
+          title: `Email sent to ${email.recipientEmail}`,
+          description: `Email delivered successfully`,
+          time: this.formatTimeAgo(email.sentAt),
           timestamp: email.sentAt,
           metadata: { emailId: email._id, campaignId: email.campaignId }
         }))
