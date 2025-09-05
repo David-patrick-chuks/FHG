@@ -65,8 +65,6 @@ class ApiClient {
         }
         throw error;
       }
-      
-      
       throw new Error('An unexpected error occurred');
     }
   }
