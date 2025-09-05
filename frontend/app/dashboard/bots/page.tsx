@@ -391,8 +391,8 @@ export default function BotsPage() {
                 className="ml-2"
               >
                 {showInactiveBots ? 'Hide Inactive' : 'Show Inactive'}
-              </Button>
-            </div>
+                  </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -416,10 +416,10 @@ export default function BotsPage() {
                     Some bots are inactive due to subscription limits. Upgrade your plan to reactivate them automatically.
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+            )}
 
         {/* Bots List */}
         {bots.length === 0 ? (

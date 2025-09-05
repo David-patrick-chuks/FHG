@@ -211,7 +211,7 @@ export class UserService {
 
       // Send email with reset link
       try {
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/confirm?token=${resetToken}`;
         await EmailService.sendPasswordResetLink(user.email, user.username, resetLink);
         UserService.logger.info('Password reset link sent successfully', { userId: user._id, email: user.email });
       } catch (emailError) {

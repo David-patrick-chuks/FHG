@@ -70,8 +70,8 @@ export default function CreateBotPage() {
     try {
       console.log('Making API call to test credentials...'); // Debug log
       const response = await BotsAPI.testCredentials({
-        email: formData.email,
-        password: formData.password
+          email: formData.email,
+          password: formData.password
       });
 
       console.log('API Response received:', response); // Debug log
@@ -100,7 +100,7 @@ export default function CreateBotPage() {
         console.log('Error message from catch:', error.message); // Debug log
         setVerificationMessage(error.message);
       } else {
-        setVerificationMessage('Network error. Please try again.');
+      setVerificationMessage('Network error. Please try again.');
       }
     } finally {
       setIsVerifying(false);
@@ -132,9 +132,9 @@ export default function CreateBotPage() {
     setIsLoading(true);
     try {
       const response = await BotsAPI.createBot({
-        name: formData.name,
-        description: formData.description,
-        email: formData.email,
+          name: formData.name,
+          description: formData.description,
+          email: formData.email,
         password: formData.password,
         prompt: formData.prompt
       });
@@ -340,10 +340,10 @@ export default function CreateBotPage() {
                         src={`https://robohash.org/${encodeURIComponent(formData.name)}?set=set3&size=200x200`}
                         alt={`${formData.name} avatar`}
                           className="w-24 h-24 rounded-2xl border-4 border-white dark:border-gray-700 shadow-lg"
-                        />
+                      />
                         <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                           <BotIcon className="w-4 h-4 text-white" />
-                        </div>
+                      </div>
                     </div>
                     <div className="flex-1">
                         <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">

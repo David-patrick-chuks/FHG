@@ -11,7 +11,7 @@ import { ArrowLeft, Brain, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import type React from "react"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 
 function ResetPasswordConfirmContent() {
   const searchParams = useSearchParams()
@@ -27,18 +27,26 @@ function ResetPasswordConfirmContent() {
   const [error, setError] = useState<string | null>(null)
   const [isValidToken, setIsValidToken] = useState<boolean | null>(null)
   const [userEmail, setUserEmail] = useState<string>("")
+  const verificationInProgress = useRef(false)
 
-  useEffect(() => {
-    if (!token) {
-      setError('Invalid reset link. Please request a new password reset.')
-      return
-    }
+  // Password validation
+  const validatePassword = (password: string) => {
+    const errors = []
+    if (password.length < 8) errors.push("Must be at least 8 characters long")
+    if (!/[A-Z]/.test(password)) errors.push("Must contain at least one uppercase letter")
+    if (!/[0-9]/.test(password)) errors.push("Must contain at least one number")
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push("Must contain at least one special character")
+    return errors
+  }
 
-    // Verify the token
-    verifyToken()
-  }, [token])
+  const passwordErrors = newPassword ? validatePassword(newPassword) : []
+  const isPasswordValid = passwordErrors.length === 0
 
-  const verifyToken = async () => {
+  const verifyToken = useCallback(async () => {
+    if (!token || verificationInProgress.current) return;
+    
+    verificationInProgress.current = true;
+    
     try {
       const response = await apiClient.get(`/auth/reset-password/verify/${token}`)
       
@@ -63,8 +71,20 @@ function ResetPasswordConfirmContent() {
       } else {
         setError(errorMessage)
       }
+    } finally {
+      verificationInProgress.current = false;
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    if (!token) {
+      setError('Invalid reset link. Please request a new password reset.')
+      return
+    }
+
+    // Verify the token
+    verifyToken()
+  }, [token, verifyToken])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,8 +94,8 @@ function ResetPasswordConfirmContent() {
       return
     }
 
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long')
+    if (!isPasswordValid) {
+      setError('Password does not meet the requirements')
       return
     }
 
@@ -275,7 +295,7 @@ function ResetPasswordConfirmContent() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    minLength={8}
+                    className={newPassword && !isPasswordValid ? "border-red-500" : ""}
                   />
                   <Button
                     type="button"
@@ -287,9 +307,29 @@ function ResetPasswordConfirmContent() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Must be at least 8 characters long
-                </p>
+                
+                {/* Password Requirements */}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500 font-medium">Password Requirements:</p>
+                  <div className="space-y-1">
+                    <div className={`flex items-center gap-2 text-xs ${newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      At least 8 characters long
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One uppercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One number
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One special character
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -320,7 +360,7 @@ function ResetPasswordConfirmContent() {
               <Button 
                 type="submit" 
                 className="w-full bg-blue-600 hover:bg-blue-700" 
-                disabled={isLoading}
+                disabled={isLoading || !isPasswordValid || newPassword !== confirmPassword}
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
               </Button>

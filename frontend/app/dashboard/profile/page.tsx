@@ -1,7 +1,6 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { PricingModal } from '@/components/PricingModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,6 @@ export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
     username: user?.username || ''
@@ -237,13 +235,24 @@ export default function ProfilePage() {
         {/* Plan Features */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Plan Features
-            </CardTitle>
-            <CardDescription>
-              Your current plan limits and capabilities
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Plan Features
+                </CardTitle>
+                <CardDescription>
+                  Your current plan limits and capabilities
+                </CardDescription>
+              </div>
+              <Button 
+                onClick={() => window.open('/pricing', '_blank')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                Upgrade Plan
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -266,7 +275,7 @@ export default function ProfilePage() {
               <div className="text-center p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-purple-600">
                   {user.subscription === 'ENTERPRISE' ? '∞' : 
-                   user.subscription === 'PRO' ? '500' : '100'}
+                   user.subscription === 'PRO' ? '50' : '2'}
                 </div>
                 <div className="text-sm text-gray-600">Campaigns</div>
               </div>
@@ -281,7 +290,7 @@ export default function ProfilePage() {
                   Get more bots, higher email limits, and advanced features with our Pro or Enterprise plans.
                 </p>
                 <Button 
-                  onClick={() => setIsPricingModalOpen(true)}
+                  onClick={() => window.open('/pricing', '_blank')}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   View Plans
@@ -292,12 +301,6 @@ export default function ProfilePage() {
         </Card>
       </div>
 
-      {/* Pricing Modal */}
-      <PricingModal 
-        isOpen={isPricingModalOpen}
-        onClose={() => setIsPricingModalOpen(false)}
-        currentPlan={user.subscription}
-      />
     </DashboardLayout>
   );
 }
