@@ -1,28 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { PricingModal } from '@/components/PricingModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Icons } from '@/components/ui/icons';
-import { PricingModal } from '@/components/PricingModal';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { User } from '@/types';
-import { 
-  User as UserIcon, 
-  Shield, 
-  CreditCard, 
-  Calendar,
-  Mail,
+import {
+  AlertCircle,
   AtSign,
+  Calendar,
   CheckCircle,
-  AlertCircle
+  CreditCard,
+  Mail,
+  Shield,
+  User as UserIcon
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface ProfileFormData {
   username: string;
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {user.subscription !== 'FREE' && (
+              {user.subscription?.toUpperCase() !== 'FREE' && (
                 <div className="space-y-2">
                   <Label>Plan Expires</Label>
                   <div className="flex items-center gap-2">

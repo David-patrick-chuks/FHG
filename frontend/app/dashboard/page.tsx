@@ -120,16 +120,126 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6">
-          <div className="animate-pulse">
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-            <div className="grid gap-6 md:grid-cols-3 mt-6">
-              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-            </div>
+      <DashboardLayout
+        title={`Welcome back, ${user?.username || 'User'}! 👋`}
+        description="Here's what's happening with your email campaigns today."
+        actions={
+          <div className="text-right">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+            <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
+              {user?.subscription || 'Free'}
+            </p>
           </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Key Metrics Skeleton */}
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Total Bots Card Skeleton */}
+            <Card className="relative overflow-hidden animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-8 w-12 bg-white/30 rounded"></div>
+                    <div className="h-4 w-20 bg-white/20 rounded"></div>
+                    <div className="h-3 w-16 bg-white/20 rounded"></div>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <div className="w-6 h-6 bg-white/30 rounded"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Campaigns Card Skeleton */}
+            <Card className="relative overflow-hidden animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-600 opacity-20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-8 w-12 bg-white/30 rounded"></div>
+                    <div className="h-4 w-24 bg-white/20 rounded"></div>
+                    <div className="h-3 w-16 bg-white/20 rounded"></div>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <div className="w-6 h-6 bg-white/30 rounded"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Emails Sent Card Skeleton */}
+            <Card className="relative overflow-hidden animate-pulse">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-600 opacity-20"></div>
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-8 w-12 bg-white/30 rounded"></div>
+                    <div className="h-4 w-20 bg-white/20 rounded"></div>
+                    <div className="h-3 w-16 bg-white/20 rounded"></div>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <div className="w-6 h-6 bg-white/30 rounded"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <Card className="animate-pulse">
+            <CardHeader>
+              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+              <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-3 bg-gray-300 dark:bg-gray-600 rounded-lg">
+                          <div className="w-6 h-6 bg-gray-400 dark:bg-gray-500 rounded"></div>
+                        </div>
+                        <div className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                      </div>
+                      <div className="h-5 w-24 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
+                      <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    </div>
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full -translate-y-10 translate-x-10 opacity-20"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity Skeleton */}
+          <Card className="animate-pulse">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+                <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                      <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    </div>
+                    <div className="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -158,29 +268,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title={`Welcome back, ${user?.username || 'User'}! 👋`}
+      description="Here's what's happening with your email campaigns today."
+      actions={
+        <div className="text-right">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+          <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
+            {user?.subscription || 'Free'}
+          </p>
+        </div>
+      }
+    >
       <div className="space-y-6">
-        {/* Welcome Section */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Welcome back, {user?.username || 'User'}! 👋
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">
-                  Here's what's happening with your email campaigns today.
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
-                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
-                  {user?.subscription || 'Free'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Key Metrics */}
         <div className="grid gap-6 md:grid-cols-3">

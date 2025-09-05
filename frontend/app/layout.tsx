@@ -1,11 +1,12 @@
-import type React from "react"
+import { Navbar } from "@/components/navbar"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/contexts/AuthContext"
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
+import type React from "react"
 import "./globals.css"
-import { Navbar } from "@/components/navbar"
-import { AuthProvider } from "@/contexts/AuthContext"
-import { ThemeProvider } from "@/components/theme-provider"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             {children}
+            <Toaster />
             <Analytics/>
           </AuthProvider>
         </ThemeProvider>

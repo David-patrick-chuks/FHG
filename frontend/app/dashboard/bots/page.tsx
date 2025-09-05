@@ -138,8 +138,8 @@ export default function BotsPage() {
 
       if (response.success) {
         await fetchBots(); // Refresh the list
-        setIsDeleteDialogOpen(false);
-        setDeletingBot(null);
+    setIsDeleteDialogOpen(false);
+    setDeletingBot(null);
       } else {
         console.error('Failed to delete bot:', response.error);
       }
@@ -184,15 +184,83 @@ export default function BotsPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout
+        title="Bots"
+        description="Manage your AI-powered email bots and their configurations"
+        actions={
+          <Button 
+            onClick={() => router.push('/dashboard/bots/create')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Bot
+          </Button>
+        }
+      >
         <div className="space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-              ))}
-            </div>
+          {/* Filters and Search Skeleton */}
+          <Card className="animate-pulse">
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                </div>
+                <div className="w-full sm:w-48">
+                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                </div>
+                <div className="w-full sm:w-32">
+                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bot Cards Skeleton */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="hover:shadow-md transition-shadow animate-pulse">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                      <div className="space-y-2">
+                        <div className="h-5 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="h-4 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="h-4 w-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="h-4 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="h-4 w-20 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <div className="flex-1 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </DashboardLayout>
@@ -286,9 +354,9 @@ export default function BotsPage() {
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
+                  <Input
                       placeholder="Search bots..."
-                      value={searchQuery}
+              value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
                         setCurrentPage(1); // Reset to first page when searching
@@ -297,26 +365,26 @@ export default function BotsPage() {
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                  >
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
                     <Grid3X3 className="w-4 h-4" />
-                  </Button>
+              </Button>
                   <Button
-                    variant={viewMode === 'list' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                  >
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
                     <List className="w-4 h-4" />
                   </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+            )}
 
         {/* Bots List */}
         {bots.length === 0 ? (
@@ -324,24 +392,24 @@ export default function BotsPage() {
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <BotIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No bots found
-                </h3>
+              </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  {searchQuery 
+                {searchQuery 
                     ? 'Try adjusting your search criteria.'
                     : 'Get started by creating your first AI-powered email bot.'
-                  }
-                </p>
-                {!searchQuery && (
+                }
+              </p>
+              {!searchQuery && (
                   <Button 
                     onClick={() => router.push('/dashboard/bots/create')}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Bot
-                  </Button>
-                )}
+                Create Your First Bot
+              </Button>
+              )}
               </div>
             </CardContent>
           </Card>
@@ -349,7 +417,7 @@ export default function BotsPage() {
           <>
             {viewMode === 'list' ? (
               <div className="space-y-4">
-                {bots.map((bot) => (
+            {bots.map((bot) => (
                   <Card key={bot._id} className="hover:shadow-md transition-shadow">
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
@@ -376,7 +444,7 @@ export default function BotsPage() {
                               <span>From: {bot.smtpConfig?.fromEmail || bot.email}</span>
                               <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
                             </div>
-                          </div>
+                    </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
@@ -386,17 +454,17 @@ export default function BotsPage() {
                           >
                             {bot.isActive ? 'Deactivate' : 'Activate'}
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
+                      <Button
+                        variant="outline"
+                        size="sm"
                             onClick={() => handleEditBot(bot)}
-                          >
+                      >
                             <Edit className="w-4 h-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                             onClick={() => handleDeleteBot(bot)}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
@@ -423,7 +491,7 @@ export default function BotsPage() {
                             <CardTitle className="text-lg">{bot.name}</CardTitle>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
                               {bot.isActive ? 'Active' : 'Inactive'}
-                            </span>
+                                </span>
                           </div>
                         </div>
                       </div>
@@ -459,26 +527,26 @@ export default function BotsPage() {
                         >
                           {bot.isActive ? 'Deactivate' : 'Activate'}
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
+                          <Button
+                            variant="outline"
+                            size="sm"
                           onClick={() => handleEditBot(bot)}
-                        >
+                          >
                           <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                           onClick={() => handleDeleteBot(bot)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
+                      >
                           <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
             )}
 
             {/* Pagination */}
@@ -486,62 +554,62 @@ export default function BotsPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
+              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = i + 1;
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
                               onClick={() => setCurrentPage(pageNum)}
-                              className="w-8 h-8 p-0"
-                            >
-                              {pageNum}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
                 </CardContent>
               </Card>
             )}
           </>
         )}
 
-        {/* Edit Bot Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      {/* Edit Bot Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Bot</DialogTitle>
-              <DialogDescription>
+          <DialogHeader>
+            <DialogTitle>Edit Bot</DialogTitle>
+            <DialogDescription>
                 Update the bot's name and description.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
               <div>
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -549,18 +617,18 @@ export default function BotsPage() {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter bot name"
-                />
+              />
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
+              <Textarea
                   id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Enter bot description"
-                  rows={3}
-                />
-              </div>
+                rows={3}
+              />
+            </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button
@@ -576,19 +644,19 @@ export default function BotsPage() {
               <Button onClick={handleSaveEdit}>
                 Save Changes
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
 
         {/* Delete Bot Dialog */}
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Bot</DialogTitle>
-              <DialogDescription>
+          <DialogHeader>
+            <DialogTitle>Delete Bot</DialogTitle>
+            <DialogDescription>
                 Are you sure you want to delete "{deletingBot?.name}"? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
+            </DialogDescription>
+          </DialogHeader>
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
@@ -599,15 +667,15 @@ export default function BotsPage() {
               >
                 Cancel
               </Button>
-              <Button
+              <Button 
                 onClick={handleConfirmDelete}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Delete Bot
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BotsAPI } from '@/lib/api';
-import { ArrowLeft, Bot as BotIcon, Check, Eye, EyeOff, Mail, Plus, Shield, Users, X } from 'lucide-react';
+import { ArrowLeft, Bot as BotIcon, Check, ExternalLink, Eye, EyeOff, Mail, Plus, Shield, Users, X } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -43,17 +44,34 @@ export default function CreateBotPage() {
         password: formData.password
       });
 
+      console.log('API Response:', response); // Debug log
+
       if (response.success) {
         setVerificationStatus('success');
         setVerificationMessage('Credentials verified successfully!');
       } else {
         setVerificationStatus('error');
-        setVerificationMessage(response.error || 'Failed to verify credentials');
+        
+        // Handle the specific API response structure
+        const apiMessage = response.message || 'Email verification failed';
+        const dataMessage = response.data?.message || 'Invalid email or password';
+        
+        console.log('API Message:', apiMessage, 'Data Message:', dataMessage); // Debug log
+        
+        // Use the specific error message from the API response
+        setVerificationMessage(dataMessage);
       }
     } catch (error) {
       console.error('Verification error:', error);
       setVerificationStatus('error');
-      setVerificationMessage('Network error. Please try again.');
+      
+      // Check if it's an API error with a specific message
+      if (error instanceof Error && error.message) {
+        console.log('Error message:', error.message); // Debug log
+        setVerificationMessage(error.message);
+      } else {
+        setVerificationMessage('Network error. Please try again.');
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -62,12 +80,14 @@ export default function CreateBotPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || formData.name.length > 50 || formData.description.length > 200) {
+      setVerificationStatus('error');
+      setVerificationMessage('Please check your bot name and description. Name must be 1-50 characters, description must be under 200 characters.');
       return;
     }
 
     if (verificationStatus !== 'success') {
       setVerificationStatus('error');
-      setVerificationMessage('Please verify your email credentials before creating the bot');
+      setVerificationMessage('Please verify your email credentials before creating the bot.');
       return;
     }
 
@@ -112,13 +132,13 @@ export default function CreateBotPage() {
         <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-800">
           <div className="relative z-10">
             <div className="flex items-center space-x-4 mb-6">
-              <Button
+        <Button 
                 variant="ghost"
-                onClick={() => router.push('/dashboard/bots')}
+          onClick={() => router.push('/dashboard/bots')}
                 className="p-3 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
-              >
+        >
                 <ArrowLeft className="w-5 h-5" />
-              </Button>
+        </Button>
               <div className="flex-1">
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Create New Bot
@@ -277,22 +297,22 @@ export default function CreateBotPage() {
                   </Label>
                   <div className="bg-gradient-to-br from-gray-50 to-cyan-50/50 dark:from-gray-700 dark:to-cyan-900/20 rounded-2xl p-6 border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center space-x-6">
-                      <div className="relative">
-                        <img
-                          src={`https://robohash.org/${encodeURIComponent(formData.name)}?set=set3&size=200x200`}
-                          alt={`${formData.name} avatar`}
+                    <div className="relative">
+                      <img
+                        src={`https://robohash.org/${encodeURIComponent(formData.name)}?set=set3&size=200x200`}
+                        alt={`${formData.name} avatar`}
                           className="w-24 h-24 rounded-2xl border-4 border-white dark:border-gray-700 shadow-lg"
                         />
                         <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                           <BotIcon className="w-4 h-4 text-white" />
                         </div>
-                      </div>
-                      <div className="flex-1">
+                    </div>
+                    <div className="flex-1">
                         <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                          {formData.name}
+                        {formData.name}
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          This unique robot avatar will be generated automatically based on your bot's name using RoboHash.
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {formData.description.trim() || "Enter a description for your bot to see it here. This will help you understand what your bot is designed to do."}
                         </p>
                         <div className="flex items-center space-x-2 mt-3">
                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -305,27 +325,51 @@ export default function CreateBotPage() {
               )}
 
               <div className="space-y-4">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                  <Shield className="w-4 h-4 mr-2 text-orange-500" />
-                  Email Password 
-                  <span className="text-red-500 ml-1">*</span>
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Shield className="w-4 h-4 mr-2 text-orange-500" />
+                    Email Password 
+                    <span className="text-red-500 ml-1">*</span>
+                  </div>
+                  <Link 
+                    href="/app-password-guide" 
+                    target="_blank"
+                    className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    How to get app password
+                  </Link>
                 </Label>
                 <div className="flex gap-3">
                   <div className="relative flex-1">
-                    <Input
-                      id="password"
+                  <Input
+                    id="password"
                       type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => {
-                        setFormData(prev => ({ ...prev, password: e.target.value }));
-                        // Reset verification status when password changes
+                    value={formData.password}
+                    onChange={(e) => {
+                      // Remove spaces from password input
+                      const cleanPassword = e.target.value.replace(/\s/g, '');
+                      setFormData(prev => ({ ...prev, password: cleanPassword }));
+                                              // Reset verification status when password changes
                         if (verificationStatus !== 'idle') {
                           setVerificationStatus('idle');
                           setVerificationMessage('');
                         }
-                      }}
+                    }}
+                    onPaste={(e) => {
+                      // Handle paste event to remove spaces
+                      e.preventDefault();
+                      const pastedText = e.clipboardData.getData('text');
+                      const cleanPassword = pastedText.replace(/\s/g, '');
+                      setFormData(prev => ({ ...prev, password: cleanPassword }));
+                      // Reset verification status when password changes
+                      if (verificationStatus !== 'idle') {
+                        setVerificationStatus('idle');
+                        setVerificationMessage('');
+                      }
+                    }}
                       placeholder="Enter your email password"
-                      required
+                    required
                       className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl pr-12 transition-all duration-200"
                     />
                     <button
@@ -376,6 +420,10 @@ export default function CreateBotPage() {
                   </Button>
                 </div>
                 
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Verify your email credentials to ensure the bot can send emails successfully
+                </p>
+                
                 {/* Verification Status */}
                 {verificationMessage && (
                   <div className={`text-sm p-4 rounded-xl border-2 transition-all duration-200 ${
@@ -395,9 +443,6 @@ export default function CreateBotPage() {
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Verify your email credentials to ensure the bot can send emails successfully
-                </p>
               </div>
 
               <div className="flex gap-4 pt-6">
