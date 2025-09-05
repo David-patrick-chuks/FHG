@@ -11,7 +11,7 @@ import { BotsAPI, CampaignsAPI } from '@/lib/api';
 import { Bot } from '@/types';
 import { ArrowLeft, Bot as BotIcon, CheckCircle, Mail, Plus, Upload, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function CreateCampaignPage() {
   const router = useRouter();
@@ -33,10 +33,17 @@ export default function CreateCampaignPage() {
   const [botsLoading, setBotsLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fetchInProgress = useRef(false);
 
   // Fetch bots data
-  const fetchBots = async () => {
+  const fetchBots = useCallback(async () => {
+    // Prevent duplicate calls
+    if (fetchInProgress.current) {
+      return;
+    }
+    
     try {
+      fetchInProgress.current = true;
       setBotsLoading(true);
       setError(null);
       const response = await BotsAPI.getBots();
@@ -49,12 +56,21 @@ export default function CreateCampaignPage() {
       setError(error instanceof Error ? error.message : 'Failed to fetch bots');
     } finally {
       setBotsLoading(false);
+      fetchInProgress.current = false;
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBots();
-  }, []);
+  }, [fetchBots]);
+
+  // Redirect to bots page if no bots are available
+  useEffect(() => {
+    if (!botsLoading && bots.length === 0 && !error) {
+      // User has no bots, redirect them to create a bot first
+      router.push('/dashboard/bots?message=create-bot-first');
+    }
+  }, [botsLoading, bots.length, error, router]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -5,17 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardAPI } from '@/lib/api';
 import { RecentActivity } from '@/types';
-import { 
-  Activity, 
-  Bot, 
-  CheckCircle, 
-  ChevronLeft, 
-  ChevronRight, 
-  Mail, 
-  TrendingUp, 
-  Zap 
+import {
+  Activity,
+  Bot,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Mail,
+  TrendingUp,
+  Zap
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function ActivityPage() {
   const [activities, setActivities] = useState<RecentActivity[]>([]);
@@ -25,17 +25,21 @@ export default function ActivityPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const fetchInProgress = useRef(false);
 
   // Fetch activity data
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
+    // Prevent duplicate calls
+    if (fetchInProgress.current) {
+      return;
+    }
+    
     try {
+      fetchInProgress.current = true;
       setLoading(true);
       setError(null);
 
-      const response = await DashboardAPI.getRecentActivity({
-        page: currentPage,
-        limit: pageSize
-      });
+      const response = await DashboardAPI.getRecentActivity();
 
       if (response.success && response.data) {
         setActivities(response.data);
@@ -49,12 +53,13 @@ export default function ActivityPage() {
       setError(error instanceof Error ? error.message : 'Failed to fetch activities');
     } finally {
       setLoading(false);
+      fetchInProgress.current = false;
     }
-  };
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchActivities();
-  }, [currentPage, pageSize]);
+  }, [fetchActivities]);
 
   // Helper function to get icon component based on activity type
   const getActivityIcon = (type: string) => {
@@ -160,17 +165,11 @@ export default function ActivityPage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="Activity"
+      description="Recent activity and events across your campaigns and bots"
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Activity</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Recent activity and events across your campaigns and bots
-            </p>
-          </div>
-        </div>
 
         {/* Activity Feed */}
         {activities.length === 0 ? (

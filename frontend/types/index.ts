@@ -82,6 +82,10 @@ export interface Bot extends BaseEntity {
   dailyEmailCount: number;
   lastEmailSentAt?: Date;
   profileImage?: string; // RoboHash URL for bot profile image
+  // Additional properties for display
+  dailyEmailLimit?: number;
+  emailsSentToday?: number;
+  smtpConfig?: SMTPConfig;
 }
 
 export interface SMTPConfig {

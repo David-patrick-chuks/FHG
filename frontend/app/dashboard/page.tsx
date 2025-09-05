@@ -7,16 +7,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardAPI } from '@/lib/api';
 import { DashboardStats, RecentActivity } from '@/types';
 import {
-  Activity,
-  BarChart3,
-  Bot,
-  Mail,
-  TrendingUp,
-  Users,
-  Zap
+    Activity,
+    BarChart3,
+    Bot,
+    Mail,
+    TrendingUp,
+    Users,
+    Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -26,34 +26,42 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const loadDataInProgress = useRef(false);
+
+  const loadDashboardData = useCallback(async () => {
+    // Prevent duplicate calls
+    if (loadDataInProgress.current) {
+      return;
+    }
+    
+    try {
+      loadDataInProgress.current = true;
+      setLoading(true);
+      setError(null);
+
+      const [statsResponse, activityResponse] = await Promise.all([
+        DashboardAPI.getDashboardStats(),
+        DashboardAPI.getRecentActivity()
+      ]);
+
+      if (statsResponse.success && statsResponse.data) {
+        setDashboardStats(statsResponse.data);
+      }
+
+      if (activityResponse.success && activityResponse.data) {
+        setRecentActivity(activityResponse.data);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+      loadDataInProgress.current = false;
+    }
+  }, []);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [statsResponse, activityResponse] = await Promise.all([
-          DashboardAPI.getDashboardStats(),
-          DashboardAPI.getRecentActivity()
-        ]);
-
-        if (statsResponse.success && statsResponse.data) {
-          setDashboardStats(statsResponse.data);
-        }
-
-        if (activityResponse.success && activityResponse.data) {
-          setRecentActivity(activityResponse.data);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadDashboardData();
-  }, []);
+  }, [loadDashboardData]);
 
   // Helper function to get icon component based on activity type
   const getActivityIcon = (type: string) => {

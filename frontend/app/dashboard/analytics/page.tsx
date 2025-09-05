@@ -4,8 +4,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrackingAPI } from '@/lib/api';
 import { TrackingStats, UserTrackingSummary } from '@/types';
-import { BarChart3, Bot, Mail, TrendingUp, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { BarChart3, Bot, Mail, TrendingUp } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CartesianGrid,
   Legend,
@@ -22,10 +22,17 @@ export default function AnalyticsPage() {
   const [campaignStats, setCampaignStats] = useState<TrackingStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchInProgress = useRef(false);
 
   // Fetch analytics data
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
+    // Prevent duplicate calls
+    if (fetchInProgress.current) {
+      return;
+    }
+    
     try {
+      fetchInProgress.current = true;
       setLoading(true);
       setError(null);
 
@@ -36,13 +43,13 @@ export default function AnalyticsPage() {
 
         // Get detailed stats for each campaign
         const statsPromises = summaryResponse.data.topPerformingCampaigns.map(campaign =>
-          TrackingAPI.getCampaignTrackingStats(campaign.campaignId)
+          TrackingAPI.getCampaignStats(campaign.campaignId)
         );
 
         const statsResults = await Promise.all(statsPromises);
         const validStats = statsResults
-          .filter(result => result.success && result.data)
-          .map(result => result.data!);
+          .filter((result: any) => result.success && result.data)
+          .map((result: any) => result.data!);
 
         setCampaignStats(validStats);
       } else {
@@ -52,12 +59,13 @@ export default function AnalyticsPage() {
       setError(error instanceof Error ? error.message : 'Failed to fetch analytics data');
     } finally {
       setLoading(false);
+      fetchInProgress.current = false;
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAnalyticsData();
-  }, []);
+  }, [fetchAnalyticsData]);
 
   // Generate performance trends data for the chart
   const generatePerformanceTrends = () => {
@@ -128,15 +136,11 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="Analytics"
+      description="Track performance metrics and insights across all your campaigns"
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Track performance metrics and insights across all your campaigns
-          </p>
-        </div>
 
         {/* Key Metrics */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -208,56 +212,70 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={performanceTrends}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="emails" 
-                    stroke="#8884d8" 
-                    strokeWidth={2}
-                    name="Emails Sent"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="delivered" 
-                    stroke="#82ca9d" 
-                    strokeWidth={2}
-                    name="Delivered"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="opened" 
-                    stroke="#ffc658" 
-                    strokeWidth={2}
-                    name="Opened"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="replied" 
-                    stroke="#ff7300" 
-                    strokeWidth={2}
-                    name="Replied"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {performanceTrends.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={performanceTrends}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="emails" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                      name="Emails Sent"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="delivered" 
+                      stroke="#82ca9d" 
+                      strokeWidth={2}
+                      name="Delivered"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="opened" 
+                      stroke="#ffc658" 
+                      strokeWidth={2}
+                      name="Opened"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="replied" 
+                      stroke="#ff7300" 
+                      strokeWidth={2}
+                      name="Replied"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                    <BarChart3 className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    No Performance Data Yet
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-md">
+                    Performance trends will appear here once you start sending campaigns and collecting email data.
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Campaign Performance */}
-        {trackingSummary?.topPerformingCampaigns.length > 0 && (
+        {trackingSummary?.topPerformingCampaigns && trackingSummary.topPerformingCampaigns.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Top Performing Campaigns</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {trackingSummary.topPerformingCampaigns.map((campaign, index) => (
+                {trackingSummary?.topPerformingCampaigns?.map((campaign, index) => (
                   <div key={campaign.campaignId} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full">

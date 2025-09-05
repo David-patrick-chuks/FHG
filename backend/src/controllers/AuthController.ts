@@ -18,9 +18,11 @@ export class AuthController {
       const result = await UserService.createUser(req.body);
 
       if (result.success && result.data) {
-        // Remove password from response
+        // Remove sensitive fields from response
         const userData = { ...result.data.toObject() };
         delete userData.password;
+        delete userData.passwordResetToken;
+        delete userData.passwordResetExpires;
 
         res.status(201).json({
           success: true,
@@ -47,9 +49,11 @@ export class AuthController {
       const result = await UserService.loginUser(req.body);
 
       if (result.success && result.data) {
-        // Remove password from response
+        // Remove sensitive fields from response
         const userData = { ...result.data.user.toObject() };
         delete userData.password;
+        delete userData.passwordResetToken;
+        delete userData.passwordResetExpires;
 
         res.status(200).json({
           success: true,
@@ -81,9 +85,11 @@ export class AuthController {
       const result = await UserService.getUserById(userId);
 
       if (result.success && result.data) {
-        // Remove password from response
+        // Remove sensitive fields from response
         const userData = { ...result.data.toObject() };
         delete userData.password;
+        delete userData.passwordResetToken;
+        delete userData.passwordResetExpires;
 
         res.status(200).json({
           success: true,
@@ -120,9 +126,11 @@ export class AuthController {
       const result = await UserService.updateUser(userId, updateData);
 
              if (result.success && result.data) {
-         // Remove password from response
+         // Remove sensitive fields from response
          const userData = { ...result.data.toObject() };
          delete userData.password;
+         delete userData.passwordResetToken;
+         delete userData.passwordResetExpires;
 
         res.status(200).json({
           success: true,

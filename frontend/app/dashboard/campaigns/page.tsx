@@ -7,11 +7,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CampaignsAPI } from '@/lib/api';
+import { BotsAPI, CampaignsAPI } from '@/lib/api';
 import { Bot, Campaign } from '@/types';
 import { ChevronLeft, ChevronRight, Grid3X3, List, Mail, Pause, Play, Plus, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function CampaignsPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function CampaignsPage() {
   const [pausingCampaign, setPausingCampaign] = useState<Campaign | null>(null);
   const [isPausing, setIsPausing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,23 +31,37 @@ export default function CampaignsPage() {
   const [campaignsError, setCampaignsError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCampaigns, setTotalCampaigns] = useState(0);
+  const fetchCampaignsInProgress = useRef(false);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch campaigns data
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = useCallback(async () => {
+    // Prevent duplicate calls
+    if (fetchCampaignsInProgress.current) {
+      return;
+    }
+    
     try {
+      fetchCampaignsInProgress.current = true;
       setCampaignsLoading(true);
       setCampaignsError(null);
       
       const response = await CampaignsAPI.getCampaigns({
         page: currentPage,
         limit: itemsPerPage,
-        search: searchQuery,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        search: debouncedSearchQuery
       });
 
       if (response.success && response.data) {
-        setCampaigns(response.data.data);
+        setCampaigns(response.data.data || []);
         setTotalPages(response.data.pagination.totalPages);
         setTotalCampaigns(response.data.pagination.total);
       } else {
@@ -56,31 +71,32 @@ export default function CampaignsPage() {
       setCampaignsError(error instanceof Error ? error.message : 'Failed to fetch campaigns');
     } finally {
       setCampaignsLoading(false);
+      fetchCampaignsInProgress.current = false;
     }
-  };
+  }, [currentPage, itemsPerPage, debouncedSearchQuery]);
 
   // Fetch bots data
-  const fetchBots = async () => {
+  const fetchBots = useCallback(async () => {
     try {
       setBotsLoading(true);
-      const response = await CampaignsAPI.getBots();
+      const response = await BotsAPI.getBots();
       if (response.success && response.data) {
-        setBots(response.data);
+        setBots(response.data.data || []);
       }
     } catch (error) {
       console.error('Failed to fetch bots:', error);
     } finally {
       setBotsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCampaigns();
-  }, [currentPage, itemsPerPage, searchQuery]);
+  }, [fetchCampaigns]);
 
   useEffect(() => {
     fetchBots();
-  }, []);
+  }, [fetchBots]);
 
   // Helper function to get bot name by ID
   const getBotName = (botId: string) => {
@@ -194,7 +210,7 @@ export default function CampaignsPage() {
       <DashboardLayout>
         <div className="space-y-6">
           <Card>
-            <CardContent className="pt-6">
+              <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-red-600 dark:text-red-400">Error: {campaignsError}</p>
                 <Button 
@@ -203,80 +219,80 @@ export default function CampaignsPage() {
                 >
                   Retry
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout 
+      title="Campaigns" 
+      description="Manage your email campaigns and track their performance"
+      actions={
+        <Button 
+          onClick={() => router.push('/dashboard/campaigns/create')}
+          disabled={!botsLoading && bots.length === 0}
+          className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+          title={!botsLoading && bots.length === 0 ? "You need to create a bot first before creating campaigns" : ""}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Campaign
+        </Button>
+      }
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Campaigns</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage your email campaigns and track their performance
-            </p>
-          </div>
-          <Button 
-            onClick={() => router.push('/dashboard/campaigns/create')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Campaign
-          </Button>
-        </div>
 
-        {/* Filters and Search */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search campaigns..."
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="running">Running</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-              </div>
+        {/* Filters and Search - Only show when there are campaigns */}
+        {campaigns.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                      placeholder="Search campaigns..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                      className="pl-10"
+              />
             </div>
-          </CardContent>
-        </Card>
+                  <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="running">Running</SelectItem>
+                      <SelectItem value="paused">Paused</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Campaigns List */}
         {filteredCampaigns.length === 0 ? (
@@ -290,17 +306,31 @@ export default function CampaignsPage() {
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                   {searchQuery || statusFilter !== 'all' 
                     ? 'Try adjusting your search or filter criteria.'
+                    : !botsLoading && bots.length === 0
+                    ? 'You need to create a bot first before you can create email campaigns.'
                     : 'Get started by creating your first email campaign.'
                   }
                 </p>
                 {!searchQuery && statusFilter === 'all' && (
-                  <Button 
-                    onClick={() => router.push('/dashboard/campaigns/create')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Campaign
-                  </Button>
+                  <div className="space-y-3">
+                    {!botsLoading && bots.length === 0 ? (
+                      <Button 
+                        onClick={() => router.push('/dashboard/bots/create')}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Your First Bot
+                      </Button>
+                    ) : (
+                      <Button 
+                        onClick={() => router.push('/dashboard/campaigns/create')}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Your First Campaign
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -461,44 +491,44 @@ export default function CampaignsPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCampaigns)} of {totalCampaigns} campaigns
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                      </Button>
-                      <div className="flex items-center gap-1">
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = i + 1;
-                          return (
-                            <Button
+                      return (
+                        <Button
                               key={pageNum}
                               variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
+                          size="sm"
                               onClick={() => setCurrentPage(pageNum)}
                               className="w-8 h-8 p-0"
                             >
                               {pageNum}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
+                        </Button>
+                      );
+                    })}
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
                 </CardContent>
               </Card>
             )}
@@ -506,35 +536,35 @@ export default function CampaignsPage() {
         )}
 
         {/* Pause Campaign Dialog */}
-        <Dialog open={isPauseDialogOpen} onOpenChange={setIsPauseDialogOpen}>
+      <Dialog open={isPauseDialogOpen} onOpenChange={setIsPauseDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Pause Campaign</DialogTitle>
               <DialogDescription>
                 Are you sure you want to pause "{pausingCampaign?.name}"? This will stop sending emails to remaining recipients.
-              </DialogDescription>
-            </DialogHeader>
+            </DialogDescription>
+          </DialogHeader>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
+            <Button 
+              variant="outline" 
                 onClick={() => {
                   setIsPauseDialogOpen(false);
                   setPausingCampaign(null);
                 }}
-                disabled={isPausing}
-              >
-                Cancel
-              </Button>
-              <Button
+              disabled={isPausing}
+            >
+              Cancel
+            </Button>
+            <Button 
                 onClick={() => pausingCampaign && handlePauseCampaign(pausingCampaign)}
-                disabled={isPausing}
+              disabled={isPausing}
                 className="bg-yellow-600 hover:bg-yellow-700 text-white"
               >
                 {isPausing ? 'Pausing...' : 'Pause Campaign'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
     </DashboardLayout>
   );

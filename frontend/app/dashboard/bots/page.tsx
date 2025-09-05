@@ -5,19 +5,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { BotsAPI } from '@/lib/api';
 import { Bot } from '@/types';
 import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function BotsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [bots, setBots] = useState<Bot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -29,29 +28,45 @@ export default function BotsPage() {
     description: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [pageSize, setPageSize] = useState(12);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateBotMessage, setShowCreateBotMessage] = useState(false);
+  const fetchInProgress = useRef(false);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch bots data
-  const fetchBots = async () => {
+  const fetchBots = useCallback(async () => {
+    // Prevent duplicate calls
+    if (fetchInProgress.current) {
+      return;
+    }
+    
     try {
+      fetchInProgress.current = true;
       setIsLoading(true);
       setError(null);
       
       const response = await BotsAPI.getBots({
         page: currentPage,
         limit: pageSize,
-        search: searchQuery,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+        search: debouncedSearchQuery
       });
 
       if (response.success && response.data) {
-        setBots(response.data.data);
+        setBots(response.data.data || []);
         setTotalPages(response.data.pagination.totalPages);
         setTotalItems(response.data.pagination.total);
       } else {
@@ -61,12 +76,23 @@ export default function BotsPage() {
       setError(error instanceof Error ? error.message : 'Failed to fetch bots');
     } finally {
       setIsLoading(false);
+      fetchInProgress.current = false;
     }
-  };
+  }, [currentPage, pageSize, debouncedSearchQuery]);
 
   useEffect(() => {
     fetchBots();
-  }, [currentPage, pageSize, searchQuery]);
+  }, [fetchBots]);
+
+  // Check for redirect message from campaign creation
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message === 'create-bot-first') {
+      setShowCreateBotMessage(true);
+      // Clear the URL parameter
+      router.replace('/dashboard/bots');
+    }
+  }, [searchParams, router]);
 
   const handleEditBot = (bot: Bot) => {
     setEditingBot(bot);
@@ -196,59 +222,101 @@ export default function BotsPage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="Bots"
+      description="Manage your AI-powered email bots and their configurations"
+      actions={
+        <Button 
+          onClick={() => router.push('/dashboard/bots/create')}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Bot
+        </Button>
+      }
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Bots</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage your AI-powered email bots and their configurations
-            </p>
-          </div>
-          <Button 
-            onClick={() => router.push('/dashboard/bots/create')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Bot
-          </Button>
-        </div>
 
-        {/* Filters and Search */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search bots..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+        {/* Message for users redirected from campaign creation */}
+        {showCreateBotMessage && (
+          <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <BotIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                    Bot Required for Campaigns
+                  </h3>
+                  <p className="text-blue-800 dark:text-blue-200 mt-1">
+                    You need to create at least one AI bot before you can create email campaigns. 
+                    Bots are responsible for sending and managing your email communications.
+                  </p>
+                  <div className="mt-3">
+                    <Button
+                      onClick={() => {
+                        setShowCreateBotMessage(false);
+                        router.push('/dashboard/bots/create');
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Bot
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCreateBotMessage(false)}
+                      className="ml-2"
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="w-4 h-4" />
-                </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Filters and Search - Only show when there are bots */}
+        {bots.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search bots..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1); // Reset to first page when searching
+                      }}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Bots List */}
         {bots.length === 0 ? (
@@ -305,7 +373,7 @@ export default function BotsPage() {
                             <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                               <span>Daily Limit: {bot.dailyEmailLimit}</span>
                               <span>Sent Today: {bot.emailsSentToday}</span>
-                              <span>From: {bot.smtpConfig.fromEmail}</span>
+                              <span>From: {bot.smtpConfig?.fromEmail || bot.email}</span>
                               <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
                             </div>
                           </div>
@@ -375,7 +443,7 @@ export default function BotsPage() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500 dark:text-gray-400">From Email:</span>
-                          <span className="font-medium text-xs truncate max-w-24">{bot.smtpConfig.fromEmail}</span>
+                          <span className="font-medium text-xs truncate max-w-24">{bot.smtpConfig?.fromEmail || bot.email}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500 dark:text-gray-400">Created:</span>

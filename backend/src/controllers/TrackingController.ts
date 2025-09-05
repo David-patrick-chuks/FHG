@@ -13,7 +13,7 @@ export class TrackingController {
     try {
       const { cid, tid } = req.query; // campaignId, transactionId (emailId)
 
-      this.logger.info('Email open tracking request', {
+      TrackingController.logger.info('Email open tracking request', {
         campaignId: cid,
         emailId: tid,
         ip: req.ip,
@@ -26,13 +26,13 @@ export class TrackingController {
       );
 
       if (result.success) {
-        this.logger.info('Email tracking successful', {
+        TrackingController.logger.info('Email tracking successful', {
           campaignId: cid,
           emailId: tid,
           wasAlreadyOpened: result.data?.wasAlreadyOpened
         });
       } else {
-        this.logger.warn('Email tracking failed', {
+        TrackingController.logger.warn('Email tracking failed', {
           campaignId: cid,
           emailId: tid,
           error: result.message
@@ -42,7 +42,7 @@ export class TrackingController {
       // Always send the tracking pixel regardless of success/failure
       this.sendTrackingPixel(res);
     } catch (error) {
-      this.logger.error('Error in email open tracking:', error);
+      TrackingController.logger.error('Error in email open tracking:', error);
       this.sendTrackingPixel(res);
     }
   }
@@ -54,7 +54,7 @@ export class TrackingController {
     try {
       const { campaignId } = req.params;
 
-      this.logger.info('Campaign tracking stats request', {
+      TrackingController.logger.info('Campaign tracking stats request', {
         campaignId,
         ip: req.ip
       });
@@ -76,7 +76,7 @@ export class TrackingController {
         });
       }
     } catch (error) {
-      this.logger.error('Error getting campaign tracking stats:', error);
+      TrackingController.logger.error('Error getting campaign tracking stats:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -89,7 +89,7 @@ export class TrackingController {
       const { campaignId } = req.params;
       const { limit = 50, offset = 0, status } = req.query;
 
-      this.logger.info('Campaign tracking logs request', {
+      TrackingController.logger.info('Campaign tracking logs request', {
         campaignId,
         limit,
         offset,
@@ -118,7 +118,7 @@ export class TrackingController {
         });
       }
     } catch (error) {
-      this.logger.error('Error getting campaign tracking logs:', error);
+      TrackingController.logger.error('Error getting campaign tracking logs:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -139,7 +139,7 @@ export class TrackingController {
         return;
       }
 
-      this.logger.info('Multiple campaign tracking stats request', {
+      TrackingController.logger.info('Multiple campaign tracking stats request', {
         campaignIds,
         count: campaignIds.length,
         ip: req.ip
@@ -162,7 +162,7 @@ export class TrackingController {
         });
       }
     } catch (error) {
-      this.logger.error('Error getting multiple campaign tracking stats:', error);
+      TrackingController.logger.error('Error getting multiple campaign tracking stats:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
@@ -183,7 +183,7 @@ export class TrackingController {
         return;
       }
 
-      this.logger.info('User tracking summary request', {
+      TrackingController.logger.info('User tracking summary request', {
         userId,
         ip: req.ip
       });
@@ -205,7 +205,7 @@ export class TrackingController {
         });
       }
     } catch (error) {
-      this.logger.error('Error getting user tracking summary:', error);
+      TrackingController.logger.error('Error getting user tracking summary:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

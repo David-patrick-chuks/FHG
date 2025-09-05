@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TrackingAPI } from '@/lib/api';
 import { TrackingLog } from '@/types';
 import { ChevronLeft, ChevronRight, Download, Mail, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function AudiencePage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,10 +23,17 @@ export default function AudiencePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [campaigns, setCampaigns] = useState<Array<{_id: string, name: string}>>([]);
+  const fetchInProgress = useRef(false);
 
   // Fetch email tracking data
-  const fetchEmailRecords = async () => {
+  const fetchEmailRecords = useCallback(async () => {
+    // Prevent duplicate calls
+    if (fetchInProgress.current) {
+      return;
+    }
+    
     try {
+      fetchInProgress.current = true;
       setLoading(true);
       setError(null);
 
@@ -38,7 +45,7 @@ export default function AudiencePage() {
         // Fetch tracking logs for all campaigns
         const allLogs: TrackingLog[] = [];
         for (const campaignId of campaignIds) {
-          const logsResponse = await TrackingAPI.getCampaignTrackingLogs(campaignId, {
+          const logsResponse = await TrackingAPI.getCampaignLogs(campaignId, {
             limit: 1000, // Get all logs for now
             offset: 0
           });
@@ -80,12 +87,13 @@ export default function AudiencePage() {
       setError(error instanceof Error ? error.message : 'Failed to fetch email records');
     } finally {
       setLoading(false);
+      fetchInProgress.current = false;
     }
-  };
+  }, [currentPage, itemsPerPage, searchTerm, statusFilter, campaignFilter]);
 
   useEffect(() => {
     fetchEmailRecords();
-  }, [currentPage, itemsPerPage, searchTerm, statusFilter, campaignFilter]);
+  }, [fetchEmailRecords]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -197,72 +205,71 @@ export default function AudiencePage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      title="Audience"
+      description="Track email delivery and engagement across all your campaigns"
+      actions={
+        <Button 
+          onClick={handleExport}
+          variant="outline"
+          disabled={totalItems === 0 || loading}
+          className="flex items-center gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Export CSV
+        </Button>
+      }
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Audience</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Track email delivery and engagement across all your campaigns
-            </p>
-          </div>
-          <Button 
-            onClick={handleExport}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export CSV
-          </Button>
-        </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Email Records</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search by email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+        {/* Filters - Only show when there are email records */}
+        {!loading && totalItems > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Records</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search by email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="opened">Opened</SelectItem>
+                      <SelectItem value="replied">Replied</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                      <SelectItem value="bounced">Bounced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(parseInt(value))}>
+                    <SelectTrigger className="w-full sm:w-32">
+                      <SelectValue placeholder="Per page" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 per page</SelectItem>
+                      <SelectItem value="25">25 per page</SelectItem>
+                      <SelectItem value="50">50 per page</SelectItem>
+                      <SelectItem value="100">100 per page</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="sent">Sent</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="opened">Opened</SelectItem>
-                    <SelectItem value="replied">Replied</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                    <SelectItem value="bounced">Bounced</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(parseInt(value))}>
-                  <SelectTrigger className="w-full sm:w-32">
-                    <SelectValue placeholder="Per page" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 per page</SelectItem>
-                    <SelectItem value="25">25 per page</SelectItem>
-                    <SelectItem value="50">50 per page</SelectItem>
-                    <SelectItem value="100">100 per page</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Email Records Table */}
         {emailRecords.length === 0 ? (
