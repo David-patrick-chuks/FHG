@@ -1,5 +1,6 @@
 'use client';
 
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,11 +15,11 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AuthGuard } from '@/components/auth/AuthGuard';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -44,7 +45,11 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
       
-      await login(data);
+      await login({
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe
+      });
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
@@ -149,13 +154,16 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input
-                    id="remember-me"
-                    name="remember-me"
+                    id="rememberMe"
                     type="checkbox"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    {...register('rememberMe')}
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                    Remember me
+                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                    <span className="font-medium">Remember me</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                      Stay signed in for 30 days
+                    </span>
                   </label>
                 </div>
 
@@ -182,6 +190,11 @@ export default function LoginPage() {
                 </Button>
               </div>
             </form>
+            
+            <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+              <p>• <strong>Remember me:</strong> Stay signed in for 30 days</p>
+              <p>• <strong>Without remember me:</strong> Sign out when browser closes</p>
+            </div>
           </CardContent>
         </Card>
       </div>

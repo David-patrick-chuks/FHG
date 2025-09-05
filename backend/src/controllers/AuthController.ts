@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import { ActivityType } from '../models/Activity';
+import { ActivityService } from '../services/ActivityService';
 import { UserService } from '../services/UserService';
 import { WelcomeEmailService } from '../services/WelcomeEmailService';
 import { Logger } from '../utils/Logger';
@@ -9,11 +11,12 @@ import { Logger } from '../utils/Logger';
 export class AuthController {
   private static logger: Logger = new Logger();
 
-  private static generateToken(userId: string): string {
+  private static generateToken(userId: string, rememberMe: boolean = false): string {
+    const expiresIn = rememberMe ? '30d' : '24h'; // 30 days for remember me, 24 hours for session
     return jwt.sign(
       { userId },
       process.env['JWT_SECRET']!,
-      { expiresIn: process.env['JWT_EXPIRES_IN'] || '7d' } as any
+      { expiresIn } as any
     );
   }
 
@@ -47,6 +50,12 @@ export class AuthController {
           timestamp: new Date()
         });
 
+        // Log user registration activity
+        await ActivityService.logUserActivity(
+          (result.data._id as any).toString(),
+          ActivityType.USER_REGISTERED
+        );
+
         // Send welcome email asynchronously (don't wait for it)
         WelcomeEmailService.sendWelcomeEmail(result.data).catch(error => {
           AuthController.logger.error('Failed to send welcome email after registration:', error);
@@ -62,8 +71,11 @@ export class AuthController {
 
   public static async login(req: Request, res: Response): Promise<void> {
     try {
+      const { rememberMe = false } = req.body;
+      
       AuthController.logger.info('User login attempt', {
         email: req.body.email,
+        rememberMe,
         ip: req.ip
       });
 
@@ -76,15 +88,24 @@ export class AuthController {
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
 
+        // Generate token with appropriate expiration based on rememberMe
+        const token = AuthController.generateToken((result.data.user._id as any).toString(), rememberMe);
+
         res.status(200).json({
           success: true,
           message: 'Login successful',
-                  data: {
-          user: userData,
-          token: result.data['token']
-        },
+          data: {
+            user: userData,
+            token: token
+          },
           timestamp: new Date()
         });
+
+        // Log user login activity
+        await ActivityService.logUserActivity(
+          (result.data.user._id as any).toString(),
+          ActivityType.USER_LOGIN
+        );
       } else {
         res.status(401).json(result);
       }

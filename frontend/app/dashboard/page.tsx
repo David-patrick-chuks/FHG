@@ -7,13 +7,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardAPI } from '@/lib/api';
 import { DashboardStats, RecentActivity } from '@/types';
 import {
-    Activity,
-    BarChart3,
-    Bot,
-    Mail,
-    TrendingUp,
-    Users,
-    Zap
+  Activity,
+  BarChart3,
+  Bot,
+  Clock,
+  Mail,
+  TrendingUp,
+  Users,
+  Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -21,6 +22,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
+  
+  // Check if user is using a remembered session
+  const isRememberedSession = typeof window !== 'undefined' && 
+    localStorage.getItem('remember_me') === 'true';
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
@@ -122,7 +127,17 @@ export default function DashboardPage() {
   return (
       <DashboardLayout
         title={`Welcome back, ${user?.username || 'User'}! 👋`}
-        description="Here's what's happening with your email campaigns today."
+        description={
+          <div className="flex items-center gap-2">
+            <span>Here's what's happening with your email campaigns today.</span>
+            {isRememberedSession && (
+              <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full">
+                <Clock className="h-3 w-3" />
+                <span>Remembered session</span>
+              </div>
+            )}
+              </div>
+        }
         actions={
               <div className="text-right">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
@@ -270,7 +285,17 @@ export default function DashboardPage() {
   return (
     <DashboardLayout
       title={`Welcome back, ${user?.username || 'User'}! 👋`}
-      description="Here's what's happening with your email campaigns today."
+      description={
+        <div className="flex items-center gap-2">
+          <span>Here's what's happening with your email campaigns today.</span>
+          {isRememberedSession && (
+            <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full">
+              <Clock className="h-3 w-3" />
+              <span>Remembered session</span>
+            </div>
+          )}
+        </div>
+      }
       actions={
         <div className="text-right">
           <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>

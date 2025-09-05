@@ -3,6 +3,7 @@ import { BotModel } from '../models/Bot';
 import { CampaignModel } from '../models/Campaign';
 import { SentEmailModel } from '../models/SentEmail';
 import { SubscriptionModel } from '../models/Subscription';
+import { ActivityService } from '../services/ActivityService';
 import { IUser } from '../types';
 import { Logger } from '../utils/Logger';
 
@@ -130,45 +131,45 @@ export class DashboardController {
         });
         return;
       }
+
+      // Get query parameters for pagination
+      const limit = parseInt(req.query.limit as string) || 20;
+      const skip = parseInt(req.query.skip as string) || 0;
       
-      // Get recent campaigns
-      const recentCampaigns = await CampaignModel.getInstance()
-        .find({ userId: user._id })
-        .sort({ createdAt: -1 })
-        .limit(5);
-      
-      // Get recent emails sent
-      const recentEmails = await SentEmailModel.getInstance()
-        .find({ userId: user._id })
-        .sort({ sentAt: -1 })
-        .limit(10);
-      
-      const activities = [
-        ...recentCampaigns.map(campaign => ({
-          id: campaign._id,
-          type: 'campaign_created',
-          title: `Campaign "${campaign.name}" created`,
-          description: `New campaign created with status: ${campaign.status}`,
-          time: this.formatTimeAgo(campaign.createdAt),
-          timestamp: campaign.createdAt,
-          metadata: { campaignId: campaign._id, status: campaign.status }
-        })),
-        ...recentEmails.map(email => ({
-          id: email._id,
-          type: 'email_sent',
-          title: `Email sent to ${email.recipientEmail}`,
-          description: `Email delivered successfully`,
-          time: this.formatTimeAgo(email.sentAt),
-          timestamp: email.sentAt,
-          metadata: { emailId: email._id, campaignId: email.campaignId }
-        }))
-      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-       .slice(0, 10);
-      
-      res.status(200).json({
-        success: true,
-        data: activities
-      });
+      // Get recent activities from the ActivityService
+      const result = await ActivityService.getUserActivities(
+        user._id,
+        limit,
+        skip
+      );
+
+      if (result.success && result.data) {
+        // Transform activities to match frontend expectations
+        const activities = result.data.map(activity => ({
+          id: activity._id,
+          type: activity.type,
+          title: activity.title,
+          description: activity.description,
+          time: this.formatTimeAgo(activity.timestamp),
+          timestamp: activity.timestamp,
+          metadata: activity.metadata
+        }));
+
+        res.status(200).json({
+          success: true,
+          data: activities,
+          pagination: {
+            limit,
+            skip,
+            total: activities.length
+          }
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'Failed to fetch recent activity'
+        });
+      }
       
     } catch (error) {
       DashboardController.logger.error('Error fetching recent activity:', error);

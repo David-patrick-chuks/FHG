@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
+import { ActivityType } from '../models/Activity';
 import BotModel from '../models/Bot';
+import { ActivityService } from '../services/ActivityService';
 import { BotService } from '../services/BotService';
 import { EmailService } from '../services/EmailService';
 import { Logger } from '../utils/Logger';
@@ -26,6 +28,14 @@ export class BotController {
          // Remove sensitive data from response
          const botData = { ...result.data.toObject() };
          delete botData.password;
+
+         // Log bot creation activity
+         await ActivityService.logBotActivity(
+           userId,
+           ActivityType.BOT_CREATED,
+           result.data.name,
+           (result.data._id as any).toString()
+         );
 
         res.status(201).json({
           success: true,
@@ -251,6 +261,15 @@ export class BotController {
          // Remove sensitive data from response
          const botData = { ...result.data.toObject() };
          delete botData.password;
+
+         // Log bot status change activity
+         const activityType = result.data.isActive ? ActivityType.BOT_ACTIVATED : ActivityType.BOT_DEACTIVATED;
+         await ActivityService.logBotActivity(
+           userId,
+           activityType,
+           result.data.name,
+           (result.data._id as any).toString()
+         );
 
         res.status(200).json({
           success: true,

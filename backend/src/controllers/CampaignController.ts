@@ -4,6 +4,8 @@ import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import SentEmailModel from '../models/SentEmail';
 import { CampaignService } from '../services/CampaignService';
 import { FileUploadService } from '../services/FileUploadService';
+import { ActivityService } from '../services/ActivityService';
+import { ActivityType } from '../models/Activity';
 import { Logger } from '../utils/Logger';
 import { PaginationUtils } from '../utils/PaginationUtils';
 
@@ -24,7 +26,16 @@ export class CampaignController {
 
       const result = await CampaignService.createCampaign(userId, req.body);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign creation activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_CREATED,
+          result.data.name,
+          (result.data._id as any).toString(),
+          `Targeting ${req.body.emailList?.length || 0} recipients`
+        );
+
         res.status(201).json({
           success: true,
           message: 'Campaign created successfully',

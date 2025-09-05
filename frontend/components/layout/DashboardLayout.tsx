@@ -64,7 +64,7 @@ const sidebarItems: SidebarItem[] = [
 interface DashboardLayoutProps {
   children: React.ReactNode;
   title?: string;
-  description?: string;
+  description?: string | React.ReactNode;
   actions?: React.ReactNode;
 }
 
@@ -214,9 +214,9 @@ export function DashboardLayout({
                     </h1>
                   )}
                   {description && (
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    <div className="text-gray-600 dark:text-gray-400 mt-1">
                       {description}
-                    </p>
+                    </div>
                   )}
                 </div>
               </div>

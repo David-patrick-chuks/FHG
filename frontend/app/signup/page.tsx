@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Icons } from '@/components/ui/icons';
 import { useAuth } from '@/contexts/AuthContext';
-import { Brain, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
-import { AuthGuard } from '@/components/auth/AuthGuard';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Brain, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const signupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -36,9 +36,24 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
   
   const router = useRouter();
   const { register: registerUser } = useAuth();
+
+  // Password validation
+  const validatePassword = (password: string) => {
+    const errors = []
+    if (password.length < 8) errors.push("Must be at least 8 characters long")
+    if (!/[A-Z]/.test(password)) errors.push("Must contain at least one uppercase letter")
+    if (!/[a-z]/.test(password)) errors.push("Must contain at least one lowercase letter")
+    if (!/[0-9]/.test(password)) errors.push("Must contain at least one number")
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push("Must contain at least one special character")
+    return errors
+  }
+
+  const passwordErrors = password ? validatePassword(password) : []
+  const isPasswordValid = passwordErrors.length === 0
 
   const {
     register,
@@ -53,7 +68,10 @@ export default function SignupPage() {
       setIsLoading(true);
       setError(null);
       
-      await registerUser(data);
+      // Use the password state instead of form data
+      const submitData = { ...data, password };
+      
+      await registerUser(submitData);
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
@@ -155,8 +173,9 @@ export default function SignupPage() {
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     placeholder="Create a password"
-                    className="pl-10 pr-10"
-                    {...register('password')}
+                    className={`pl-10 pr-10 ${password && !isPasswordValid ? "border-red-500" : ""}`}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                   />
                   <button
@@ -177,15 +196,32 @@ export default function SignupPage() {
                     {errors.password.message}
                   </p>
                 )}
-                <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                  <p>Password must contain:</p>
-                  <ul className="list-disc list-inside ml-2 space-y-1">
-                    <li>At least 8 characters</li>
-                    <li>One uppercase letter</li>
-                    <li>One lowercase letter</li>
-                    <li>One number</li>
-                    <li>One special character (!@#$%^&*(),.?&quot;:{}|&lt;&gt;)</li>
-                  </ul>
+                
+                {/* Password Requirements */}
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-500 font-medium">Password Requirements:</p>
+                  <div className="space-y-1">
+                    <div className={`flex items-center gap-2 text-xs ${password.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      At least 8 characters long
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[A-Z]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One uppercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[a-z]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One lowercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[0-9]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One number
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                      One special character
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -223,7 +259,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={isLoading || !isPasswordValid}
                 >
                   {isLoading && (
                     <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
