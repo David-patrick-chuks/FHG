@@ -5,15 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    ArrowRight,
-    BarChart3,
-    Bot,
-    Brain,
-    CheckCircle,
-    Shield,
-    Star,
-    Target,
-    Zap
+  ArrowRight,
+  BarChart3,
+  Bot,
+  Brain,
+  CheckCircle,
+  Shield,
+  Star,
+  Target,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -108,21 +108,21 @@ const testimonials = [
     name: 'Sarah Johnson',
     role: 'Marketing Director',
     company: 'TechFlow Inc.',
-    content: 'FHG AI Bot transformed our email marketing. The AI-generated content increased our open rates by 40% and the automation saved us 15 hours per week.',
+    content: 'MailQuill revolutionized our email marketing strategy. The intelligent content generation increased our open rates by 40% while automation saved us 15 hours weekly.',
     rating: 5,
   },
   {
     name: 'Michael Chen',
     role: 'CEO',
     company: 'GrowthStart',
-    content: 'The bot automation and audience segmentation features helped us scale our email campaigns from 1,000 to 50,000 subscribers in just 6 months.',
+    content: 'MailQuill\'s advanced automation and precision targeting helped us scale from 1,000 to 50,000 engaged subscribers in just 6 months.',
     rating: 5,
   },
   {
     name: 'Emily Rodriguez',
     role: 'E-commerce Manager',
     company: 'StyleHub',
-    content: 'Setting up email bots was incredibly easy. Our conversion rates improved by 25% and we can now focus on strategy instead of manual sending.',
+    content: 'The platform\'s intuitive design and powerful automation features improved our conversion rates by 25% while freeing us to focus on strategic initiatives.',
     rating: 5,
   },
 ];
@@ -134,41 +134,40 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
           <div className="text-center">
-            <Badge variant="secondary" className="mb-6">
-              🚀 Now with AI-Powered Email Generation
+            <Badge variant="secondary" className="mb-8 px-4 py-2 text-sm font-medium">
+              ✨ Enterprise-Grade Email Marketing Platform
             </Badge>
             
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-              Supercharge Your
-              <span className="text-blue-600 dark:text-blue-400"> Email Marketing</span>
-              <br />
-              with AI
+            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
+              Transform Your
+              <span className="text-blue-600 dark:text-blue-400 block">Email Marketing</span>
+              with Intelligence
             </h1>
             
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-              Create compelling email campaigns, automate your outreach, and drive conversions with our intelligent email marketing platform powered by advanced AI.
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed">
+              MailQuill empowers businesses to create, automate, and optimize email campaigns with cutting-edge AI technology, delivering measurable results and exceptional ROI.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
               {isAuthenticated ? (
                 <Link href="/dashboard">
-                  <Button size="lg" className="text-lg px-8 py-4">
-                    Go to Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button size="lg" className="text-lg px-10 py-5 h-14">
+                    Access Dashboard
+                    <ArrowRight className="ml-3 h-6 w-6" />
                   </Button>
                 </Link>
               ) : (
                 <>
                   <Link href="/signup">
-                    <Button size="lg" className="text-lg px-8 py-4">
+                    <Button size="lg" className="text-lg px-10 py-5 h-14">
                       Start Free Trial
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                      <ArrowRight className="ml-3 h-6 w-6" />
                     </Button>
                   </Link>
                   <Link href="/login">
-                    <Button variant="outline" size="lg" className="text-lg px-8 py-4">
+                    <Button variant="outline" size="lg" className="text-lg px-10 py-5 h-14 border-2">
                       Sign In
                     </Button>
                   </Link>
@@ -176,18 +175,18 @@ export default function LandingPage() {
               )}
             </div>
             
-            <div className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>No credit card required</span>
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="font-medium">No credit card required</span>
               </div>
               <div className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>14-day free trial</span>
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="font-medium">14-day free trial</span>
               </div>
               <div className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Cancel anytime</span>
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="font-medium">Cancel anytime</span>
               </div>
             </div>
           </div>
