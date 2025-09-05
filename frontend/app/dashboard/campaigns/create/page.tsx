@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useGet, usePost } from '@/hooks/useApi';
+import { BotsAPI, CampaignsAPI } from '@/lib/api';
 import { Bot } from '@/types';
-import { ArrowLeft, CheckCircle, Mail, Plus, Upload, Users, X } from 'lucide-react';
+import { ArrowLeft, Bot as BotIcon, CheckCircle, Mail, Plus, Upload, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CreateCampaignPage() {
   const router = useRouter();
@@ -28,11 +28,33 @@ export default function CreateCampaignPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Fetch data
-  const { data: bots, loading: botsLoading } = useGet<Bot[]>('/bots');
-  
-  // API operations
-  const { execute: createCampaign, loading: creating } = usePost('/campaigns');
+  // State for API data
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [botsLoading, setBotsLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch bots data
+  const fetchBots = async () => {
+    try {
+      setBotsLoading(true);
+      setError(null);
+      const response = await BotsAPI.getBots();
+      if (response.success && response.data) {
+        setBots(response.data.data || []);
+      } else {
+        setError(response.error || 'Failed to fetch bots');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to fetch bots');
+    } finally {
+      setBotsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBots();
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -118,20 +140,26 @@ export default function CreateCampaignPage() {
 
   const handleCreateCampaign = async () => {
     try {
+      setCreating(true);
+      setError(null);
+      
       const emailList = formData.emailList.split('\n').filter(email => email.trim());
-      const response = await createCampaign({
+      const response = await CampaignsAPI.createCampaign({
         name: formData.name,
         description: formData.description,
         botId: formData.botId,
-        emailList,
-        aiPrompt: formData.aiPrompt
+        emailList
       });
       
-      if (response) {
+      if (response.success) {
         router.push('/dashboard/campaigns');
+      } else {
+        setError(response.error || 'Failed to create campaign');
       }
     } catch (error) {
-      console.error('Failed to create campaign:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create campaign');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -279,7 +307,7 @@ export default function CreateCampaignPage() {
                   
                   <div className="space-y-4">
                     <Label htmlFor="botId" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                      <Bot className="w-4 h-4 mr-2 text-green-500" />
+                      <BotIcon className="w-4 h-4 mr-2 text-green-500" />
                       Select Bot 
                       <span className="text-red-500 ml-1">*</span>
                     </Label>
@@ -541,7 +569,7 @@ export default function CreateCampaignPage() {
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
                   <div className="space-y-6">
                     <Label htmlFor="aiPrompt" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                      <Bot className="w-5 h-5 mr-2 text-purple-500" />
+                      <BotIcon className="w-5 h-5 mr-2 text-purple-500" />
                       AI Prompt 
                       <span className="text-purple-600 font-normal ml-2">(Optional)</span>
                     </Label>
