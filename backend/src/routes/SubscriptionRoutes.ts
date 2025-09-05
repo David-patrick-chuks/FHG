@@ -59,6 +59,21 @@ export class SubscriptionRoutes {
       SubscriptionController.activateSubscription
     );
 
+    // New User-based subscription management routes
+    router.post('/upgrade', 
+      ValidationMiddleware.sanitizeRequestBody,
+      SubscriptionController.upgradeSubscription
+    );
+
+    router.post('/billing-cycle', 
+      ValidationMiddleware.sanitizeRequestBody,
+      SubscriptionController.changeBillingCycle
+    );
+
+    router.get('/info', 
+      SubscriptionController.getSubscriptionInfo
+    );
+
     return router;
   }
 

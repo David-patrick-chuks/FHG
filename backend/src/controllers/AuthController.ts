@@ -1,11 +1,21 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import { UserService } from '../services/UserService';
+import { WelcomeEmailService } from '../services/WelcomeEmailService';
 import { Logger } from '../utils/Logger';
 
 export class AuthController {
   private static logger: Logger = new Logger();
+
+  private static generateToken(userId: string): string {
+    return jwt.sign(
+      { userId },
+      process.env['JWT_SECRET']!,
+      { expiresIn: process.env['JWT_EXPIRES_IN'] || '7d' } as any
+    );
+  }
 
   public static async register(req: Request, res: Response): Promise<void> {
     try {
@@ -24,11 +34,22 @@ export class AuthController {
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
 
+        // Generate JWT token
+        const token = AuthController.generateToken((result.data._id as any).toString());
+
         res.status(201).json({
           success: true,
           message: 'User registered successfully',
-          data: userData,
+          data: {
+            user: userData,
+            token: token
+          },
           timestamp: new Date()
+        });
+
+        // Send welcome email asynchronously (don't wait for it)
+        WelcomeEmailService.sendWelcomeEmail(result.data).catch(error => {
+          AuthController.logger.error('Failed to send welcome email after registration:', error);
         });
       } else {
         res.status(400).json(result);

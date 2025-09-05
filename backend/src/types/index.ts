@@ -6,6 +6,7 @@ export interface IUser {
   username: string;
   password: string;
   subscription: SubscriptionTier;
+  billingCycle: BillingCycle;
   subscriptionExpiresAt: Date;
   isActive: boolean;
   isAdmin: boolean;
@@ -113,6 +114,11 @@ export enum SubscriptionTier {
   ENTERPRISE = 'enterprise'
 }
 
+export enum BillingCycle {
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly'
+}
+
 export enum CampaignStatus {
   DRAFT = 'draft',
   READY = 'ready',
@@ -183,6 +189,15 @@ export interface CreateUserRequest {
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface SubscriptionUpgradeRequest {
+  subscription: SubscriptionTier;
+  billingCycle: BillingCycle;
+}
+
+export interface ChangeBillingCycleRequest {
+  billingCycle: BillingCycle;
 }
 
 export interface CreateBotRequest {

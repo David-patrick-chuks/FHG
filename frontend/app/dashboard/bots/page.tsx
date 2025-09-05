@@ -36,6 +36,7 @@ export default function BotsPage() {
   const [pageSize, setPageSize] = useState(12);
   const [error, setError] = useState<string | null>(null);
   const [showCreateBotMessage, setShowCreateBotMessage] = useState(false);
+  const [showInactiveBots, setShowInactiveBots] = useState(false);
   const fetchInProgress = useRef(false);
 
   // Debounce search query
@@ -62,7 +63,8 @@ export default function BotsPage() {
       const response = await BotsAPI.getBots({
         page: currentPage,
         limit: pageSize,
-        search: debouncedSearchQuery
+        search: debouncedSearchQuery,
+        includeInactive: showInactiveBots
       });
 
       if (response.success && response.data) {
@@ -78,7 +80,7 @@ export default function BotsPage() {
       setIsLoading(false);
       fetchInProgress.current = false;
     }
-  }, [currentPage, pageSize, debouncedSearchQuery]);
+  }, [currentPage, pageSize, debouncedSearchQuery, showInactiveBots]);
 
   useEffect(() => {
     fetchBots();
@@ -379,12 +381,45 @@ export default function BotsPage() {
                 onClick={() => setViewMode('list')}
               >
                     <List className="w-4 h-4" />
-                  </Button>
-                        </div>
+              </Button>
+              
+              {/* Toggle for inactive bots */}
+              <Button
+                variant={showInactiveBots ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowInactiveBots(!showInactiveBots)}
+                className="ml-2"
+              >
+                {showInactiveBots ? 'Hide Inactive' : 'Show Inactive'}
+              </Button>
+            </div>
                       </div>
                     </CardContent>
                   </Card>
             )}
+
+        {/* Inactive bots explanation */}
+        {showInactiveBots && bots.some(bot => !bot.isActive) && (
+          <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="text-amber-600 dark:text-amber-400 mt-0.5">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-1">
+                    Inactive Bots
+                  </h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Some bots are inactive due to subscription limits. Upgrade your plan to reactivate them automatically.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Bots List */}
         {bots.length === 0 ? (
@@ -418,7 +453,7 @@ export default function BotsPage() {
             {viewMode === 'list' ? (
               <div className="space-y-4">
             {bots.map((bot) => (
-                  <Card key={bot._id} className="hover:shadow-md transition-shadow">
+                  <Card key={bot._id} className={`hover:shadow-md transition-shadow ${!bot.isActive ? 'opacity-60 border-dashed border-2 border-gray-300 dark:border-gray-600' : ''}`}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
@@ -479,7 +514,7 @@ export default function BotsPage() {
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {bots.map((bot) => (
-                  <Card key={bot._id} className="hover:shadow-md transition-shadow">
+                  <Card key={bot._id} className={`hover:shadow-md transition-shadow ${!bot.isActive ? 'opacity-60 border-dashed border-2 border-gray-300 dark:border-gray-600' : ''}`}>
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">

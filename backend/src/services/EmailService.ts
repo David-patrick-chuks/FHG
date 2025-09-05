@@ -39,6 +39,34 @@ export class EmailService {
   }
 
   /**
+   * Send a simple email (for system emails like welcome, notifications, etc.)
+   */
+  public static async sendSimpleEmail(
+    to: string,
+    subject: string,
+    html: string,
+    text?: string
+  ): Promise<void> {
+    try {
+      const transporter = await this.getTransporter();
+      
+      const mailOptions = {
+        from: `"FHG AI Bot" <${process.env.SMTP_AUTH_USER || 'noreply@fhgaibot.com'}>`,
+        to: to,
+        subject: subject,
+        html: html,
+        text: text || html.replace(/<[^>]*>/g, '') // Strip HTML tags for text version
+      };
+
+      await transporter.sendMail(mailOptions);
+      this.logger.info('Simple email sent successfully', { to, subject });
+    } catch (error) {
+      this.logger.error('Failed to send simple email:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Send password reset link email
    */
   public static async sendPasswordResetLink(
@@ -65,28 +93,6 @@ export class EmailService {
     }
   }
 
-  /**
-   * Send welcome email to new users
-   */
-  public static async sendWelcomeEmail(email: string, username: string): Promise<void> {
-    try {
-      const transporter = await this.getTransporter();
-
-      const mailOptions = {
-        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
-        to: email,
-        subject: 'Welcome to Email Outreach Bot!',
-        html: this.generateWelcomeEmailHTML(username),
-        text: this.generateWelcomeEmailText(username)
-      };
-
-      await transporter.sendMail(mailOptions);
-      this.logger.info('Welcome email sent successfully', { email });
-    } catch (error) {
-      this.logger.error('Failed to send welcome email:', error);
-      throw new Error('Failed to send welcome email');
-    }
-  }
 
   /**
    * Send campaign completion notification
@@ -216,86 +222,6 @@ This is an automated email. Please do not reply to this message.
     `;
   }
 
-  /**
-   * Generate HTML for welcome email
-   */
-  private static generateWelcomeEmailHTML(username: string): string {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Welcome to Email Outreach Bot!</title>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #28a745; color: white; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .cta { text-align: center; margin: 20px 0; }
-          .btn { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Welcome to Email Outreach Bot!</h1>
-          </div>
-          <div class="content">
-            <p>Hello ${username},</p>
-            <p>Welcome to Email Outreach Bot! We're excited to have you on board.</p>
-            <p>With our AI-powered platform, you can:</p>
-            <ul>
-              <li>Create intelligent email bots</li>
-              <li>Run targeted outreach campaigns</li>
-              <li>Generate personalized messages with AI</li>
-              <li>Track email performance and engagement</li>
-              <li>Scale your outreach efforts efficiently</li>
-            </ul>
-            <div class="cta">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" class="btn">Get Started</a>
-            </div>
-            <p>If you have any questions, our support team is here to help!</p>
-            <p>Best regards,<br>The Email Outreach Bot Team</p>
-          </div>
-          <div class="footer">
-            <p>Thank you for choosing Email Outreach Bot!</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  }
-
-  /**
-   * Generate plain text for welcome email
-   */
-  private static generateWelcomeEmailText(username: string): string {
-    return `
-Welcome to Email Outreach Bot!
-
-Hello ${username},
-
-Welcome to Email Outreach Bot! We're excited to have you on board.
-
-With our AI-powered platform, you can:
-- Create intelligent email bots
-- Run targeted outreach campaigns
-- Generate personalized messages with AI
-- Track email performance and engagement
-- Scale your outreach efforts efficiently
-
-Get started now: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard
-
-If you have any questions, our support team is here to help!
-
-Best regards,
-The Email Outreach Bot Team
-
----
-Thank you for choosing Email Outreach Bot!
-    `;
-  }
 
   /**
    * Generate HTML for campaign completion email

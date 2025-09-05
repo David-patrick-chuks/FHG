@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Model, Schema } from 'mongoose';
-import { IUser, SubscriptionTier } from '../types';
+import { BillingCycle, IUser, SubscriptionTier } from '../types';
+import BotModel from './Bot';
 
 export interface IUserDocument extends Omit<IUser, '_id'>, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -11,6 +12,10 @@ export interface IUserDocument extends Omit<IUser, '_id'>, Document {
   getMaxBots(): number;
   getMaxCampaigns(): number;
   getMaxAIMessageVariations(): number;
+  calculateSubscriptionExpiration(billingCycle: BillingCycle): Date;
+  updateSubscription(subscription: SubscriptionTier, billingCycle: BillingCycle): Promise<void>;
+  deactivateExcessBots(): Promise<void>;
+  reactivateBotsForSubscription(): Promise<void>;
 }
 
 export interface IUserModel extends Model<IUserDocument> {
@@ -68,6 +73,11 @@ export class UserModel {
         type: String,
         enum: Object.values(SubscriptionTier),
         default: SubscriptionTier.FREE
+      },
+      billingCycle: {
+        type: String,
+        enum: Object.values(BillingCycle),
+        default: BillingCycle.MONTHLY
       },
       subscriptionExpiresAt: {
         type: Date,
@@ -140,8 +150,8 @@ export class UserModel {
     userSchema.methods['getDailyEmailLimit'] = function(): number {
       const limits: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 500,
-        [SubscriptionTier.PRO]: 1500,
-        [SubscriptionTier.ENTERPRISE]: 3000
+        [SubscriptionTier.PRO]: 500,
+        [SubscriptionTier.ENTERPRISE]: 500
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return limits[subscription] || 500;
@@ -149,9 +159,9 @@ export class UserModel {
 
     userSchema.methods['getMaxBots'] = function(): number {
       const maxBots: Record<SubscriptionTier, number> = {
-        [SubscriptionTier.FREE]: 1,
-        [SubscriptionTier.PRO]: 3,
-        [SubscriptionTier.ENTERPRISE]: 5
+        [SubscriptionTier.FREE]: 2,
+        [SubscriptionTier.PRO]: 10,
+        [SubscriptionTier.ENTERPRISE]: 50
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxBots[subscription] || 1;
@@ -159,8 +169,8 @@ export class UserModel {
 
     userSchema.methods['getMaxCampaigns'] = function(): number {
       const maxCampaigns: Record<SubscriptionTier, number> = {
-        [SubscriptionTier.FREE]: 5,
-        [SubscriptionTier.PRO]: 15,
+        [SubscriptionTier.FREE]: 2,
+        [SubscriptionTier.PRO]: 10,
         [SubscriptionTier.ENTERPRISE]: 50
       };
       const subscription = this['subscription'] as SubscriptionTier;
@@ -175,6 +185,58 @@ export class UserModel {
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxVariations[subscription] || 10;
+    };
+
+    userSchema.methods['calculateSubscriptionExpiration'] = function(billingCycle: BillingCycle): Date {
+      const now = new Date();
+      if (billingCycle === BillingCycle.YEARLY) {
+        return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
+      } else {
+        return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 1 month
+      }
+    };
+
+    userSchema.methods['updateSubscription'] = async function(subscription: SubscriptionTier, billingCycle: BillingCycle): Promise<void> {
+      this['subscription'] = subscription;
+      this['billingCycle'] = billingCycle;
+      this['subscriptionExpiresAt'] = this['calculateSubscriptionExpiration'](billingCycle);
+      await this['save']();
+    };
+
+    userSchema.methods['deactivateExcessBots'] = async function(): Promise<void> {
+      const maxBots = this['getMaxBots']();
+      const userBots = await BotModel.findByUserId(this['_id'].toString());
+      
+      if (userBots.length > maxBots) {
+        // Sort bots by creation date (oldest first) to keep the first ones active
+        const sortedBots = userBots.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+        
+        // Deactivate bots beyond the limit
+        const botsToDeactivate = sortedBots.slice(maxBots);
+        
+        for (const bot of botsToDeactivate) {
+          bot.isActive = false;
+          await bot.save();
+        }
+      }
+    };
+
+    userSchema.methods['reactivateBotsForSubscription'] = async function(): Promise<void> {
+      const maxBots = this['getMaxBots']();
+      const userBots = await BotModel.findByUserId(this['_id'].toString());
+      
+      // Sort bots by creation date (oldest first) to reactivate in order
+      const sortedBots = userBots.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      
+      // Reactivate bots up to the subscription limit
+      const botsToReactivate = sortedBots.slice(0, maxBots);
+      
+      for (const bot of botsToReactivate) {
+        if (!bot.isActive) {
+          bot.isActive = true;
+          await bot.save();
+        }
+      }
     };
 
     // Static methods

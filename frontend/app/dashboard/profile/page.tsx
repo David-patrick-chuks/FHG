@@ -13,14 +13,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { User } from '@/types';
 import {
-    AlertCircle,
-    AtSign,
-    Calendar,
-    CheckCircle,
-    CreditCard,
-    Mail,
-    Shield,
-    User as UserIcon
+  AlertCircle,
+  AtSign,
+  Calendar,
+  CheckCircle,
+  CreditCard,
+  Mail,
+  Shield,
+  User as UserIcon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -158,6 +158,7 @@ export default function ProfilePage() {
                       minLength={3}
                       maxLength={30}
                       pattern="[a-zA-Z0-9_]+"
+                      disabled={isLoading}
                     />
                   </div>
                   <p className="text-xs text-gray-500">

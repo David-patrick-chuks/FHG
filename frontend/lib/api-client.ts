@@ -55,6 +55,8 @@ class ApiClient {
         throw new Error(errorMessage);
       }
 
+      // Return the response data regardless of success field
+      // Let the calling code handle business logic success/failure
       return responseData;
     } catch (error) {
       clearTimeout(timeoutId);

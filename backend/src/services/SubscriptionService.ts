@@ -1,6 +1,6 @@
 import SubscriptionModel, { ISubscriptionDocument } from '../models/Subscription';
-import UserModel from '../models/User';
-import { ApiResponse, CreateSubscriptionRequest, SubscriptionStatus, SubscriptionTier } from '../types';
+import UserModel, { IUserDocument } from '../models/User';
+import { ApiResponse, CreateSubscriptionRequest, SubscriptionStatus, SubscriptionTier, BillingCycle, SubscriptionUpgradeRequest, ChangeBillingCycleRequest } from '../types';
 import { Logger } from '../utils/Logger';
 import { PaginationParams, PaginationResult, PaginationUtils } from '../utils/PaginationUtils';
 
@@ -509,6 +509,9 @@ export class SubscriptionService {
             user.subscription = SubscriptionTier.FREE;
             user.subscriptionExpiresAt = new Date();
             await user.save();
+            
+            // Deactivate excess bots for FREE plan
+            await user.deactivateExcessBots();
           }
 
           SubscriptionService.logger.info('Subscription expired and updated', {
@@ -524,6 +527,126 @@ export class SubscriptionService {
       });
     } catch (error) {
       SubscriptionService.logger.error('Error checking subscription expiry:', error);
+    }
+  }
+
+  // New methods for User-based subscription management with billing cycles
+  public static async upgradeUserSubscription(userId: string, upgradeData: SubscriptionUpgradeRequest): Promise<ApiResponse<IUserDocument>> {
+    try {
+      const user = await UserModel.findById(userId) as IUserDocument;
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Update user's subscription and billing cycle
+      await user.updateSubscription(upgradeData.subscription, upgradeData.billingCycle);
+      
+      // Reactivate bots for the new subscription tier
+      await user.reactivateBotsForSubscription();
+
+      SubscriptionService.logger.info('User subscription upgraded successfully', {
+        userId,
+        newSubscription: upgradeData.subscription,
+        newBillingCycle: upgradeData.billingCycle,
+        expiresAt: user.subscriptionExpiresAt
+      });
+
+      return {
+        success: true,
+        message: 'Subscription upgraded successfully',
+        data: user,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      SubscriptionService.logger.error('Error upgrading user subscription:', error);
+      throw error;
+    }
+  }
+
+  public static async changeUserBillingCycle(userId: string, billingData: ChangeBillingCycleRequest): Promise<ApiResponse<IUserDocument>> {
+    try {
+      const user = await UserModel.findById(userId) as IUserDocument;
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Check if user has a paid subscription
+      if (user.subscription === SubscriptionTier.FREE) {
+        return {
+          success: false,
+          message: 'Cannot change billing cycle for FREE subscription',
+          timestamp: new Date()
+        };
+      }
+
+      // Update billing cycle and recalculate expiration
+      await user.updateSubscription(user.subscription, billingData.billingCycle);
+
+      SubscriptionService.logger.info('User billing cycle changed successfully', {
+        userId,
+        subscription: user.subscription,
+        newBillingCycle: billingData.billingCycle,
+        expiresAt: user.subscriptionExpiresAt
+      });
+
+      return {
+        success: true,
+        message: 'Billing cycle changed successfully',
+        data: user,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      SubscriptionService.logger.error('Error changing user billing cycle:', error);
+      throw error;
+    }
+  }
+
+  public static async getUserSubscriptionInfo(userId: string): Promise<ApiResponse<{
+    subscription: SubscriptionTier;
+    billingCycle: BillingCycle;
+    expiresAt: Date;
+    isActive: boolean;
+    daysRemaining: number;
+  }>> {
+    try {
+      const user = await UserModel.findById(userId) as IUserDocument;
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      const now = new Date();
+      const isActive = user.subscriptionExpiresAt > now;
+      const daysRemaining = Math.max(0, Math.ceil((user.subscriptionExpiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+      const subscriptionInfo = {
+        subscription: user.subscription,
+        billingCycle: user.billingCycle,
+        expiresAt: user.subscriptionExpiresAt,
+        isActive,
+        daysRemaining
+      };
+
+      return {
+        success: true,
+        message: 'Subscription info retrieved successfully',
+        data: subscriptionInfo,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      SubscriptionService.logger.error('Error retrieving user subscription info:', error);
+      throw error;
     }
   }
 }

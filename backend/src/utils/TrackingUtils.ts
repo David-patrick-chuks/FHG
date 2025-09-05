@@ -7,7 +7,7 @@ export class TrackingUtils {
    * Generate tracking URL for email open tracking
    */
   public static generateTrackingUrl(campaignId: string, emailId: string): string {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
     return `${baseUrl}/track/open?cid=${campaignId}&tid=${emailId}`;
   }
 
@@ -19,7 +19,7 @@ export class TrackingUtils {
     emailId: string, 
     originalUrl: string
   ): string {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
     const encodedUrl = encodeURIComponent(originalUrl);
     return `${baseUrl}/track/click?cid=${campaignId}&tid=${emailId}&url=${encodedUrl}`;
   }

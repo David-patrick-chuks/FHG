@@ -45,11 +45,20 @@ export class BotService {
       // Check if email is already used by another bot
       const existingBot = await BotModel.findOne({ email: botData.email });
       if (existingBot) {
-        return {
-          success: false,
-          message: 'Email address is already used by another bot',
-          timestamp: new Date()
-        };
+        // Check if the existing bot belongs to the current user
+        if (existingBot.userId.toString() === userId.toString()) {
+          return {
+            success: false,
+            message: 'You already have a bot with this email address',
+            timestamp: new Date()
+          };
+        } else {
+          return {
+            success: false,
+            message: 'Bot email is already used by another account',
+            timestamp: new Date()
+          };
+        }
       }
 
       // Verify email credentials before creating bot
@@ -103,9 +112,14 @@ export class BotService {
     }
   }
 
-  public static async getBotsByUserId(userId: string): Promise<ApiResponse<IBotDocument[]>> {
+  public static async getBotsByUserId(userId: string, includeInactive: boolean = false): Promise<ApiResponse<IBotDocument[]>> {
     try {
-      const bots = await BotModel.findByUserId(userId);
+      let bots;
+      if (includeInactive) {
+        bots = await BotModel.findByUserId(userId);
+      } else {
+        bots = await BotModel.findActiveByUserId(userId);
+      }
       
       return {
         success: true,
@@ -121,11 +135,17 @@ export class BotService {
 
   public static async getBotsByUserIdWithPagination(
     userId: string, 
-    paginationParams: PaginationParams
+    paginationParams: PaginationParams,
+    includeInactive: boolean = false
   ): Promise<ApiResponse<PaginationResult<IBotDocument>>> {
     try {
       // Build query
       const query: any = { userId };
+      
+      // By default, only show active bots unless explicitly requested
+      if (!includeInactive && !paginationParams.status) {
+        query.isActive = true;
+      }
       
       // Add search filter if provided
       if (paginationParams.search) {
@@ -135,6 +155,11 @@ export class BotService {
           { description: searchRegex },
           { email: searchRegex }
         ];
+      }
+
+      // Add status filter if provided
+      if (paginationParams.status) {
+        query.isActive = paginationParams.status === 'active';
       }
 
       // Build sort object
@@ -183,7 +208,7 @@ export class BotService {
       }
 
       // Check if bot belongs to user
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Access denied',
@@ -215,7 +240,7 @@ export class BotService {
       }
 
       // Check if bot belongs to user
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Access denied',
@@ -285,7 +310,7 @@ export class BotService {
       }
 
       // Check if bot belongs to user
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Access denied',
@@ -340,7 +365,7 @@ export class BotService {
       }
 
       // Check if bot belongs to user
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Access denied',
@@ -383,7 +408,7 @@ export class BotService {
       }
 
       // Check if bot belongs to user
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Access denied',
@@ -431,7 +456,7 @@ export class BotService {
       }
 
       // Check if bot belongs to user
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Access denied',

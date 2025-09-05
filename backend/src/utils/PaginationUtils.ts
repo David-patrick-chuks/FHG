@@ -7,6 +7,7 @@ export interface PaginationParams {
   search?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  status?: string;
 }
 
 export interface PaginationResult<T> {
@@ -32,6 +33,7 @@ export class PaginationUtils {
     const search = req.query.search as string;
     const sortBy = req.query.sortBy as string;
     const sortOrder = (req.query.sortOrder as string) || 'desc';
+    const status = req.query.status as string;
 
     return {
       page,
@@ -39,7 +41,8 @@ export class PaginationUtils {
       offset,
       search,
       sortBy,
-      sortOrder: sortOrder === 'asc' ? 'asc' : 'desc'
+      sortOrder: sortOrder === 'asc' ? 'asc' : 'desc',
+      status
     };
   }
 

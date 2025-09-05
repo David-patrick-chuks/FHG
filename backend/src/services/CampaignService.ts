@@ -52,7 +52,7 @@ export class CampaignService {
         };
       }
 
-      if (bot.userId !== userId) {
+      if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
           message: 'Bot does not belong to user',

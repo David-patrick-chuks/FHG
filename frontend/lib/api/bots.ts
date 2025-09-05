@@ -62,13 +62,15 @@ export class BotsAPI {
     page?: number; 
     limit?: number; 
     search?: string; 
-    status?: string; 
+    status?: string;
+    includeInactive?: boolean;
   }): Promise<ApiResponse<PaginatedResponse<Bot>>> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.search) queryParams.append('search', params.search);
     if (params?.status) queryParams.append('status', params.status);
+    if (params?.includeInactive) queryParams.append('includeInactive', 'true');
     
     const query = queryParams.toString();
     return apiClient.get<PaginatedResponse<Bot>>(`/bots${query ? `?${query}` : ''}`);

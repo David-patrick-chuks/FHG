@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { PlanLimitModal } from '@/components/modals/PlanLimitModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { BotsAPI } from '@/lib/api';
 import { ArrowLeft, Bot as BotIcon, Check, ExternalLink, Eye, EyeOff, Mail, Plus, Shield, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function CreateBotPage() {
   const router = useRouter();
@@ -26,6 +27,34 @@ export default function CreateBotPage() {
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+  const [userBots, setUserBots] = useState<any[]>([]);
+  const [userPlan, setUserPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE');
+
+  // Check user's current bots and plan limits
+  useEffect(() => {
+    const checkUserLimits = async () => {
+      try {
+        const response = await BotsAPI.getBots({ page: 1, limit: 100 });
+        if (response.success && response.data) {
+          setUserBots(response.data.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user bots:', error);
+      }
+    };
+
+    checkUserLimits();
+  }, []);
+
+  const getMaxBots = (plan: string) => {
+    switch (plan) {
+      case 'FREE': return 2;
+      case 'PRO': return 10;
+      case 'ENTERPRISE': return 50;
+      default: return 2;
+    }
+  };
 
   const handleVerifyCredentials = async () => {
     if (!formData.email.trim() || !formData.password.trim()) {
@@ -39,12 +68,13 @@ export default function CreateBotPage() {
     setVerificationMessage('');
 
     try {
+      console.log('Making API call to test credentials...'); // Debug log
       const response = await BotsAPI.testCredentials({
         email: formData.email,
         password: formData.password
       });
 
-      console.log('API Response:', response); // Debug log
+      console.log('API Response received:', response); // Debug log
 
       if (response.success) {
         setVerificationStatus('success');
@@ -59,15 +89,15 @@ export default function CreateBotPage() {
         console.log('API Message:', apiMessage, 'Data Message:', dataMessage); // Debug log
         
         // Use the specific error message from the API response
-        setVerificationMessage(dataMessage);
+        setVerificationMessage(apiMessage);
       }
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error('Verification error caught:', error);
       setVerificationStatus('error');
       
       // Check if it's an API error with a specific message
       if (error instanceof Error && error.message) {
-        console.log('Error message:', error.message); // Debug log
+        console.log('Error message from catch:', error.message); // Debug log
         setVerificationMessage(error.message);
       } else {
         setVerificationMessage('Network error. Please try again.');
@@ -79,14 +109,22 @@ export default function CreateBotPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user has reached bot limit
+    const maxBots = getMaxBots(userPlan);
+    if (userBots.length >= maxBots) {
+      setShowPlanLimitModal(true);
+      return;
+    }
+    
+    // Form validation errors (don't affect verification status)
     if (!formData.name.trim() || formData.name.length > 50 || formData.description.length > 200) {
-      setVerificationStatus('error');
       setVerificationMessage('Please check your bot name and description. Name must be 1-50 characters, description must be under 200 characters.');
       return;
     }
 
+    // Check if credentials are verified (don't reset verification status)
     if (verificationStatus !== 'success') {
-      setVerificationStatus('error');
       setVerificationMessage('Please verify your email credentials before creating the bot.');
       return;
     }
@@ -106,12 +144,12 @@ export default function CreateBotPage() {
         router.push('/dashboard/bots');
       } else {
         console.error('Failed to create bot:', response.error);
-        setVerificationStatus('error');
+        // Don't reset verification status, just show the error message
         setVerificationMessage(response.error || 'Failed to create bot');
       }
     } catch (error) {
       console.error('Failed to create bot:', error);
-      setVerificationStatus('error');
+      // Don't reset verification status, just show the error message
       setVerificationMessage('Network error. Please try again.');
     } finally {
       setIsLoading(false);
@@ -312,7 +350,7 @@ export default function CreateBotPage() {
                         {formData.name}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                          {formData.description.trim() || "Enter a description for your bot to see it here. This will help you understand what your bot is designed to do."}
+                          This unique robot avatar is automatically generated based on your bot's name using RoboHash. Each bot gets a distinctive visual identity that reflects its personality and purpose.
                         </p>
                         <div className="flex items-center space-x-2 mt-3">
                           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -431,14 +469,16 @@ export default function CreateBotPage() {
                       ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-green-200 dark:from-green-900/20 dark:to-emerald-900/20 dark:text-green-200 dark:border-green-700' 
                       : verificationStatus === 'error'
                       ? 'bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 dark:from-red-900/20 dark:to-rose-900/20 dark:text-red-200 dark:border-red-700'
-                      : 'bg-gradient-to-r from-gray-50 to-slate-50 text-gray-800 border-gray-200 dark:from-gray-800/20 dark:to-slate-800/20 dark:text-gray-200 dark:border-gray-600'
+                      : 'bg-gradient-to-r from-orange-50 to-amber-50 text-orange-800 border-orange-200 dark:from-orange-900/20 dark:to-amber-900/20 dark:text-orange-200 dark:border-orange-700'
                   }`}>
                     <div className="flex items-center space-x-3">
                       {verificationStatus === 'success' ? (
                         <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
                       ) : verificationStatus === 'error' ? (
                         <X className="w-5 h-5 text-red-600 dark:text-red-400" />
-                      ) : null}
+                      ) : (
+                        <X className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      )}
                       <span className="font-medium">{verificationMessage}</span>
                     </div>
                   </div>
@@ -476,6 +516,15 @@ export default function CreateBotPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Plan Limit Modal */}
+      <PlanLimitModal
+        isOpen={showPlanLimitModal}
+        onClose={() => setShowPlanLimitModal(false)}
+        currentPlan={userPlan}
+        currentBots={userBots.length}
+        maxBots={getMaxBots(userPlan)}
+      />
     </DashboardLayout>
   );
 }

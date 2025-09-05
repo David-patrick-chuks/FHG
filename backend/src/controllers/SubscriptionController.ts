@@ -348,4 +348,89 @@ export class SubscriptionController {
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
+
+  // New methods for User-based subscription management with billing cycles
+  public static async upgradeSubscription(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user.id;
+
+      SubscriptionController.logger.info('Subscription upgrade request', {
+        userId,
+        subscription: req.body.subscription,
+        billingCycle: req.body.billingCycle,
+        ip: req.ip
+      });
+
+      const result = await SubscriptionService.upgradeUserSubscription(userId, req.body);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Subscription upgraded successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      SubscriptionController.logger.error('Subscription upgrade error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async changeBillingCycle(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user.id;
+
+      SubscriptionController.logger.info('Billing cycle change request', {
+        userId,
+        billingCycle: req.body.billingCycle,
+        ip: req.ip
+      });
+
+      const result = await SubscriptionService.changeUserBillingCycle(userId, req.body);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Billing cycle changed successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      SubscriptionController.logger.error('Billing cycle change error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async getSubscriptionInfo(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user.id;
+
+      SubscriptionController.logger.info('Subscription info request', {
+        userId,
+        ip: req.ip
+      });
+
+      const result = await SubscriptionService.getUserSubscriptionInfo(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Subscription info retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      SubscriptionController.logger.error('Subscription info retrieval error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
 }

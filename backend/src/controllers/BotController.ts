@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
+import BotModel from '../models/Bot';
 import { BotService } from '../services/BotService';
 import { EmailService } from '../services/EmailService';
 import { Logger } from '../utils/Logger';
@@ -65,7 +66,10 @@ export class BotController {
         ip: req.ip
       });
 
-      const result = await BotService.getBotsByUserIdWithPagination(userId, paginationParams);
+      // Check if user wants to include inactive bots
+      const includeInactive = req.query.includeInactive === 'true';
+      
+      const result = await BotService.getBotsByUserIdWithPagination(userId, paginationParams, includeInactive);
 
       if (result.success && result.data) {
         // Remove sensitive data from response
@@ -574,6 +578,34 @@ export class BotController {
         botEmail: email,
         ip: req.ip
       });
+
+      // Check if email is already used by another bot (global uniqueness)
+      const existingBot = await BotModel.findOne({ email: email });
+      if (existingBot) {
+        // Check if the existing bot belongs to the current user
+        if (existingBot.userId.toString() === userId.toString()) {
+          res.status(400).json({
+            success: false,
+            message: 'You already have a bot with this email address',
+            data: {
+              verified: false,
+              message: 'You already have a bot with this email address'
+            },
+            timestamp: new Date()
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: 'Bot email is already used by another account',
+            data: {
+              verified: false,
+              message: 'Bot email is already used by another account'
+            },
+            timestamp: new Date()
+          });
+        }
+        return;
+      }
 
       const result = await EmailService.verifyBotCredentials(email, password);
 
