@@ -20,38 +20,38 @@ import Link from 'next/link';
 const features = [
   {
     icon: Brain,
-    title: 'AI-Powered Content',
-    description: 'Generate personalized email content using advanced AI that understands your audience and brand voice.',
+    title: 'Intelligent Content Generation',
+    description: 'Leverage cutting-edge AI to craft compelling, personalized email content that resonates with your audience and drives engagement.',
     color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',
   },
   {
     icon: Bot,
-    title: 'Smart Email Bots',
-    description: 'Configure intelligent email bots that automatically send campaigns at optimal times for maximum engagement.',
+    title: 'Automated Campaign Management',
+    description: 'Deploy sophisticated email automation that intelligently schedules and delivers campaigns for optimal performance and engagement.',
     color: 'text-green-600 bg-green-50 dark:bg-green-900/20',
   },
   {
     icon: Target,
-    title: 'Audience Segmentation',
-    description: 'Segment your audience with advanced filters and deliver targeted campaigns that convert.',
+    title: 'Precision Audience Targeting',
+    description: 'Utilize advanced segmentation tools to deliver highly targeted campaigns that maximize conversion rates and ROI.',
     color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20',
   },
   {
     icon: BarChart3,
-    title: 'Advanced Analytics',
-    description: 'Track campaign performance with detailed analytics and insights to optimize your email strategy.',
+    title: 'Comprehensive Analytics',
+    description: 'Gain deep insights into campaign performance with detailed analytics and actionable intelligence to optimize your strategy.',
     color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20',
   },
   {
     icon: Zap,
-    title: 'Automated Workflows',
-    description: 'Set up automated email sequences that nurture leads and drive conversions without manual intervention.',
+    title: 'Smart Workflow Automation',
+    description: 'Build sophisticated email sequences that automatically nurture prospects and convert leads without manual intervention.',
     color: 'text-indigo-600 bg-indigo-900/20',
   },
   {
     icon: Shield,
-    title: 'Enterprise Security',
-    description: 'Bank-level security with SOC 2 compliance, ensuring your data and campaigns are always protected.',
+    title: 'Enterprise-Grade Security',
+    description: 'Protect your data with bank-level security protocols and SOC 2 compliance, ensuring complete peace of mind.',
     color: 'text-red-600 bg-red-50 dark:bg-red-900/20',
   },
 ];
@@ -261,63 +261,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Simple, transparent pricing
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Choose the plan that fits your business needs
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {pricingPlans.map((plan, index) => (
-              <Card key={index} className={`relative ${plan.popular ? 'ring-2 ring-blue-500 shadow-xl' : ''}`}>
-                {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white">
-                    Most Popular
-                  </Badge>
-                )}
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold text-gray-900 dark:text-white">{plan.price}</span>
-                    <span className="text-gray-600 dark:text-gray-400">{plan.period}</span>
-                  </div>
-                  <CardDescription className="mt-2">{plan.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  {isAuthenticated ? (
-                    <Link href="/dashboard">
-                      <Button className="w-full" variant={plan.popular ? 'default' : 'outline'}>
-                        Go to Dashboard
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link href="/signup">
-                      <Button className="w-full" variant={plan.popular ? 'default' : 'outline'}>
-                        Start Free Trial
-                      </Button>
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Testimonials Section */}
       <section className="py-20 bg-gray-50 dark:bg-gray-800">

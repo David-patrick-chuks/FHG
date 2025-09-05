@@ -339,4 +339,81 @@ export class ActivityService {
       );
     }
   }
+
+  /**
+   * Get unread activity count for a user
+   */
+  public static async getUnreadCount(
+    userId: string
+  ): Promise<ApiResponse<number>> {
+    try {
+      const count = await ActivityModel.getUnreadCount(userId);
+
+      return {
+        success: true,
+        data: count,
+        message: 'Unread count retrieved successfully',
+        timestamp: new Date()
+      };
+    } catch (error) {
+      ActivityService.logger.error('Error fetching unread count:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch unread count',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Mark all activities as read for a user
+   */
+  public static async markAllAsRead(
+    userId: string
+  ): Promise<ApiResponse<void>> {
+    try {
+      await ActivityModel.markAllAsRead(userId);
+
+      ActivityService.logger.info('All activities marked as read', { userId });
+
+      return {
+        success: true,
+        message: 'All activities marked as read',
+        timestamp: new Date()
+      };
+    } catch (error) {
+      ActivityService.logger.error('Error marking all activities as read:', error);
+      return {
+        success: false,
+        message: 'Failed to mark activities as read',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Mark a specific activity as read
+   */
+  public static async markAsRead(
+    activityId: string,
+    userId: string
+  ): Promise<ApiResponse<boolean>> {
+    try {
+      const success = await ActivityModel.markAsRead(activityId, userId);
+
+      return {
+        success: true,
+        data: success,
+        message: success ? 'Activity marked as read' : 'Activity not found',
+        timestamp: new Date()
+      };
+    } catch (error) {
+      ActivityService.logger.error('Error marking activity as read:', error);
+      return {
+        success: false,
+        message: 'Failed to mark activity as read',
+        timestamp: new Date()
+      };
+    }
+  }
 }

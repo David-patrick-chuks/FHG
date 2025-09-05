@@ -9,6 +9,8 @@ export interface IActivity {
   description: string;
   metadata?: Record<string, any>;
   timestamp: Date;
+  isRead: boolean;
+  readAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -90,6 +92,15 @@ const activitySchema = new Schema<IActivityDocument>({
     type: Date,
     default: Date.now,
     index: true
+  },
+  isRead: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  readAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true,
@@ -171,6 +182,41 @@ activitySchema.statics.getActivityStats = async function(
   return stats;
 };
 
+activitySchema.statics.getUnreadCount = async function(
+  userId: string
+): Promise<number> {
+  return await this.countDocuments({
+    userId,
+    isRead: false
+  });
+};
+
+activitySchema.statics.markAllAsRead = async function(
+  userId: string
+): Promise<void> {
+  await this.updateMany(
+    { userId, isRead: false },
+    { 
+      isRead: true, 
+      readAt: new Date() 
+    }
+  );
+};
+
+activitySchema.statics.markAsRead = async function(
+  activityId: string,
+  userId: string
+): Promise<boolean> {
+  const result = await this.updateOne(
+    { _id: activityId, userId },
+    { 
+      isRead: true, 
+      readAt: new Date() 
+    }
+  );
+  return result.modifiedCount > 0;
+};
+
 // Instance methods
 activitySchema.methods.toJSON = function() {
   const obj = this.toObject();
@@ -249,5 +295,27 @@ export class ActivityModel {
   ): Promise<Record<string, number>> {
     const model = ActivityModel.getInstance();
     return await model.getActivityStats(userId, days);
+  }
+
+  public static async getUnreadCount(
+    userId: string
+  ): Promise<number> {
+    const model = ActivityModel.getInstance();
+    return await model.getUnreadCount(userId);
+  }
+
+  public static async markAllAsRead(
+    userId: string
+  ): Promise<void> {
+    const model = ActivityModel.getInstance();
+    return await model.markAllAsRead(userId);
+  }
+
+  public static async markAsRead(
+    activityId: string,
+    userId: string
+  ): Promise<boolean> {
+    const model = ActivityModel.getInstance();
+    return await model.markAsRead(activityId, userId);
   }
 }

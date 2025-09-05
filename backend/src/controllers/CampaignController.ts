@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import { ActivityType } from '../models/Activity';
 import SentEmailModel from '../models/SentEmail';
+import { ActivityService } from '../services/ActivityService';
 import { CampaignService } from '../services/CampaignService';
 import { FileUploadService } from '../services/FileUploadService';
-import { ActivityService } from '../services/ActivityService';
-import { ActivityType } from '../models/Activity';
 import { Logger } from '../utils/Logger';
 import { PaginationUtils } from '../utils/PaginationUtils';
 
@@ -290,7 +290,15 @@ export class CampaignController {
 
       const result = await CampaignService.startCampaign(campaignId, userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign start activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_STARTED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign started successfully',
@@ -328,7 +336,15 @@ export class CampaignController {
 
       const result = await CampaignService.pauseCampaign(campaignId, userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign pause activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_PAUSED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign paused successfully',
@@ -404,7 +420,15 @@ export class CampaignController {
 
       const result = await CampaignService.completeCampaign(campaignId, userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign completion activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_COMPLETED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign completed successfully',
