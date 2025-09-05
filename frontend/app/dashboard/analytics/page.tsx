@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {trackingSummary?.totalEmails.toLocaleString() || 0}
-              </div>
+                </div>
               <p className="text-xs text-muted-foreground">
                 Across all campaigns
               </p>
@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {trackingSummary?.totalOpened.toLocaleString() || 0}
-              </div>
+                </div>
               <p className="text-xs text-muted-foreground">
                 {trackingSummary?.averageOpenRate.toFixed(1) || 0}% average open rate
               </p>
@@ -182,7 +182,7 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {trackingSummary?.totalCampaigns || 0}
-              </div>
+                </div>
               <p className="text-xs text-muted-foreground">
                 Active and completed
               </p>
@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {trackingSummary?.topPerformingCampaigns[0]?.openRate.toFixed(1) || 0}%
-              </div>
+                </div>
               <p className="text-xs text-muted-foreground">
                 Best campaign open rate
               </p>
@@ -213,29 +213,29 @@ export default function AnalyticsPage() {
           <CardContent>
             <div className="h-[400px]">
               {performanceTrends.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={performanceTrends}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="emails" 
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="emails" 
                       stroke="#8884d8" 
                       strokeWidth={2}
                       name="Emails Sent"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="delivered" 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="delivered" 
                       stroke="#82ca9d" 
                       strokeWidth={2}
-                      name="Delivered"
-                    />
-                    <Line 
-                      type="monotone" 
+                    name="Delivered"
+                  />
+                  <Line 
+                    type="monotone" 
                       dataKey="opened" 
                       stroke="#ffc658" 
                       strokeWidth={2}
@@ -247,9 +247,9 @@ export default function AnalyticsPage() {
                       stroke="#ff7300" 
                       strokeWidth={2}
                       name="Replied"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                  />
+                </LineChart>
+              </ResponsiveContainer>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
@@ -299,7 +299,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Open Rate
                       </p>
-                    </div>
+              </div>
                   </div>
                 ))}
               </div>
@@ -343,9 +343,9 @@ export default function AnalyticsPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
         )}
 
         {/* Empty State */}

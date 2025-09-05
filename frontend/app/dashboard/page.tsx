@@ -119,17 +119,17 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return (
+  return (
       <DashboardLayout
         title={`Welcome back, ${user?.username || 'User'}! 👋`}
         description="Here's what's happening with your email campaigns today."
         actions={
-          <div className="text-right">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
-            <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
-              {user?.subscription || 'Free'}
-            </p>
-          </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
+                  {user?.subscription || 'Free'}
+                </p>
+              </div>
         }
       >
         <div className="space-y-6">
@@ -210,9 +210,9 @@ export default function DashboardPage() {
                     <div className="absolute top-0 right-0 w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full -translate-y-10 translate-x-10 opacity-20"></div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
           {/* Recent Activity Skeleton */}
           <Card className="animate-pulse">
@@ -436,18 +436,18 @@ export default function DashboardPage() {
                 recentActivity.map((activity) => {
                   const IconComponent = getActivityIcon(activity.type);
                   const iconColor = getActivityIconColor(activity.type);
-                  return (
-                    <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                return (
+                  <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                       <IconComponent className={`w-5 h-5 ${iconColor}`} />
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {activity.description}
-                        </p>
-                      </div>
-                      <span className="text-sm text-gray-500">{activity.time}</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {activity.description}
+                      </p>
                     </div>
-                  );
+                    <span className="text-sm text-gray-500">{activity.time}</span>
+                  </div>
+                );
                 })
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">

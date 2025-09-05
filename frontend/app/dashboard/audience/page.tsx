@@ -224,7 +224,7 @@ export default function AudiencePage() {
 
         {/* Filters - Only show when there are email records */}
         {!loading && totalItems > 0 && (
-          <Card>
+        <Card>
             <CardHeader>
               <CardTitle>Email Records</CardTitle>
             </CardHeader>
@@ -233,27 +233,27 @@ export default function AudiencePage() {
                 <div className="flex flex-col sm:flex-row gap-4 flex-1">
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Search by email..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Input
+                    placeholder="Search by email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
                       <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="sent">Sent</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
                       <SelectItem value="opened">Opened</SelectItem>
                       <SelectItem value="replied">Replied</SelectItem>
-                      <SelectItem value="failed">Failed</SelectItem>
-                      <SelectItem value="bounced">Bounced</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="bounced">Bounced</SelectItem>
+                </SelectContent>
+              </Select>
                   <Select value={itemsPerPage.toString()} onValueChange={(value) => setItemsPerPage(parseInt(value))}>
                     <SelectTrigger className="w-full sm:w-32">
                       <SelectValue placeholder="Per page" />
@@ -266,14 +266,14 @@ export default function AudiencePage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
         )}
 
         {/* Email Records Table */}
         {emailRecords.length === 0 ? (
-          <Card>
+        <Card>
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <Mail className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -293,28 +293,28 @@ export default function AudiencePage() {
           <>
             <Card>
               <CardContent className="pt-6">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
                       <tr className="border-b">
-                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Email</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Email</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Sent Date</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Delivered</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Opened</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Replied</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Error</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  </tr>
+                </thead>
+                <tbody>
                       {emailRecords.map((record) => (
                         <tr key={record.emailId} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <td className="py-3 px-4">
+                      <td className="py-3 px-4">
                             <div className="font-medium text-gray-900 dark:text-white">
                               {record.recipientEmail}
                             </div>
-                          </td>
-                          <td className="py-3 px-4">
+                      </td>
+                      <td className="py-3 px-4">
                             <Badge 
                               variant={getStatusBadgeVariant(record.status)}
                               className={getStatusColor(record.status)}
@@ -327,21 +327,21 @@ export default function AudiencePage() {
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                             {record.deliveredAt ? formatDate(record.deliveredAt) : '-'}
-                          </td>
+                      </td>
                           <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                             {record.openedAt ? formatDate(record.openedAt) : '-'}
-                          </td>
+                      </td>
                           <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                             {record.repliedAt ? formatDate(record.repliedAt) : '-'}
-                          </td>
+                      </td>
                           <td className="py-3 px-4 text-sm text-red-600 dark:text-red-400">
                             {record.errorMessage || '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
               </CardContent>
             </Card>
 
@@ -350,48 +350,48 @@ export default function AudiencePage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                       Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} records
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                      >
+                    disabled={currentPage === 1}
+                  >
                         <ChevronLeft className="w-4 h-4" />
-                        Previous
-                      </Button>
-                      <div className="flex items-center gap-1">
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = i + 1;
                           return (
-                            <Button
+                      <Button
                               key={pageNum}
                               variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
+                        size="sm"
                               onClick={() => setCurrentPage(pageNum)}
-                              className="w-8 h-8 p-0"
-                            >
+                        className="w-8 h-8 p-0"
+                      >
                               {pageNum}
-                            </Button>
+                      </Button>
                           );
                         })}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                        <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+          </CardContent>
+        </Card>
             )}
           </>
         )}

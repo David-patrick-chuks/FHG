@@ -4,7 +4,7 @@ import SentEmailModel from '../models/SentEmail';
 import UserModel from '../models/User';
 import { ApiResponse, CampaignStatus, CreateBotRequest } from '../types';
 import { Logger } from '../utils/Logger';
-import { PaginationUtils, PaginationParams, PaginationResult } from '../utils/PaginationUtils';
+import { PaginationParams, PaginationResult, PaginationUtils } from '../utils/PaginationUtils';
 import { EmailService } from './EmailService';
 
 export class BotService {

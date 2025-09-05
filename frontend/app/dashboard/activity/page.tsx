@@ -126,16 +126,16 @@ export default function ActivityPage() {
   };
 
   if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="space-y-6">
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
               ))}
-            </div>
+          </div>
           </div>
         </div>
       </DashboardLayout>
@@ -156,15 +156,15 @@ export default function ActivityPage() {
                 >
                   Retry
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  </div>
+                </CardContent>
+              </Card>
+          </div>
       </DashboardLayout>
     );
   }
 
-  return (
+              return (
     <DashboardLayout
       title="Activity"
       description="Recent activity and events across your campaigns and bots"
@@ -182,8 +182,8 @@ export default function ActivityPage() {
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
                   Activity will appear here as you create campaigns, activate bots, and send emails.
-                </p>
-              </div>
+                        </p>
+                      </div>
             </CardContent>
           </Card>
         ) : (
@@ -220,11 +220,11 @@ export default function ActivityPage() {
                               {JSON.stringify(activity.metadata)}
                             </div>
                           )}
-                        </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+              );
+            })}
+          </div>
               </CardContent>
             </Card>
 
@@ -233,46 +233,46 @@ export default function ActivityPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} activities
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} activities
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = i + 1;
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={currentPage === pageNum ? "default" : "outline"}
-                              size="sm"
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
                               onClick={() => setCurrentPage(pageNum)}
-                              className="w-8 h-8 p-0"
-                            >
-                              {pageNum}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
                 </CardContent>
               </Card>
             )}
