@@ -30,17 +30,17 @@ export class DatabaseConnection {
     let retryCount = 0;
 
     while (retryCount < maxRetries) {
-      try {
-        this.isConnecting = true;
+    try {
+      this.isConnecting = true;
         this.logger.info(`Initiating database connection... (Attempt ${retryCount + 1}/${maxRetries})`);
 
-        const options: ConnectOptions = {
-          maxPoolSize: parseInt(process.env['MONGODB_MAX_POOL_SIZE'] || '10'),
+      const options: ConnectOptions = {
+        maxPoolSize: parseInt(process.env['MONGODB_MAX_POOL_SIZE'] || '10'),
           serverSelectionTimeoutMS: parseInt(process.env['MONGODB_SERVER_SELECTION_TIMEOUT'] || '30000'), // Increased to 30 seconds
-          socketTimeoutMS: parseInt(process.env['MONGODB_SOCKET_TIMEOUT'] || '45000'),
-          bufferCommands: false,
+        socketTimeoutMS: parseInt(process.env['MONGODB_SOCKET_TIMEOUT'] || '45000'),
+        bufferCommands: false,
           connectTimeoutMS: parseInt(process.env['MONGODB_CONNECT_TIMEOUT'] || '30000'), // Increased to 30 seconds
-          retryWrites: true,
+        retryWrites: true,
           w: 'majority',
           // Additional options for Atlas cluster stability
           heartbeatFrequencyMS: 10000,
@@ -53,21 +53,21 @@ export class DatabaseConnection {
           directConnection: false,
           // Handle replica set issues
           readPreference: 'primaryPreferred'
-        };
+      };
 
-        await mongoose.connect(this.uri, options);
-        this.connection = mongoose.connection;
+      await mongoose.connect(this.uri, options);
+      this.connection = mongoose.connection;
 
-        // Wait for connection to be ready
-        if (this.connection.readyState !== 1) {
-          throw new Error('Database connection not ready after connect');
-        }
+      // Wait for connection to be ready
+      if (this.connection.readyState !== 1) {
+        throw new Error('Database connection not ready after connect');
+      }
 
-        this.setupConnectionEventHandlers();
+      this.setupConnectionEventHandlers();
         this.logger.info('✅ Database connected successfully');
         return; // Success, exit retry loop
 
-      } catch (error) {
+    } catch (error) {
         retryCount++;
         this.logger.error(`Failed to connect to database (Attempt ${retryCount}/${maxRetries}):`, error);
         
@@ -77,10 +77,10 @@ export class DatabaseConnection {
           await new Promise(resolve => setTimeout(resolve, waitTime));
         } else {
           this.logger.error('❌ All database connection attempts failed');
-          throw error;
+      throw error;
         }
-      } finally {
-        this.isConnecting = false;
+    } finally {
+      this.isConnecting = false;
       }
     }
   }

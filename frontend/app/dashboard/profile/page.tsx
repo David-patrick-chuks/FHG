@@ -13,14 +13,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { User } from '@/types';
 import {
-  AlertCircle,
-  AtSign,
-  Calendar,
-  CheckCircle,
-  CreditCard,
-  Mail,
-  Shield,
-  User as UserIcon
+    AlertCircle,
+    AtSign,
+    Calendar,
+    CheckCircle,
+    CreditCard,
+    Mail,
+    Shield,
+    User as UserIcon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
