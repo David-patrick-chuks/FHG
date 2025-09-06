@@ -29,9 +29,9 @@ const jetBrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "FHG AI Email Bot - Intelligent Email Marketing Automation",
+  title: "MailQuill - AI-Powered Email Marketing Platform",
   description:
-    "Create powerful AI-driven email campaigns that convert. Automated outreach, personalized messaging, and advanced analytics for modern email marketing teams.",
+    "Create, automate, and optimize email campaigns with AI technology that delivers results. Transform your email marketing with intelligent automation.",
     generator: 'v0.app'
 }
 
