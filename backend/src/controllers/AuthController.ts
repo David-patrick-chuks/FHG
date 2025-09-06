@@ -167,12 +167,19 @@ export class AuthController {
 
       const result = await UserService.updateUser(userId, updateData);
 
-             if (result.success && result.data) {
-         // Remove sensitive fields from response
-         const userData = { ...result.data.toObject() };
-         delete userData.password;
-         delete userData.passwordResetToken;
-         delete userData.passwordResetExpires;
+      if (result.success && result.data) {
+        // Log user profile update activity
+        await ActivityService.logUserActivity(
+          userId,
+          ActivityType.USER_PROFILE_UPDATED,
+          `Updated fields: ${Object.keys(updateData).join(', ')}`
+        );
+
+        // Remove sensitive fields from response
+        const userData = { ...result.data.toObject() };
+        delete userData.password;
+        delete userData.passwordResetToken;
+        delete userData.passwordResetExpires;
 
         res.status(200).json({
           success: true,
@@ -223,6 +230,12 @@ export class AuthController {
       const result = await UserService.changePassword(userId, currentPassword, newPassword);
 
       if (result.success) {
+        // Log user password change activity
+        await ActivityService.logUserActivity(
+          userId,
+          ActivityType.USER_PASSWORD_CHANGED
+        );
+
         res.status(200).json({
           success: true,
           message: 'Password changed successfully',

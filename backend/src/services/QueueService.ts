@@ -3,6 +3,7 @@ import CampaignModel from '../models/Campaign';
 import QueueJobModel from '../models/QueueJob';
 import { Logger } from '../utils/Logger';
 import { BotService } from './BotService';
+import { EmailExtractorService } from './EmailExtractorService';
 import { EmailService } from './EmailService';
 
 export class QueueService {
@@ -41,6 +42,7 @@ export class QueueService {
 
       // Process jobs
       this.emailQueue.process('send-email', this.processEmailJob.bind(this));
+      this.emailQueue.process('extract-emails', this.processEmailExtractionJob.bind(this));
 
       // Handle events
       this.emailQueue.on('completed', this.onJobCompleted.bind(this));
@@ -277,6 +279,39 @@ export class QueueService {
     }
   }
 
+  public static async addEmailExtractionJob(jobData: {
+    jobId: string;
+    userId: string;
+    urls: string[];
+  }): Promise<Bull.Job> {
+    try {
+      if (!this.isInitialized) {
+        await this.initialize();
+      }
+
+      const job = await this.emailQueue.add('extract-emails', jobData, {
+        priority: 1,
+        jobId: jobData.jobId,
+        attempts: 1, // Email extraction jobs should only run once
+        backoff: {
+          type: 'fixed',
+          delay: 5000
+        }
+      });
+
+      this.logger.info('Email extraction job added to queue', {
+        jobId: job.id,
+        userId: jobData.userId,
+        urlCount: jobData.urls.length
+      });
+
+      return job;
+    } catch (error) {
+      this.logger.error('Error adding email extraction job to queue:', error);
+      throw error;
+    }
+  }
+
   private static async processEmailJob(job: Bull.Job): Promise<void> {
     const { campaignId, botId, recipientEmail, message } = job.data;
     
@@ -335,6 +370,37 @@ export class QueueService {
 
       // Update queue job status
       await this.updateQueueJobStatus(job.id.toString(), 'failed', error instanceof Error ? error.message : 'Unknown error');
+
+      // Re-throw error to mark job as failed
+      throw error;
+    }
+  }
+
+  private static async processEmailExtractionJob(job: Bull.Job): Promise<void> {
+    const { jobId, userId, urls } = job.data;
+    
+    try {
+      this.logger.info('Processing email extraction job', {
+        jobId: job.id,
+        extractionJobId: jobId,
+        userId,
+        urlCount: urls.length
+      });
+
+      // Process the email extraction
+      await EmailExtractorService.processExtractionJob({
+        jobId,
+        userId,
+        urls
+      });
+
+      this.logger.info('Email extraction job completed successfully', {
+        jobId: job.id,
+        extractionJobId: jobId,
+        userId
+      });
+    } catch (error) {
+      this.logger.error('Email extraction job failed:', error);
 
       // Re-throw error to mark job as failed
       throw error;

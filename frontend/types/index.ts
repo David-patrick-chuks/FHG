@@ -195,11 +195,13 @@ export interface DashboardStats {
 
 export interface RecentActivity {
   id: string;
-  type: 'campaign_created' | 'email_sent' | 'campaign_completed' | 'bot_activated' | 'campaign_started' | 'bot_updated' | 'performance_improved';
+  type: string;
   title: string;
   description: string;
   time: string;
   timestamp: Date;
+  isRead: boolean;
+  readAt?: Date;
   metadata?: any;
 }
 

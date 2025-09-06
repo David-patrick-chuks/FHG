@@ -1,0 +1,208 @@
+import { apiClient } from '../api-client';
+
+export interface EmailExtractionJob {
+  id: string;
+  jobId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  urls: string[];
+  results: ExtractionResult[];
+  totalEmails: number;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  error?: string;
+}
+
+export interface ExtractionResult {
+  url: string;
+  emails: string[];
+  status: 'success' | 'failed' | 'processing';
+  error?: string;
+  extractedAt: string;
+}
+
+export interface StartExtractionRequest {
+  urls: string[];
+  extractionType?: 'single' | 'multiple' | 'csv';
+}
+
+export interface StartExtractionResponse {
+  success: boolean;
+  data: {
+    jobId: string;
+  };
+  message: string;
+  timestamp: string;
+}
+
+export interface GetExtractionsResponse {
+  success: boolean;
+  data: EmailExtractionJob[];
+  message: string;
+  timestamp: string;
+}
+
+export interface GetExtractionResponse {
+  success: boolean;
+  data: EmailExtractionJob | null;
+  message: string;
+  timestamp: string;
+}
+
+export interface ParseCsvResponse {
+  success: boolean;
+  data: {
+    totalUrls: number;
+    validUrls: number;
+    urls: string[];
+    limits?: any;
+    usage?: any;
+  };
+  message: string;
+  timestamp: string;
+  requiresUpgrade?: boolean;
+}
+
+export interface SubscriptionInfoResponse {
+  success: boolean;
+  data: {
+    limits: {
+      dailyExtractionLimit: number;
+      canUseCsvUpload: boolean;
+      planName: string;
+      isUnlimited: boolean;
+    };
+    usage: {
+      used: number;
+      remaining: number;
+      resetTime: string;
+      limit: number;
+    };
+    canUseCsv: boolean;
+    needsUpgrade: boolean;
+    upgradeRecommendation?: {
+      needsUpgrade: boolean;
+      reason: string;
+      recommendedPlan: string;
+      currentPlan: string;
+    };
+  };
+  message: string;
+  timestamp: string;
+}
+
+export class EmailExtractorAPI {
+  /**
+   * Start email extraction from URLs
+   */
+  static async startExtraction(urls: string[], extractionType: 'single' | 'multiple' | 'csv' = 'multiple'): Promise<StartExtractionResponse> {
+    const response = await apiClient.post<StartExtractionResponse>('/email-extractor/start', { 
+      urls, 
+      extractionType 
+    });
+    if (!response.data) {
+      throw new Error(response.message || 'Failed to start extraction');
+    }
+    return response.data;
+  }
+
+  /**
+   * Get user's extraction history
+   */
+  static async getExtractions(limit: number = 20, skip: number = 0): Promise<GetExtractionsResponse> {
+    const response = await apiClient.get<GetExtractionsResponse>(`/email-extractor/extractions?limit=${limit}&skip=${skip}`);
+    if (!response.data) {
+      throw new Error(response.message || 'Failed to get extractions');
+    }
+    return response.data;
+  }
+
+  /**
+   * Get specific extraction by job ID
+   */
+  static async getExtraction(jobId: string): Promise<GetExtractionResponse> {
+    const response = await apiClient.get<GetExtractionResponse>(`/email-extractor/extraction/${jobId}`);
+    if (!response.data) {
+      throw new Error(response.message || 'Failed to get extraction');
+    }
+    return response.data;
+  }
+
+  /**
+   * Download extraction results as CSV
+   */
+  static async downloadResults(jobId: string): Promise<Blob> {
+    const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/email-extractor/download/${jobId}`, {
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to download results');
+    }
+    
+    return response.blob();
+  }
+
+  /**
+   * Parse CSV file and extract URLs
+   */
+  static async parseCsvFile(file: File): Promise<ParseCsvResponse> {
+    const formData = new FormData();
+    formData.append('csvFile', file);
+
+    const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/email-extractor/parse-csv`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to parse CSV file');
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Get subscription limits and usage info
+   */
+  static async getSubscriptionInfo(): Promise<SubscriptionInfoResponse> {
+    const response = await apiClient.get<SubscriptionInfoResponse>('/email-extractor/subscription-info');
+    if (!response.data) {
+      throw new Error(response.message || 'Failed to get subscription info');
+    }
+    return response.data;
+  }
+
+  /**
+   * Log results viewed activity
+   */
+  static async logResultsViewed(jobId: string): Promise<{ success: boolean; message: string; timestamp: string }> {
+    const response = await apiClient.post<{ success: boolean; message: string; timestamp: string }>(`/email-extractor/log-viewed/${jobId}`);
+    if (!response.data) {
+      throw new Error(response.message || 'Failed to log results viewed');
+    }
+    return response.data;
+  }
+
+  /**
+   * Download CSV file
+   */
+  static downloadCsvFile(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+}

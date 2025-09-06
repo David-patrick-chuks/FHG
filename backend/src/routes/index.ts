@@ -1,9 +1,11 @@
 import { Router } from 'express';
+import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { AdminRoutes } from './AdminRoutes';
 import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
 import { CampaignRoutes } from './CampaignRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
+import { EmailExtractorRoutes } from './EmailExtractorRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
 import { TrackingRoutes } from './TrackingRoutes';
@@ -37,11 +39,24 @@ export class Routes {
       });
     });
 
+    // Development endpoint to clear rate limits (only in development)
+    if (process.env['NODE_ENV'] === 'development') {
+      router.post('/dev/clear-rate-limits', (_req, res) => {
+        AuthMiddleware.clearRateLimitStore();
+        res.status(200).json({
+          success: true,
+          message: 'Rate limits cleared for development',
+          timestamp: new Date()
+        });
+      });
+    }
+
     // Register all route modules
     router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
     router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
     router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
     router.use(DashboardRoutes.getBasePath(), DashboardRoutes.getRouter());
+    router.use(EmailExtractorRoutes.getBasePath(), EmailExtractorRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
     router.use(QueueRoutes.getBasePath(), QueueRoutes.getRouter());
@@ -67,6 +82,7 @@ export class Routes {
       BotRoutes.getBasePath(),
       CampaignRoutes.getBasePath(),
       DashboardRoutes.getBasePath(),
+      EmailExtractorRoutes.getBasePath(),
       SubscriptionRoutes.getBasePath(),
       AdminRoutes.getBasePath(),
       QueueRoutes.getBasePath(),
@@ -86,6 +102,7 @@ export class Routes {
       totalRoutes += this.countRoutesInModule(BotRoutes);
       totalRoutes += this.countRoutesInModule(CampaignRoutes);
       totalRoutes += this.countRoutesInModule(DashboardRoutes);
+      totalRoutes += this.countRoutesInModule(EmailExtractorRoutes);
       totalRoutes += this.countRoutesInModule(SubscriptionRoutes);
       totalRoutes += this.countRoutesInModule(AdminRoutes);
       totalRoutes += this.countRoutesInModule(QueueRoutes);

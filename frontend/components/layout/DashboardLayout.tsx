@@ -2,8 +2,9 @@
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { MailQuillIcon } from '@/components/ui/MailQuillIcon';
 import { useAuth } from '@/contexts/AuthContext';
-import { DashboardAPI } from '@/lib/api/dashboard';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { cn } from '@/lib/utils';
 import {
   Activity,
@@ -13,13 +14,14 @@ import {
   LogOut,
   Mail,
   Menu,
+  Search,
   User,
   Users,
   X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { AuthGuard } from '../auth/AuthGuard';
 
 interface SidebarItem {
@@ -46,6 +48,11 @@ const getSidebarItems = (unreadCount: number): SidebarItem[] => [
     icon: Bot,
   },
   {
+    label: 'Email Extractor',
+    href: '/dashboard/email-extractor',
+    icon: Search,
+  },
+  {
     label: 'Audience',
     href: '/dashboard/audience',
     icon: Users,
@@ -60,11 +67,6 @@ const getSidebarItems = (unreadCount: number): SidebarItem[] => [
     href: '/dashboard/activity',
     icon: Activity,
     badge: unreadCount > 0 ? unreadCount : undefined,
-  },
-  {
-    label: 'Profile',
-    href: '/dashboard/profile',
-    icon: User,
   },
 ];
 
@@ -82,27 +84,9 @@ export function DashboardLayout({
   actions 
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const { user, logout } = useAuth();
+  const { unreadCount } = useUnreadCount();
   const pathname = usePathname();
-
-  // Fetch unread activity count
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const response = await DashboardAPI.getUnreadCount();
-        if (response.success && response.data) {
-          setUnreadCount(response.data.unreadCount);
-        }
-      } catch (error) {
-        console.error('Failed to fetch unread count:', error);
-      }
-    };
-
-    if (user) {
-      fetchUnreadCount();
-    }
-  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -126,9 +110,14 @@ export function DashboardLayout({
       )}>
         {/* Header */}
         <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg">
+              <MailQuillIcon variant="gradient" size="sm" />
+            </div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            FHG AI Bot
+              MailQuill
           </h1>
+          </div>
           <Button
             variant="ghost"
             size="sm"

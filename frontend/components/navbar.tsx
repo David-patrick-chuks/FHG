@@ -3,23 +3,23 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { MailQuillIcon } from '@/components/ui/MailQuillIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  Bot,
-  Brain,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  User,
-  X
+    Bot,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    User,
+    X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -79,7 +79,7 @@ export function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg">
-                <Brain className="w-5 h-5 text-white" />
+                <MailQuillIcon variant="gradient" size="sm" />
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
                 MailQuill

@@ -3,6 +3,7 @@ export { AuthAPI } from './auth';
 export { BotsAPI } from './bots';
 export { CampaignsAPI } from './campaigns';
 export { DashboardAPI } from './dashboard';
+export { EmailExtractorAPI } from './email-extractor';
 export { SubscriptionsAPI } from './subscriptions';
 export { TrackingAPI } from './tracking';
 
@@ -27,6 +28,16 @@ export type {
 export type {
   QuickOverview
 } from './dashboard';
+
+export type {
+  EmailExtractionJob,
+  ExtractionResult,
+  StartExtractionRequest,
+  StartExtractionResponse,
+  GetExtractionsResponse,
+  GetExtractionResponse,
+  ParseCsvResponse
+} from './email-extractor';
 
 export type {
   CreateSubscriptionRequest,

@@ -16,7 +16,7 @@ export class ActivityService {
     metadata?: Record<string, any>
   ): Promise<ApiResponse<IActivityDocument>> {
     try {
-      const activity = await ActivityModel.logActivity(
+      const activity = await ActivityModel.createActivity(
         userId,
         type,
         title,

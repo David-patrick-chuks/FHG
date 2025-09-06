@@ -4,12 +4,21 @@ import { CampaignModel } from '../models/Campaign';
 import { SentEmailModel } from '../models/SentEmail';
 import { SubscriptionModel } from '../models/Subscription';
 import { ActivityService } from '../services/ActivityService';
-import { IUser } from '../types';
 import { Logger } from '../utils/Logger';
+
+// Interface for the authenticated user object from middleware
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  username: string;
+  subscriptionTier: string;
+  subscriptionExpiresAt?: Date;
+  isAdmin: boolean;
+}
 
 // Extend Request interface to include user property
 interface AuthenticatedRequest extends Request {
-  user?: IUser;
+  user?: AuthenticatedUser;
 }
 
 export class DashboardController {
@@ -47,14 +56,14 @@ export class DashboardController {
       }
       
       // Get user's subscription details
-      const subscription = await SubscriptionModel.getInstance().findOne({ userId: user._id });
+      const subscription = await SubscriptionModel.getInstance().findOne({ userId: user.id });
       
       // Get user's bots
-      const bots = await BotModel.getInstance().find({ userId: user._id });
+      const bots = await BotModel.getInstance().find({ userId: user.id });
       const activeBots = bots.filter(bot => bot.isActive);
       
       // Get user's campaigns
-      const campaigns = await CampaignModel.getInstance().find({ userId: user._id });
+      const campaigns = await CampaignModel.getInstance().find({ userId: user.id });
       const activeCampaigns = campaigns.filter(campaign => campaign.status === 'running');
       
       // Get email statistics for the current month
@@ -63,7 +72,7 @@ export class DashboardController {
       startOfMonth.setHours(0, 0, 0, 0);
       
       const emailsThisMonth = await SentEmailModel.getInstance().countDocuments({
-        userId: user._id,
+        userId: user.id,
         sentAt: { $gte: startOfMonth }
       });
       
@@ -138,7 +147,7 @@ export class DashboardController {
       
       // Get recent activities from the ActivityService
       const result = await ActivityService.getUserActivities(
-        user._id,
+        user.id,
         limit,
         skip
       );
@@ -150,8 +159,10 @@ export class DashboardController {
           type: activity.type,
           title: activity.title,
           description: activity.description,
-          time: this.formatTimeAgo(activity.timestamp),
+          time: DashboardController.formatTimeAgo(activity.timestamp),
           timestamp: activity.timestamp,
+          isRead: activity.isRead,
+          readAt: activity.readAt,
           metadata: activity.metadata
         }));
 
@@ -192,12 +203,12 @@ export class DashboardController {
       }
       
       // Get quick counts
-      const botCount = await BotModel.getInstance().countDocuments({ userId: user._id });
-      const campaignCount = await CampaignModel.getInstance().countDocuments({ userId: user._id });
-      const emailCount = await SentEmailModel.getInstance().countDocuments({ userId: user._id });
+      const botCount = await BotModel.getInstance().countDocuments({ userId: user.id });
+      const campaignCount = await CampaignModel.getInstance().countDocuments({ userId: user.id });
+      const emailCount = await SentEmailModel.getInstance().countDocuments({ userId: user.id });
       
       // Get subscription info
-      const subscription = await SubscriptionModel.getInstance().findOne({ userId: user._id });
+      const subscription = await SubscriptionModel.getInstance().findOne({ userId: user.id });
       
       const overview = {
         botCount,
@@ -234,7 +245,7 @@ export class DashboardController {
         return;
       }
 
-      const result = await ActivityService.getUnreadCount(user._id);
+      const result = await ActivityService.getUnreadCount(user.id);
 
       if (result.success) {
         res.status(200).json({
@@ -268,7 +279,7 @@ export class DashboardController {
         return;
       }
 
-      const result = await ActivityService.markAllAsRead(user._id);
+      const result = await ActivityService.markAllAsRead(user.id);
 
       if (result.success) {
         res.status(200).json({

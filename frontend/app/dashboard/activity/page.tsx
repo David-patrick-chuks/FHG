@@ -3,16 +3,22 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { DashboardAPI } from '@/lib/api';
 import { RecentActivity } from '@/types';
 import {
   Activity,
+  AlertTriangle,
   Bot,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  Download,
+  FileText,
   Mail,
+  Search,
   TrendingUp,
+  XCircle,
   Zap
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -26,6 +32,8 @@ export default function ActivityPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const fetchInProgress = useRef(false);
+  const markAllReadInProgress = useRef(false);
+  const { refreshUnreadCount } = useUnreadCount();
 
   // Fetch activity data
   const fetchActivities = useCallback(async () => {
@@ -57,43 +65,104 @@ export default function ActivityPage() {
     }
   }, [currentPage, pageSize]);
 
-  // Mark all activities as read when page loads
+  // Mark all activities as read when page loads (only if there are unread activities)
   const markAllAsRead = useCallback(async () => {
+    // Prevent duplicate calls
+    if (markAllReadInProgress.current) {
+      return;
+    }
+
     try {
+      markAllReadInProgress.current = true;
+      
+      // Check if there are any unread activities
+      const hasUnreadActivities = activities.some(activity => !activity.isRead);
+      
+      if (!hasUnreadActivities) {
+        console.log('No unread activities to mark as read');
+        return;
+      }
+
       await DashboardAPI.markAllAsRead();
       // Update local state to reflect all activities as read
       setActivities(prev => prev.map(activity => ({ ...activity, isRead: true })));
+      // Refresh the unread count in the sidebar
+      await refreshUnreadCount();
     } catch (error) {
       console.error('Failed to mark all activities as read:', error);
+    } finally {
+      markAllReadInProgress.current = false;
     }
-  }, []);
+  }, [activities, refreshUnreadCount]);
 
   useEffect(() => {
     fetchActivities();
   }, [fetchActivities]);
 
-  // Mark all activities as read when page loads
+  // Mark all activities as read when page loads (only after activities are loaded)
   useEffect(() => {
-    markAllAsRead();
-  }, [markAllAsRead]);
+    // Only mark as read if we have activities and they're not all already read
+    if (activities.length > 0 && !loading) {
+      markAllAsRead();
+    }
+  }, [activities, loading, markAllAsRead]);
 
   // Helper function to get icon component based on activity type
   const getActivityIcon = (type: string) => {
     switch (type) {
+      // Campaign activities
       case 'campaign_completed':
         return CheckCircle;
-      case 'bot_activated':
-        return Zap;
-      case 'performance_improved':
-        return TrendingUp;
       case 'campaign_started':
         return Mail;
-      case 'bot_updated':
-        return Bot;
       case 'campaign_created':
         return Mail;
       case 'email_sent':
         return Mail;
+      
+      // Bot activities
+      case 'bot_activated':
+        return Zap;
+      case 'bot_updated':
+        return Bot;
+      
+      // Performance activities
+      case 'performance_improved':
+        return TrendingUp;
+      
+      // User activities
+      case 'user_registered':
+      case 'user_login':
+      case 'user_logout':
+      case 'user_profile_updated':
+      case 'user_password_changed':
+        return Activity;
+      
+      // Email Extractor activities
+      case 'email_extraction_started':
+      case 'email_extraction_completed':
+      case 'email_extraction_single_url':
+      case 'email_extraction_multiple_urls':
+      case 'email_extraction_csv_upload':
+        return Search;
+      case 'email_extraction_failed':
+      case 'email_extraction_cancelled':
+        return XCircle;
+      case 'email_extraction_results_downloaded':
+        return Download;
+      case 'email_extraction_results_viewed':
+        return FileText;
+      case 'email_extraction_limit_reached':
+        return AlertTriangle;
+      case 'email_extraction_invalid_url':
+        return XCircle;
+      case 'email_extraction_rate_limited':
+        return AlertTriangle;
+      case 'email_extraction_performance_alert':
+        return TrendingUp;
+      case 'email_extraction_method_used':
+        return Search;
+      
       default:
         return Activity;
     }
@@ -102,20 +171,62 @@ export default function ActivityPage() {
   // Helper function to get icon color based on activity type
   const getActivityIconColor = (type: string) => {
     switch (type) {
+      // Campaign activities
       case 'campaign_completed':
         return 'text-green-600';
-      case 'bot_activated':
-        return 'text-blue-600';
-      case 'performance_improved':
-        return 'text-purple-600';
       case 'campaign_started':
         return 'text-orange-600';
-      case 'bot_updated':
-        return 'text-indigo-600';
       case 'campaign_created':
         return 'text-blue-600';
       case 'email_sent':
         return 'text-green-600';
+      
+      // Bot activities
+      case 'bot_activated':
+        return 'text-blue-600';
+      case 'bot_updated':
+        return 'text-indigo-600';
+      
+      // Performance activities
+      case 'performance_improved':
+        return 'text-purple-600';
+      
+      // User activities
+      case 'user_registered':
+        return 'text-green-600';
+      case 'user_login':
+        return 'text-blue-600';
+      case 'user_logout':
+        return 'text-gray-600';
+      case 'user_profile_updated':
+        return 'text-purple-600';
+      case 'user_password_changed':
+        return 'text-orange-600';
+      
+      // Email Extractor activities
+      case 'email_extraction_started':
+      case 'email_extraction_single_url':
+      case 'email_extraction_multiple_urls':
+      case 'email_extraction_csv_upload':
+        return 'text-blue-600';
+      case 'email_extraction_completed':
+        return 'text-green-600';
+      case 'email_extraction_failed':
+      case 'email_extraction_cancelled':
+      case 'email_extraction_invalid_url':
+        return 'text-red-600';
+      case 'email_extraction_results_downloaded':
+        return 'text-purple-600';
+      case 'email_extraction_results_viewed':
+        return 'text-indigo-600';
+      case 'email_extraction_limit_reached':
+      case 'email_extraction_rate_limited':
+        return 'text-orange-600';
+      case 'email_extraction_performance_alert':
+        return 'text-yellow-600';
+      case 'email_extraction_method_used':
+        return 'text-cyan-600';
+      
       default:
         return 'text-gray-600';
     }
@@ -231,7 +342,7 @@ export default function ActivityPage() {
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             {activity.description}
                           </p>
-                          {activity.metadata && (
+                          {activity.metadata && Object.keys(activity.metadata).length > 0 && (
                             <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                               {JSON.stringify(activity.metadata)}
                             </div>

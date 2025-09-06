@@ -56,6 +56,22 @@ export enum ActivityType {
   SUBSCRIPTION_CANCELLED = 'subscription_cancelled',
   SUBSCRIPTION_EXPIRED = 'subscription_expired',
   
+  // Email Extractor Activities
+  EMAIL_EXTRACTION_STARTED = 'email_extraction_started',
+  EMAIL_EXTRACTION_COMPLETED = 'email_extraction_completed',
+  EMAIL_EXTRACTION_FAILED = 'email_extraction_failed',
+  EMAIL_EXTRACTION_CANCELLED = 'email_extraction_cancelled',
+  EMAIL_EXTRACTION_SINGLE_URL = 'email_extraction_single_url',
+  EMAIL_EXTRACTION_MULTIPLE_URLS = 'email_extraction_multiple_urls',
+  EMAIL_EXTRACTION_CSV_UPLOAD = 'email_extraction_csv_upload',
+  EMAIL_EXTRACTION_RESULTS_DOWNLOADED = 'email_extraction_results_downloaded',
+  EMAIL_EXTRACTION_RESULTS_VIEWED = 'email_extraction_results_viewed',
+  EMAIL_EXTRACTION_LIMIT_REACHED = 'email_extraction_limit_reached',
+  EMAIL_EXTRACTION_INVALID_URL = 'email_extraction_invalid_url',
+  EMAIL_EXTRACTION_RATE_LIMITED = 'email_extraction_rate_limited',
+  EMAIL_EXTRACTION_PERFORMANCE_ALERT = 'email_extraction_performance_alert',
+  EMAIL_EXTRACTION_METHOD_USED = 'email_extraction_method_used',
+  
   // System Activities
   SYSTEM_ERROR = 'system_error',
   PERFORMANCE_ALERT = 'performance_alert',
@@ -278,7 +294,7 @@ export class ActivityModel {
     metadata?: Record<string, any>
   ): Promise<IActivityDocument> {
     const model = ActivityModel.getInstance();
-    return await model.logActivity(userId, type, title, description, metadata);
+    return await (model as any).createActivity(userId, type, title, description, metadata);
   }
 
   public static async getUserActivities(
@@ -288,7 +304,7 @@ export class ActivityModel {
     types?: ActivityType[]
   ): Promise<IActivityDocument[]> {
     const model = ActivityModel.getInstance();
-    return await model.getUserActivities(userId, limit, skip, types);
+    return await (model as any).getUserActivities(userId, limit, skip, types);
   }
 
   public static async getActivityStats(
@@ -296,21 +312,21 @@ export class ActivityModel {
     days: number = 30
   ): Promise<Record<string, number>> {
     const model = ActivityModel.getInstance();
-    return await model.getActivityStats(userId, days);
+    return await (model as any).getActivityStats(userId, days);
   }
 
   public static async getUnreadCount(
     userId: string
   ): Promise<number> {
     const model = ActivityModel.getInstance();
-    return await model.getUnreadCount(userId);
+    return await (model as any).getUnreadCount(userId);
   }
 
   public static async markAllAsRead(
     userId: string
   ): Promise<void> {
     const model = ActivityModel.getInstance();
-    return await model.markAllAsRead(userId);
+    return await (model as any).markAllAsRead(userId);
   }
 
   public static async markAsRead(
@@ -318,6 +334,6 @@ export class ActivityModel {
     userId: string
   ): Promise<boolean> {
     const model = ActivityModel.getInstance();
-    return await model.markAsRead(activityId, userId);
+    return await (model as any).markAsRead(activityId, userId);
   }
 }

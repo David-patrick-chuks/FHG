@@ -65,12 +65,17 @@ export class MiddlewareService {
    * Create rate limiter configuration
    */
   private static createRateLimiter() {
+    // More lenient rate limits for development
+    const isDevelopment = process.env['NODE_ENV'] === 'development';
+    const windowMs = parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || (isDevelopment ? '300000' : '900000')); // 5 min dev, 15 min prod
+    const maxRequests = parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || (isDevelopment ? '1000' : '100')); // 1000 dev, 100 prod
+    
     return rateLimit({
-      windowMs: parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000'),
-      max: parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100'),
+      windowMs,
+      max: maxRequests,
       message: {
         error: 'Too many requests from this IP, please try again later.',
-        retryAfter: Math.ceil(parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '900000') / 1000)
+        retryAfter: Math.ceil(windowMs / 1000)
       },
       standardHeaders: true,
       legacyHeaders: false,

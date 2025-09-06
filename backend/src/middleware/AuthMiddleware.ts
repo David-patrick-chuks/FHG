@@ -225,8 +225,10 @@ export class AuthMiddleware {
 
     const userId = (req as any).user.id;
     const now = Date.now();
-    const windowMs = 15 * 60 * 1000; // 15 minutes
-    const maxRequests = 100; // Max requests per window
+    // More lenient rate limits for development
+    const isDevelopment = process.env['NODE_ENV'] === 'development';
+    const windowMs = isDevelopment ? 5 * 60 * 1000 : 15 * 60 * 1000; // 5 min dev, 15 min prod
+    const maxRequests = isDevelopment ? 1000 : 100; // 1000 dev, 100 prod
 
     // Initialize rate limit storage if not exists
     if (!(AuthMiddleware as any).rateLimitStore) {
@@ -445,6 +447,16 @@ export class AuthMiddleware {
           (AuthMiddleware as any).rateLimitStore.delete(userId);
         }
       }
+    }
+  }
+
+  /**
+   * Clear rate limit store (useful for development/testing)
+   */
+  public static clearRateLimitStore(): void {
+    if ((AuthMiddleware as any).rateLimitStore) {
+      (AuthMiddleware as any).rateLimitStore.clear();
+      AuthMiddleware.logger.info('Rate limit store cleared');
     }
   }
 }
