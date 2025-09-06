@@ -107,6 +107,10 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>10 Email Extractions/day</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
                   <span>Analytics</span>
                 </li>
                 <li className="flex items-center">
@@ -172,11 +176,23 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>50 Email Extractions/day</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>CSV Upload Support</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>Advanced Email Extraction</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
                   <span>Analytics</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span>Customer Support</span>
+                  <span>Priority Support</span>
                 </li>
               </ul>
               <Button 
@@ -222,10 +238,10 @@ export default function PricingPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-4 mb-8">
-                                 <li className="flex items-center">
-                   <Check className="w-5 h-5 text-green-500 mr-3" />
-                   <span>50 Bots</span>
-                 </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>50 Bots</span>
+                </li>
                 <li className="flex items-center">
                   <Check className="w-5 h-5 text-green-500 mr-3" />
                   <span>50,000 Daily Emails</span>
@@ -236,11 +252,31 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center">
                   <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>Unlimited Email Extractions</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>CSV Upload Support</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>Advanced Email Extraction</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>API Access</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
+                  <span>Custom Integrations</span>
+                </li>
+                <li className="flex items-center">
+                  <Check className="w-5 h-5 text-green-500 mr-3" />
                   <span>Analytics</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="w-5 h-5 text-green-500 mr-3" />
-                  <span>Customer Support</span>
+                  <span>Dedicated Support</span>
                 </li>
               </ul>
               <Button 

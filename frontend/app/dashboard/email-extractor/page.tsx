@@ -1,7 +1,6 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { UpgradePlanModal } from '@/components/modals/UpgradePlanModal';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +16,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  Copy,
   Crown,
   Download,
   ExternalLink,
@@ -26,9 +25,11 @@ import {
   Link,
   Loader2,
   Mail,
+  Share,
   Upload,
   XCircle
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 interface SubscriptionInfo {
@@ -55,6 +56,7 @@ interface SubscriptionInfo {
 }
 
 export default function EmailExtractorPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('single');
   const [singleUrl, setSingleUrl] = useState('');
   const [multipleUrls, setMultipleUrls] = useState('');
@@ -65,14 +67,12 @@ export default function EmailExtractorPage() {
   const [extractionHistory, setExtractionHistory] = useState<EmailExtractionJob[]>([]);
   const [parsedUrls, setParsedUrls] = useState<string[]>([]);
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fetchInProgress = useRef(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch subscription info and simulate initial loading
+    // Fetch subscription info and recent extractions
     const fetchData = async () => {
       // Prevent duplicate calls
       if (fetchInProgress.current) {
@@ -81,12 +81,22 @@ export default function EmailExtractorPage() {
 
       try {
         fetchInProgress.current = true;
-        const response = await EmailExtractorAPI.getSubscriptionInfo();
-        if (response.success) {
-          setSubscriptionInfo(response.data);
+        
+        // Fetch subscription info and recent extractions in parallel
+        const [subscriptionResponse, extractionsResponse] = await Promise.all([
+          EmailExtractorAPI.getSubscriptionInfo(),
+          EmailExtractorAPI.getExtractions(10, 0)
+        ]);
+        
+        if (subscriptionResponse.success && subscriptionResponse.data) {
+          setSubscriptionInfo(subscriptionResponse.data);
+        }
+        
+        if (extractionsResponse.success && extractionsResponse.data) {
+          setExtractionHistory(extractionsResponse.data);
         }
       } catch (error) {
-        console.error('Failed to fetch subscription info:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         fetchInProgress.current = false;
       }
@@ -108,6 +118,17 @@ export default function EmailExtractorPage() {
         description: 'Please enter a valid URL',
         variant: 'destructive'
       });
+      return;
+    }
+
+    // Check if user has reached their daily limit
+    if (subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited) {
+      toast({
+        title: 'Daily Limit Reached',
+        description: `You've reached your daily limit of ${subscriptionInfo.limits.dailyExtractionLimit} extractions. Upgrade your plan for more extractions.`,
+        variant: 'destructive'
+      });
+      router.push('/pricing');
       return;
     }
 
@@ -138,6 +159,17 @@ export default function EmailExtractorPage() {
       return;
     }
 
+    // Check if user has reached their daily limit
+    if (subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited) {
+      toast({
+        title: 'Daily Limit Reached',
+        description: `You've reached your daily limit of ${subscriptionInfo.limits.dailyExtractionLimit} extractions. Upgrade your plan for more extractions.`,
+        variant: 'destructive'
+      });
+      router.push('/pricing');
+      return;
+    }
+
     await startExtraction(urls, 'multiple');
   };
 
@@ -153,8 +185,12 @@ export default function EmailExtractorPage() {
 
     // Check if user can use CSV upload
     if (subscriptionInfo && !subscriptionInfo.canUseCsv) {
-      setUpgradeReason('CSV upload is not available in your current plan. Upgrade to Pro or Enterprise to use this feature.');
-      setShowUpgradeModal(true);
+      toast({
+        title: 'Upgrade Required',
+        description: 'CSV upload is not available in your current plan. Upgrade to Pro or Enterprise to use this feature.',
+        variant: 'destructive'
+      });
+      router.push('/pricing');
       return;
     }
 
@@ -178,8 +214,12 @@ export default function EmailExtractorPage() {
         });
       } else {
         if (response.requiresUpgrade) {
-          setUpgradeReason(response.message || 'CSV upload requires an upgrade.');
-          setShowUpgradeModal(true);
+          toast({
+            title: 'Upgrade Required',
+            description: response.message || 'CSV upload requires an upgrade.',
+            variant: 'destructive'
+          });
+          router.push('/pricing');
         } else {
           toast({
             title: 'Error',
@@ -209,17 +249,22 @@ export default function EmailExtractorPage() {
       return;
     }
 
+    // Check if user has reached their daily limit
+    if (subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited) {
+      toast({
+        title: 'Daily Limit Reached',
+        description: `You've reached your daily limit of ${subscriptionInfo.limits.dailyExtractionLimit} extractions. Upgrade your plan for more extractions.`,
+        variant: 'destructive'
+      });
+      router.push('/pricing');
+      return;
+    }
+
     await startExtraction(parsedUrls, 'csv');
   };
 
-  const handleUpgrade = (plan: 'pro' | 'enterprise') => {
-    // Here you would typically redirect to a payment page or handle the upgrade
-    toast({
-      title: 'Upgrade Selected',
-      description: `Redirecting to upgrade to ${plan} plan...`,
-    });
-    setShowUpgradeModal(false);
-    // TODO: Implement actual upgrade flow
+  const handleUpgrade = () => {
+    router.push('/pricing');
   };
 
   const startExtraction = async (urls: string[], extractionType: 'single' | 'multiple' | 'csv' = 'multiple') => {
@@ -227,7 +272,7 @@ export default function EmailExtractorPage() {
       setIsLoading(true);
       const response = await EmailExtractorAPI.startExtraction(urls, extractionType);
       
-      if (response.success) {
+      if (response.success && response.data) {
         setCurrentJob({
           id: response.data.jobId,
           jobId: response.data.jobId,
@@ -238,6 +283,19 @@ export default function EmailExtractorPage() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
+
+        // Clear form fields after successful extraction start
+        if (extractionType === 'single') {
+          setSingleUrl('');
+        } else if (extractionType === 'multiple') {
+          setMultipleUrls('');
+        } else if (extractionType === 'csv') {
+          setParsedUrls([]);
+          setCsvFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
 
         toast({
           title: 'Success',
@@ -265,8 +323,12 @@ export default function EmailExtractorPage() {
   };
 
   const pollJobStatus = async (jobId: string) => {
+    let pollCount = 0;
+    const maxPolls = 150; // 5 minutes with 2-second intervals
+    
     const pollInterval = setInterval(async () => {
       try {
+        pollCount++;
         const response = await EmailExtractorAPI.getExtraction(jobId);
         
         if (response.success && response.data) {
@@ -275,23 +337,48 @@ export default function EmailExtractorPage() {
           if (response.data.status === 'completed' || response.data.status === 'failed') {
             clearInterval(pollInterval);
             loadExtractionHistory();
+            
+            // Show completion toast
+            if (response.data.status === 'completed') {
+              toast({
+                title: 'Extraction Completed',
+                description: `Found ${response.data.totalEmails} emails from ${response.data.urls.length} websites`
+              });
+            } else {
+              toast({
+                title: 'Extraction Failed',
+                description: response.data.error || 'An error occurred during extraction',
+                variant: 'destructive'
+              });
+            }
           }
+        }
+        
+        // Stop polling after max attempts
+        if (pollCount >= maxPolls) {
+          clearInterval(pollInterval);
+          toast({
+            title: 'Extraction Timeout',
+            description: 'The extraction is taking longer than expected. Please check back later.',
+            variant: 'destructive'
+          });
         }
       } catch (error) {
         console.error('Error polling job status:', error);
+        pollCount++;
+        
+        // Stop polling after too many errors
+        if (pollCount >= maxPolls) {
+          clearInterval(pollInterval);
+        }
       }
     }, 2000);
-
-    // Clear interval after 5 minutes
-    setTimeout(() => {
-      clearInterval(pollInterval);
-    }, 300000);
   };
 
   const loadExtractionHistory = async () => {
     try {
       const response = await EmailExtractorAPI.getExtractions(10, 0);
-      if (response.success) {
+      if (response.success && response.data) {
         setExtractionHistory(response.data);
       }
     } catch (error) {
@@ -312,6 +399,51 @@ export default function EmailExtractorPage() {
       toast({
         title: 'Error',
         description: 'Failed to download results',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const copyEmails = async (emails: string[]) => {
+    try {
+      const emailText = emails.join(', ');
+      await navigator.clipboard.writeText(emailText);
+      toast({
+        title: 'Success',
+        description: `${emails.length} email(s) copied to clipboard`
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to copy emails',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const shareExtraction = async (job: EmailExtractionJob) => {
+    try {
+      const shareData = {
+        title: 'Email Extraction Results',
+        text: `Found ${job.totalEmails} emails from ${job.urls.length} websites`,
+        url: window.location.href
+      };
+      
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy to clipboard
+        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+        await navigator.clipboard.writeText(shareText);
+        toast({
+          title: 'Success',
+          description: 'Extraction details copied to clipboard'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to share extraction',
         variant: 'destructive'
       });
     }
@@ -349,133 +481,127 @@ export default function EmailExtractorPage() {
     if (job.results.length === 0) return 0;
     
     const completedResults = job.results.filter(r => r.status === 'success' || r.status === 'failed').length;
-    return (completedResults / job.urls.length) * 100;
+    const progress = (completedResults / job.urls.length) * 100;
+    
+    // Ensure progress is between 0 and 100
+    return Math.min(Math.max(progress, 0), 100);
+  };
+
+  const getProgressText = (job: EmailExtractionJob) => {
+    if (job.status === 'completed') return 'Completed';
+    if (job.status === 'failed') return 'Failed';
+    if (job.results.length === 0) return 'Starting...';
+    
+    const completedResults = job.results.filter(r => r.status === 'success' || r.status === 'failed').length;
+    const processingResults = job.results.filter(r => r.status === 'processing').length;
+    
+    if (completedResults === 0 && processingResults === 0) {
+      return 'Initializing...';
+    }
+    
+    if (processingResults > 0) {
+      return `Processing ${processingResults} of ${job.urls.length} URLs...`;
+    }
+    
+    return `Completed ${completedResults} of ${job.urls.length} URLs`;
   };
 
   const EmailExtractorSkeleton = () => (
     <div className="space-y-6">
-      {/* Tabs Skeleton */}
-      <div className="space-y-6">
-        <div className="grid w-full grid-cols-3 gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-
-        {/* Single URL Tab Content Skeleton */}
+      {/* Subscription Limits Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-80" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
-
-        {/* Multiple URLs Tab Content Skeleton */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-52" />
-            <Skeleton className="h-4 w-72" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-3 w-64" />
-            </div>
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
-
-        {/* CSV Upload Tab Content Skeleton */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-44" />
-            <Skeleton className="h-4 w-76" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <div className="flex items-center space-x-2">
-                <Skeleton className="h-10 flex-1" />
-                <Skeleton className="h-10 w-10" />
-              </div>
-              <Skeleton className="h-3 w-80" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Current Job Status Skeleton */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-4 w-4 rounded-full" />
-              <Skeleton className="h-6 w-48" />
-            </div>
-            <Skeleton className="h-4 w-32" />
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-4 w-24" />
+              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
             </div>
-            <Skeleton className="h-2 w-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-16" />
-              <div className="space-y-2 max-h-60">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-4 w-48" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-5 w-16" />
-                      <Skeleton className="h-4 w-4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
-
-        {/* Extraction History Skeleton */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-56" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-5 w-16" />
-                    </div>
-                    <Skeleton className="h-3 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </div>
+              <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Tabs Skeleton */}
+      <div className="grid w-full grid-cols-3 gap-2">
+        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      </div>
+
+      {/* Tab Content Skeleton */}
+      <Card>
+        <CardHeader>
+          <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="h-4 w-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Extractions Skeleton */}
+      <Card>
+        <CardHeader>
+          <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="h-4 w-56 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-4 border rounded-lg animate-pulse">
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                  <div className="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-3 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
@@ -542,18 +668,15 @@ export default function EmailExtractorPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Plan Features</CardTitle>
-                {subscriptionInfo.needsUpgrade && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setUpgradeReason(subscriptionInfo.upgradeRecommendation?.reason || 'Upgrade to unlock more features');
-                      setShowUpgradeModal(true);
-                    }}
-                  >
-                    Upgrade Plan
-                  </Button>
-                )}
+              {subscriptionInfo?.needsUpgrade && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUpgrade}
+                >
+                  Upgrade Plan
+                </Button>
+              )}
               </div>
             </CardHeader>
             <CardContent>
@@ -567,31 +690,28 @@ export default function EmailExtractorPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">CSV Upload</span>
                   <div className="flex items-center gap-2">
-                    {subscriptionInfo.canUseCsv ? (
+                    {subscriptionInfo?.canUseCsv ? (
                       <CheckCircle className="h-4 w-4 text-green-500" />
                     ) : (
                       <XCircle className="h-4 w-4 text-red-500" />
                     )}
                     <span className="font-medium">
-                      {subscriptionInfo.canUseCsv ? 'Available' : 'Not Available'}
+                      {subscriptionInfo?.canUseCsv ? 'Available' : 'Not Available'}
                     </span>
                   </div>
                 </div>
-                {!subscriptionInfo.canUseCsv && (
+                {subscriptionInfo && !subscriptionInfo.canUseCsv && (
                   <Alert>
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                       CSV upload is not available in your current plan. 
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto ml-1"
-                        onClick={() => {
-                          setUpgradeReason('CSV upload is not available in your current plan. Upgrade to Pro or Enterprise to use this feature.');
-                          setShowUpgradeModal(true);
-                        }}
-                      >
-                        Upgrade now
-                      </Button>
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto ml-1"
+                      onClick={handleUpgrade}
+                    >
+                      Upgrade now
+                    </Button>
                     </AlertDescription>
                   </Alert>
                 )}
@@ -603,17 +723,38 @@ export default function EmailExtractorPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="single" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="single" 
+            className="flex items-center gap-2"
+            disabled={!!(subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited)}
+          >
             <Link className="h-4 w-4" />
             Single URL
+            {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited && (
+              <Crown className="h-3 w-3 text-yellow-500" />
+            )}
           </TabsTrigger>
-          <TabsTrigger value="multiple" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="multiple" 
+            className="flex items-center gap-2"
+            disabled={!!(subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited)}
+          >
             <FileText className="h-4 w-4" />
             Multiple URLs
+            {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited && (
+              <Crown className="h-3 w-3 text-yellow-500" />
+            )}
           </TabsTrigger>
-          <TabsTrigger value="csv" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="csv" 
+            className="flex items-center gap-2"
+            disabled={!subscriptionInfo?.canUseCsv || false}
+          >
             <Upload className="h-4 w-4" />
             CSV Upload
+            {!subscriptionInfo?.canUseCsv && (
+              <Crown className="h-3 w-3 text-yellow-500" />
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -626,33 +767,53 @@ export default function EmailExtractorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="single-url">Store Website URL</Label>
-                <Input
-                  id="single-url"
-                  type="url"
-                  placeholder="https://example-store.com"
-                  value={singleUrl}
-                  onChange={(e) => setSingleUrl(e.target.value)}
-                />
-              </div>
-              <Button 
-                onClick={handleSingleUrlExtraction} 
-                disabled={isLoading || !singleUrl.trim()}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Extracting...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Extract Emails
-                  </>
-                )}
-              </Button>
+              {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p>You've reached your daily limit of {subscriptionInfo.limits.dailyExtractionLimit} extractions.</p>
+                      <Button onClick={handleUpgrade} className="w-full">
+                        <Crown className="mr-2 h-4 w-4" />
+                        Upgrade Plan for More Extractions
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="single-url">Store Website URL</Label>
+                    <Input
+                      id="single-url"
+                      type="text"
+                      placeholder="example-store.com or https://example-store.com"
+                      value={singleUrl}
+                      onChange={(e) => setSingleUrl(e.target.value)}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      You can enter URLs with or without https:// - we'll add it automatically if needed.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleSingleUrlExtraction} 
+                    disabled={isLoading || !singleUrl.trim()}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Extract Emails
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -666,36 +827,53 @@ export default function EmailExtractorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="multiple-urls">Store Website URLs</Label>
-                <Textarea
-                  id="multiple-urls"
-                  placeholder="https://example-store1.com&#10;https://example-store2.com&#10;https://example-store3.com"
-                  value={multipleUrls}
-                  onChange={(e) => setMultipleUrls(e.target.value)}
-                  rows={6}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Enter one URL per line. Maximum 50 URLs allowed.
-                </p>
-              </div>
-              <Button 
-                onClick={handleMultipleUrlsExtraction} 
-                disabled={isLoading || !multipleUrls.trim()}
-                className="w-full"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Extracting...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Extract Emails
-                  </>
-                )}
-              </Button>
+              {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p>You've reached your daily limit of {subscriptionInfo.limits.dailyExtractionLimit} extractions.</p>
+                      <Button onClick={handleUpgrade} className="w-full">
+                        <Crown className="mr-2 h-4 w-4" />
+                        Upgrade Plan for More Extractions
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="multiple-urls">Store Website URLs</Label>
+                    <Textarea
+                      id="multiple-urls"
+                      placeholder="example-store1.com&#10;example-store2.com&#10;https://example-store3.com"
+                      value={multipleUrls}
+                      onChange={(e) => setMultipleUrls(e.target.value)}
+                      rows={6}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Enter one URL per line. Maximum 50 URLs allowed. You can enter URLs with or without https://.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleMultipleUrlsExtraction} 
+                    disabled={isLoading || !multipleUrls.trim()}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Extract Emails
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -709,77 +887,107 @@ export default function EmailExtractorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="csv-file">CSV File</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    id="csv-file"
-                    type="file"
-                    accept=".csv"
-                    ref={fileInputRef}
-                    onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  CSV file should contain URLs in the first column. Maximum file size: 5MB.
-                </p>
-              </div>
+              {!subscriptionInfo?.canUseCsv ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p>CSV upload is not available in your current plan. Upgrade to Pro or Enterprise to use this feature.</p>
+                      <Button onClick={handleUpgrade} className="w-full">
+                        <Crown className="mr-2 h-4 w-4" />
+                        Upgrade Plan for CSV Upload
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p>You've reached your daily limit of {subscriptionInfo.limits.dailyExtractionLimit} extractions.</p>
+                      <Button onClick={handleUpgrade} className="w-full">
+                        <Crown className="mr-2 h-4 w-4" />
+                        Upgrade Plan for More Extractions
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="csv-file">CSV File</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="csv-file"
+                        type="file"
+                        accept=".csv"
+                        ref={fileInputRef}
+                        onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      CSV file should contain URLs in the first column. Maximum file size: 5MB.
+                    </p>
+                  </div>
 
-              {csvFile && (
-                <div className="space-y-2">
-                  <Button 
-                    onClick={handleCsvFileUpload} 
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Parsing...
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="mr-2 h-4 w-4" />
-                        Parse CSV File
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
+                  {csvFile && (
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={handleCsvFileUpload} 
+                        disabled={isLoading}
+                        className="w-full"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Parsing...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Parse CSV File
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
 
-              {parsedUrls.length > 0 && (
-                <div className="space-y-2">
-                  <Alert>
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Successfully parsed {parsedUrls.length} URLs from CSV file
-                    </AlertDescription>
-                  </Alert>
-                  <Button 
-                    onClick={handleCsvExtraction} 
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Extracting...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Extract Emails from {parsedUrls.length} URLs
-                      </>
-                    )}
-                  </Button>
-                </div>
+                  {parsedUrls.length > 0 && (
+                    <div className="space-y-2">
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Successfully parsed {parsedUrls.length} URLs from CSV file
+                        </AlertDescription>
+                      </Alert>
+                      <Button 
+                        onClick={handleCsvExtraction} 
+                        disabled={isLoading}
+                        className="w-full"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Extracting...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Extract Emails from {parsedUrls.length} URLs
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
@@ -793,9 +1001,20 @@ export default function EmailExtractorPage() {
             <CardTitle className="flex items-center gap-2">
               {getStatusIcon(currentJob.status)}
               Current Extraction Job
+              {currentJob.status === 'processing' && (
+                <div className="flex items-center gap-1 text-sm text-blue-600">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  In Progress
+                </div>
+              )}
             </CardTitle>
             <CardDescription>
               Job ID: {currentJob.jobId}
+              {currentJob.status === 'processing' && (
+                <span className="ml-2 text-blue-600">
+                  • {getProgressText(currentJob)}
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -808,25 +1027,70 @@ export default function EmailExtractorPage() {
               </span>
             </div>
             
-            <Progress value={getProgress(currentJob)} className="w-full" />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{getProgressText(currentJob)}</span>
+                <span className="font-medium">{Math.round(getProgress(currentJob))}%</span>
+              </div>
+              <Progress value={getProgress(currentJob)} className="w-full" />
+            </div>
             
             <div className="space-y-2">
               <h4 className="font-medium">Results:</h4>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {currentJob.results.map((result, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-mono truncate max-w-xs">
-                        {result.url}
-                      </span>
+                  <div key={index} className="p-3 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-mono truncate max-w-xs">
+                          {result.url}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {result.emails.length} emails
+                        </Badge>
+                        {getStatusIcon(result.status)}
+                        {result.status === 'processing' && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Processing...
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {result.emails.length} emails
-                      </Badge>
-                      {getStatusIcon(result.status)}
-                    </div>
+                    {result.emails.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Emails found:</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyEmails(result.emails)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy All
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {result.emails.map((email, emailIndex) => (
+                            <div key={emailIndex} className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">
+                              <span className="truncate max-w-32">{email}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyEmails([email])}
+                                className="h-4 w-4 p-0"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -856,9 +1120,9 @@ export default function EmailExtractorPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {extractionHistory.map((job) => (
+              {extractionHistory.slice(0, 5).map((job) => (
                 <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(job.status)}
                       <span className="font-medium">Job {job.jobId.slice(-8)}</span>
@@ -869,44 +1133,58 @@ export default function EmailExtractorPage() {
                     <p className="text-sm text-muted-foreground">
                       {job.urls.length} URLs • {job.totalEmails} emails found
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(job.createdAt).toLocaleString()}
-                    </p>
+                    <div className="text-xs text-muted-foreground">
+                      <p>Websites: {job.urls.slice(0, 2).join(', ')}{job.urls.length > 2 && ` +${job.urls.length - 2} more`}</p>
+                      <p>{new Date(job.createdAt).toLocaleString()}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {job.status === 'completed' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => downloadResults(job.jobId)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadResults(job.jobId)}
+                          title="Download CSV"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => shareExtraction(job)}
+                          title="Share extraction"
+                        >
+                          <Share className="h-4 w-4" />
+                        </Button>
+                      </>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentJob(job)}
+                      title="View details"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               ))}
+              {extractionHistory.length > 5 && (
+                <div className="text-center pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/dashboard/email-extractor/history')}
+                  >
+                    View All Extractions ({extractionHistory.length})
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Upgrade Plan Modal */}
-      <UpgradePlanModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        onUpgrade={handleUpgrade}
-        currentPlan={subscriptionInfo?.limits.planName || 'free'}
-        feature="CSV Upload"
-        reason={upgradeReason}
-      />
     </DashboardLayout>
   );
 }

@@ -24,16 +24,23 @@ export class UrlUtils {
   }
 
   /**
-   * Validate URLs
+   * Normalize and validate URLs - automatically add https:// if no protocol
    */
   public static validateUrls(urls: string[]): string[] {
     const validUrls: string[] = [];
     
     for (const url of urls) {
       try {
-        const urlObj = new URL(url);
+        let normalizedUrl = url.trim();
+        
+        // If no protocol is provided, try adding https://
+        if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+          normalizedUrl = `https://${normalizedUrl}`;
+        }
+        
+        const urlObj = new URL(normalizedUrl);
         if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
-          validUrls.push(url);
+          validUrls.push(normalizedUrl);
         }
       } catch (error) {
         UrlUtils.logger.warn('Invalid URL provided', { url, error });

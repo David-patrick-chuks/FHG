@@ -102,7 +102,6 @@ const emailExtractionSchema = new Schema<IEmailExtractionDocument>({
 // Indexes for better query performance
 emailExtractionSchema.index({ userId: 1, createdAt: -1 });
 emailExtractionSchema.index({ status: 1, createdAt: -1 });
-emailExtractionSchema.index({ jobId: 1 });
 
 // Static methods
 emailExtractionSchema.statics.createExtraction = async function(

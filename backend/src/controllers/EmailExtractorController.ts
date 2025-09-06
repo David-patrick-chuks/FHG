@@ -134,7 +134,7 @@ export class EmailExtractorController {
       const result = await EmailExtractorCore.getExtractionByJobId(jobId);
       
       if (result.success) {
-        if (result.data && result.data.userId !== userId) {
+        if (result.data && String(result.data.userId) !== String(userId)) {
           res.status(403).json({
             success: false,
             message: 'Access denied to this extraction',
@@ -194,7 +194,7 @@ export class EmailExtractorController {
         return;
       }
 
-      if (result.data.userId !== userId) {
+      if (String(result.data.userId) !== String(userId)) {
         res.status(403).json({
           success: false,
           message: 'Access denied to this extraction',
@@ -304,11 +304,18 @@ export class EmailExtractorController {
           if (url) {
             urls.push(url);
             
-            // Validate URL
+            // Validate URL - automatically add https:// if no protocol
             try {
-              const urlObj = new URL(url);
+              let normalizedUrl = url.trim();
+              
+              // If no protocol is provided, try adding https://
+              if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+                normalizedUrl = `https://${normalizedUrl}`;
+              }
+              
+              const urlObj = new URL(normalizedUrl);
               if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
-                validUrls.push(url);
+                validUrls.push(normalizedUrl);
               }
             } catch (error) {
               this.logger.warn('Invalid URL in CSV', { url, error });

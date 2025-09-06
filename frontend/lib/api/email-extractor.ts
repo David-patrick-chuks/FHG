@@ -28,25 +28,25 @@ export interface StartExtractionRequest {
 
 export interface StartExtractionResponse {
   success: boolean;
-  data: {
+  data?: {
     jobId: string;
   };
-  message: string;
-  timestamp: string;
+  message?: string;
+  timestamp?: string;
 }
 
 export interface GetExtractionsResponse {
   success: boolean;
-  data: EmailExtractionJob[];
-  message: string;
-  timestamp: string;
+  data?: EmailExtractionJob[];
+  message?: string;
+  timestamp?: string;
 }
 
 export interface GetExtractionResponse {
   success: boolean;
-  data: EmailExtractionJob | null;
-  message: string;
-  timestamp: string;
+  data?: EmailExtractionJob | null;
+  message?: string;
+  timestamp?: string;
 }
 
 export interface ParseCsvResponse {
@@ -65,7 +65,7 @@ export interface ParseCsvResponse {
 
 export interface SubscriptionInfoResponse {
   success: boolean;
-  data: {
+  data?: {
     limits: {
       dailyExtractionLimit: number;
       canUseCsvUpload: boolean;
@@ -87,8 +87,8 @@ export interface SubscriptionInfoResponse {
       currentPlan: string;
     };
   };
-  message: string;
-  timestamp: string;
+  message?: string;
+  timestamp?: string;
 }
 
 export class EmailExtractorAPI {
@@ -96,36 +96,36 @@ export class EmailExtractorAPI {
    * Start email extraction from URLs
    */
   static async startExtraction(urls: string[], extractionType: 'single' | 'multiple' | 'csv' = 'multiple'): Promise<StartExtractionResponse> {
-    const response = await apiClient.post<StartExtractionResponse>('/email-extractor/start', { 
+    const response = await apiClient.post<{ jobId: string }>('/email-extractor/start', { 
       urls, 
       extractionType 
     });
     if (!response.data) {
       throw new Error(response.message || 'Failed to start extraction');
     }
-    return response.data;
+    return response;
   }
 
   /**
    * Get user's extraction history
    */
   static async getExtractions(limit: number = 20, skip: number = 0): Promise<GetExtractionsResponse> {
-    const response = await apiClient.get<GetExtractionsResponse>(`/email-extractor/extractions?limit=${limit}&skip=${skip}`);
+    const response = await apiClient.get<EmailExtractionJob[]>(`/email-extractor/extractions?limit=${limit}&skip=${skip}`);
     if (!response.data) {
       throw new Error(response.message || 'Failed to get extractions');
     }
-    return response.data;
+    return response;
   }
 
   /**
    * Get specific extraction by job ID
    */
   static async getExtraction(jobId: string): Promise<GetExtractionResponse> {
-    const response = await apiClient.get<GetExtractionResponse>(`/email-extractor/extraction/${jobId}`);
+    const response = await apiClient.get<EmailExtractionJob | null>(`/email-extractor/extraction/${jobId}`);
     if (!response.data) {
       throw new Error(response.message || 'Failed to get extraction');
     }
-    return response.data;
+    return response;
   }
 
   /**
@@ -133,7 +133,7 @@ export class EmailExtractorAPI {
    */
   static async downloadResults(jobId: string): Promise<Blob> {
     const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/email-extractor/download/${jobId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/download/${jobId}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
@@ -154,7 +154,7 @@ export class EmailExtractorAPI {
     formData.append('csvFile', file);
 
     const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/email-extractor/parse-csv`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/parse-csv`, {
       method: 'POST',
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -174,22 +174,43 @@ export class EmailExtractorAPI {
    * Get subscription limits and usage info
    */
   static async getSubscriptionInfo(): Promise<SubscriptionInfoResponse> {
-    const response = await apiClient.get<SubscriptionInfoResponse>('/email-extractor/subscription-info');
+    const response = await apiClient.get<{
+      limits: {
+        dailyExtractionLimit: number;
+        canUseCsvUpload: boolean;
+        planName: string;
+        isUnlimited: boolean;
+      };
+      usage: {
+        used: number;
+        remaining: number;
+        resetTime: string;
+        limit: number;
+      };
+      canUseCsv: boolean;
+      needsUpgrade: boolean;
+      upgradeRecommendation?: {
+        needsUpgrade: boolean;
+        reason: string;
+        recommendedPlan: string;
+        currentPlan: string;
+      };
+    }>('/email-extractor/subscription-info');
     if (!response.data) {
       throw new Error(response.message || 'Failed to get subscription info');
     }
-    return response.data;
+    return response;
   }
 
   /**
    * Log results viewed activity
    */
-  static async logResultsViewed(jobId: string): Promise<{ success: boolean; message: string; timestamp: string }> {
+  static async logResultsViewed(jobId: string): Promise<{ success: boolean; message?: string; timestamp?: string }> {
     const response = await apiClient.post<{ success: boolean; message: string; timestamp: string }>(`/email-extractor/log-viewed/${jobId}`);
     if (!response.data) {
       throw new Error(response.message || 'Failed to log results viewed');
     }
-    return response.data;
+    return response;
   }
 
   /**

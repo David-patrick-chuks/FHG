@@ -176,7 +176,8 @@ export class EmailExtractorCore {
         totalEmails,
         successfulUrls,
         failedUrls,
-        'multiple' // Default to multiple, could be enhanced to track actual type
+        'multiple', // Default to multiple, could be enhanced to track actual type
+        urls
       );
       
       EmailExtractorCore.logger.info('Email extraction job completed', { 

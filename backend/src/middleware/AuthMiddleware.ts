@@ -33,7 +33,7 @@ export class AuthMiddleware {
 
       // Add user to request object
       (req as any).user = {
-        id: user._id,
+        id: String(user._id),
         email: user.email,
         username: user.username,
         subscriptionTier: user.subscription,

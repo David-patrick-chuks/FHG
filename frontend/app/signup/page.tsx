@@ -36,7 +36,6 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [password, setPassword] = useState("");
   
   const router = useRouter();
   const { register: registerUser } = useAuth();
@@ -52,26 +51,28 @@ export default function SignupPage() {
     return errors
   }
 
-  const passwordErrors = password ? validatePassword(password) : []
-  const isPasswordValid = passwordErrors.length === 0
-
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   });
+
+  // Watch the password field to sync with state
+  const watchedPassword = watch('password');
+
+  const passwordErrors = watchedPassword ? validatePassword(watchedPassword) : []
+  const isPasswordValid = passwordErrors.length === 0
 
   const onSubmit = async (data: SignupFormData) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // Use the password state instead of form data
-      const submitData = { ...data, password };
-      
-      await registerUser(submitData);
+      await registerUser(data);
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
@@ -173,9 +174,8 @@ export default function SignupPage() {
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     placeholder="Create a password"
-                    className={`pl-10 pr-10 ${password && !isPasswordValid ? "border-red-500" : ""}`}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    className={`pl-10 pr-10 ${watchedPassword && !isPasswordValid ? "border-red-500" : ""}`}
+                    {...register('password')}
                     disabled={isLoading}
                   />
                   <button
@@ -201,24 +201,24 @@ export default function SignupPage() {
                 <div className="space-y-1">
                   <p className="text-xs text-gray-500 font-medium">Password Requirements:</p>
                   <div className="space-y-1">
-                    <div className={`flex items-center gap-2 text-xs ${password.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-2 text-xs ${watchedPassword && watchedPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${watchedPassword && watchedPassword.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       At least 8 characters long
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[A-Z]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-2 text-xs ${watchedPassword && /[A-Z]/.test(watchedPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${watchedPassword && /[A-Z]/.test(watchedPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       One uppercase letter
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[a-z]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-2 text-xs ${watchedPassword && /[a-z]/.test(watchedPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${watchedPassword && /[a-z]/.test(watchedPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       One lowercase letter
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[0-9]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-2 text-xs ${watchedPassword && /[0-9]/.test(watchedPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${watchedPassword && /[0-9]/.test(watchedPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       One number
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-2 text-xs ${watchedPassword && /[!@#$%^&*(),.?":{}|<>]/.test(watchedPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${watchedPassword && /[!@#$%^&*(),.?":{}|<>]/.test(watchedPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                       One special character
                     </div>
                   </div>

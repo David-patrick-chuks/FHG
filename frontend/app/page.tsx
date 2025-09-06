@@ -55,52 +55,7 @@ const features = [
   },
 ];
 
-const pricingPlans = [
-  {
-    name: 'Starter',
-    price: '$29',
-    period: '/month',
-    description: 'Perfect for small businesses getting started with email marketing',
-    features: [
-      'Up to 5,000 emails/month',
-      '3 email bots',
-      'Basic templates',
-      'Email support',
-      'Basic analytics',
-    ],
-    popular: false,
-  },
-  {
-    name: 'Professional',
-    price: '$79',
-    period: '/month',
-    description: 'Ideal for growing businesses with advanced email marketing needs',
-    features: [
-      'Up to 25,000 emails/month',
-      '10 email bots',
-      'AI content generation',
-      'Advanced segmentation',
-      'Priority support',
-      'Advanced analytics',
-    ],
-    popular: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    description: 'For large organizations with custom requirements',
-    features: [
-      'Unlimited emails',
-      'Unlimited bots',
-      'Custom integrations',
-      'Dedicated account manager',
-      '24/7 phone support',
-      'Custom reporting',
-    ],
-    popular: false,
-  },
-];
+
 
 const testimonials = [
   {

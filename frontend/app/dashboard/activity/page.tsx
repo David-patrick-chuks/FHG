@@ -253,17 +253,35 @@ export default function ActivityPage() {
   };
 
   if (loading) {
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              ))}
-          </div>
-          </div>
+    return (
+      <DashboardLayout
+        title="Activity"
+        description="Recent activity and events across your campaigns and bots"
+      >
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(7)].map((_, i) => (
+                  <div key={i} className="flex items-start space-x-4 p-4 border rounded-lg animate-pulse">
+                    <div className="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      </div>
+                      <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
@@ -321,7 +339,9 @@ export default function ActivityPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {activities.map((activity) => {
+                  {activities
+                    .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                    .map((activity) => {
                     const IconComponent = getActivityIcon(activity.type);
                     const iconColor = getActivityIconColor(activity.type);
                     
@@ -342,11 +362,6 @@ export default function ActivityPage() {
                           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             {activity.description}
                           </p>
-                          {activity.metadata && Object.keys(activity.metadata).length > 0 && (
-                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                              {JSON.stringify(activity.metadata)}
-                            </div>
-                          )}
                       </div>
                     </div>
               );
@@ -374,20 +389,27 @@ export default function ActivityPage() {
                 Previous
               </Button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                              onClick={() => setCurrentPage(pageNum)}
-                      className="w-8 h-8 p-0"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
+                {(() => {
+                  const maxVisiblePages = 5;
+                  const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                  const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                  const adjustedStartPage = Math.max(1, endPage - maxVisiblePages + 1);
+                  
+                  return Array.from({ length: endPage - adjustedStartPage + 1 }, (_, i) => {
+                    const pageNum = adjustedStartPage + i;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  });
+                })()}
               </div>
               <Button
                 variant="outline"

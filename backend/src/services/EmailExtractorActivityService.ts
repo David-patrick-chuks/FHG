@@ -1,6 +1,6 @@
-import { ActivityService } from './ActivityService';
 import { ActivityType } from '../models/Activity';
 import { Logger } from '../utils/Logger';
+import { ActivityService } from './ActivityService';
 
 export class EmailExtractorActivityService {
   private static logger = new Logger();
@@ -49,12 +49,29 @@ export class EmailExtractorActivityService {
     totalEmails: number,
     successfulUrls: number,
     failedUrls: number,
-    extractionType: 'single' | 'multiple' | 'csv'
+    extractionType: 'single' | 'multiple' | 'csv',
+    urls?: string[]
   ): Promise<void> {
     try {
       const activityType = this.getExtractionCompletedType(extractionType);
       const title = 'Email extraction completed';
-      const description = `Email extraction completed successfully. Found ${totalEmails} email${totalEmails > 1 ? 's' : ''} from ${successfulUrls} URL${successfulUrls > 1 ? 's' : ''}.`;
+      
+      // Create description with actual URLs if available
+      let description = `Email extraction completed successfully. Found ${totalEmails} email${totalEmails > 1 ? 's' : ''} from ${successfulUrls} URL${successfulUrls > 1 ? 's' : ''}.`;
+      
+      if (urls && urls.length > 0) {
+        // For single URL, show the actual URL
+        if (urls.length === 1) {
+          description = `Email extraction completed successfully. Found ${totalEmails} email${totalEmails > 1 ? 's' : ''} from ${urls[0]}.`;
+        } else if (urls.length <= 3) {
+          // For 2-3 URLs, show all URLs
+          const urlList = urls.join(', ');
+          description = `Email extraction completed successfully. Found ${totalEmails} email${totalEmails > 1 ? 's' : ''} from ${urlList}.`;
+        } else {
+          // For more than 3 URLs, show first URL and count
+          description = `Email extraction completed successfully. Found ${totalEmails} email${totalEmails > 1 ? 's' : ''} from ${urls[0]} and ${urls.length - 1} other URL${urls.length - 1 > 1 ? 's' : ''}.`;
+        }
+      }
       
       await ActivityService.createActivity(
         userId,
@@ -67,6 +84,7 @@ export class EmailExtractorActivityService {
           successfulUrls,
           failedUrls,
           extractionType,
+          urls: urls?.slice(0, 10), // Store only first 10 URLs to avoid large metadata
           successRate: successfulUrls > 0 ? Math.round((successfulUrls / (successfulUrls + failedUrls)) * 100) : 0
         }
       );
