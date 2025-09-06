@@ -88,6 +88,9 @@ export function DashboardLayout({
   const { unreadCount } = useUnreadCount();
   const pathname = usePathname();
 
+  // Debug logging
+  console.log('DashboardLayout unreadCount:', unreadCount);
+
   const handleLogout = () => {
     logout();
   };
@@ -131,6 +134,11 @@ export function DashboardLayout({
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {getSidebarItems(unreadCount).map((item) => {
+            // Debug logging for activity item
+            if (item.label === 'Activity') {
+              console.log('Activity item badge:', item.badge, 'unreadCount:', unreadCount);
+            }
+            
             // Simplified active state logic
             let isActive = false;
             if (item.href === '/dashboard') {

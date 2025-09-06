@@ -18,7 +18,7 @@ export function useUnreadCount() {
       }
 
       // If already have data and not stale, return cached value
-      if (globalUnreadCount > 0 && !isFetching) {
+      if (globalUnreadCount >= 0 && !isFetching) {
         return globalUnreadCount;
       }
 
@@ -28,6 +28,7 @@ export function useUnreadCount() {
           const response = await DashboardAPI.getUnreadCount();
           if (response.success && response.data) {
             globalUnreadCount = response.data.unreadCount;
+            console.log('Unread count fetched:', globalUnreadCount);
             return globalUnreadCount;
           }
           return 0;
@@ -46,6 +47,7 @@ export function useUnreadCount() {
     // Fetch unread count
     fetchUnreadCount().then((count) => {
       if (mountedRef.current) {
+        console.log('Setting unread count state:', count);
         setUnreadCount(count);
       }
     });

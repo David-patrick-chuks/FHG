@@ -2,84 +2,40 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { features, stats, testimonials } from '@/data/landing-page-content';
 import {
   ArrowRight,
-  BarChart3,
-  Bot,
   Brain,
   CheckCircle,
-  Shield,
-  Star,
-  Target,
-  Zap
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-const features = [
-  {
-    icon: Brain,
-    title: 'Intelligent Content Generation',
-    description: 'Leverage cutting-edge AI to craft compelling, personalized email content that resonates with your audience and drives engagement.',
-    color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',
-  },
-  {
-    icon: Bot,
-    title: 'Automated Campaign Management',
-    description: 'Deploy sophisticated email automation that intelligently schedules and delivers campaigns for optimal performance and engagement.',
-    color: 'text-green-600 bg-green-50 dark:bg-green-900/20',
-  },
-  {
-    icon: Target,
-    title: 'Precision Audience Targeting',
-    description: 'Utilize advanced segmentation tools to deliver highly targeted campaigns that maximize conversion rates and ROI.',
-    color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20',
-  },
-  {
-    icon: BarChart3,
-    title: 'Comprehensive Analytics',
-    description: 'Gain deep insights into campaign performance with detailed analytics and actionable intelligence to optimize your strategy.',
-    color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20',
-  },
-  {
-    icon: Zap,
-    title: 'Smart Workflow Automation',
-    description: 'Build sophisticated email sequences that automatically nurture prospects and convert leads without manual intervention.',
-    color: 'text-indigo-600 bg-indigo-900/20',
-  },
-  {
-    icon: Shield,
-    title: 'Enterprise-Grade Security',
-    description: 'Protect your data with bank-level security protocols and SOC 2 compliance, ensuring complete peace of mind.',
-    color: 'text-red-600 bg-red-50 dark:bg-red-900/20',
-  },
-];
+// Animation hook for scroll-triggered animations
+function useScrollAnimation() {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
 
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
 
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Marketing Director',
-    company: 'TechFlow Inc.',
-    content: 'MailQuill revolutionized our email marketing strategy. The intelligent content generation increased our open rates by 40% while automation saved us 15 hours weekly.',
-    rating: 5,
-  },
-  {
-    name: 'Michael Chen',
-    role: 'CEO',
-    company: 'GrowthStart',
-    content: 'MailQuill\'s advanced automation and precision targeting helped us scale from 1,000 to 50,000 engaged subscribers in just 6 months.',
-    rating: 5,
-  },
-  {
-    name: 'Emily Rodriguez',
-    role: 'E-commerce Manager',
-    company: 'StyleHub',
-    content: 'The platform\'s intuitive design and powerful automation features improved our conversion rates by 25% while freeing us to focus on strategic initiatives.',
-    rating: 5,
-  },
-];
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+}
 
 // Counter animation component
 function Counter({ end, duration = 2000, suffix = '', gradient = 'from-blue-400 to-cyan-400' }: { 
@@ -135,6 +91,29 @@ function Counter({ end, duration = 2000, suffix = '', gradient = 'from-blue-400 
   );
 }
 
+// Animated section wrapper
+function AnimatedSection({ children, className = '', delay = 0 }: { 
+  children: React.ReactNode; 
+  className?: string; 
+  delay?: number;
+}) {
+  const { ref, isVisible } = useScrollAnimation();
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-1000 ease-out ${
+        isVisible 
+          ? 'opacity-100 translate-y-0' 
+          : 'opacity-0 translate-y-8'
+      } ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const { isAuthenticated } = useAuth();
 
@@ -153,82 +132,94 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
             {/* Left Column - Content */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
-                <span className="text-white/90 text-sm font-medium">✨ AI-Powered Email Marketing</span>
-              </div>
+              <AnimatedSection delay={0}>
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
+                  <span className="text-white/90 text-sm font-medium">✨ AI-Powered Email Marketing</span>
+                </div>
+              </AnimatedSection>
               
-              <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
-                Transform Your
-                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent block">
-                  Email Marketing
-                </span>
-                with AI
-              </h1>
+              <AnimatedSection delay={200}>
+                <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+                  Transform Your
+                  <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent block">
+                    Email Marketing
+                  </span>
+                  with AI
+                </h1>
+              </AnimatedSection>
               
-              <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl leading-relaxed">
-                Create, automate, and optimize email campaigns with AI technology that delivers results.
-              </p>
+              <AnimatedSection delay={400}>
+                <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl leading-relaxed">
+                  Create, automate, and optimize email campaigns with AI technology that delivers results.
+                </p>
+              </AnimatedSection>
               
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start mb-12">
-                {isAuthenticated ? (
-                  <Link href="/dashboard">
-                    <Button size="lg" className="text-lg px-10 py-5 h-14 bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-300">
-                      Access Dashboard
-                      <ArrowRight className="ml-3 h-6 w-6" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/signup">
-                      <Button size="lg" className="text-lg px-10 py-5 h-14 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300">
-                        Get Started Free
+              <AnimatedSection delay={600}>
+                <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start mb-12">
+                  {isAuthenticated ? (
+                    <Link href="/dashboard">
+                      <Button size="lg" className="text-lg px-10 py-5 h-14 bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-300 hover:scale-105">
+                        Access Dashboard
                         <ArrowRight className="ml-3 h-6 w-6" />
                       </Button>
                     </Link>
-                    <Link href="/login">
-                      <Button variant="outline" size="lg" className="text-lg px-10 py-5 h-14 bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20 transition-all duration-300">
-                        Sign In
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
+                  ) : (
+                    <>
+                      <Link href="/signup">
+                        <Button size="lg" className="text-lg px-10 py-5 h-14 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105">
+                          Get Started Free
+                          <ArrowRight className="ml-3 h-6 w-6" />
+                        </Button>
+                      </Link>
+                      <Link href="/login">
+                        <Button variant="outline" size="lg" className="text-lg px-10 py-5 h-14 bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                          Sign In
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </AnimatedSection>
               
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8 text-sm text-white/70">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  <span className="font-medium">Free plan available</span>
+              <AnimatedSection delay={800}>
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8 text-sm text-white/70">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="font-medium">Free plan available</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="font-medium">No credit card required</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="font-medium">Upgrade anytime</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  <span className="font-medium">No credit card required</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  <span className="font-medium">Upgrade anytime</span>
-                </div>
-              </div>
+              </AnimatedSection>
             </div>
             
             {/* Right Column - Dashboard Screenshot Placeholder */}
-            <div className="relative">
-              <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 min-h-[500px] flex items-center justify-center">
-                  {/* Placeholder Image */}
-                  <div className="text-center">
-                    <div className="w-32 h-32 bg-white/10 rounded-2xl flex items-center justify-center mb-6 mx-auto border border-white/20">
-                      <Brain className="w-16 h-16 text-white/50" />
+            <AnimatedSection delay={1000}>
+              <div className="relative">
+                <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl hover:scale-105 transition-transform duration-500">
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 min-h-[500px] flex items-center justify-center">
+                    {/* Placeholder Image */}
+                    <div className="text-center">
+                      <div className="w-32 h-32 bg-white/10 rounded-2xl flex items-center justify-center mb-6 mx-auto border border-white/20 hover:scale-110 transition-transform duration-300">
+                        <Brain className="w-16 h-16 text-white/50" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2">MailQuill Dashboard</h3>
+                      <p className="text-white/60 text-sm">Screenshot placeholder</p>
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">MailQuill Dashboard</h3>
-                    <p className="text-white/60 text-sm">Screenshot placeholder</p>
                   </div>
                 </div>
+                
+                {/* Floating Elements */}
+                <div className="absolute -top-4 -right-4 w-20 h-20 bg-blue-500/30 rounded-full blur-xl animate-bounce"></div>
+                <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-cyan-500/30 rounded-full blur-xl animate-bounce delay-1000"></div>
               </div>
-              
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-blue-500/30 rounded-full blur-xl animate-bounce"></div>
-              <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-cyan-500/30 rounded-full blur-xl animate-bounce delay-1000"></div>
-            </div>
+            </AnimatedSection>
           </div>
         </div>
       </section>
@@ -261,18 +252,20 @@ export default function LandingPage() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div key={index} className="group relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                  <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:-translate-y-2">
-                    <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/30 to-cyan-500/30 backdrop-blur-md border border-white/20 mb-8 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-10 h-10 text-white" />
+                <AnimatedSection key={index} delay={index * 100}>
+                  <div className="group relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                    <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:-translate-y-2 hover:scale-105">
+                      <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/30 to-cyan-500/30 backdrop-blur-md border border-white/20 mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="w-10 h-10 text-white" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-4 leading-tight">{feature.title}</h3>
+                      <p className="text-white/70 leading-relaxed text-lg">
+                        {feature.description}
+                      </p>
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-4 leading-tight">{feature.title}</h3>
-                    <p className="text-white/70 leading-relaxed text-lg">
-                      {feature.description}
-                    </p>
                   </div>
-                </div>
+                </AnimatedSection>
               );
             })}
           </div>
@@ -300,37 +293,22 @@ export default function LandingPage() {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center hover:bg-white/15 transition-all duration-300">
-                <Counter end={10000000} suffix="+" duration={2500} gradient="from-blue-400 to-cyan-400" />
-                <div className="text-white/70 font-medium text-lg">Emails Delivered</div>
-              </div>
-            </div>
-            
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center hover:bg-white/15 transition-all duration-300">
-                <Counter end={98.5} suffix="%" duration={2000} gradient="from-green-400 to-emerald-400" />
-                <div className="text-white/70 font-medium text-lg">Deliverability Rate</div>
-              </div>
-            </div>
-            
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center hover:bg-white/15 transition-all duration-300">
-                <Counter end={45} suffix="%" duration={1800} gradient="from-cyan-400 to-blue-400" />
-                <div className="text-white/70 font-medium text-lg">Average Open Rate</div>
-              </div>
-            </div>
-            
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center hover:bg-white/15 transition-all duration-300">
-                <Counter end={500} suffix="+" duration={2200} gradient="from-orange-400 to-red-400" />
-                <div className="text-white/70 font-medium text-lg">Enterprise Clients</div>
-              </div>
-            </div>
+            {stats.map((stat, index) => (
+              <AnimatedSection key={index} delay={index * 150}>
+                <div className="group relative">
+                  <div className={`absolute inset-0 bg-gradient-to-r ${stat.color} rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500`}></div>
+                  <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center hover:bg-white/15 transition-all duration-300 hover:scale-105">
+                    <Counter 
+                      end={stat.end} 
+                      suffix={stat.suffix} 
+                      duration={stat.duration} 
+                      gradient={stat.gradient} 
+                    />
+                    <div className="text-white/70 font-medium text-lg">{stat.label}</div>
+                  </div>
+                </div>
+              </AnimatedSection>
+            ))}
           </div>
         </div>
       </section>
@@ -362,27 +340,29 @@ export default function LandingPage() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:-translate-y-2">
-                  <div className="flex items-center mb-6">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-6 w-6 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <blockquote className="text-lg text-white/80 mb-8 leading-relaxed">
-                    "{testimonial.content}"
-                  </blockquote>
-                  <div className="border-t border-white/20 pt-6">
-                    <div className="font-semibold text-white text-lg mb-1">
-                      {testimonial.name}
+              <AnimatedSection key={index} delay={index * 200}>
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
+                  <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:-translate-y-2 hover:scale-105">
+                    <div className="flex items-center mb-6">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-6 w-6 text-yellow-400 fill-current" />
+                      ))}
                     </div>
-                    <div className="text-white/60">
-                      {testimonial.role} at {testimonial.company}
+                    <blockquote className="text-lg text-white/80 mb-8 leading-relaxed">
+                      "{testimonial.content}"
+                    </blockquote>
+                    <div className="border-t border-white/20 pt-6">
+                      <div className="font-semibold text-white text-lg mb-1">
+                        {testimonial.name}
+                      </div>
+                      <div className="text-white/60">
+                        {testimonial.role} at {testimonial.company}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
@@ -397,42 +377,50 @@ export default function LandingPage() {
         </div>
         
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-12 shadow-2xl">
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">
-              Ready to Transform Your
-              <span className="bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent block">
-                Email Marketing?
-              </span>
-            </h2>
-            <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Join industry leaders who trust MailQuill to deliver exceptional email marketing results.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button size="lg" className="text-lg px-12 py-6 h-16 bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-300">
-                    Access Dashboard
-                    <ArrowRight className="ml-3 h-6 w-6" />
-                  </Button>
-                </Link>
-              ) : (
-                  <>
-                    <Link href="/signup">
-                      <Button size="lg" className="text-lg px-12 py-6 h-16 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white border-0 shadow-lg shadow-cyan-500/25 transition-all duration-300">
-                        Get Started Free
+          <AnimatedSection>
+            <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-12 shadow-2xl hover:scale-105 transition-transform duration-500">
+              <AnimatedSection delay={200}>
+                <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">
+                  Ready to Transform Your
+                  <span className="bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent block">
+                    Email Marketing?
+                  </span>
+                </h2>
+              </AnimatedSection>
+              <AnimatedSection delay={400}>
+                <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
+                  Join industry leaders who trust MailQuill to deliver exceptional email marketing results.
+                </p>
+              </AnimatedSection>
+              
+              <AnimatedSection delay={600}>
+                <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                  {isAuthenticated ? (
+                    <Link href="/dashboard">
+                      <Button size="lg" className="text-lg px-12 py-6 h-16 bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-300 hover:scale-105">
+                        Access Dashboard
                         <ArrowRight className="ml-3 h-6 w-6" />
                       </Button>
                     </Link>
-                    <Link href="/login">
-                      <Button size="lg" variant="outline" className="text-lg px-12 py-6 h-16 bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20 transition-all duration-300">
-                        Sign In
-                      </Button>
-                    </Link>
-                  </>
-              )}
+                  ) : (
+                      <>
+                        <Link href="/signup">
+                          <Button size="lg" className="text-lg px-12 py-6 h-16 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 text-white border-0 shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:scale-105">
+                            Get Started Free
+                            <ArrowRight className="ml-3 h-6 w-6" />
+                          </Button>
+                        </Link>
+                        <Link href="/login">
+                          <Button size="lg" variant="outline" className="text-lg px-12 py-6 h-16 bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20 transition-all duration-300 hover:scale-105">
+                            Sign In
+                          </Button>
+                        </Link>
+                      </>
+                  )}
+                </div>
+              </AnimatedSection>
             </div>
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 

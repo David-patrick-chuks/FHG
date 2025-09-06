@@ -136,6 +136,17 @@ export default function EmailExtractorPage() {
   };
 
   const handleMultipleUrlsExtraction = async () => {
+    // Check if user is on free plan
+    if (isFreePlan) {
+      toast({
+        title: 'Upgrade Required',
+        description: 'Multiple URL extraction is not available in the free plan. Upgrade to Pro or Enterprise to use this feature.',
+        variant: 'destructive'
+      });
+      router.push('/pricing');
+      return;
+    }
+
     const urls = multipleUrls
       .split('\n')
       .map(url => url.trim())
@@ -266,6 +277,9 @@ export default function EmailExtractorPage() {
   const handleUpgrade = () => {
     router.push('/pricing');
   };
+
+  // Check if user is on free plan
+  const isFreePlan = subscriptionInfo?.limits.planName === 'free';
 
   const startExtraction = async (urls: string[], extractionType: 'single' | 'multiple' | 'csv' = 'multiple') => {
     try {
@@ -721,7 +735,19 @@ export default function EmailExtractorPage() {
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        // Prevent free users from accessing Multiple URLs tab
+        if (value === 'multiple' && isFreePlan) {
+          toast({
+            title: 'Upgrade Required',
+            description: 'Multiple URL extraction is not available in the free plan. Upgrade to Pro or Enterprise to use this feature.',
+            variant: 'destructive'
+          });
+          router.push('/pricing');
+          return;
+        }
+        setActiveTab(value);
+      }} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger 
             value="single" 
@@ -737,11 +763,14 @@ export default function EmailExtractorPage() {
           <TabsTrigger 
             value="multiple" 
             className="flex items-center gap-2"
-            disabled={!!(subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited)}
+            disabled={isFreePlan || !!(subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited)}
           >
             <FileText className="h-4 w-4" />
             Multiple URLs
-            {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited && (
+            {isFreePlan && (
+              <Crown className="h-3 w-3 text-yellow-500" />
+            )}
+            {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited && !isFreePlan && (
               <Crown className="h-3 w-3 text-yellow-500" />
             )}
           </TabsTrigger>
@@ -827,7 +856,20 @@ export default function EmailExtractorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited ? (
+              {isFreePlan ? (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p>Multiple URL extraction is not available in the free plan. Upgrade to Pro or Enterprise to extract emails from multiple URLs at once.</p>
+                      <Button onClick={handleUpgrade} className="w-full">
+                        <Crown className="mr-2 h-4 w-4" />
+                        Upgrade Plan for Multiple URL Extraction
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ) : subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited ? (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
