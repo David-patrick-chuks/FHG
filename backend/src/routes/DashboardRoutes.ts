@@ -21,6 +21,12 @@ export class DashboardRoutes {
     // Get user's recent activity
     router.get('/activity', DashboardController.getRecentActivity);
 
+    // Get unread activity count
+    router.get('/activity/unread-count', DashboardController.getUnreadCount);
+
+    // Mark all activities as read
+    router.post('/activity/mark-all-read', DashboardController.markAllAsRead);
+
     // Get quick overview data
     router.get('/overview', DashboardController.getQuickOverview);
 

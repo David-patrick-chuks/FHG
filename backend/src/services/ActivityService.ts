@@ -16,7 +16,7 @@ export class ActivityService {
     metadata?: Record<string, any>
   ): Promise<ApiResponse<IActivityDocument>> {
     try {
-      const activity = await ActivityModel.createActivity(
+      const activity = await ActivityModel.logActivity(
         userId,
         type,
         title,
@@ -186,9 +186,17 @@ export class ActivityService {
         title: `Campaign "${campaignName}" paused`,
         description: `Campaign "${campaignName}" has been paused.`
       },
+      [ActivityType.CAMPAIGN_RESUMED]: {
+        title: `Campaign "${campaignName}" resumed`,
+        description: `Campaign "${campaignName}" has been resumed and is running again.`
+      },
       [ActivityType.CAMPAIGN_COMPLETED]: {
         title: `Campaign "${campaignName}" completed`,
         description: `Campaign "${campaignName}" has finished successfully.`
+      },
+      [ActivityType.CAMPAIGN_CANCELLED]: {
+        title: `Campaign "${campaignName}" cancelled`,
+        description: `Campaign "${campaignName}" has been cancelled.`
       },
       [ActivityType.CAMPAIGN_FAILED]: {
         title: `Campaign "${campaignName}" failed`,

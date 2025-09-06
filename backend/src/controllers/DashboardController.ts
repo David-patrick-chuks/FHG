@@ -222,4 +222,72 @@ export class DashboardController {
       });
     }
   }
+
+  public static async getUnreadCount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+
+      const result = await ActivityService.getUnreadCount(user._id);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          data: { unreadCount: result.data },
+          timestamp: new Date()
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'Failed to fetch unread count'
+        });
+      }
+    } catch (error) {
+      DashboardController.logger.error('Error fetching unread count:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch unread count'
+      });
+    }
+  }
+
+  public static async markAllAsRead(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+
+      const result = await ActivityService.markAllAsRead(user._id);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'All activities marked as read',
+          timestamp: new Date()
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'Failed to mark activities as read'
+        });
+      }
+    } catch (error) {
+      DashboardController.logger.error('Error marking activities as read:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to mark activities as read'
+      });
+    }
+  }
 }

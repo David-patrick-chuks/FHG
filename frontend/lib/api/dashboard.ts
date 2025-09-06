@@ -39,4 +39,12 @@ export class DashboardAPI {
   static async getQuickOverview(): Promise<ApiResponse<QuickOverview>> {
     return apiClient.get<QuickOverview>('/dashboard/overview');
   }
+
+  static async getUnreadCount(): Promise<ApiResponse<{ unreadCount: number }>> {
+    return apiClient.get<{ unreadCount: number }>('/dashboard/activity/unread-count');
+  }
+
+  static async markAllAsRead(): Promise<ApiResponse<void>> {
+    return apiClient.post<void>('/dashboard/activity/mark-all-read');
+  }
 }

@@ -217,7 +217,15 @@ export class CampaignController {
 
       const result = await CampaignService.updateCampaign(campaignId, userId, updateData);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign update activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_UPDATED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign updated successfully',
@@ -254,7 +262,15 @@ export class CampaignController {
 
       const result = await CampaignService.deleteCampaign(campaignId, userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign deletion activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_DELETED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign deleted successfully',
@@ -382,7 +398,15 @@ export class CampaignController {
 
       const result = await CampaignService.resumeCampaign(campaignId, userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign resume activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_RESUMED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign resumed successfully',
@@ -466,7 +490,15 @@ export class CampaignController {
 
       const result = await CampaignService.cancelCampaign(campaignId, userId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Log campaign cancellation activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_CANCELLED,
+          result.data.name,
+          campaignId
+        );
+
         res.status(200).json({
           success: true,
           message: 'Campaign cancelled successfully',

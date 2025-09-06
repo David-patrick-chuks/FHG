@@ -3,23 +3,23 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    Bot,
-    Brain,
-    LayoutDashboard,
-    LogOut,
-    Mail,
-    Menu,
-    User,
-    X
+  Bot,
+  Brain,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  User,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -55,15 +55,15 @@ export function Navbar() {
 
   if (isLoading) {
     return (
-      <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+      <nav className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
+              <div className="w-8 h-8 bg-white/20 rounded-lg animate-pulse"></div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
-              <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-20 h-8 bg-white/20 rounded animate-pulse"></div>
+              <div className="w-20 h-8 bg-white/20 rounded animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -72,17 +72,17 @@ export function Navbar() {
   }
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <nav className="bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and main navigation */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg">
                 <Brain className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                FHG AI Bot
+                MailQuill
               </span>
             </Link>
 
@@ -165,12 +165,12 @@ export function Navbar() {
                 {/* Desktop auth buttons */}
                 <div className="hidden md:flex md:items-center md:space-x-4">
                   <Link href="/login">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
                       Sign in
                     </Button>
                   </Link>
                   <Link href="/signup">
-                    <Button size="sm">
+                    <Button size="sm" className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 shadow-lg">
                       Get Started
                     </Button>
                   </Link>

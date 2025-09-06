@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { DashboardAPI } from '@/lib/api/dashboard';
 import { cn } from '@/lib/utils';
 import {
   Activity,
@@ -18,17 +19,17 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AuthGuard } from '../auth/AuthGuard';
 
 interface SidebarItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  badge?: string;
+  badge?: string | number;
 }
 
-const sidebarItems: SidebarItem[] = [
+const getSidebarItems = (unreadCount: number): SidebarItem[] => [
   {
     label: 'Dashboard',
     href: '/dashboard',
@@ -58,6 +59,12 @@ const sidebarItems: SidebarItem[] = [
     label: 'Activity',
     href: '/dashboard/activity',
     icon: Activity,
+    badge: unreadCount > 0 ? unreadCount : undefined,
+  },
+  {
+    label: 'Profile',
+    href: '/dashboard/profile',
+    icon: User,
   },
 ];
 
@@ -75,10 +82,27 @@ export function DashboardLayout({
   actions 
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  
 
+  // Fetch unread activity count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await DashboardAPI.getUnreadCount();
+        if (response.success && response.data) {
+          setUnreadCount(response.data.unreadCount);
+        }
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    if (user) {
+      fetchUnreadCount();
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -117,7 +141,7 @@ export function DashboardLayout({
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {sidebarItems.map((item) => {
+          {getSidebarItems(unreadCount).map((item) => {
             // Simplified active state logic
             let isActive = false;
             if (item.href === '/dashboard') {

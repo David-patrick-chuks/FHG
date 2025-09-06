@@ -30,7 +30,9 @@ export enum ActivityType {
   CAMPAIGN_DELETED = 'campaign_deleted',
   CAMPAIGN_STARTED = 'campaign_started',
   CAMPAIGN_PAUSED = 'campaign_paused',
+  CAMPAIGN_RESUMED = 'campaign_resumed',
   CAMPAIGN_COMPLETED = 'campaign_completed',
+  CAMPAIGN_CANCELLED = 'campaign_cancelled',
   CAMPAIGN_FAILED = 'campaign_failed',
   
   // Email Activities
@@ -276,7 +278,7 @@ export class ActivityModel {
     metadata?: Record<string, any>
   ): Promise<IActivityDocument> {
     const model = ActivityModel.getInstance();
-    return await model.createActivity(userId, type, title, description, metadata);
+    return await model.logActivity(userId, type, title, description, metadata);
   }
 
   public static async getUserActivities(

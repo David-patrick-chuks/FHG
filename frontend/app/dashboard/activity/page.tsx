@@ -57,9 +57,25 @@ export default function ActivityPage() {
     }
   }, [currentPage, pageSize]);
 
+  // Mark all activities as read when page loads
+  const markAllAsRead = useCallback(async () => {
+    try {
+      await DashboardAPI.markAllAsRead();
+      // Update local state to reflect all activities as read
+      setActivities(prev => prev.map(activity => ({ ...activity, isRead: true })));
+    } catch (error) {
+      console.error('Failed to mark all activities as read:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchActivities();
   }, [fetchActivities]);
+
+  // Mark all activities as read when page loads
+  useEffect(() => {
+    markAllAsRead();
+  }, [markAllAsRead]);
 
   // Helper function to get icon component based on activity type
   const getActivityIcon = (type: string) => {

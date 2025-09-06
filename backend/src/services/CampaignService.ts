@@ -254,7 +254,7 @@ export class CampaignService {
     }
   }
 
-  public static async deleteCampaign(campaignId: string, userId: string): Promise<ApiResponse<void>> {
+  public static async deleteCampaign(campaignId: string, userId: string): Promise<ApiResponse<{ name: string }>> {
     try {
       const campaign = await CampaignModel.findById(campaignId);
       if (!campaign) {
@@ -293,6 +293,7 @@ export class CampaignService {
 
       return {
         success: true,
+        data: { name: campaign.name },
         message: 'Campaign deleted successfully',
         timestamp: new Date()
       };
