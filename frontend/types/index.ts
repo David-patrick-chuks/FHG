@@ -13,6 +13,9 @@ export interface User extends BaseEntity {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: Date;
+  apiKey?: string;
+  apiKeyCreatedAt?: Date;
+  apiKeyLastUsed?: Date;
 }
 
 export interface UserProfile {

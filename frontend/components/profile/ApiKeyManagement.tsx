@@ -129,7 +129,7 @@ export function ApiKeyManagement({
                 </Button>
               </div>
 
-              {/* Show masked API key */}
+              {/* Show full API key */}
               {apiKeyInfo.apiKey && (
                 <div>
                   <Label className="text-sm font-medium">API Key</Label>
@@ -149,7 +149,7 @@ export function ApiKeyManagement({
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    This is a masked version of your API key for security reasons
+                    Copy this API key to use in your applications
                   </p>
                 </div>
               )}

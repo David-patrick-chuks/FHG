@@ -52,15 +52,25 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchApiInfo = async () => {
       try {
-        const [keyResponse, usageResponse] = await Promise.all([
-          apiClient.get<ApiKeyInfo>('/api-keys/info'),
-          apiClient.get<ApiUsage>('/email-extractor/subscription-info')
-        ]);
-
-        if (keyResponse.success && keyResponse.data) {
-          setApiKeyInfo((keyResponse.data as any).data);
+        // Use user data directly if available, otherwise fetch from API
+        const userWithApiKey = user as any;
+        if (userWithApiKey?.apiKey) {
+          setApiKeyInfo({
+            hasApiKey: true,
+            apiKey: userWithApiKey.apiKey, // Show full API key, not masked
+            createdAt: userWithApiKey.apiKeyCreatedAt?.toString() || null,
+            lastUsed: userWithApiKey.apiKeyLastUsed?.toString() || null
+          });
+        } else {
+          // Fallback to API call if user data doesn't have API key info
+          const keyResponse = await apiClient.get<ApiKeyInfo>('/api-keys/info');
+          if (keyResponse.success && keyResponse.data) {
+            setApiKeyInfo((keyResponse.data as any).data);
+          }
         }
 
+        // Fetch usage info
+        const usageResponse = await apiClient.get<ApiUsage>('/email-extractor/subscription-info');
         if (usageResponse.success && usageResponse.data) {
           setApiUsage((usageResponse.data as any).data);
         }
@@ -69,8 +79,10 @@ export default function ProfilePage() {
       }
     };
 
-    fetchApiInfo();
-  }, []);
+    if (user) {
+      fetchApiInfo();
+    }
+  }, [user]);
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     setIsLoading(true);
