@@ -4,6 +4,7 @@ import { AdminRoutes } from './AdminRoutes';
 import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
 import { CampaignRoutes } from './CampaignRoutes';
+import { ContactRoutes } from './ContactRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { EmailExtractorRoutes } from './EmailExtractorRoutes';
 import { QueueRoutes } from './QueueRoutes';
@@ -55,6 +56,7 @@ export class Routes {
     router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
     router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
     router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
+    router.use(ContactRoutes.getBasePath(), ContactRoutes.getRouter());
     router.use(DashboardRoutes.getBasePath(), DashboardRoutes.getRouter());
     router.use(EmailExtractorRoutes.getBasePath(), EmailExtractorRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());

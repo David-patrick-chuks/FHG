@@ -160,3 +160,5 @@ coverage/
 # config/production.js
 
 env.yaml
+
+note.txt

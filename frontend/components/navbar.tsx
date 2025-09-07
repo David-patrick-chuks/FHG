@@ -41,10 +41,10 @@ export function Navbar() {
   };
 
   const navigation = [
-    { name: 'Features', href: '#features' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'About', href: '#about' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Features', href: '/features' },
+    { name: 'Pricing', href: '/pricing' },
+    { name: 'About', href: '/about' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   const authenticatedNavigation = [
@@ -90,13 +90,13 @@ export function Navbar() {
             {!isAuthenticated && (
               <div className="hidden md:ml-10 md:flex md:space-x-8">
                 {navigation.map((item) => (
-                  <a
+                  <Link
                     key={item.name}
                     href={item.href}
                     className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 text-sm font-medium transition-colors"
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 ))}
               </div>
             )}
@@ -247,14 +247,14 @@ export function Navbar() {
             ) : (
               <>
                 {navigation.map((item) => (
-                  <a
+                  <Link
                     key={item.name}
                     href={item.href}
                     className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white block px-3 py-2 text-base font-medium transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 ))}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                   <Link
