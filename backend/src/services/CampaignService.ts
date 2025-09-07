@@ -84,7 +84,7 @@ export class CampaignService {
 
       await campaign.save();
 
-      this.logger.info('Campaign created successfully', {
+      CampaignService.logger.info('Campaign created successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name,
@@ -99,7 +99,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error creating campaign:', error);
+      CampaignService.logger.error('Error creating campaign:', error);
       throw error;
     }
   }
@@ -115,7 +115,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving campaigns:', error);
+      CampaignService.logger.error('Error retrieving campaigns:', error);
       throw error;
     }
   }
@@ -166,7 +166,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving campaigns with pagination:', error);
+      CampaignService.logger.error('Error retrieving campaigns with pagination:', error);
       throw error;
     }
   }
@@ -198,7 +198,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error retrieving campaign:', error);
+      CampaignService.logger.error('Error retrieving campaign:', error);
       throw error;
     }
   }
@@ -236,7 +236,7 @@ export class CampaignService {
       Object.assign(campaign, updateData);
       await campaign.save();
 
-      this.logger.info('Campaign updated successfully', {
+      CampaignService.logger.info('Campaign updated successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name
@@ -249,7 +249,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error updating campaign:', error);
+      CampaignService.logger.error('Error updating campaign:', error);
       throw error;
     }
   }
@@ -285,7 +285,7 @@ export class CampaignService {
 
       await CampaignModel.findByIdAndDelete(campaignId);
 
-      this.logger.info('Campaign deleted successfully', {
+      CampaignService.logger.info('Campaign deleted successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name
@@ -298,7 +298,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error deleting campaign:', error);
+      CampaignService.logger.error('Error deleting campaign:', error);
       throw error;
     }
   }
@@ -367,7 +367,7 @@ export class CampaignService {
         60000 // 1 minute delay between emails
       );
 
-      this.logger.info('Campaign started successfully', {
+      CampaignService.logger.info('Campaign started successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name,
@@ -381,7 +381,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error starting campaign:', error);
+      CampaignService.logger.error('Error starting campaign:', error);
       throw error;
     }
   }
@@ -418,7 +418,7 @@ export class CampaignService {
       // Pause campaign
       await campaign.pauseCampaign();
 
-      this.logger.info('Campaign paused successfully', {
+      CampaignService.logger.info('Campaign paused successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name
@@ -431,7 +431,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error pausing campaign:', error);
+      CampaignService.logger.error('Error pausing campaign:', error);
       throw error;
     }
   }
@@ -468,7 +468,7 @@ export class CampaignService {
       // Resume campaign
       await campaign.resumeCampaign();
 
-      this.logger.info('Campaign resumed successfully', {
+      CampaignService.logger.info('Campaign resumed successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name
@@ -481,7 +481,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error resuming campaign:', error);
+      CampaignService.logger.error('Error resuming campaign:', error);
       throw error;
     }
   }
@@ -518,7 +518,7 @@ export class CampaignService {
       // Complete campaign
       await campaign.completeCampaign();
 
-      this.logger.info('Campaign completed successfully', {
+      CampaignService.logger.info('Campaign completed successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name
@@ -531,7 +531,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error completing campaign:', error);
+      CampaignService.logger.error('Error completing campaign:', error);
       throw error;
     }
   }
@@ -568,7 +568,7 @@ export class CampaignService {
       // Cancel campaign
       await campaign.cancelCampaign();
 
-      this.logger.info('Campaign cancelled successfully', {
+      CampaignService.logger.info('Campaign cancelled successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name
@@ -581,7 +581,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error cancelling campaign:', error);
+      CampaignService.logger.error('Error cancelling campaign:', error);
       throw error;
     }
   }
@@ -661,7 +661,7 @@ export class CampaignService {
        campaign.selectedMessageIndex = 0;
        await campaign.save();
 
-      this.logger.info('AI messages regenerated successfully', {
+      CampaignService.logger.info('AI messages regenerated successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name,
@@ -675,7 +675,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error regenerating AI messages:', error);
+      CampaignService.logger.error('Error regenerating AI messages:', error);
       throw error;
     }
   }
@@ -719,7 +719,7 @@ export class CampaignService {
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error getting campaign stats:', error);
+      CampaignService.logger.error('Error getting campaign stats:', error);
       throw error;
     }
   }

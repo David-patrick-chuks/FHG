@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { AdminRoutes } from './AdminRoutes';
+import { ApiKeyRoutes } from './ApiKeyRoutes';
 import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
 import { CampaignRoutes } from './CampaignRoutes';
 import { ContactRoutes } from './ContactRoutes';
+import CookieRoutes from './CookieRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { EmailExtractorRoutes } from './EmailExtractorRoutes';
+import { IncidentRoutes } from './IncidentRoutes';
+import { PublicApiRoutes } from './PublicApiRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
 import { TrackingRoutes } from './TrackingRoutes';
@@ -24,6 +28,28 @@ export class Routes {
         uptime: process.uptime(),
         environment: process.env['NODE_ENV'] || 'development'
       });
+    });
+
+    // System status endpoint for detailed monitoring
+    router.get('/system-status', async (_req, res) => {
+      try {
+        // Import HealthService dynamically to avoid circular dependencies
+        const { HealthService } = await import('../services/HealthService');
+        const { DatabaseConnection } = await import('../database/DatabaseConnection');
+        
+        const database = DatabaseConnection.getInstance();
+        const healthService = new HealthService(database);
+        
+        const status = await healthService.getHealthStatus(null);
+        res.status(200).json(status);
+      } catch (error) {
+        res.status(503).json({
+          status: 'ERROR',
+          timestamp: new Date().toISOString(),
+          error: 'System status check failed',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     });
 
     // API version endpoint
@@ -54,11 +80,15 @@ export class Routes {
 
     // Register all route modules
     router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
+    router.use(ApiKeyRoutes.getBasePath(), ApiKeyRoutes.getRouter());
     router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
     router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
     router.use(ContactRoutes.getBasePath(), ContactRoutes.getRouter());
+    router.use('/cookies', CookieRoutes);
     router.use(DashboardRoutes.getBasePath(), DashboardRoutes.getRouter());
     router.use(EmailExtractorRoutes.getBasePath(), EmailExtractorRoutes.getRouter());
+    router.use(IncidentRoutes.getBasePath(), IncidentRoutes.getRouter());
+    router.use(PublicApiRoutes.getBasePath(), PublicApiRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
     router.use(QueueRoutes.getBasePath(), QueueRoutes.getRouter());

@@ -4,6 +4,7 @@ import { config } from './config';
 class ApiClient {
   private baseUrl: string;
   private timeout: number;
+  private pendingRequests: Map<string, Promise<any>> = new Map();
 
   constructor() {
     this.baseUrl = config.api.baseUrl;
@@ -17,6 +18,14 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`;
     const token = this.getAuthToken();
 
+    // Create a unique key for this request to prevent duplicates
+    const requestKey = `${options.method || 'GET'}:${url}:${JSON.stringify(options.body || '')}`;
+    
+    // Check if there's already a pending request for this endpoint
+    if (this.pendingRequests.has(requestKey)) {
+      return this.pendingRequests.get(requestKey)!;
+    }
+
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -25,50 +34,60 @@ class ApiClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          ...defaultHeaders,
-          ...options.headers,
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      // Parse response body first to get error messages
-      let responseData;
+    const requestPromise = (async () => {
       try {
-        responseData = await response.json();
-      } catch {
-        // If response is not JSON, create a basic error
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            ...defaultHeaders,
+            ...options.headers,
+          },
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        // Parse response body first to get error messages
+        let responseData;
+        try {
+          responseData = await response.json();
+        } catch {
+          // If response is not JSON, create a basic error
+          if (!response.ok) {
+            throw this.createApiError(response);
+          }
+          return {} as ApiResponse<T>;
+        }
+
+        // If response is not successful, throw error with message from response body
         if (!response.ok) {
-          throw this.createApiError(response);
+          const errorMessage = responseData.message || responseData.error || `HTTP ${response.status}: ${response.statusText}`;
+          throw new Error(errorMessage);
         }
-        return {} as ApiResponse<T>;
-      }
 
-      // If response is not successful, throw error with message from response body
-      if (!response.ok) {
-        const errorMessage = responseData.message || responseData.error || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(errorMessage);
-      }
-
-      // Return the response data regardless of success field
-      // Let the calling code handle business logic success/failure
-      return responseData;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new Error('Request timeout');
+        // Return the response data regardless of success field
+        // Let the calling code handle business logic success/failure
+        return responseData;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            throw new Error('Request timeout');
+          }
+          throw error;
         }
-        throw error;
+        throw new Error('An unexpected error occurred');
+      } finally {
+        // Remove the request from pending requests when it completes
+        this.pendingRequests.delete(requestKey);
       }
-      throw new Error('An unexpected error occurred');
-    }
+    })();
+
+    // Store the promise to prevent duplicate requests
+    this.pendingRequests.set(requestKey, requestPromise);
+    
+    return requestPromise;
   }
 
   private createApiError(response: Response): ApiError {

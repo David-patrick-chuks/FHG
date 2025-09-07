@@ -16,11 +16,15 @@ export interface IUserDocument extends Omit<IUser, '_id'>, Document {
   updateSubscription(subscription: SubscriptionTier, billingCycle: BillingCycle): Promise<void>;
   deactivateExcessBots(): Promise<void>;
   reactivateBotsForSubscription(): Promise<void>;
+  generateApiKey(): Promise<string>;
+  revokeApiKey(): Promise<void>;
+  updateApiKeyLastUsed(): Promise<void>;
 }
 
 export interface IUserModel extends Model<IUserDocument> {
   findByEmail(email: string): Promise<IUserDocument | null>;
   createUser(userData: Partial<IUser>): Promise<IUserDocument>;
+  findByApiKey(apiKey: string): Promise<IUserDocument | null>;
 }
 
 export class UserModel {
@@ -99,6 +103,17 @@ export class UserModel {
         sparse: true
       },
       passwordResetExpires: {
+        type: Date
+      },
+      apiKey: {
+        type: String,
+        unique: true,
+        sparse: true
+      },
+      apiKeyCreatedAt: {
+        type: Date
+      },
+      apiKeyLastUsed: {
         type: Date
       }
     }, {
@@ -239,6 +254,29 @@ export class UserModel {
       }
     };
 
+    userSchema.methods['generateApiKey'] = async function(): Promise<string> {
+      const crypto = await import('crypto');
+      const apiKey = `fhg_${crypto.randomBytes(32).toString('hex')}`;
+      
+      this['apiKey'] = apiKey;
+      this['apiKeyCreatedAt'] = new Date();
+      await this['save']();
+      
+      return apiKey;
+    };
+
+    userSchema.methods['updateApiKeyLastUsed'] = async function(): Promise<void> {
+      this['apiKeyLastUsed'] = new Date();
+      await this['save']();
+    };
+
+    userSchema.methods['revokeApiKey'] = async function(): Promise<void> {
+      this['apiKey'] = undefined;
+      this['apiKeyCreatedAt'] = undefined;
+      this['apiKeyLastUsed'] = undefined;
+      await this['save']();
+    };
+
     // Static methods
     userSchema.statics['findByEmail'] = function(email: string): Promise<IUserDocument | null> {
       return this.findOne({ email: email.toLowerCase() });
@@ -247,6 +285,10 @@ export class UserModel {
     userSchema.statics['createUser'] = async function(userData: Partial<IUser>): Promise<IUserDocument> {
       const user = new this(userData);
       return user.save();
+    };
+
+    userSchema.statics['findByApiKey'] = function(apiKey: string): Promise<IUserDocument | null> {
+      return this.findOne({ apiKey, isActive: true });
     };
 
     return mongoose.model<IUserDocument, IUserModel>('User', userSchema);

@@ -1,8 +1,10 @@
 import { Navbar } from "@/components/navbar"
+import { CookieConsentBanner } from "@/components/cookies/CookieConsentBanner"
+import { CookieInitializer } from "@/components/cookies/CookieInitializer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
-import { Analytics } from "@vercel/analytics/next"
+import { ConditionalAnalytics } from "@/components/analytics/ConditionalAnalytics"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
 import type React from "react"
@@ -50,10 +52,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <CookieInitializer />
             <Navbar />
             {children}
+            <CookieConsentBanner />
             <Toaster />
-            <Analytics/>
+            <ConditionalAnalytics />
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -34,9 +34,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Email extraction started logged for user ${userId}, job ${jobId}`);
+      EmailExtractorActivityService.logger.info(`Email extraction started logged for user ${userId}, job ${jobId}`);
     } catch (error) {
-      this.logger.error('Error logging extraction started activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging extraction started activity:', error);
     }
   }
 
@@ -89,9 +89,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Email extraction completed logged for user ${userId}, job ${jobId}`);
+      EmailExtractorActivityService.logger.info(`Email extraction completed logged for user ${userId}, job ${jobId}`);
     } catch (error) {
-      this.logger.error('Error logging extraction completed activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging extraction completed activity:', error);
     }
   }
 
@@ -124,9 +124,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Email extraction failed logged for user ${userId}, job ${jobId}`);
+      EmailExtractorActivityService.logger.info(`Email extraction failed logged for user ${userId}, job ${jobId}`);
     } catch (error) {
-      this.logger.error('Error logging extraction failed activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging extraction failed activity:', error);
     }
   }
 
@@ -155,9 +155,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Email extraction cancelled logged for user ${userId}, job ${jobId}`);
+      EmailExtractorActivityService.logger.info(`Email extraction cancelled logged for user ${userId}, job ${jobId}`);
     } catch (error) {
-      this.logger.error('Error logging extraction cancelled activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging extraction cancelled activity:', error);
     }
   }
 
@@ -186,9 +186,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Results downloaded logged for user ${userId}, job ${jobId}`);
+      EmailExtractorActivityService.logger.info(`Results downloaded logged for user ${userId}, job ${jobId}`);
     } catch (error) {
-      this.logger.error('Error logging results downloaded activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging results downloaded activity:', error);
     }
   }
 
@@ -215,9 +215,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Results viewed logged for user ${userId}, job ${jobId}`);
+      EmailExtractorActivityService.logger.info(`Results viewed logged for user ${userId}, job ${jobId}`);
     } catch (error) {
-      this.logger.error('Error logging results viewed activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging results viewed activity:', error);
     }
   }
 
@@ -248,9 +248,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Limit reached logged for user ${userId}`);
+      EmailExtractorActivityService.logger.info(`Limit reached logged for user ${userId}`);
     } catch (error) {
-      this.logger.error('Error logging limit reached activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging limit reached activity:', error);
     }
   }
 
@@ -279,9 +279,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Invalid URLs logged for user ${userId}`);
+      EmailExtractorActivityService.logger.info(`Invalid URLs logged for user ${userId}`);
     } catch (error) {
-      this.logger.error('Error logging invalid URLs activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging invalid URLs activity:', error);
     }
   }
 
@@ -308,9 +308,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Rate limited logged for user ${userId}`);
+      EmailExtractorActivityService.logger.info(`Rate limited logged for user ${userId}`);
     } catch (error) {
-      this.logger.error('Error logging rate limited activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging rate limited activity:', error);
     }
   }
 
@@ -339,9 +339,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Performance alert logged for user ${userId}`);
+      EmailExtractorActivityService.logger.info(`Performance alert logged for user ${userId}`);
     } catch (error) {
-      this.logger.error('Error logging performance alert activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging performance alert activity:', error);
     }
   }
 
@@ -372,9 +372,9 @@ export class EmailExtractorActivityService {
         }
       );
 
-      this.logger.info(`Method used logged for user ${userId}, method: ${method}`);
+      EmailExtractorActivityService.logger.info(`Method used logged for user ${userId}, method: ${method}`);
     } catch (error) {
-      this.logger.error('Error logging method used activity:', error);
+      EmailExtractorActivityService.logger.error('Error logging method used activity:', error);
     }
   }
 

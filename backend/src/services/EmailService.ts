@@ -28,9 +28,9 @@ export class EmailService {
       // Verify connection configuration
       try {
         await this.transporter.verify();
-        this.logger.info('Email transporter configured successfully');
+        EmailService.logger.info('Email transporter configured successfully');
       } catch (error) {
-        this.logger.error('Email transporter configuration failed:', error);
+        EmailService.logger.error('Email transporter configuration failed:', error);
         throw new Error('Email service configuration failed');
       }
     }
@@ -59,9 +59,9 @@ export class EmailService {
       };
 
       await transporter.sendMail(mailOptions);
-      this.logger.info('Simple email sent successfully', { to, subject });
+      EmailService.logger.info('Simple email sent successfully', { to, subject });
     } catch (error) {
-      this.logger.error('Failed to send simple email:', error);
+      EmailService.logger.error('Failed to send simple email:', error);
       throw error;
     }
   }
@@ -86,9 +86,9 @@ export class EmailService {
       };
 
       await transporter.sendMail(mailOptions);
-      this.logger.info('Password reset link email sent successfully', { email });
+      EmailService.logger.info('Password reset link email sent successfully', { email });
     } catch (error) {
-      this.logger.error('Failed to send password reset link email:', error);
+      EmailService.logger.error('Failed to send password reset link email:', error);
       throw new Error('Failed to send password reset link email');
     }
   }
@@ -115,9 +115,9 @@ export class EmailService {
       };
 
       await transporter.sendMail(mailOptions);
-      this.logger.info('Campaign completion email sent successfully', { email, campaignName });
+      EmailService.logger.info('Campaign completion email sent successfully', { email, campaignName });
     } catch (error) {
-      this.logger.error('Failed to send campaign completion email:', error);
+      EmailService.logger.error('Failed to send campaign completion email:', error);
       throw new Error('Failed to send campaign completion email');
     }
   }
@@ -142,9 +142,9 @@ export class EmailService {
       };
 
       await transporter.sendMail(mailOptions);
-      this.logger.info('Subscription expiry reminder sent successfully', { email, daysUntilExpiry });
+      EmailService.logger.info('Subscription expiry reminder sent successfully', { email, daysUntilExpiry });
     } catch (error) {
-      this.logger.error('Failed to send subscription expiry reminder:', error);
+      EmailService.logger.error('Failed to send subscription expiry reminder:', error);
       throw new Error('Failed to send subscription expiry reminder');
     }
   }
@@ -645,7 +645,7 @@ Thank you for using Email Outreach Bot!
       // Increment bot's daily email count
       await bot.incrementDailyEmailCount();
 
-      this.logger.info('Email sent successfully', {
+      EmailService.logger.info('Email sent successfully', {
         messageId: info.messageId,
         botId,
         recipientEmail,
@@ -663,7 +663,7 @@ Thank you for using Email Outreach Bot!
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error sending email:', error);
+      EmailService.logger.error('Error sending email:', error);
 
       // Save failed email record
       try {
@@ -678,7 +678,7 @@ Thank you for using Email Outreach Bot!
         });
         await sentEmail.save();
       } catch (saveError) {
-        this.logger.error('Error saving failed email record:', saveError);
+        EmailService.logger.error('Error saving failed email record:', saveError);
       }
 
       return {
@@ -721,7 +721,7 @@ Thank you for using Email Outreach Bot!
 
         // Check if bot can still send emails
         if (!bot.canSendEmail()) {
-          this.logger.warn('Bot reached daily limit during bulk send', { 
+          EmailService.logger.warn('Bot reached daily limit during bulk send', { 
             botId, 
             sent, 
             failed, 
@@ -739,7 +739,7 @@ Thank you for using Email Outreach Bot!
           }
         } catch (error) {
           failed++;
-          this.logger.error('Error sending email in bulk:', error);
+          EmailService.logger.error('Error sending email in bulk:', error);
         }
 
         // Add delay between emails (except for the last one)
@@ -748,7 +748,7 @@ Thank you for using Email Outreach Bot!
         }
       }
 
-      this.logger.info('Bulk email sending completed', {
+      EmailService.logger.info('Bulk email sending completed', {
         botId,
         campaignId,
         sent,
@@ -763,7 +763,7 @@ Thank you for using Email Outreach Bot!
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error in bulk email sending:', error);
+      EmailService.logger.error('Error in bulk email sending:', error);
       return {
         success: false,
         message: 'Bulk email sending failed',
@@ -792,7 +792,7 @@ Thank you for using Email Outreach Bot!
       // Verify connection
       await transporter.verify();
 
-      this.logger.info('Bot credentials verification successful', { botEmail: email });
+      EmailService.logger.info('Bot credentials verification successful', { botEmail: email });
 
       return {
         success: true,
@@ -801,7 +801,7 @@ Thank you for using Email Outreach Bot!
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Bot credentials verification failed:', error);
+      EmailService.logger.error('Bot credentials verification failed:', error);
 
       let errorMessage = 'Unknown error';
       if (error instanceof Error) {
@@ -858,7 +858,7 @@ Thank you for using Email Outreach Bot!
       // Verify connection
       await transporter.verify();
 
-      this.logger.info('Bot connection test successful', { botId, botEmail: bot.email });
+      EmailService.logger.info('Bot connection test successful', { botId, botEmail: bot.email });
 
       return {
         success: true,
@@ -867,7 +867,7 @@ Thank you for using Email Outreach Bot!
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Bot connection test failed:', error);
+      EmailService.logger.error('Bot connection test failed:', error);
 
       return {
         success: false,
@@ -916,7 +916,7 @@ Thank you for using Email Outreach Bot!
         timestamp: new Date()
       };
     } catch (error) {
-      this.logger.error('Error getting email stats:', error);
+      EmailService.logger.error('Error getting email stats:', error);
       return {
         success: false,
         message: 'Failed to retrieve email stats',
@@ -937,7 +937,7 @@ Thank you for using Email Outreach Bot!
       const result = await AIService.generateEmailMessages(prompt, count);
       
       if (result.success && result.data) {
-        this.logger.info('AI messages generated successfully', {
+        EmailService.logger.info('AI messages generated successfully', {
           prompt,
           count,
           generatedCount: result.data.length
@@ -950,7 +950,7 @@ Thank you for using Email Outreach Bot!
           timestamp: new Date()
         };
       } else {
-        this.logger.error('Failed to generate AI messages', {
+        EmailService.logger.error('Failed to generate AI messages', {
           prompt,
           count,
           error: result.message
@@ -963,7 +963,7 @@ Thank you for using Email Outreach Bot!
         };
       }
     } catch (error) {
-      this.logger.error('Error generating AI messages:', error);
+      EmailService.logger.error('Error generating AI messages:', error);
       
       return {
         success: false,

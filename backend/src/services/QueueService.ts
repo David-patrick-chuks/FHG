@@ -50,9 +50,9 @@ export class QueueService {
       this.emailQueue.on('stalled', this.onJobStalled.bind(this));
 
       this.isInitialized = true;
-      this.logger.info('Queue service initialized successfully');
+      QueueService.logger.info('Queue service initialized successfully');
     } catch (error) {
-      this.logger.error('Failed to initialize queue service:', error);
+      QueueService.logger.error('Failed to initialize queue service:', error);
       throw error;
     }
   }
@@ -85,7 +85,7 @@ export class QueueService {
         jobId: `${campaignId}-${botId}-${recipientEmail}-${Date.now()}`
       });
 
-      this.logger.info('Email job added to queue', {
+      QueueService.logger.info('Email job added to queue', {
         jobId: job.id,
         campaignId,
         botId,
@@ -96,7 +96,7 @@ export class QueueService {
 
       return job;
     } catch (error) {
-      this.logger.error('Error adding email job to queue:', error);
+      QueueService.logger.error('Error adding email job to queue:', error);
       throw error;
     }
   }
@@ -133,7 +133,7 @@ export class QueueService {
         jobs.push(job);
       }
 
-      this.logger.info('Bulk email jobs added to queue', {
+      QueueService.logger.info('Bulk email jobs added to queue', {
         campaignId,
         botId,
         totalJobs: jobs.length,
@@ -142,7 +142,7 @@ export class QueueService {
 
       return jobs;
     } catch (error) {
-      this.logger.error('Error adding bulk email jobs to queue:', error);
+      QueueService.logger.error('Error adding bulk email jobs to queue:', error);
       throw error;
     }
   }
@@ -177,7 +177,7 @@ export class QueueService {
         paused: await this.emailQueue.isPaused()
       };
     } catch (error) {
-      this.logger.error('Error getting queue status:', error);
+      QueueService.logger.error('Error getting queue status:', error);
       throw error;
     }
   }
@@ -189,9 +189,9 @@ export class QueueService {
       }
 
       await this.emailQueue.pause();
-      this.logger.info('Email queue paused');
+      QueueService.logger.info('Email queue paused');
     } catch (error) {
-      this.logger.error('Error pausing queue:', error);
+      QueueService.logger.error('Error pausing queue:', error);
     }
   }
 
@@ -202,9 +202,9 @@ export class QueueService {
       }
 
       await this.emailQueue.resume();
-      this.logger.info('Email queue resumed');
+      QueueService.logger.info('Email queue resumed');
     } catch (error) {
-      this.logger.error('Error resuming queue:', error);
+      QueueService.logger.error('Error resuming queue:', error);
     }
   }
 
@@ -215,9 +215,9 @@ export class QueueService {
       }
 
       await this.emailQueue.empty();
-      this.logger.info('Email queue cleared');
+      QueueService.logger.info('Email queue cleared');
     } catch (error) {
-      this.logger.error('Error clearing queue:', error);
+      QueueService.logger.error('Error clearing queue:', error);
     }
   }
 
@@ -229,7 +229,7 @@ export class QueueService {
 
       return await this.emailQueue.getJob(jobId);
     } catch (error) {
-      this.logger.error('Error getting job by ID:', error);
+      QueueService.logger.error('Error getting job by ID:', error);
       return null;
     }
   }
@@ -243,10 +243,10 @@ export class QueueService {
       const job = await this.emailQueue.getJob(jobId);
       if (job) {
         await job.remove();
-        this.logger.info('Job removed from queue', { jobId });
+        QueueService.logger.info('Job removed from queue', { jobId });
       }
     } catch (error) {
-      this.logger.error('Error removing job:', error);
+      QueueService.logger.error('Error removing job:', error);
       throw error;
     }
   }
@@ -260,7 +260,7 @@ export class QueueService {
       const jobs = await this.emailQueue.getJobs(['waiting', 'active', 'delayed']);
       return jobs.filter(job => job.data.campaignId === campaignId);
     } catch (error) {
-      this.logger.error('Error getting jobs by campaign:', error);
+      QueueService.logger.error('Error getting jobs by campaign:', error);
       return [];
     }
   }
@@ -274,7 +274,7 @@ export class QueueService {
       const jobs = await this.emailQueue.getJobs(['waiting', 'active', 'delayed']);
       return jobs.filter(job => job.data.botId === botId);
     } catch (error) {
-      this.logger.error('Error getting jobs by bot:', error);
+      QueueService.logger.error('Error getting jobs by bot:', error);
       return [];
     }
   }
@@ -299,7 +299,7 @@ export class QueueService {
         }
       });
 
-      this.logger.info('Email extraction job added to queue', {
+      QueueService.logger.info('Email extraction job added to queue', {
         jobId: job.id,
         userId: jobData.userId,
         urlCount: jobData.urls.length
@@ -307,7 +307,7 @@ export class QueueService {
 
       return job;
     } catch (error) {
-      this.logger.error('Error adding email extraction job to queue:', error);
+      QueueService.logger.error('Error adding email extraction job to queue:', error);
       throw error;
     }
   }
@@ -316,7 +316,7 @@ export class QueueService {
     const { campaignId, botId, recipientEmail, message } = job.data;
     
     try {
-      this.logger.info('Processing email job', {
+      QueueService.logger.info('Processing email job', {
         jobId: job.id,
         campaignId,
         botId,
@@ -337,7 +337,7 @@ export class QueueService {
           emailSubject = campaign.name;
         }
       } catch (error) {
-        this.logger.warn('Could not fetch campaign for subject, using fallback', {
+        QueueService.logger.warn('Could not fetch campaign for subject, using fallback', {
           campaignId,
           error: error instanceof Error ? error.message : 'Unknown error'
         });
@@ -359,14 +359,14 @@ export class QueueService {
       // Update queue job status
       await this.updateQueueJobStatus(job.id.toString(), 'completed');
 
-      this.logger.info('Email job completed successfully', {
+      QueueService.logger.info('Email job completed successfully', {
         jobId: job.id,
         campaignId,
         botId,
         recipientEmail
       });
     } catch (error) {
-      this.logger.error('Email job failed:', error);
+      QueueService.logger.error('Email job failed:', error);
 
       // Update queue job status
       await this.updateQueueJobStatus(job.id.toString(), 'failed', error instanceof Error ? error.message : 'Unknown error');
@@ -380,7 +380,7 @@ export class QueueService {
     const { jobId, userId, urls } = job.data;
     
     try {
-      this.logger.info('Processing email extraction job', {
+      QueueService.logger.info('Processing email extraction job', {
         jobId: job.id,
         extractionJobId: jobId,
         userId,
@@ -394,13 +394,13 @@ export class QueueService {
         urls
       });
 
-      this.logger.info('Email extraction job completed successfully', {
+      QueueService.logger.info('Email extraction job completed successfully', {
         jobId: job.id,
         extractionJobId: jobId,
         userId
       });
     } catch (error) {
-      this.logger.error('Email extraction job failed:', error);
+      QueueService.logger.error('Email extraction job failed:', error);
 
       // Re-throw error to mark job as failed
       throw error;
@@ -408,7 +408,7 @@ export class QueueService {
   }
 
   private static async onJobCompleted(job: Bull.Job, result: any): Promise<void> {
-    this.logger.info('Job completed', {
+    QueueService.logger.info('Job completed', {
       jobId: job.id,
       jobType: job.name,
       result
@@ -416,7 +416,7 @@ export class QueueService {
   }
 
   private static async onJobFailed(job: Bull.Job, error: Error): Promise<void> {
-    this.logger.error('Job failed', {
+    QueueService.logger.error('Job failed', {
       jobId: job.id,
       jobType: job.name,
       error: error.message,
@@ -425,7 +425,7 @@ export class QueueService {
   }
 
   private static async onJobStalled(job: Bull.Job): Promise<void> {
-    this.logger.warn('Job stalled', {
+    QueueService.logger.warn('Job stalled', {
       jobId: job.id,
       jobType: job.name
     });
@@ -443,7 +443,7 @@ export class QueueService {
         }
       }
     } catch (error) {
-      this.logger.error('Error updating queue job status in database:', error);
+      QueueService.logger.error('Error updating queue job status in database:', error);
     }
   }
 
@@ -452,10 +452,10 @@ export class QueueService {
       if (this.emailQueue) {
         await this.emailQueue.close();
         this.isInitialized = false;
-        this.logger.info('Queue service cleaned up successfully');
+        QueueService.logger.info('Queue service cleaned up successfully');
       }
     } catch (error) {
-      this.logger.error('Error cleaning up queue service:', error);
+      QueueService.logger.error('Error cleaning up queue service:', error);
     }
   }
 }

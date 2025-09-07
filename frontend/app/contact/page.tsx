@@ -14,6 +14,8 @@ import {
   Phone,
   Send
 } from 'lucide-react';
+
+import Link from 'next/link';
 import { useState } from 'react';
 
 export default function ContactPage() {
@@ -220,7 +222,7 @@ export default function ContactPage() {
                         rows={6}
                         required
                         disabled={isSubmitting}
-                        className={isSubmitting ? "opacity-50 cursor-not-allowed" : ""}
+                        className={`border-gray-300 dark:border-gray-600 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
                       />
                     </div>
                     
@@ -418,9 +420,14 @@ export default function ContactPage() {
             Join thousands of businesses already using MailQuill to scale their email marketing campaigns.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              Get Started
-            </Button>
+            <Link href="/signup">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-gray-100"
+              >
+                Get Started
+              </Button>
+            </Link>
             <Button 
               size="lg" 
               variant="outline" 

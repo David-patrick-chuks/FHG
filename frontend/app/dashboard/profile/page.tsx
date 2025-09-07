@@ -12,19 +12,44 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api-client';
 import { User } from '@/types';
 import {
-  AlertCircle,
-  AtSign,
-  Calendar,
-  CheckCircle,
-  CreditCard,
-  Mail,
-  Shield,
-  User as UserIcon
+    AlertCircle,
+    AtSign,
+    Calendar,
+    CheckCircle,
+    Copy,
+    CreditCard,
+    Key,
+    Mail,
+    RefreshCw,
+    Shield,
+    User as UserIcon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface ProfileFormData {
   username: string;
+}
+
+interface ApiKeyInfo {
+  hasApiKey: boolean;
+  apiKey: string | null;
+  createdAt: string | null;
+  lastUsed: string | null;
+}
+
+interface ApiUsage {
+  limits: {
+    dailyExtractionLimit: number;
+    canUseCsvUpload: boolean;
+    planName: string;
+    isUnlimited: boolean;
+  };
+  usage: {
+    used: number;
+    remaining: number;
+    resetTime: string;
+    limit: number;
+  };
 }
 
 export default function ProfilePage() {
@@ -36,6 +61,12 @@ export default function ProfilePage() {
     username: user?.username || ''
   });
 
+  const [apiKeyInfo, setApiKeyInfo] = useState<ApiKeyInfo | null>(null);
+  const [apiUsage, setApiUsage] = useState<ApiUsage | null>(null);
+  const [isGeneratingKey, setIsGeneratingKey] = useState(false);
+  const [isRevokingKey, setIsRevokingKey] = useState(false);
+  const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
+
   useEffect(() => {
     if (user) {
       setProfileForm({
@@ -43,6 +74,30 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
+
+  // Fetch API key info and usage
+  useEffect(() => {
+    const fetchApiInfo = async () => {
+      try {
+        const [keyResponse, usageResponse] = await Promise.all([
+          apiClient.get<{ data: ApiKeyInfo }>('/api-keys/info'),
+          apiClient.get<{ data: ApiUsage }>('/api/v1/usage')
+        ]);
+
+        if (keyResponse.success && keyResponse.data) {
+          setApiKeyInfo(keyResponse.data);
+        }
+
+        if (usageResponse.success && usageResponse.data) {
+          setApiUsage(usageResponse.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch API info:', error);
+      }
+    };
+
+    fetchApiInfo();
+  }, []);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +118,69 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: errorMessage });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateApiKey = async () => {
+    setIsGeneratingKey(true);
+    setMessage(null);
+
+    try {
+      const response = await apiClient.post<{ data: { apiKey: string; createdAt: string } }>('/api-keys/generate');
+      
+      if (response.success && response.data) {
+        setGeneratedApiKey(response.data.apiKey);
+        setApiKeyInfo({
+          hasApiKey: true,
+          apiKey: response.data.apiKey,
+          createdAt: response.data.createdAt,
+          lastUsed: null
+        });
+        setMessage({ type: 'success', text: 'API key generated successfully! Copy it now - you won\'t be able to see it again.' });
+      } else {
+        setMessage({ type: 'error', text: response.message || 'Failed to generate API key' });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate API key';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsGeneratingKey(false);
+    }
+  };
+
+  const handleRevokeApiKey = async () => {
+    setIsRevokingKey(true);
+    setMessage(null);
+
+    try {
+      const response = await apiClient.delete('/api-keys/revoke');
+      
+      if (response.success) {
+        setApiKeyInfo({
+          hasApiKey: false,
+          apiKey: null,
+          createdAt: null,
+          lastUsed: null
+        });
+        setGeneratedApiKey(null);
+        setMessage({ type: 'success', text: 'API key revoked successfully!' });
+      } else {
+        setMessage({ type: 'error', text: response.message || 'Failed to revoke API key' });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to revoke API key';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setIsRevokingKey(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage({ type: 'success', text: 'API key copied to clipboard!' });
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to copy to clipboard' });
     }
   };
 
@@ -231,6 +349,158 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* API Key Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              API Key Management
+            </CardTitle>
+            <CardDescription>
+              Generate and manage your API key for programmatic access to email extraction
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!apiKeyInfo?.hasApiKey && !generatedApiKey ? (
+              <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                <Key className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  No API Key Generated
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Generate an API key to access our email extraction service programmatically.
+                </p>
+                <Button 
+                  onClick={handleGenerateApiKey}
+                  disabled={isGeneratingKey}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isGeneratingKey && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                  <Key className="mr-2 h-4 w-4" />
+                  Generate API Key
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Generated API Key Display */}
+                {generatedApiKey && (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="font-semibold text-green-800 dark:text-green-200">
+                        API Key Generated Successfully!
+                      </span>
+                    </div>
+                    <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                      Copy your API key now - you won't be able to see it again for security reasons.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={generatedApiKey}
+                        readOnly
+                        className="font-mono text-sm bg-white dark:bg-gray-800"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => copyToClipboard(generatedApiKey)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* API Key Info */}
+                {apiKeyInfo?.hasApiKey && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">API Key Status</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-sm text-green-600 dark:text-green-400">Active</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRevokeApiKey}
+                        disabled={isRevokingKey}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        {isRevokingKey && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Regenerate
+                      </Button>
+                    </div>
+
+                    {apiKeyInfo.createdAt && (
+                      <div>
+                        <Label className="text-sm font-medium">Created</Label>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatDate(apiKeyInfo.createdAt)}
+                        </p>
+                      </div>
+                    )}
+
+                    {apiKeyInfo.lastUsed && (
+                      <div>
+                        <Label className="text-sm font-medium">Last Used</Label>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatDate(apiKeyInfo.lastUsed)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* API Usage Stats */}
+                {apiUsage && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-3">API Usage</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {apiUsage.usage.used}
+                        </div>
+                        <div className="text-sm text-gray-600">Used Today</div>
+                      </div>
+                      
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {apiUsage.usage.remaining}
+                        </div>
+                        <div className="text-sm text-gray-600">Remaining</div>
+                      </div>
+                      
+                      <div className="text-center p-3 border rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {apiUsage.limits.isUnlimited ? '∞' : apiUsage.limits.dailyExtractionLimit}
+                        </div>
+                        <div className="text-sm text-gray-600">Daily Limit</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3">
+                      <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Usage Progress</span>
+                        <span>{Math.round((apiUsage.usage.used / apiUsage.usage.limit) * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min((apiUsage.usage.used / apiUsage.usage.limit) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Plan Features */}
         <Card>

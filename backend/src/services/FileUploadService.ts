@@ -122,7 +122,7 @@ export class FileUploadService {
    */
   public static async parseFile(fileBuffer: Buffer, mimeType: string): Promise<ParsedEmailResult> {
     try {
-      this.logger.info('Parsing file', { mimeType, size: fileBuffer.length });
+      FileUploadService.logger.info('Parsing file', { mimeType, size: fileBuffer.length });
 
       if (mimeType === 'text/csv') {
         return await this.parseCSVFile(fileBuffer);
@@ -132,7 +132,7 @@ export class FileUploadService {
         throw new Error(`Unsupported file type: ${mimeType}`);
       }
     } catch (error) {
-      this.logger.error('File parsing error:', error);
+      FileUploadService.logger.error('File parsing error:', error);
       throw error;
     }
   }

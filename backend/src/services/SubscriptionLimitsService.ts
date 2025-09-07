@@ -50,7 +50,7 @@ export class SubscriptionLimitsService {
           return this.getFreePlanLimits();
       }
     } catch (error) {
-      this.logger.error('Error getting subscription limits:', error);
+      SubscriptionLimitsService.logger.error('Error getting subscription limits:', error);
       return this.getFreePlanLimits();
     }
   }
@@ -93,7 +93,7 @@ export class SubscriptionLimitsService {
         usage
       };
     } catch (error) {
-      this.logger.error('Error checking extraction permission:', error);
+      SubscriptionLimitsService.logger.error('Error checking extraction permission:', error);
       return {
         canExtract: false,
         reason: 'Error checking extraction limits',
@@ -132,7 +132,7 @@ export class SubscriptionLimitsService {
 
       // Check if activities were retrieved successfully
       if (!activitiesResponse.success || !activitiesResponse.data) {
-        this.logger.warn('Failed to retrieve activities for usage calculation', { userId });
+        SubscriptionLimitsService.logger.warn('Failed to retrieve activities for usage calculation', { userId });
         return {
           used: 0,
           remaining: 0,
@@ -172,7 +172,7 @@ export class SubscriptionLimitsService {
         limit: limits.dailyExtractionLimit
       };
     } catch (error) {
-      this.logger.error('Error getting daily usage:', error);
+      SubscriptionLimitsService.logger.error('Error getting daily usage:', error);
       return {
         used: 0,
         remaining: 0,
@@ -193,9 +193,9 @@ export class SubscriptionLimitsService {
     try {
       // This will be called by the EmailExtractorActivityService when logging extraction started
       // The actual logging is handled there, this is just for tracking usage
-      this.logger.info(`Extraction usage logged: ${urlCount} URLs for user ${userId}, type: ${extractionType}`);
+      SubscriptionLimitsService.logger.info(`Extraction usage logged: ${urlCount} URLs for user ${userId}, type: ${extractionType}`);
     } catch (error) {
-      this.logger.error('Error logging extraction usage:', error);
+      SubscriptionLimitsService.logger.error('Error logging extraction usage:', error);
     }
   }
 
@@ -207,7 +207,7 @@ export class SubscriptionLimitsService {
       const limits = await this.getSubscriptionLimits(userId);
       return !limits.canUseCsvUpload;
     } catch (error) {
-      this.logger.error('Error checking CSV upgrade requirement:', error);
+      SubscriptionLimitsService.logger.error('Error checking CSV upgrade requirement:', error);
       return true; // Default to requiring upgrade if error
     }
   }
@@ -253,7 +253,7 @@ export class SubscriptionLimitsService {
         currentPlan: limits.planName
       };
     } catch (error) {
-      this.logger.error('Error getting upgrade recommendations:', error);
+      SubscriptionLimitsService.logger.error('Error getting upgrade recommendations:', error);
       return {
         needsUpgrade: false,
         reason: '',
@@ -268,7 +268,7 @@ export class SubscriptionLimitsService {
    */
   private static getFreePlanLimits(): SubscriptionLimits {
     return {
-      dailyExtractionLimit: 10,
+      dailyExtractionLimit: 100, // Increased for API usage
       canUseCsvUpload: false,
       planName: 'free',
       isUnlimited: false
@@ -280,7 +280,7 @@ export class SubscriptionLimitsService {
    */
   private static getProPlanLimits(): SubscriptionLimits {
     return {
-      dailyExtractionLimit: 50,
+      dailyExtractionLimit: 1000, // Increased for API usage
       canUseCsvUpload: true,
       planName: 'pro',
       isUnlimited: false
@@ -292,7 +292,7 @@ export class SubscriptionLimitsService {
    */
   private static getEnterprisePlanLimits(): SubscriptionLimits {
     return {
-      dailyExtractionLimit: -1, // Unlimited
+      dailyExtractionLimit: 10000, // High limit for enterprise
       canUseCsvUpload: true,
       planName: 'enterprise',
       isUnlimited: true

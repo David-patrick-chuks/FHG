@@ -2,6 +2,7 @@ import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import { Logger } from '../utils/Logger';
 
 export class DatabaseConnection {
+  private static instance: DatabaseConnection;
   private connection: Connection | null = null;
   private readonly uri: string;
   private readonly logger: Logger;
@@ -10,6 +11,16 @@ export class DatabaseConnection {
   constructor() {
     this.uri = process.env['MONGODB_URI'] || 'mongodb://localhost:27017/email-outreach-bot';
     this.logger = new Logger();
+  }
+
+  /**
+   * Get singleton instance of DatabaseConnection
+   */
+  public static getInstance(): DatabaseConnection {
+    if (!DatabaseConnection.instance) {
+      DatabaseConnection.instance = new DatabaseConnection();
+    }
+    return DatabaseConnection.instance;
   }
 
   /**

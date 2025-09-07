@@ -1,6 +1,7 @@
 import os from 'os';
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { Logger } from '../utils/Logger';
+import { IncidentService } from './IncidentService';
 
 export class HealthService {
   private database: DatabaseConnection;
@@ -26,6 +27,9 @@ export class HealthService {
       
       // Get application metrics
       const appMetrics = this.getApplicationMetrics(server);
+      
+      // Get recent incidents
+      const incidents = await IncidentService.getIncidentsForSystemStatus();
       
       const responseTime = Date.now() - startTime;
       
@@ -70,7 +74,10 @@ export class HealthService {
           responseTime: responseTime, // milliseconds
           memoryUsage: systemMetrics.memory.usage, // MB
           processUptime: Math.round(process.uptime()) // seconds
-        }
+        },
+        
+        // Recent incidents
+        incidents: incidents
       };
       
     } catch (error) {

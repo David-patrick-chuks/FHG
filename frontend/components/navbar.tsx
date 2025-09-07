@@ -43,7 +43,6 @@ export function Navbar() {
   const navigation = [
     { name: 'Features', href: '/features' },
     { name: 'Pricing', href: '/pricing' },
-    { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -208,7 +207,7 @@ export function Navbar() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white block px-3 py-2 text-base font-medium transition-colors flex items-center space-x-2"
+                      className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 text-base font-medium transition-colors flex items-center space-x-2"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Icon className="w-4 h-4" />
@@ -228,7 +227,7 @@ export function Navbar() {
                   <div className="mt-2 space-y-1">
                     <Link
                       href="/dashboard/profile"
-                      className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white block px-3 py-2 text-base font-medium transition-colors flex items-center space-x-2"
+                      className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 text-base font-medium transition-colors flex items-center space-x-2"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <User className="w-4 h-4" />

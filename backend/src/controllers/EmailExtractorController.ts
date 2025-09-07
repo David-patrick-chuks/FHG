@@ -51,7 +51,7 @@ export class EmailExtractorController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Error in startExtraction controller:', error);
+      EmailExtractorController.logger.error('Error in startExtraction controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -96,7 +96,7 @@ export class EmailExtractorController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Error in getExtractions controller:', error);
+      EmailExtractorController.logger.error('Error in getExtractions controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -148,7 +148,7 @@ export class EmailExtractorController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Error in getExtraction controller:', error);
+      EmailExtractorController.logger.error('Error in getExtraction controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -231,7 +231,7 @@ export class EmailExtractorController {
       res.setHeader('Content-Disposition', `attachment; filename="email-extraction-${jobId}.csv"`);
       res.status(200).send(csvContent);
     } catch (error) {
-      this.logger.error('Error in downloadResults controller:', error);
+      EmailExtractorController.logger.error('Error in downloadResults controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -318,7 +318,7 @@ export class EmailExtractorController {
                 validUrls.push(normalizedUrl);
               }
             } catch (error) {
-              this.logger.warn('Invalid URL in CSV', { url, error });
+              EmailExtractorController.logger.warn('Invalid URL in CSV', { url, error });
             }
           }
         }
@@ -366,7 +366,7 @@ export class EmailExtractorController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Error in parseCsvFile controller:', error);
+      EmailExtractorController.logger.error('Error in parseCsvFile controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -399,7 +399,7 @@ export class EmailExtractorController {
         res.status(400).json(result);
       }
     } catch (error) {
-      this.logger.error('Error in getSubscriptionInfo controller:', error);
+      EmailExtractorController.logger.error('Error in getSubscriptionInfo controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -457,7 +457,7 @@ export class EmailExtractorController {
         timestamp: new Date()
       });
     } catch (error) {
-      this.logger.error('Error in logResultsViewed controller:', error);
+      EmailExtractorController.logger.error('Error in logResultsViewed controller:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',

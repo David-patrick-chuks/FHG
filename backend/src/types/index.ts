@@ -15,6 +15,9 @@ export interface IUser {
   lastLoginAt?: Date;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
+  apiKey?: string;
+  apiKeyCreatedAt?: Date;
+  apiKeyLastUsed?: Date;
 }
 
 export interface IBot {

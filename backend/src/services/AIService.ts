@@ -22,14 +22,14 @@ export class AIService {
   private static initializeApiKeys(): void {
     const apiKeyString = process.env['GEMINI_API_KEY'];
     if (!apiKeyString) {
-      this.logger.error('No GEMINI_API_KEY found in environment variables');
+      AIService.logger.error('No GEMINI_API_KEY found in environment variables');
       return;
     }
 
     this.apiKeys = apiKeyString.split(',').map(key => key.trim()).filter(key => key.length > 0);
     
     if (this.apiKeys.length === 0) {
-      this.logger.error('No valid API keys found in GEMINI_API_KEY');
+      AIService.logger.error('No valid API keys found in GEMINI_API_KEY');
       return;
     }
 
@@ -38,7 +38,7 @@ export class AIService {
       this.keyUsageCounts.set(key, 0);
     });
 
-    this.logger.info(`Initialized ${this.apiKeys.length} API keys for load balancing`);
+    AIService.logger.info(`Initialized ${this.apiKeys.length} API keys for load balancing`);
   }
 
   /**
@@ -62,7 +62,7 @@ export class AIService {
     }
 
     // If all keys are at limit, return the first one (will likely get 429)
-    this.logger.warn('All API keys have reached daily limit, using first key');
+    AIService.logger.warn('All API keys have reached daily limit, using first key');
     return this.apiKeys[0];
   }
 
@@ -141,7 +141,7 @@ export class AIService {
         
         if (isRetryableError) {
           const errorType = error.status === 429 ? 'Rate limit (429)' : 'Service unavailable (503)';
-          this.logger.warn(`${errorType} hit for API key ${apiKey.substring(0, 8)}...`, {
+          AIService.logger.warn(`${errorType} hit for API key ${apiKey.substring(0, 8)}...`, {
             retryCount: retryCount + 1,
             operation,
             status: error.status,
@@ -167,7 +167,7 @@ export class AIService {
       }
     }
 
-    this.logger.error(`Failed to execute ${operation} after ${retryCount} retries:`, lastError);
+    AIService.logger.error(`Failed to execute ${operation} after ${retryCount} retries:`, lastError);
     return {
       success: false,
       message: `Failed to execute ${operation}`,
@@ -264,7 +264,7 @@ Return a JSON object with an array of messages, each containing content, subject
           throw new Error('Failed to generate valid AI messages');
         }
 
-        this.logger.info('AI email messages generated successfully', { 
+        AIService.logger.info('AI email messages generated successfully', { 
           count: messages.length, 
           promptLength: prompt.length 
         });
@@ -314,7 +314,7 @@ Return a JSON object with an array of messages, each containing content, subject
         throw new Error('No content generated from AI model');
       }
 
-      this.logger.info('AI content generated successfully', { 
+      AIService.logger.info('AI content generated successfully', { 
         model,
         promptLength: prompt.length,
         hasSchema: !!schema
@@ -358,7 +358,7 @@ Return a JSON object with an array of messages, each containing content, subject
 
       try {
         const parsed = JSON.parse(text);
-        this.logger.info('AI structured response generated successfully', { 
+        AIService.logger.info('AI structured response generated successfully', { 
           model,
           promptLength: prompt.length
         });
@@ -388,7 +388,7 @@ Return a JSON object with an array of messages, each containing content, subject
         throw new Error('No response from AI model');
       }
 
-      this.logger.info('AI service connection test successful');
+      AIService.logger.info('AI service connection test successful');
       
       return {
         connected: true,
@@ -407,7 +407,7 @@ Return a JSON object with an array of messages, each containing content, subject
     this.apiKeys.forEach(key => {
       this.keyUsageCounts.set(key, 0);
     });
-    this.logger.info('API key usage counters reset');
+    AIService.logger.info('API key usage counters reset');
   }
 
   /**

@@ -1,7 +1,8 @@
 'use client';
 
-import { AnimatedSection } from './AnimatedSection';
 import { Brain } from 'lucide-react';
+import Link from 'next/link';
+import { AnimatedSection } from './AnimatedSection';
 
 export function FooterSection() {
   return (
@@ -31,11 +32,11 @@ export function FooterSection() {
             <div>
               <h3 className="font-semibold text-xl mb-8 text-white">Product</h3>
               <ul className="space-y-4 text-white/70">
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">API Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Security</a></li>
+                <li><Link href="/features" className="hover:text-white transition-colors text-lg">Features</Link></li>
+                <li><Link href="/pricing" className="hover:text-white transition-colors text-lg">Pricing</Link></li>
+                <li><Link href="/dashboard" className="hover:text-white transition-colors text-lg">Dashboard</Link></li>
+                <li><Link href="/app-password-guide" className="hover:text-white transition-colors text-lg">App Password Guide</Link></li>
+                <li><Link href="/system-status" className="hover:text-white transition-colors text-lg">System Status</Link></li>
               </ul>
             </div>
           </AnimatedSection>
@@ -44,11 +45,11 @@ export function FooterSection() {
             <div>
               <h3 className="font-semibold text-xl mb-8 text-white">Company</h3>
               <ul className="space-y-4 text-white/70">
-                <li><a href="#" className="hover:text-white transition-colors text-lg">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Press Kit</a></li>
+                <li><Link href="/about" className="hover:text-white transition-colors text-lg">About Us</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors text-lg">Contact</Link></li>
+                <li><Link href="/login" className="hover:text-white transition-colors text-lg">Login</Link></li>
+                <li><Link href="/signup" className="hover:text-white transition-colors text-lg">Sign Up</Link></li>
+                <li><Link href="/reset-password" className="hover:text-white transition-colors text-lg">Reset Password</Link></li>
               </ul>
             </div>
           </AnimatedSection>
@@ -57,11 +58,11 @@ export function FooterSection() {
             <div>
               <h3 className="font-semibold text-xl mb-8 text-white">Support</h3>
               <ul className="space-y-4 text-white/70">
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">System Status</a></li>
-                <li><a href="#" className="hover:text-white transition-colors text-lg">Training</a></li>
+                <li><Link href="/help-center" className="hover:text-white transition-colors text-lg">Help Center</Link></li>
+                <li><Link href="/system-status" className="hover:text-white transition-colors text-lg">System Status</Link></li>
+                <li><Link href="/app-password-guide" className="hover:text-white transition-colors text-lg">App Password Guide</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors text-lg">Contact Support</Link></li>
+                <li><Link href="/features" className="hover:text-white transition-colors text-lg">Feature Guide</Link></li>
               </ul>
             </div>
           </AnimatedSection>
@@ -71,9 +72,9 @@ export function FooterSection() {
           <div className="border-t border-white/20 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-white/60 mb-4 md:mb-0 text-lg">&copy; 2024 MailQuill. All rights reserved.</p>
             <div className="flex space-x-8 text-sm text-white/60">
-              <a href="#" className="hover:text-white transition-colors text-lg">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors text-lg">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors text-lg">Cookie Policy</a>
+              <Link href="/privacy" className="hover:text-white transition-colors text-lg">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-white transition-colors text-lg">Terms of Service</Link>
+              <Link href="/cookies" className="hover:text-white transition-colors text-lg">Cookie Policy</Link>
             </div>
           </div>
         </AnimatedSection>
