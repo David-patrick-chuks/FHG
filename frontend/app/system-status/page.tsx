@@ -33,18 +33,26 @@ export default function SystemStatusPage() {
   const incidents: Incident[] = systemStatus?.incidents || [];
 
   const fetchSystemStatus = async () => {
-    // Prevent multiple simultaneous requests
-    if (isLoading) return;
-    
     try {
       setIsLoading(true);
       setError(null);
       
+      console.log('Fetching system status...');
+      
       // Call the backend API using the proper API client
       const data = await SystemStatusAPI.getSystemStatus();
       
+      console.log('System status data received:', data);
+      console.log('Data type:', typeof data);
+      console.log('Data keys:', Object.keys(data || {}));
+      console.log('Data status:', data?.status);
+      console.log('Data database:', data?.database);
+      console.log('Data application:', data?.application);
+      
       setSystemStatus(data);
       setLastUpdated(new Date());
+      
+      console.log('State updated with data:', data);
     } catch (err) {
       setError('Failed to fetch system status');
       console.error('Error fetching system status:', err);
@@ -60,6 +68,16 @@ export default function SystemStatusPage() {
     const interval = setInterval(fetchSystemStatus, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Debug: Monitor systemStatus state changes
+  useEffect(() => {
+    console.log('systemStatus state changed:', systemStatus);
+    if (systemStatus) {
+      console.log('systemStatus.status:', systemStatus.status);
+      console.log('systemStatus.uptime:', systemStatus.uptime);
+      console.log('systemStatus.application:', systemStatus.application);
+    }
+  }, [systemStatus]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

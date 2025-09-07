@@ -57,8 +57,14 @@ export class SystemStatusAPI {
    */
   static async getSystemStatus(): Promise<SystemStatus> {
     try {
+      console.log('Making API call to /system-status...');
       const response = await apiClient.get('/system-status');
-      return response.data as SystemStatus;
+      console.log('API response received:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // The API client returns the data directly, not wrapped in a response object
+      return response as SystemStatus;
     } catch (error) {
       console.error('Failed to fetch system status:', error);
       throw new Error('Failed to fetch system status');
