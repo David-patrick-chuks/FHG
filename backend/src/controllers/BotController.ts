@@ -292,26 +292,17 @@ export class BotController {
       const botId = req.params['id'];
       const { prompt } = req.body;
 
-      if (!prompt) {
+      // Validate prompt (optional)
+      if (prompt && prompt.trim().length > 0 && prompt.trim().length < 10) {
         res.status(400).json({
           success: false,
-          message: 'Prompt is required',
+          message: 'Prompt must be at least 10 characters long if provided',
           timestamp: new Date()
         });
         return;
       }
 
-      // Validate prompt
-      if (prompt.trim().length < 10) {
-        res.status(400).json({
-          success: false,
-          message: 'Prompt must be at least 10 characters long',
-          timestamp: new Date()
-        });
-        return;
-      }
-
-      if (prompt.trim().length > 1000) {
+      if (prompt && prompt.trim().length > 1000) {
         res.status(400).json({
           success: false,
           message: 'Prompt must be no more than 1000 characters long',

@@ -46,6 +46,41 @@ export const features = [
   },
 ];
 
+export const stats = [
+  {
+    end: 10000000,
+    suffix: '+',
+    duration: 2500,
+    gradient: 'from-blue-400 to-cyan-400',
+    color: 'from-blue-500/20 to-cyan-500/20',
+    label: 'Emails Delivered',
+  },
+  {
+    end: 98.5,
+    suffix: '%',
+    duration: 2000,
+    gradient: 'from-green-400 to-emerald-400',
+    color: 'from-green-500/20 to-emerald-500/20',
+    label: 'Deliverability Rate',
+  },
+  {
+    end: 45,
+    suffix: '%',
+    duration: 1800,
+    gradient: 'from-cyan-400 to-blue-400',
+    color: 'from-cyan-500/20 to-blue-500/20',
+    label: 'Average Open Rate',
+  },
+  {
+    end: 500,
+    suffix: '+',
+    duration: 2200,
+    gradient: 'from-orange-400 to-red-400',
+    color: 'from-orange-500/20 to-red-500/20',
+    label: 'Enterprise Clients',
+  },
+];
+
 export const testimonials = [
   {
     name: 'Sarah Johnson',
@@ -67,40 +102,5 @@ export const testimonials = [
     company: 'StyleHub',
     content: 'The platform\'s intuitive design and powerful automation features improved our conversion rates by 25% while freeing us to focus on strategic initiatives.',
     rating: 5,
-  },
-];
-
-export const stats = [
-  {
-    end: 10000000,
-    suffix: '+',
-    duration: 2500,
-    gradient: 'from-blue-400 to-cyan-400',
-    label: 'Emails Delivered',
-    color: 'from-blue-500/20 to-cyan-500/20',
-  },
-  {
-    end: 98.5,
-    suffix: '%',
-    duration: 2000,
-    gradient: 'from-green-400 to-emerald-400',
-    label: 'Deliverability Rate',
-    color: 'from-green-500/20 to-emerald-500/20',
-  },
-  {
-    end: 45,
-    suffix: '%',
-    duration: 1800,
-    gradient: 'from-cyan-400 to-blue-400',
-    label: 'Average Open Rate',
-    color: 'from-cyan-500/20 to-blue-500/20',
-  },
-  {
-    end: 500,
-    suffix: '+',
-    duration: 2200,
-    gradient: 'from-orange-400 to-red-400',
-    label: 'Enterprise Clients',
-    color: 'from-orange-500/20 to-red-500/20',
   },
 ];

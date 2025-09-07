@@ -123,6 +123,17 @@ export default function CreateBotPage() {
       return;
     }
 
+    // Validate AI prompt if provided
+    if (formData.prompt.trim() && formData.prompt.trim().length < 10) {
+      setVerificationMessage('AI prompt must be at least 10 characters long if provided.');
+      return;
+    }
+
+    if (formData.prompt.trim().length > 1000) {
+      setVerificationMessage('AI prompt must be no more than 1000 characters long.');
+      return;
+    }
+
     // Check if credentials are verified (don't reset verification status)
     if (verificationStatus !== 'success') {
       setVerificationMessage('Please verify your email credentials before creating the bot.');
@@ -306,8 +317,34 @@ export default function CreateBotPage() {
                   onChange={(e) => setFormData(prev => ({ ...prev, prompt: e.target.value }))}
                   placeholder="Enter the AI prompt for this bot...&#10;Example: Write professional, friendly emails that focus on building relationships with potential customers"
                   rows={4}
-                  className="border-2 border-gray-200 dark:border-gray-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-xl resize-none transition-all duration-200"
+                  maxLength={1000}
+                  className={`border-2 rounded-xl resize-none transition-all duration-200 ${
+                    formData.prompt.trim() && formData.prompt.trim().length < 10
+                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                      : formData.prompt.length > 900
+                      ? 'border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20'
+                      : 'border-gray-200 dark:border-gray-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20'
+                  }`}
                 />
+                <div className="flex justify-between text-xs">
+                  <div>
+                    {formData.prompt.trim() && formData.prompt.trim().length < 10 && (
+                      <span className="text-red-500 font-medium">
+                        AI prompt must be at least 10 characters long if provided
+                      </span>
+                    )}
+                    {formData.prompt.trim() && formData.prompt.trim().length >= 10 && (
+                      <span className="text-green-500 font-medium">
+                        ✓ AI prompt is valid
+                      </span>
+                    )}
+                  </div>
+                  <span className={`${
+                    formData.prompt.length > 900 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {formData.prompt.length}/1000
+                  </span>
+                </div>
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
                   <div className="flex items-start space-x-3">
                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">

@@ -13,6 +13,8 @@ export interface IEmailExtraction {
   updatedAt: Date;
   completedAt?: Date;
   error?: string;
+  startedAt?: Date;
+  duration?: number; // Duration in milliseconds
 }
 
 export interface ExtractionResult {
@@ -21,6 +23,8 @@ export interface ExtractionResult {
   status: 'success' | 'failed' | 'processing';
   error?: string;
   extractedAt: Date;
+  startedAt?: Date;
+  duration?: number; // Duration in milliseconds
 }
 
 export enum ExtractionStatus {
@@ -56,6 +60,14 @@ const extractionResultSchema = new Schema({
   extractedAt: {
     type: Date,
     default: Date.now
+  },
+  startedAt: {
+    type: Date,
+    default: null
+  },
+  duration: {
+    type: Number,
+    default: null
   }
 }, { _id: false });
 
@@ -92,6 +104,14 @@ const emailExtractionSchema = new Schema<IEmailExtractionDocument>({
   },
   error: {
     type: String,
+    default: null
+  },
+  startedAt: {
+    type: Date,
+    default: null
+  },
+  duration: {
+    type: Number,
     default: null
   }
 }, {
@@ -165,7 +185,9 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
   url: string,
   emails: string[],
   status: 'success' | 'failed',
-  error?: string
+  error?: string,
+  startedAt?: Date,
+  duration?: number
 ): Promise<boolean> {
   const extraction = await this.findOne({ jobId });
   if (!extraction) return false;
@@ -178,7 +200,9 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
     emails,
     status,
     error,
-    extractedAt: new Date()
+    extractedAt: new Date(),
+    startedAt: startedAt || new Date(),
+    duration: duration || null
   };
   
   // Update total emails count
@@ -202,6 +226,8 @@ emailExtractionSchema.methods.toJSON = function() {
     totalEmails: obj.totalEmails,
     createdAt: obj.createdAt,
     updatedAt: obj.updatedAt,
+    startedAt: obj.startedAt,
+    duration: obj.duration,
     completedAt: obj.completedAt,
     error: obj.error
   };

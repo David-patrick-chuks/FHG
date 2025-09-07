@@ -51,49 +51,53 @@ export default function ResetPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">FHG AI Email Bot</span>
-            </Link>
+            <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Check Your Email
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+              We've sent a password reset link to {email}
+            </p>
           </div>
 
-          <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Check Your Email</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                We've sent a password reset link to {email}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="space-y-4">
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                  <p className="text-green-800 dark:text-green-200 text-sm">
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+            <div className="space-y-6">
+              <div className="bg-green-50/80 dark:bg-green-900/20 border border-green-200/50 dark:border-green-800/50 rounded-xl p-4 backdrop-blur-sm">
+                <p className="text-green-800 dark:text-green-200 text-sm font-medium">
                     ✅ Password reset email sent successfully!
                   </p>
                 </div>
-                <p className="text-gray-500 dark:text-gray-400">
+              
+              <p className="text-gray-600 dark:text-gray-300 text-center">
                   Click the link in the email to reset your password. If you don't see it, check your spam folder.
                 </p>
-                <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+              
+              <div className="p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl backdrop-blur-sm">
+                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                   <p>• The reset link will expire in 1 hour</p>
                   <p>• You can request a new link if needed</p>
                 </div>
               </div>
-              <div className="mt-6 space-y-3">
+              
+              <div className="space-y-3">
                 <Link href="/login">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full h-12 border-2 border-gray-200/50 dark:border-gray-600/50 hover:bg-gray-50/50 dark:hover:bg-gray-700/50 rounded-xl backdrop-blur-sm transition-all duration-200">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Sign In
                   </Button>
                 </Link>
                 <Button 
                   variant="ghost" 
-                  className="w-full text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="w-full h-12 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200"
                   onClick={() => {
                     setIsSubmitted(false)
                     setError(null)
@@ -102,8 +106,8 @@ export default function ResetPasswordPage() {
                   Send Another Reset Link
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -111,58 +115,57 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthGuard requireAuth={false}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">FHG AI Email Bot</span>
-          </Link>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Reset Password</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Reset Password
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
               Enter your email to receive a password reset link
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            </p>
+          </div>
+
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <p className="font-medium">{error}</p>
-                      {error.includes('No account found') && (
-                        <div className="text-sm">
-                          <p>• Check if you typed the email correctly</p>
-                          <p>• Try using the email you used when signing up</p>
-                          <p>• If you don't have an account, <Link href="/signup" className="underline hover:no-underline">create one here</Link></p>
-                        </div>
-                      )}
-                      {error.includes('Valid email') && (
-                        <div className="text-sm">
-                          <p>• Make sure you've entered a complete email address</p>
-                          <p>• Include the @ symbol and domain (e.g., example@domain.com)</p>
-                        </div>
-                      )}
-                      {error.includes('timeout') && (
-                        <div className="text-sm">
-                          <p>• Check your internet connection</p>
-                          <p>• Try again in a few moments</p>
-                        </div>
-                      )}
-                    </div>
-                  </AlertDescription>
-                </Alert>
+                <div className="bg-red-50/80 dark:bg-red-900/20 border border-red-200/50 dark:border-red-800/50 rounded-xl p-4 backdrop-blur-sm">
+                  <div className="space-y-2">
+                    <p className="font-medium text-red-800 dark:text-red-200">{error}</p>
+                    {error.includes('No account found') && (
+                      <div className="text-sm text-red-700 dark:text-red-300">
+                        <p>• Check if you typed the email correctly</p>
+                        <p>• Try using the email you used when signing up</p>
+                        <p>• If you don't have an account, <Link href="/signup" className="underline hover:no-underline">create one here</Link></p>
+                      </div>
+                    )}
+                    {error.includes('Valid email') && (
+                      <div className="text-sm text-red-700 dark:text-red-300">
+                        <p>• Make sure you've entered a complete email address</p>
+                        <p>• Include the @ symbol and domain (e.g., example@domain.com)</p>
+                      </div>
+                    )}
+                    {error.includes('timeout') && (
+                      <div className="text-sm text-red-700 dark:text-red-300">
+                        <p>• Check your internet connection</p>
+                        <p>• Try again in a few moments</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Email Address
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -171,12 +174,13 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
+                  className="h-12 bg-white/50 dark:bg-gray-700/50 border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl backdrop-blur-sm transition-all duration-200"
                 />
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
                 disabled={isLoading}
               >
                 {isLoading ? "Sending..." : "Send Reset Link"}
@@ -185,22 +189,23 @@ export default function ResetPasswordPage() {
 
             <div className="mt-6 space-y-4">
               <div className="text-center">
-                <Link href="/login" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+                <Link href="/login" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                   <ArrowLeft className="w-4 h-4 mr-1" />
                   Back to Sign In
                 </Link>
               </div>
               
-              <div className="text-xs text-gray-500 dark:text-gray-400 text-center space-y-1">
-                <p>• Enter the email address associated with your account</p>
-                <p>• We'll send you a secure link to reset your password</p>
-                <p>• Can't remember your email? <Link href="/login" className="underline hover:no-underline">Try signing in</Link></p>
+              <div className="p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl backdrop-blur-sm">
+                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <p>• Enter the email address associated with your account</p>
+                  <p>• We'll send you a secure link to reset your password</p>
+                  <p>• Can't remember your email? <Link href="/login" className="underline hover:no-underline">Try signing in</Link></p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </div>
       </AuthGuard>
   )
 }

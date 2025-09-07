@@ -9,20 +9,33 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { EmailExtractionJob, EmailExtractorAPI } from '@/lib/api/email-extractor';
 import {
-  CheckCircle,
-  Clock,
-  Copy,
-  Download,
-  ExternalLink,
-  Globe,
-  Loader2,
-  Mail,
-  Search,
-  Share,
-  XCircle
+    CheckCircle,
+    Clock,
+    Copy,
+    Download,
+    ExternalLink,
+    Globe,
+    Loader2,
+    Mail,
+    Search,
+    Share,
+    XCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+// Utility function to format duration
+function formatDuration(milliseconds: number): string {
+  if (milliseconds < 1000) {
+    return `${milliseconds}ms`;
+  } else if (milliseconds < 60000) {
+    return `${(milliseconds / 1000).toFixed(1)}s`;
+  } else {
+    const minutes = Math.floor(milliseconds / 60000);
+    const seconds = Math.floor((milliseconds % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
+  }
+}
 
 export default function EmailExtractorHistoryPage() {
   const router = useRouter();
@@ -262,6 +275,12 @@ export default function EmailExtractorHistoryPage() {
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {job.urls.length} URLs • {job.totalEmails} emails found
+                          {job.duration && (
+                            <span className="ml-2">
+                              • <Clock className="h-3 w-3 inline mr-1" />
+                              {formatDuration(job.duration)}
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(job.createdAt).toLocaleString()}

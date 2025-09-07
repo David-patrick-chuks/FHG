@@ -10,7 +10,10 @@ export class PuppeteerExtractor {
     '/contact', '/contact-us', '/contactus', '/about', '/about-us', '/aboutus',
     '/support', '/help', '/faq', '/customer-service', '/customer-support',
     '/get-in-touch', '/reach-us', '/connect', '/team', '/staff', '/company',
-    '/info', '/information', '/legal', '/privacy', '/terms', '/disclaimer'
+    '/info', '/information', '/legal', '/privacy', '/terms', '/disclaimer',
+    '/refund', '/refund-policy', '/refunds', '/return', '/return-policy', '/returns',
+    '/policy', '/policies', '/shipping', '/shipping-policy', '/delivery',
+    '/warranty', '/guarantee', '/complaint', '/complaints', '/feedback'
   ];
   private static readonly BUSINESS_PATHS = [
     '/business', '/partnership', '/partners', '/affiliate', '/wholesale',

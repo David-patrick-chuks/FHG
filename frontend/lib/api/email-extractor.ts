@@ -11,6 +11,8 @@ export interface EmailExtractionJob {
   updatedAt: string;
   completedAt?: string;
   error?: string;
+  startedAt?: string;
+  duration?: number; // Duration in milliseconds
 }
 
 export interface ExtractionResult {
@@ -19,6 +21,8 @@ export interface ExtractionResult {
   status: 'success' | 'failed' | 'processing';
   error?: string;
   extractedAt: string;
+  startedAt?: string;
+  duration?: number; // Duration in milliseconds
 }
 
 export interface StartExtractionRequest {

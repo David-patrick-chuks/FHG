@@ -1,111 +1,111 @@
-# Email Outreach Bot
+# MailQuill
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-green.svg)](https://www.mongodb.com/)
-[![Redis](https://img.shields.io/badge/Redis-7.0+-red.svg)](https://redis.io/)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/David-patrick-chuks/fhg)
-[![Security](https://img.shields.io/badge/security-A+-brightgreen.svg)](https://github.com/David-patrick-chuks/fhg)
+> **The Ultimate Email Automation and Extraction Platform**
 
-> **Enterprise-grade email automation platform engineered for scale, security, and performance**
+## 🎯 What is MailQuill?
 
-## 🎯 Executive Summary
+MailQuill is a powerful, user-friendly platform that helps businesses and professionals automate their email outreach and extract contact information from websites. Whether you're a small business owner, marketer, or sales professional, MailQuill simplifies the process of finding and reaching potential customers through email.
 
-Email Outreach Bot represents the culmination of enterprise software engineering best practices, delivering a robust, scalable platform for intelligent email outreach automation. Built with production-grade architecture patterns, comprehensive monitoring, and enterprise security standards, this platform is designed to handle mission-critical business operations at scale.
+## ✨ What Can MailQuill Do For You?
 
-## 🚀 Getting Started
+### 🤖 **Smart Email Automation**
+- **Create Email Bots**: Build intelligent email bots that can send personalized messages automatically
+- **Campaign Management**: Design, schedule, and track your email campaigns with ease
+- **AI Personalization**: Let artificial intelligence help you create engaging, personalized emails
+- **Multi-Platform Integration**: Connect with various platforms for comprehensive outreach
 
-### Prerequisites
-```bash
-# System Requirements
-- Node.js 18.0.0 or higher
-- MongoDB 6.0+ (local or Atlas)
-- Redis 7.0+ (local or cloud)
-- Git 2.30+
-- Docker 20.10+ (optional, for containerized deployment)
-```
+### 📧 **Email Discovery Made Easy**
+- **Find Emails from Websites**: Simply enter a website URL and MailQuill will find all email addresses
+- **Bulk Email Extraction**: Process multiple websites at once to build your contact list faster
+- **CSV File Processing**: Upload large lists of websites and extract emails in bulk
+- **Real-time Progress**: Watch your email extraction progress in real-time
+- **Smart Detection**: Advanced technology finds contact information that others miss
 
-### Development Environment Setup
-```bash
-# Clone the repository
-git clone https://github.com/David-patrick-chuks/fhg.git
-cd fhg
+### 📊 **Track Your Success**
+- **Campaign Analytics**: See how well your email campaigns are performing
+- **Activity Monitoring**: Keep track of all your activities and results
+- **Usage Tracking**: Monitor your daily limits and usage across all features
+- **Export Results**: Download your findings in easy-to-use CSV files
 
-# Install backend dependencies
-cd backend
-npm install
+### 🔐 **Secure and Reliable**
+- **Bank-Level Security**: Your data is protected with enterprise-grade security
+- **User-Friendly Access**: Simple login system that keeps your account secure
+- **Data Protection**: All your information is encrypted and safely stored
+- **Reliable Service**: Built to handle your business needs with 99.9% uptime
 
-# Environment configuration
-cp .env.example .env.local
-# Configure your environment variables
+### 🎨 **Beautiful and Easy to Use**
+- **Works Everywhere**: Use MailQuill on your computer, tablet, or phone
+- **Dark or Light Mode**: Choose your preferred appearance
+- **Live Updates**: Get real-time notifications about your campaigns
+- **Intuitive Design**: Clean, modern interface that's easy to navigate
+- **Smooth Experience**: Fast loading and responsive design
 
-# Start development servers
-npm run dev          # Backend development server
-npm run build        # Production build
-npm run test         # Run test suite
-npm run lint         # Code quality checks
-```
+### 📱 **Flexible Plans for Everyone**
+- **Free Plan**: Perfect for getting started with basic email extraction
+- **Pro Plan**: Advanced features for growing businesses
+- **Enterprise Plan**: Unlimited power for large organizations
+- **Usage Monitoring**: Always know how much you've used and what's available
 
-### Production Deployment
-```bash
-# Docker deployment (recommended)
-docker-compose -f docker-compose.prod.yml up -d
+## 🚀 How MailQuill Works
 
-# Manual deployment
-npm run build
-NODE_ENV=production npm start
-```
+### Simple 3-Step Process
 
-## 📖 Comprehensive Documentation
+1. **Enter Website URLs**: Simply paste the website addresses you want to extract emails from
+2. **Let MailQuill Work**: Our advanced technology scans the websites and finds all email addresses
+3. **Get Your Results**: Download your email list and start reaching out to potential customers
 
-- **[API Reference](./docs/api.md)** - Complete REST API documentation with examples
-- **[Deployment Guide](./docs/deployment.md)** - Production deployment strategies and best practices
-- **[Contributing Guidelines](./CONTRIBUTING.md)** - Development standards and contribution workflow
+### For Email Campaigns
 
-## 🏗️ System Architecture
+1. **Create Your Bot**: Set up an intelligent email bot with your message templates
+2. **Design Your Campaign**: Choose your target audience and schedule your emails
+3. **Track Results**: Monitor your campaign performance and engagement rates
 
-### Service Layer Architecture
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   API Gateway   │    │   Load Balancer │
-│   (Next.js)     │◄──►│   (Express)     │◄──►│   (Nginx)       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Auth Service  │    │   Core Services │    │   Queue Service │
-│   (JWT, MFA)   │    │   (Business)    │    │   (Redis/Bull)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   MongoDB       │    │   Redis Cache   │    │   AI Service    │
-│   (Primary DB)  │    │   (Session/Data)│    │   (Gemini)      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+## 💼 Who Should Use MailQuill?
 
-### Data Flow Patterns
-- **Request Processing**: API Gateway → Authentication → Rate Limiting → Business Logic → Response
-- **Email Processing**: Campaign Creation → Queue Job → AI Personalization → SMTP Delivery → Event Tracking
-- **Analytics Pipeline**: Event Collection → Data Processing → Aggregation → Dashboard Updates
+### Perfect For:
+- **Small Business Owners** looking to find new customers
+- **Sales Professionals** who need to build contact lists
+- **Marketing Teams** running email campaigns
+- **Entrepreneurs** starting their outreach efforts
+- **Agencies** managing multiple client campaigns
+- **Anyone** who wants to automate their email marketing
 
-## 📊 Performance Metrics
+## 🆕 What's New in MailQuill?
 
-### System Performance Targets
-- **Response Time**: < 200ms for 95th percentile
-- **Throughput**: 10,000+ requests per minute
-- **Uptime**: 99.9% availability SLA
-- **Database**: < 50ms query response time
-- **Queue Processing**: < 5 second job completion
+### Recent Improvements
+- **✨ Better Email Detection**: Our technology now finds more email addresses than ever before
+- **🔒 Flexible Plans**: Choose the plan that fits your needs - Free, Pro, or Enterprise
+- **📱 Improved Experience**: Faster loading, better design, and easier navigation
+- **📊 Real-time Updates**: Get instant notifications about your campaigns and extractions
+- **🎯 Smart Features**: Intelligent suggestions and automated processes
+- **🛡️ Enhanced Security**: Your data is safer than ever with improved protection
+- **📋 Legal Compliance**: Full terms of service and privacy policy for your peace of mind
+- **🎨 Beautiful Design**: Modern, clean interface that works on any device
 
+## 💡 Why Choose MailQuill?
 
-## 📄 License
+### The Benefits You'll Get:
+- **Save Time**: Automate your email outreach and focus on what matters most
+- **Find More Customers**: Discover email addresses you never knew existed
+- **Increase Sales**: Reach more potential customers with personalized campaigns
+- **Easy to Use**: No technical knowledge required - anyone can use MailQuill
+- **Reliable Service**: Built to handle your business needs with 99.9% uptime
+- **Secure Platform**: Your data is protected with enterprise-grade security
+- **Flexible Pricing**: Start free and upgrade as your business grows
+- **24/7 Support**: Get help when you need it with our dedicated support team
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🎯 Ready to Get Started?
 
-**Built with enterprise-grade engineering standards by David Patrick and the Email Outreach Bot team**
+MailQuill is designed to help you grow your business through intelligent email automation and contact discovery. Whether you're just starting out or running a large enterprise, we have the tools and features you need to succeed.
+
+### Get Started Today:
+1. **Sign up for free** and try our basic features
+2. **Extract emails** from your first website
+3. **Create your first campaign** and see the results
+4. **Upgrade when ready** to unlock advanced features
 
 ---
 
-*For enterprise inquiries, security reports, or partnership opportunities, please contact our team directly.*
+**Built with love by David Patrick and the MailQuill team**
+
+*For questions, support, or partnership opportunities, please contact our team directly.*

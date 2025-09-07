@@ -19,7 +19,7 @@ export class TrackingUtils {
     emailId: string, 
     originalUrl: string
   ): string {
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.API_BASE_UR || 'http://localhost:5000';
     const encodedUrl = encodeURIComponent(originalUrl);
     return `${baseUrl}/track/click?cid=${campaignId}&tid=${emailId}&url=${encodedUrl}`;
   }

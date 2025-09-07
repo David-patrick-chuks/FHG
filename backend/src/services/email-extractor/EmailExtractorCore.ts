@@ -122,15 +122,22 @@ export class EmailExtractorCore {
     try {
       EmailExtractorCore.logger.info('Processing email extraction job', { jobId, urlCount: urls.length });
       
-      // Update status to processing
+      // Update status to processing and set startedAt
       await EmailExtractionModel.updateExtractionStatus(jobId, ExtractionStatus.PROCESSING);
+      const model = EmailExtractionModel.getInstance();
+      await model.updateOne(
+        { jobId },
+        { startedAt: new Date() }
+      );
 
       // Process each URL
       for (const url of urls) {
+        const urlStartTime = Date.now();
         try {
           EmailExtractorCore.logger.info('Extracting emails from URL', { jobId, url });
           
           const emails = await this.extractEmailsFromUrl(url);
+          const urlDuration = Date.now() - urlStartTime;
           totalEmails += emails.length;
           successfulUrls++;
           
@@ -144,16 +151,19 @@ export class EmailExtractorCore {
           EmailExtractorCore.logger.info('Successfully extracted emails', {
             jobId,
             url,
-            emailCount: emails.length
+            emailCount: emails.length,
+            duration: urlDuration
           });
         } catch (error) {
+          const urlDuration = Date.now() - urlStartTime;
           failedUrls++;
           failedUrlList.push(url);
           
           EmailExtractorCore.logger.error('Error extracting emails from URL', {
             jobId,
             url,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
+            duration: urlDuration
           });
           
           await EmailExtractionModel.updateExtractionResult(
@@ -166,8 +176,16 @@ export class EmailExtractorCore {
         }
       }
 
-      // Mark job as completed
+      // Mark job as completed and set duration
+      const totalDuration = Date.now() - startTime;
       await EmailExtractionModel.updateExtractionStatus(jobId, ExtractionStatus.COMPLETED);
+      await model.updateOne(
+        { jobId },
+        { 
+          completedAt: new Date(),
+          duration: totalDuration
+        }
+      );
       
       // Log completion activity
       await EmailExtractorActivityService.logExtractionCompleted(
@@ -407,7 +425,10 @@ export class EmailExtractorCore {
     '/contact', '/contact-us', '/contactus', '/about', '/about-us', '/aboutus',
     '/support', '/help', '/faq', '/customer-service', '/customer-support',
     '/get-in-touch', '/reach-us', '/connect', '/team', '/staff', '/company',
-    '/info', '/information', '/legal', '/privacy', '/terms', '/disclaimer'
+    '/info', '/information', '/legal', '/privacy', '/terms', '/disclaimer',
+    '/refund', '/refund-policy', '/refunds', '/return', '/return-policy', '/returns',
+    '/policy', '/policies', '/shipping', '/shipping-policy', '/delivery',
+    '/warranty', '/guarantee', '/complaint', '/complaints', '/feedback'
   ];
   private static readonly BUSINESS_PATHS = [
     '/business', '/partnership', '/partners', '/affiliate', '/wholesale',

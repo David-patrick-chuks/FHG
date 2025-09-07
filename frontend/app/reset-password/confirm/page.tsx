@@ -1,13 +1,11 @@
 "use client"
 
 import { AuthGuard } from "@/components/auth/AuthGuard"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { apiClient } from "@/lib/api-client"
-import { ArrowLeft, Brain, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import type React from "react"
@@ -132,23 +130,33 @@ function ResetPasswordConfirmContent() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Invalid Reset Link</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                This password reset link is invalid
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Invalid Reset Link
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+              This password reset link is invalid
+            </p>
+          </div>
+
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+            <div className="text-center">
               <Link href="/reset-password">
-                <Button className="w-full">
+                <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
                   Request New Reset Link
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -156,23 +164,33 @@ function ResetPasswordConfirmContent() {
 
   if (isValidToken === false) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Reset Link Expired</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                This password reset link has expired or is invalid
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Reset Link Expired
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+              This password reset link has expired or is invalid
+            </p>
+          </div>
+
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+            <div className="text-center">
               <Link href="/reset-password">
-                <Button className="w-full">
+                <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
                   Request New Reset Link
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -180,35 +198,43 @@ function ResetPasswordConfirmContent() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">FHG AI Email Bot</span>
-            </Link>
+            <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Password Reset Successfully!
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+              Your password has been updated
+            </p>
           </div>
 
-          <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Password Reset Successfully!</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Your password has been updated
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+            <div className="space-y-6">
+              <div className="bg-green-50/80 dark:bg-green-900/20 border border-green-200/50 dark:border-green-800/50 rounded-xl p-4 backdrop-blur-sm">
+                <p className="text-green-800 dark:text-green-200 text-sm font-medium">
+                  ✅ Your password has been successfully updated!
+                </p>
+              </div>
+              
+              <p className="text-gray-600 dark:text-gray-300 text-center">
                 You can now sign in with your new password.
               </p>
+              
               <Link href="/login">
-                <Button className="w-full">
+                <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
                   Sign In
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -216,76 +242,86 @@ function ResetPasswordConfirmContent() {
 
   if (isValidToken === null) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Verifying Reset Link</CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Please wait while we verify your reset link...
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Verifying Reset Link
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+              Please wait while we verify your reset link...
+            </p>
+          </div>
+
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">FHG AI Email Bot</span>
-          </Link>
+          <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Create New Password
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+            {userEmail && `for ${userEmail}`}
+          </p>
         </div>
 
-        <Card className="border-gray-200 dark:border-gray-700 shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Create New Password</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
-              {userEmail && `for ${userEmail}`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 p-8">
+          <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    <div className="space-y-2">
-                      <p className="font-medium">{error}</p>
-                      {error.includes('expired') && (
-                        <div className="text-sm">
-                          <p>• Reset links expire after 1 hour for security</p>
-                          <p>• <Link href="/reset-password" className="underline hover:no-underline">Request a new reset link</Link></p>
-                        </div>
-                      )}
-                      {error.includes('invalid') && (
-                        <div className="text-sm">
-                          <p>• This link may have been used already</p>
-                          <p>• <Link href="/reset-password" className="underline hover:no-underline">Request a new reset link</Link></p>
-                        </div>
-                      )}
-                      {error.includes('Password validation') && (
-                        <div className="text-sm">
-                          <p>• Password must be at least 8 characters long</p>
-                          <p>• Use a mix of letters, numbers, and symbols</p>
-                        </div>
-                      )}
-                    </div>
-                  </AlertDescription>
-                </Alert>
+                <div className="bg-red-50/80 dark:bg-red-900/20 border border-red-200/50 dark:border-red-800/50 rounded-xl p-4 backdrop-blur-sm">
+                  <div className="space-y-2">
+                    <p className="font-medium text-red-800 dark:text-red-200">{error}</p>
+                    {error.includes('expired') && (
+                      <div className="text-sm text-red-700 dark:text-red-300">
+                        <p>• Reset links expire after 1 hour for security</p>
+                        <p>• <Link href="/reset-password" className="underline hover:no-underline">Request a new reset link</Link></p>
+                      </div>
+                    )}
+                    {error.includes('invalid') && (
+                      <div className="text-sm text-red-700 dark:text-red-300">
+                        <p>• This link may have been used already</p>
+                        <p>• <Link href="/reset-password" className="underline hover:no-underline">Request a new reset link</Link></p>
+                      </div>
+                    )}
+                    {error.includes('Password validation') && (
+                      <div className="text-sm text-red-700 dark:text-red-300">
+                        <p>• Password must be at least 8 characters long</p>
+                        <p>• Use a mix of letters, numbers, and symbols</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  New Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
@@ -295,37 +331,35 @@ function ResetPasswordConfirmContent() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className={newPassword && !isPasswordValid ? "border-red-500" : ""}
+                    className={`h-12 bg-white/50 dark:bg-gray-700/50 border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl backdrop-blur-sm transition-all duration-200 pr-12 ${newPassword && !isPasswordValid ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}
                   />
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
                 
                 {/* Password Requirements */}
-                <div className="space-y-1">
-                  <p className="text-xs text-gray-500 font-medium">Password Requirements:</p>
-                  <div className="space-y-1">
-                    <div className={`flex items-center gap-2 text-xs ${newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className="p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl backdrop-blur-sm">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mb-3">Password Requirements:</p>
+                  <div className="space-y-2">
+                    <div className={`flex items-center gap-3 text-xs ${newPassword.length >= 8 ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-2 h-2 rounded-full ${newPassword.length >= 8 ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
                       At least 8 characters long
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-3 text-xs ${/[A-Z]/.test(newPassword) ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
                       One uppercase letter
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-3 text-xs ${/[0-9]/.test(newPassword) ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-2 h-2 rounded-full ${/[0-9]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
                       One number
                     </div>
-                    <div className={`flex items-center gap-2 text-xs ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <div className={`flex items-center gap-3 text-xs ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className={`w-2 h-2 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword) ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
                       One special character
                     </div>
                   </div>
@@ -333,7 +367,9 @@ function ResetPasswordConfirmContent() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Confirm New Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -344,22 +380,21 @@ function ResetPasswordConfirmContent() {
                     required
                     disabled={isLoading}
                     minLength={8}
+                    className="h-12 bg-white/50 dark:bg-gray-700/50 border-gray-200/50 dark:border-gray-600/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl backdrop-blur-sm transition-all duration-200 pr-12"
                   />
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
                 disabled={isLoading || !isPasswordValid || newPassword !== confirmPassword}
               >
                 {isLoading ? "Resetting..." : "Reset Password"}
@@ -368,20 +403,22 @@ function ResetPasswordConfirmContent() {
 
             <div className="mt-6 space-y-4">
               <div className="text-center">
-                <Link href="/login" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+                <Link href="/login" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                   <ArrowLeft className="w-4 h-4 mr-1" />
                   Back to Sign In
                 </Link>
               </div>
               
-              <div className="text-xs text-gray-500 dark:text-gray-400 text-center space-y-1">
-                <p>• Choose a strong password you haven't used before</p>
-                <p>• Your new password will be active immediately</p>
-                <p>• You can change it again from your account settings</p>
+              <div className="p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl backdrop-blur-sm">
+                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <p>• Choose a strong password you haven't used before</p>
+                  <p>• Your new password will be active immediately</p>
+                  <p>• You can change it again from your account settings</p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

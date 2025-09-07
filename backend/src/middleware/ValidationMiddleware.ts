@@ -194,9 +194,9 @@ export class ValidationMiddleware {
         errors.push('Password is required');
       }
 
-      // Validate prompt
-      if (!prompt || prompt.trim().length < 10) {
-        errors.push('Bot prompt must be at least 10 characters long');
+      // Validate prompt (optional)
+      if (prompt && prompt.trim().length > 0 && prompt.trim().length < 10) {
+        errors.push('Bot prompt must be at least 10 characters long if provided');
       }
 
       if (prompt && prompt.trim().length > 1000) {
