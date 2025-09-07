@@ -11,6 +11,7 @@ import {
     Clock,
     FileText,
     Globe,
+    Mail,
     Shield,
     Target,
     Users,
