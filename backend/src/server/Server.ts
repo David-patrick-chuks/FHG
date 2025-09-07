@@ -18,7 +18,7 @@ export class Server {
 
   constructor() {
     this.app = express();
-    this.port = parseInt(process.env['PORT'] || '3000', 10);
+    this.port = parseInt(process.env['PORT'] || '3001', 10);
     this.database = new DatabaseConnection();
     this.logger = new Logger();
     this.healthService = new HealthService(this.database);
