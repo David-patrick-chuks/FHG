@@ -124,7 +124,7 @@ export default function SignupPage() {
                     Username
                   </Label>
                 <div className="relative">
-                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600 dark:text-gray-300" />
                   <Input
                     id="username"
                     type="text"
@@ -150,7 +150,7 @@ export default function SignupPage() {
                     Email address
                   </Label>
                 <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600 dark:text-gray-300" />
                   <Input
                     id="email"
                     type="email"
@@ -173,7 +173,7 @@ export default function SignupPage() {
                     Password
                   </Label>
                 <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600 dark:text-gray-300" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -185,7 +185,7 @@ export default function SignupPage() {
                   />
                   <button
                     type="button"
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
