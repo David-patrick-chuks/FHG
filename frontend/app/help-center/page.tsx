@@ -5,15 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Clock,
-    ExternalLink,
-    FileText,
-    HelpCircle,
-    MessageSquare,
-    Search,
-    Shield,
-    Users,
-    Zap
+  Clock,
+  ExternalLink,
+  FileText,
+  HelpCircle,
+  MessageSquare,
+  Search,
+  Shield,
+  Users,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -135,14 +135,6 @@ export default function HelpCenterPage() {
           question: 'Where can I find video tutorials?',
           answer: 'Visit our tutorials section for step-by-step video guides covering all aspects of MailQuill. These self-paced learning resources are perfect for getting started.'
         },
-        {
-          question: 'Is there a community forum?',
-          answer: 'Yes! Join our community forum to connect with other users, share tips, ask questions, and get help from the MailQuill community.'
-        },
-        {
-          question: 'How can I request new features?',
-          answer: 'Submit feature requests through our feedback portal. We review all suggestions and prioritize development based on user demand and feasibility.'
-        }
       ]
     }
   ];
@@ -159,9 +151,7 @@ export default function HelpCenterPage() {
 
   const quickLinks = [
     { title: 'API Documentation', href: '/docs/api', icon: FileText },
-    { title: 'System Status', href: '/system-status', icon: Clock },
-    { title: 'Community Forum', href: '/community', icon: Users },
-    { title: 'Feature Requests', href: '/feedback', icon: MessageSquare }
+    { title: 'System Status', href: '/system-status', icon: Clock }
   ];
 
   return (
