@@ -164,7 +164,7 @@ export function Navbar() {
                 {/* Desktop auth buttons */}
                 <div className="hidden md:flex md:items-center md:space-x-4">
                   <Link href="/login">
-                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white !bg-transparent">
                       Sign in
                     </Button>
                   </Link>

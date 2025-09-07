@@ -92,7 +92,7 @@ export function ApiDocsSidebar({
   return (
     <div className="w-full h-full flex flex-col">
       {/* Search - Sticky */}
-      <div className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 pt-6 pb-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 pt-4 lg:pt-6 pb-4 mb-4 lg:mb-6 border-b border-gray-200 dark:border-gray-700">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -100,9 +100,9 @@ export function ApiDocsSidebar({
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+            className="pl-10 pr-4 py-2 w-full bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-sm"
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 hidden sm:block">
             ⌘K
           </div>
         </div>
@@ -159,22 +159,16 @@ export function ApiDocsSidebar({
         </nav>
 
         {/* Quick Links */}
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-gray-200 dark:border-gray-700">
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
             Quick Links
           </h3>
           <div className="space-y-2">
             <a
               href="/signup"
-              className="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
+              className="block px-3 pb-5 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
             >
               Get API Key
-            </a>
-            <a
-              href="/dashboard/profile"
-              className="block px-3 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
-            >
-              View Profile
             </a>
           </div>
         </div>

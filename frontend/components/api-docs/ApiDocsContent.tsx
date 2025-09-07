@@ -48,11 +48,15 @@ export function ApiDocsContent({ activeSection, searchQuery }: ApiDocsContentPro
         return <ApiDocsOverview searchQuery={searchQuery} />;
       case 'authentication':
         return <ApiDocsAuthentication searchQuery={searchQuery} />;
+      case 'endpoints':
+        return <ApiDocsEndpoints searchQuery={searchQuery} activeEndpoint={undefined} />;
       case 'extract':
       case 'get-extraction':
       case 'download':
       case 'usage':
         return <ApiDocsEndpoints searchQuery={searchQuery} activeEndpoint={activeSection} />;
+      case 'examples':
+        return <ApiDocsExamples searchQuery={searchQuery} activeExample={undefined} />;
       case 'curl':
       case 'javascript':
       case 'python':
@@ -72,21 +76,21 @@ export function ApiDocsContent({ activeSection, searchQuery }: ApiDocsContentPro
   return (
     <div className="max-w-4xl">
       {/* Breadcrumbs */}
-      <div className="mb-6">
-        <nav className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="mb-4 lg:mb-6">
+        <nav className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">
           {getBreadcrumbs()}
         </nav>
       </div>
 
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
           {getPageTitle()}
         </h1>
       </div>
 
       {/* Content */}
-      <div className="prose prose-gray dark:prose-invert max-w-none">
+      <div className="prose prose-gray dark:prose-invert max-w-none prose-sm lg:prose-base">
         {renderContent()}
       </div>
     </div>

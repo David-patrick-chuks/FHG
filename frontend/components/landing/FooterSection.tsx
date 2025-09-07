@@ -35,8 +35,6 @@ export function FooterSection() {
                 <li><Link href="/features" className="hover:text-white transition-colors text-lg">Features</Link></li>
                 <li><Link href="/pricing" className="hover:text-white transition-colors text-lg">Pricing</Link></li>
                 <li><Link href="/dashboard" className="hover:text-white transition-colors text-lg">Dashboard</Link></li>
-                <li><Link href="/app-password-guide" className="hover:text-white transition-colors text-lg">App Password Guide</Link></li>
-                <li><Link href="/system-status" className="hover:text-white transition-colors text-lg">System Status</Link></li>
               </ul>
             </div>
           </AnimatedSection>
@@ -47,9 +45,6 @@ export function FooterSection() {
               <ul className="space-y-4 text-white/70">
                 <li><Link href="/about" className="hover:text-white transition-colors text-lg">About Us</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors text-lg">Contact</Link></li>
-                <li><Link href="/login" className="hover:text-white transition-colors text-lg">Login</Link></li>
-                <li><Link href="/signup" className="hover:text-white transition-colors text-lg">Sign Up</Link></li>
-                <li><Link href="/reset-password" className="hover:text-white transition-colors text-lg">Reset Password</Link></li>
               </ul>
             </div>
           </AnimatedSection>
@@ -60,9 +55,6 @@ export function FooterSection() {
               <ul className="space-y-4 text-white/70">
                 <li><Link href="/help-center" className="hover:text-white transition-colors text-lg">Help Center</Link></li>
                 <li><Link href="/system-status" className="hover:text-white transition-colors text-lg">System Status</Link></li>
-                <li><Link href="/app-password-guide" className="hover:text-white transition-colors text-lg">App Password Guide</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors text-lg">Contact Support</Link></li>
-                <li><Link href="/features" className="hover:text-white transition-colors text-lg">Feature Guide</Link></li>
               </ul>
             </div>
           </AnimatedSection>
