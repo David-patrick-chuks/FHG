@@ -298,33 +298,43 @@ export default function HelpCenterPage() {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-8 text-white">
-          <h3 className="text-2xl font-bold mb-4">
-            Still need help?
-          </h3>
-          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-            Can't find what you're looking for? Our support team is here to help you succeed.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-gray-100"
-              onClick={() => {
-                const message = encodeURIComponent('Hi! I need help with MailQuill. Can you assist me?');
-                const whatsappUrl = `https://wa.me/2347014185686?text=${message}`;
-                window.open(whatsappUrl, '_blank');
-              }}
-            >
-              Contact Support
-            </Button>
-            <Link href="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Send Message
-              </Button>
-            </Link>
-          </div>
-        </div>
+ {/* CTA Section */}
+<div className="relative text-center rounded-2xl p-8 overflow-hidden">
+  {/* Background gradient (brand colors) */}
+  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/70 to-cyan-500/70 blur-xl"></div>
+  
+  {/* Glass container */}
+  <div className="relative bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl p-8 text-white">
+    <h3 className="text-2xl font-bold mb-4 drop-shadow-lg">
+      Still need help?
+    </h3>
+    <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+      Can't find what you're looking for? Our support team is here to help you succeed.
+    </p>
+    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <Button 
+        size="lg" 
+        className="bg-white/80 text-blue-600 hover:bg-white/90 backdrop-blur-sm shadow-md"
+        onClick={() => {
+          const message = encodeURIComponent('Hi! I need help with MailQuill. Can you assist me?');
+          const whatsappUrl = `https://wa.me/2347014185686?text=${message}`;
+          window.open(whatsappUrl, '_blank');
+        }}
+      >
+        Contact Support
+      </Button>
+      <Link href="/contact">
+        <Button 
+          size="lg" 
+          variant="outline" 
+          className="border-white/40 text-white hover:bg-white/10 backdrop-blur-sm"
+        >
+          Send Message
+        </Button>
+      </Link>
+    </div>
+  </div>
+</div>
       </main>
     </div>
   );
