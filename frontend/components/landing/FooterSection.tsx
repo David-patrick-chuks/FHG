@@ -34,7 +34,7 @@ export function FooterSection() {
               <ul className="space-y-4 text-white/70">
                 <li><Link href="/features" className="hover:text-white transition-colors text-lg">Features</Link></li>
                 <li><Link href="/pricing" className="hover:text-white transition-colors text-lg">Pricing</Link></li>
-                <li><Link href="/dashboard" className="hover:text-white transition-colors text-lg">Dashboard</Link></li>
+                <li><Link href="/api-docs" className="hover:text-white transition-colors text-lg">Documentation</Link></li>
               </ul>
             </div>
           </AnimatedSection>

@@ -634,4 +634,37 @@ export class BotController {
       ErrorHandler.handle(error, req, res, () => {});
     }
   }
+
+  public static async checkActiveCampaigns(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const botId = req.params['id'];
+
+      if (!botId) {
+        res.status(400).json({
+          success: false,
+          message: 'Bot ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      BotController.logger.info('Check active campaigns request', {
+        userId,
+        botId,
+        ip: req.ip
+      });
+
+      const result = await BotService.hasActiveCampaigns(botId, userId);
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      BotController.logger.error('Check active campaigns error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
 }

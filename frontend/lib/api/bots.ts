@@ -6,7 +6,7 @@ export interface CreateBotRequest {
   description: string;
   email: string;
   password: string;
-  prompt: string;
+  prompt?: string;
   profileImage?: string;
 }
 
@@ -107,5 +107,13 @@ export class BotsAPI {
 
   static async getBotEmailStats(id: string, days: number = 30): Promise<ApiResponse<BotEmailStats>> {
     return apiClient.get<BotEmailStats>(`/bots/${id}/email-stats?days=${days}`);
+  }
+
+  // Check if bot has active campaigns
+  static async checkActiveCampaigns(id: string): Promise<ApiResponse<{ 
+    hasActiveCampaigns: boolean; 
+    activeCampaigns: Array<{ id: string; name: string; status: string }> 
+  }>> {
+    return apiClient.get<{ hasActiveCampaigns: boolean; activeCampaigns: Array<{ id: string; name: string; status: string }> }>(`/bots/${id}/active-campaigns`);
   }
 }

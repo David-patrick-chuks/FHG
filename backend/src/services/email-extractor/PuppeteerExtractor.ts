@@ -5,24 +5,15 @@ import { UrlUtils } from './UrlUtils';
 
 export class PuppeteerExtractor {
   private static logger: Logger = new Logger();
-  private static readonly PUPPETEER_TIMEOUT = 30000;
+  private static readonly PUPPETEER_TIMEOUT = 15000; // Reduced from 30s to 15s for faster extraction
   private static readonly CONTACT_PATHS = [
-    '/contact', '/contact-us', '/contactus', '/about', '/about-us', '/aboutus',
-    '/support', '/help', '/faq', '/customer-service', '/customer-support',
-    '/get-in-touch', '/reach-us', '/connect', '/team', '/staff', '/company',
-    '/info', '/information', '/legal', '/privacy', '/terms', '/disclaimer',
-    '/refund', '/refund-policy', '/refunds', '/return', '/return-policy', '/returns',
-    '/policy', '/policies', '/shipping', '/shipping-policy', '/delivery',
-    '/warranty', '/guarantee', '/complaint', '/complaints', '/feedback'
+    '/contact', '/contact-us', '/about', '/about-us', '/support'
   ];
   private static readonly BUSINESS_PATHS = [
-    '/business', '/partnership', '/partners', '/affiliate', '/wholesale',
-    '/b2b', '/enterprise', '/corporate', '/investor', '/investors',
-    '/press', '/media', '/news', '/blog', '/careers', '/jobs'
+    '/business', '/team', '/company'
   ];
   private static readonly COMMON_CHECKOUT_PATHS = [
-    '/checkout', '/checkout/', '/checkout/onepage/', '/cart', '/basket',
-    '/payment', '/billing', '/order', '/purchase', '/buy'
+    '/checkout', '/cart', '/payment'
   ];
 
   /**

@@ -130,13 +130,18 @@ export class EmailExtractorCore {
         { startedAt: new Date() }
       );
 
-      // Process each URL
+      // Process each URL with detailed progress tracking
       for (const url of urls) {
         const urlStartTime = Date.now();
         try {
           EmailExtractorCore.logger.info('Extracting emails from URL', { jobId, url });
           
-          const emails = await this.extractEmailsFromUrl(url);
+          // Create progress updater for this URL
+          const updateProgress = async (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => {
+            await EmailExtractionModel.updateExtractionProgress(jobId, url, step, status, message, details);
+          };
+          
+          const emails = await this.extractEmailsFromUrlWithProgress(url, jobId, updateProgress);
           const urlDuration = Date.now() - urlStartTime;
           totalEmails += emails.length;
           successfulUrls++;
@@ -145,7 +150,9 @@ export class EmailExtractorCore {
             jobId,
             url,
             emails,
-            'success'
+            'success',
+            undefined,
+            urlDuration
           );
           
           EmailExtractorCore.logger.info('Successfully extracted emails', {
@@ -171,7 +178,8 @@ export class EmailExtractorCore {
             url,
             [],
             'failed',
-            error instanceof Error ? error.message : 'Unknown error'
+            error instanceof Error ? error.message : 'Unknown error',
+            urlDuration
           );
         }
       }
@@ -317,95 +325,86 @@ export class EmailExtractorCore {
   }
 
   /**
-   * Extract emails from a single URL - Main orchestration method
+   * Extract emails from a single URL with optimized speed and detailed progress tracking
    */
-  private static async extractEmailsFromUrl(url: string): Promise<string[]> {
+  private static async extractEmailsFromUrlWithProgress(
+    url: string, 
+    jobId: string, 
+    updateProgress: (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => Promise<void>
+  ): Promise<string[]> {
     const found = new Set<string>();
     const scannedUrls = new Set<string>();
-    const urlsToScan = new Set<string>();
 
     try {
-      EmailExtractorCore.logger.info('Starting aggressive email extraction', { url });
+      EmailExtractorCore.logger.info('Starting optimized email extraction', { url });
 
-      // Step 1: Always start with homepage
+      // Step 1: Fast homepage scan (most important - emails are usually on homepage)
+      await updateProgress('homepage_scan', 'processing', 'Fetching homepage content...');
       const homepageHtml = await this.fetchHtml(url);
       if (homepageHtml) {
-        this.extractEmailsFromHtml(homepageHtml).forEach(email => found.add(email));
+        await updateProgress('homepage_scan', 'completed', 'Homepage fetched successfully', { 
+          contentLength: homepageHtml.length 
+        });
+        
+        await updateProgress('homepage_email_extraction', 'processing', 'Extracting emails from homepage...');
+        const homepageEmails = this.extractEmailsFromHtml(homepageHtml);
+        homepageEmails.forEach(email => found.add(email));
         scannedUrls.add(url);
         
-        // Extract all internal links from homepage
-        const internalLinks = this.extractAllInternalLinks(url, homepageHtml);
-        internalLinks.forEach(link => urlsToScan.add(link));
+        await updateProgress('homepage_email_extraction', 'completed', `Found ${homepageEmails.length} emails on homepage`, {
+          emails: homepageEmails
+        });
+      } else {
+        await updateProgress('homepage_scan', 'failed', 'Failed to fetch homepage content');
       }
 
-      // Step 2: Try all predefined paths
-      const allPaths = [
-        ...this.CONTACT_PATHS,
-        ...this.BUSINESS_PATHS,
-        ...this.COMMON_CHECKOUT_PATHS
-      ];
-
-      for (const path of allPaths) {
-        const testUrl = this.normalizeUrl(url, path);
-        if (testUrl && !scannedUrls.has(testUrl)) {
-          urlsToScan.add(testUrl);
-        }
-      }
-
-      // Step 3: Scan discovered URLs (limited to prevent infinite loops)
-      let scanCount = 0;
-      const urlsArray = Array.from(urlsToScan);
-      
-      for (const scanUrl of urlsArray) {
-        if (scanCount >= this.MAX_PAGES_TO_SCAN || scannedUrls.has(scanUrl)) {
-          continue;
-        }
-
-        try {
-          EmailExtractorCore.logger.info('Scanning page for emails', { url: scanUrl, scanCount });
-          const html = await this.fetchHtml(scanUrl);
-          if (html) {
-            scannedUrls.add(scanUrl);
-            scanCount++;
-            
-            // Extract emails from this page
-            this.extractEmailsFromHtml(html).forEach(email => found.add(email));
-            
-            // Extract more internal links (but limit depth)
-            if (scanCount < this.MAX_PAGES_TO_SCAN / 2) {
-              const newLinks = this.extractAllInternalLinks(url, html);
-              newLinks.forEach(link => {
-                if (!scannedUrls.has(link) && !urlsToScan.has(link)) {
-                  urlsToScan.add(link);
-                }
-              });
-            }
-          }
-        } catch (error) {
-          EmailExtractorCore.logger.warn('Failed to scan page', { url: scanUrl, error });
-        }
-      }
-
-      // Step 4: If still no emails found, use Puppeteer for deep scanning
+      // Step 2: Quick contact page check (most likely to have emails)
       if (found.size === 0) {
-        EmailExtractorCore.logger.info('No emails found with basic scanning, using Puppeteer', { url });
+        await updateProgress('contact_pages', 'processing', 'Checking contact pages...');
+        const contactUrls = this.getTopContactUrls(url);
+        const contactEmails = await this.scanUrlsInParallel(contactUrls, updateProgress, 'contact_pages');
+        contactEmails.forEach(email => found.add(email));
+        
+        await updateProgress('contact_pages', 'completed', `Found ${contactEmails.length} emails from contact pages`, {
+          emails: contactEmails
+        });
+      } else {
+        await updateProgress('contact_pages', 'skipped', 'Skipped contact pages - emails already found');
+      }
+
+      // Step 3: Fast Puppeteer scan (moved up for better results)
+      if (found.size === 0) {
+        await updateProgress('puppeteer_scan', 'processing', 'Using Puppeteer for deep scanning...');
+        EmailExtractorCore.logger.info('Using Puppeteer for deep scanning', { url });
         const puppeteerEmails = await this.extractEmailsWithPuppeteer(url);
         puppeteerEmails.forEach(email => found.add(email));
+        
+        await updateProgress('puppeteer_scan', 'completed', `Puppeteer scan found ${puppeteerEmails.length} emails`, {
+          emails: puppeteerEmails
+        });
+      } else {
+        await updateProgress('puppeteer_scan', 'skipped', 'Skipped Puppeteer scan - emails already found');
       }
 
-      // Step 5: Try common email patterns and social media
+      // Step 4: WHOIS lookup (fast and often effective)
       if (found.size === 0) {
-        EmailExtractorCore.logger.info('Trying social media and common patterns', { url });
-        const socialEmails = await this.extractEmailsFromSocialMedia(url);
-        socialEmails.forEach(email => found.add(email));
-      }
-
-      // Step 6: Try WHOIS lookup for domain emails
-      if (found.size === 0) {
+        await updateProgress('whois_lookup', 'processing', 'Trying WHOIS lookup...');
         EmailExtractorCore.logger.info('Trying WHOIS lookup', { url });
         const whoisEmails = await this.extractEmailsFromWhois(url);
         whoisEmails.forEach(email => found.add(email));
+        
+        await updateProgress('whois_lookup', 'completed', `WHOIS lookup found ${whoisEmails.length} emails`, {
+          emails: whoisEmails
+        });
+      } else {
+        await updateProgress('whois_lookup', 'skipped', 'Skipped WHOIS lookup - emails already found');
       }
+
+      await updateProgress('extraction_complete', 'completed', `Email extraction completed successfully`, {
+        totalEmails: found.size,
+        scannedUrls: scannedUrls.size,
+        emails: Array.from(found)
+      });
 
       EmailExtractorCore.logger.info('Email extraction completed', { 
         url, 
@@ -415,31 +414,94 @@ export class EmailExtractorCore {
 
       return Array.from(found);
     } catch (error) {
+      await updateProgress('extraction_failed', 'failed', `Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       EmailExtractorCore.logger.error('Error extracting emails from URL', { url, error });
       throw error;
     }
   }
 
-  // Configuration constants
+  /**
+   * Get top priority contact URLs (most likely to have emails)
+   */
+  private static getTopContactUrls(baseUrl: string): string[] {
+    const topPaths = ['/contact', '/contact-us', '/about', '/about-us', '/support'];
+    const urls: string[] = [];
+    
+    for (const path of topPaths) {
+      const testUrl = this.normalizeUrl(baseUrl, path);
+      if (testUrl) {
+        urls.push(testUrl);
+      }
+    }
+    
+    return urls;
+  }
+
+  /**
+   * Scan multiple URLs in parallel for faster extraction
+   */
+  private static async scanUrlsInParallel(
+    urls: string[], 
+    updateProgress: (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => Promise<void>,
+    stepName: string
+  ): Promise<string[]> {
+    const found = new Set<string>();
+    
+    if (urls.length === 0) return Array.from(found);
+    
+    // Process URLs in parallel with a limit to avoid overwhelming the server
+    const batchSize = 3;
+    const batches: string[][] = [];
+    
+    for (let i = 0; i < urls.length; i += batchSize) {
+      batches.push(urls.slice(i, i + batchSize));
+    }
+    
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      
+      await updateProgress(stepName, 'processing', `Scanning batch ${batchIndex + 1}/${batches.length} (${batch.length} URLs)...`);
+      
+      const promises = batch.map(async (url) => {
+        try {
+          const html = await this.fetchHtml(url);
+          if (html) {
+            const emails = this.extractEmailsFromHtml(html);
+            return emails;
+          }
+        } catch (error) {
+          EmailExtractorCore.logger.warn('Failed to scan URL in parallel', { url, error });
+        }
+        return [];
+      });
+      
+      const results = await Promise.all(promises);
+      results.forEach(emails => emails.forEach(email => found.add(email)));
+    }
+    
+    return Array.from(found);
+  }
+
+  /**
+   * Extract emails from a single URL - Main orchestration method (backward compatibility)
+   */
+  private static async extractEmailsFromUrl(url: string): Promise<string[]> {
+    // Create a no-op progress updater for backward compatibility
+    const noOpUpdateProgress = async () => {};
+    return this.extractEmailsFromUrlWithProgress(url, '', noOpUpdateProgress);
+  }
+
+  // Configuration constants - Optimized for speed
   private static readonly CONTACT_PATHS = [
-    '/contact', '/contact-us', '/contactus', '/about', '/about-us', '/aboutus',
-    '/support', '/help', '/faq', '/customer-service', '/customer-support',
-    '/get-in-touch', '/reach-us', '/connect', '/team', '/staff', '/company',
-    '/info', '/information', '/legal', '/privacy', '/terms', '/disclaimer',
-    '/refund', '/refund-policy', '/refunds', '/return', '/return-policy', '/returns',
-    '/policy', '/policies', '/shipping', '/shipping-policy', '/delivery',
-    '/warranty', '/guarantee', '/complaint', '/complaints', '/feedback'
+    '/contact', '/contact-us', '/about', '/about-us', '/support'
   ];
   private static readonly BUSINESS_PATHS = [
-    '/business', '/partnership', '/partners', '/affiliate', '/wholesale',
-    '/b2b', '/enterprise', '/corporate', '/investor', '/investors',
-    '/press', '/media', '/news', '/blog', '/careers', '/jobs'
+    '/business', '/partnership', '/team', '/company'
   ];
   private static readonly COMMON_CHECKOUT_PATHS = [
-    '/checkout', '/checkout/', '/checkout/onepage/', '/cart', '/basket',
-    '/payment', '/billing', '/order', '/purchase', '/buy'
+    '/checkout', '/cart', '/payment'
   ];
-  private static readonly MAX_PAGES_TO_SCAN = 20;
+  private static readonly MAX_PAGES_TO_SCAN = 5; // Reduced from 20 to 5 for speed
 
   // Import methods from other modules
   private static fetchHtml = HtmlFetcher.fetchHtml;

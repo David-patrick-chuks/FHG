@@ -8,14 +8,21 @@ import { useToast } from '@/hooks/use-toast';
 import { EmailExtractionJob } from '@/lib/api/email-extractor';
 import {
     CheckCircle,
+    ChevronDown,
+    ChevronRight,
     Clock,
     Copy,
+    Database,
     Download,
     Globe,
+    Link,
     Loader2,
+    Search,
     Share,
-    XCircle
+    XCircle,
+    Zap
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface CurrentJobStatusProps {
   currentJob: EmailExtractionJob | null;
@@ -83,6 +90,112 @@ function getProgressText(job: EmailExtractionJob): string {
   ).length;
   
   return `Processing ${completedResults} of ${job.urls.length} URLs...`;
+}
+
+function getStepIcon(step: string) {
+  switch (step) {
+    case 'homepage_scan':
+      return <Globe className="h-4 w-4" />;
+    case 'homepage_email_extraction':
+      return <Search className="h-4 w-4" />;
+    case 'contact_pages':
+      return <Link className="h-4 w-4" />;
+    case 'puppeteer_scan':
+      return <Zap className="h-4 w-4" />;
+    case 'whois_lookup':
+      return <Database className="h-4 w-4" />;
+    default:
+      return <Clock className="h-4 w-4" />;
+  }
+}
+
+function getStepStatusIcon(status: string) {
+  switch (status) {
+    case 'completed':
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    case 'failed':
+      return <XCircle className="h-4 w-4 text-red-600" />;
+    case 'processing':
+      return <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />;
+    case 'skipped':
+      return <Clock className="h-4 w-4 text-gray-400" />;
+    default:
+      return <Clock className="h-4 w-4 text-gray-400" />;
+  }
+}
+
+function getStepStatusColor(status: string) {
+  switch (status) {
+    case 'completed':
+      return 'text-green-600';
+    case 'failed':
+      return 'text-red-600';
+    case 'processing':
+      return 'text-blue-600';
+    case 'skipped':
+      return 'text-gray-400';
+    default:
+      return 'text-gray-400';
+  }
+}
+
+function formatStepName(step: string): string {
+  return step
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+interface DetailedProgressProps {
+  result: any;
+}
+
+function DetailedProgress({ result }: DetailedProgressProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (!result.progress || result.progress.length === 0) {
+    return null;
+  }
+  
+  return (
+    <div className="mt-2 border-t pt-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="h-6 px-2 text-xs text-gray-600 hover:text-gray-800"
+      >
+        {isExpanded ? <ChevronDown className="h-3 w-3 mr-1" /> : <ChevronRight className="h-3 w-3 mr-1" />}
+        View Progress Details
+      </Button>
+      
+      {isExpanded && (
+        <div className="mt-2 space-y-2">
+          {result.progress.map((step: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1">
+                {getStepIcon(step.step)}
+                {getStepStatusIcon(step.status)}
+              </div>
+              <span className={`font-medium ${getStepStatusColor(step.status)}`}>
+                {formatStepName(step.step)}
+              </span>
+              {step.message && (
+                <span className="text-gray-600 truncate">
+                  - {step.message}
+                </span>
+              )}
+              {step.duration && (
+                <span className="text-gray-500 ml-auto">
+                  {formatDuration(step.duration)}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function CurrentJobStatus({ 
@@ -228,12 +341,13 @@ export function CurrentJobStatus({
                     Error: {result.error}
                   </div>
                 )}
+                <DetailedProgress result={result} />
               </div>
             ))}
           </div>
         </div>
 
-        {currentJob.status === 'completed' && (
+        {currentJob.status === 'completed' && currentJob.totalEmails > 0 && (
           <div className="flex items-center gap-2 pt-4 border-t">
             <Button
               onClick={() => onDownloadResults(currentJob.jobId)}

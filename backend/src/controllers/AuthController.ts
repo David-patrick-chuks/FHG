@@ -168,12 +168,14 @@ export class AuthController {
       const result = await UserService.updateUser(userId, updateData);
 
       if (result.success && result.data) {
-        // Log user profile update activity
-        await ActivityService.logUserActivity(
-          userId,
-          ActivityType.USER_PROFILE_UPDATED,
-          `Updated fields: ${Object.keys(updateData).join(', ')}`
-        );
+        // Only log activity if there were actual changes
+        if (result.message === 'User updated successfully') {
+          await ActivityService.logUserActivity(
+            userId,
+            ActivityType.USER_PROFILE_UPDATED,
+            `Updated fields: ${Object.keys(updateData).join(', ')}`
+          );
+        }
 
         // Remove sensitive fields from response
         const userData = { ...result.data.toObject() };
@@ -183,7 +185,7 @@ export class AuthController {
 
         res.status(200).json({
           success: true,
-          message: 'Profile updated successfully',
+          message: result.message, // Use the message from UserService
           data: userData,
           timestamp: new Date()
         });

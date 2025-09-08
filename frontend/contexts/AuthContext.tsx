@@ -44,9 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check authentication status
   const checkAuthStatus = useCallback(async () => {
     try {
-      // Check both localStorage (remember me) and sessionStorage (session only)
-      const token = localStorage.getItem(config.auth.jwtStorageKey) || 
-                   sessionStorage.getItem(config.auth.jwtStorageKey);
+      // Check localStorage for token (backend handles expiration)
+      const token = localStorage.getItem(config.auth.jwtStorageKey);
       
       if (!token) {
         setIsLoading(false);
@@ -64,9 +63,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(response.data);
             setIsAuthenticated(true);
           } else {
-            // Token is invalid, clear it from both storages
+            // Token is invalid, clear it from storage
             localStorage.removeItem(config.auth.jwtStorageKey);
-            sessionStorage.removeItem(config.auth.jwtStorageKey);
             localStorage.removeItem('remember_me');
           }
         } catch (error) {
@@ -92,9 +90,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(response.data);
           setIsAuthenticated(true);
         } else {
-          // Token is invalid, clear it from both storages
+          // Token is invalid, clear it from storage
           localStorage.removeItem(config.auth.jwtStorageKey);
-          sessionStorage.removeItem(config.auth.jwtStorageKey);
           localStorage.removeItem('remember_me');
         }
       }
@@ -112,9 +109,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
-      // Clear tokens from both storages
+      // Clear tokens from storage
       localStorage.removeItem(config.auth.jwtStorageKey);
-      sessionStorage.removeItem(config.auth.jwtStorageKey);
       localStorage.removeItem('remember_me');
     } finally {
       setIsLoading(false);
@@ -141,8 +137,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.setItem(config.auth.jwtStorageKey, token);
           localStorage.setItem('remember_me', 'true');
         } else {
-          // Store in sessionStorage for session-only (browser close = logout)
-          sessionStorage.setItem(config.auth.jwtStorageKey, token);
+          // Store in localStorage for 24-hour session (backend handles expiration)
+          localStorage.setItem(config.auth.jwtStorageKey, token);
           localStorage.removeItem('remember_me');
         }
         
@@ -191,8 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       // Get the current token before clearing it (check both storages)
-      const token = localStorage.getItem(config.auth.jwtStorageKey) || 
-                   sessionStorage.getItem(config.auth.jwtStorageKey);
+      const token = localStorage.getItem(config.auth.jwtStorageKey);
       
       // Try to call logout endpoint with the token FIRST (before clearing)
       if (token) {
@@ -204,9 +199,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
-      // Now clear tokens and update state from both storages
+      // Now clear tokens and update state from storage
       localStorage.removeItem(config.auth.jwtStorageKey);
-      sessionStorage.removeItem(config.auth.jwtStorageKey);
       localStorage.removeItem('remember_me');
       localStorage.removeItem('refresh_token');
       
@@ -221,7 +215,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout error:', error);
       // Even if there's an error, ensure user is logged out locally
       localStorage.removeItem(config.auth.jwtStorageKey);
-      sessionStorage.removeItem(config.auth.jwtStorageKey);
       localStorage.removeItem('remember_me');
       localStorage.removeItem('refresh_token');
       setUser(null);

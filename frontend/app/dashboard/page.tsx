@@ -20,7 +20,41 @@ import {
     TrendingUp,
     Users,
     XCircle,
-    Zap
+    Zap,
+    User,
+    UserPlus,
+    LogIn,
+    LogOut,
+    Settings,
+    Key,
+    Shield,
+    Play,
+    Pause,
+    Stop,
+    Upload,
+    Eye,
+    AlertCircle,
+    Database,
+    Globe,
+    Link,
+    FileUp,
+    Target,
+    Send,
+    Calendar,
+    Timer,
+    RefreshCw,
+    Trash2,
+    Edit,
+    Copy,
+    ExternalLink,
+    Lock,
+    Unlock,
+    Star,
+    Heart,
+    ThumbsUp,
+    MessageSquare,
+    Bell,
+    Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -81,11 +115,11 @@ export default function DashboardPage() {
       case 'campaign_completed':
         return CheckCircle;
       case 'campaign_started':
-        return Mail;
+        return Play;
       case 'campaign_created':
-        return Mail;
+        return Target;
       case 'email_sent':
-        return Mail;
+        return Send;
       
       // Bot activities
       case 'bot_activated':
@@ -99,36 +133,83 @@ export default function DashboardPage() {
       
       // User activities
       case 'user_registered':
+        return UserPlus;
       case 'user_login':
+        return LogIn;
       case 'user_logout':
+        return LogOut;
       case 'user_profile_updated':
+        return Settings;
       case 'user_password_changed':
-        return Activity;
+        return Shield;
       
       // Email Extractor activities
       case 'email_extraction_started':
-      case 'email_extraction_completed':
-      case 'email_extraction_single_url':
-      case 'email_extraction_multiple_urls':
-      case 'email_extraction_csv_upload':
         return Search;
+      case 'email_extraction_completed':
+        return CheckCircle;
+      case 'email_extraction_single_url':
+        return Link;
+      case 'email_extraction_multiple_urls':
+        return Globe;
+      case 'email_extraction_csv_upload':
+        return FileUp;
       case 'email_extraction_failed':
-      case 'email_extraction_cancelled':
         return XCircle;
+      case 'email_extraction_cancelled':
+        return Stop;
       case 'email_extraction_results_downloaded':
         return Download;
       case 'email_extraction_results_viewed':
-        return FileText;
+        return Eye;
       case 'email_extraction_limit_reached':
         return AlertTriangle;
       case 'email_extraction_invalid_url':
-        return XCircle;
+        return AlertCircle;
       case 'email_extraction_rate_limited':
-        return AlertTriangle;
+        return Clock;
       case 'email_extraction_performance_alert':
-        return TrendingUp;
+        return BarChart3;
       case 'email_extraction_method_used':
-        return Search;
+        return Database;
+      
+      // API Key activities
+      case 'api_key_generated':
+        return Key;
+      case 'api_key_regenerated':
+        return RefreshCw;
+      case 'api_key_revoked':
+        return Trash2;
+      case 'api_key_used':
+        return ExternalLink;
+      
+      // Subscription activities
+      case 'subscription_upgraded':
+        return Star;
+      case 'subscription_downgraded':
+        return TrendingUp;
+      case 'subscription_cancelled':
+        return XCircle;
+      case 'subscription_renewed':
+        return Heart;
+      
+      // Notification activities
+      case 'notification_sent':
+        return Bell;
+      case 'notification_read':
+        return Eye;
+      case 'notification_cleared':
+        return Trash2;
+      
+      // System activities
+      case 'system_backup':
+        return Database;
+      case 'system_maintenance':
+        return Settings;
+      case 'system_alert':
+        return AlertTriangle;
+      case 'system_update':
+        return RefreshCw;
       
       default:
         return Activity;
@@ -172,27 +253,71 @@ export default function DashboardPage() {
       
       // Email Extractor activities
       case 'email_extraction_started':
-      case 'email_extraction_single_url':
-      case 'email_extraction_multiple_urls':
-      case 'email_extraction_csv_upload':
         return 'text-blue-600';
       case 'email_extraction_completed':
         return 'text-green-600';
+      case 'email_extraction_single_url':
+        return 'text-cyan-600';
+      case 'email_extraction_multiple_urls':
+        return 'text-indigo-600';
+      case 'email_extraction_csv_upload':
+        return 'text-purple-600';
       case 'email_extraction_failed':
-      case 'email_extraction_cancelled':
-      case 'email_extraction_invalid_url':
         return 'text-red-600';
+      case 'email_extraction_cancelled':
+        return 'text-gray-600';
       case 'email_extraction_results_downloaded':
         return 'text-purple-600';
       case 'email_extraction_results_viewed':
         return 'text-indigo-600';
       case 'email_extraction_limit_reached':
-      case 'email_extraction_rate_limited':
         return 'text-orange-600';
+      case 'email_extraction_invalid_url':
+        return 'text-red-600';
+      case 'email_extraction_rate_limited':
+        return 'text-yellow-600';
       case 'email_extraction_performance_alert':
         return 'text-yellow-600';
       case 'email_extraction_method_used':
         return 'text-cyan-600';
+      
+      // API Key activities
+      case 'api_key_generated':
+        return 'text-green-600';
+      case 'api_key_regenerated':
+        return 'text-blue-600';
+      case 'api_key_revoked':
+        return 'text-red-600';
+      case 'api_key_used':
+        return 'text-purple-600';
+      
+      // Subscription activities
+      case 'subscription_upgraded':
+        return 'text-yellow-600';
+      case 'subscription_downgraded':
+        return 'text-orange-600';
+      case 'subscription_cancelled':
+        return 'text-red-600';
+      case 'subscription_renewed':
+        return 'text-pink-600';
+      
+      // Notification activities
+      case 'notification_sent':
+        return 'text-blue-600';
+      case 'notification_read':
+        return 'text-green-600';
+      case 'notification_cleared':
+        return 'text-gray-600';
+      
+      // System activities
+      case 'system_backup':
+        return 'text-indigo-600';
+      case 'system_maintenance':
+        return 'text-purple-600';
+      case 'system_alert':
+        return 'text-red-600';
+      case 'system_update':
+        return 'text-blue-600';
       
       default:
         return 'text-gray-600';

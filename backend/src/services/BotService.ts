@@ -526,4 +526,53 @@ export class BotService {
       throw error;
     }
   }
+
+  public static async hasActiveCampaigns(botId: string, userId: string): Promise<ApiResponse<{ hasActiveCampaigns: boolean; activeCampaigns: any[] }>> {
+    try {
+      // Verify bot ownership
+      const bot = await BotModel.findById(botId);
+      if (!bot) {
+        return {
+          success: false,
+          message: 'Bot not found',
+          timestamp: new Date()
+        };
+      }
+
+      if (bot.userId.toString() !== userId.toString()) {
+        return {
+          success: false,
+          message: 'Access denied',
+          timestamp: new Date()
+        };
+      }
+
+      // Check for active campaigns (running or paused)
+      const activeCampaigns = await CampaignModel.find({
+        botId: botId,
+        status: { $in: ['running', 'paused'] }
+      });
+
+      return {
+        success: true,
+        message: 'Bot status retrieved successfully',
+        data: {
+          hasActiveCampaigns: activeCampaigns.length > 0,
+          activeCampaigns: activeCampaigns.map(campaign => ({
+            id: campaign._id,
+            name: campaign.name,
+            status: campaign.status
+          }))
+        },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      BotService.logger.error('Error checking active campaigns:', error);
+      return {
+        success: false,
+        message: 'Failed to check active campaigns',
+        timestamp: new Date()
+      };
+    }
+  }
 }

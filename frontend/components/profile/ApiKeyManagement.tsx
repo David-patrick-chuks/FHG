@@ -5,6 +5,7 @@ import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Copy, Key, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 
 interface ApiKeyInfo {
   hasApiKey: boolean;
@@ -45,12 +46,25 @@ export function ApiKeyManagement({
   onGenerateApiKey,
   onCopyToClipboard
 }: ApiKeyManagementProps) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
   const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZoneName: 'short'
     });
+  };
+
+  const handleCopy = async (text: string) => {
+    await onCopyToClipboard(text);
+    setCopiedKey(text);
+    // Reset the copied state after 2 seconds
+    setTimeout(() => setCopiedKey(null), 2000);
   };
 
   return (
@@ -96,17 +110,21 @@ export function ApiKeyManagement({
                 />
                 <Button
                   size="sm"
-                  onClick={() => onCopyToClipboard(generatedApiKey)}
+                  onClick={() => handleCopy(generatedApiKey)}
                   className="bg-green-600 hover:bg-green-700"
                 >
-                  <Copy className="h-4 w-4" />
+                  {copiedKey === generatedApiKey ? (
+                    <CheckCircle className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
           )}
 
-          {/* API Key Info */}
-          {apiKeyInfo?.hasApiKey && (
+          {/* API Key Info - Only show if not displaying a newly generated key */}
+          {apiKeyInfo?.hasApiKey && !generatedApiKey && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -142,10 +160,14 @@ export function ApiKeyManagement({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onCopyToClipboard(apiKeyInfo.apiKey!)}
+                      onClick={() => handleCopy(apiKeyInfo.apiKey!)}
                       className="text-gray-600 hover:text-gray-700"
                     >
-                      <Copy className="h-4 w-4" />
+                      {copiedKey === apiKeyInfo.apiKey ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">

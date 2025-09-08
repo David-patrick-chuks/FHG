@@ -197,7 +197,7 @@ export default function LoginPage() {
               <div className="mt-6 p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl backdrop-blur-sm">
                 <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                   <p>• <strong>Remember me:</strong> Stay signed in for 30 days</p>
-                  <p>• <strong>Without remember me:</strong> Sign out when browser closes</p>
+                  <p>• <strong>Without remember me:</strong> Sign out after 24 hours of inactivity</p>
                 </div>
               </div>
             </div>

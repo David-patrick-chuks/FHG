@@ -1,46 +1,36 @@
 'use client';
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { Button } from '@/components/ui/button';
+import { Navbar } from '@/components/navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 
 export default function PrivacyPolicyPage() {
   return (
     <AuthGuard requireAuth={false}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navbar />
+
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center">
-                <Link href="/" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <Brain className="w-5 h-5 text-white" />
-                  </div>
-                  <span className="text-xl font-bold text-gray-900 dark:text-white">MailQuill</span>
-                </Link>
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Privacy Policy
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </p>
+                </div>
               </div>
-              <Link href="/signup">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Signup
-                </Button>
-              </Link>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-3xl font-bold">Privacy Policy</CardTitle>
-              <CardDescription>
-                Last updated: {new Date().toLocaleDateString()}
-              </CardDescription>
-            </CardHeader>
             <CardContent className="prose prose-gray dark:prose-invert max-w-none">
               <div className="space-y-6">
                 <section>

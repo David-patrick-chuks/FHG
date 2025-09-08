@@ -133,11 +133,37 @@ export class UserService {
         };
       }
 
-      // Update user data
+      // Check if there are actual changes
+      const hasChanges = Object.keys(updateData).some(key => {
+        const currentValue = user[key as keyof typeof user];
+        const newValue = updateData[key as keyof typeof updateData];
+        
+        // Handle different data types
+        if (currentValue instanceof Date && newValue instanceof Date) {
+          return currentValue.getTime() !== newValue.getTime();
+        }
+        
+        return currentValue !== newValue;
+      });
+
+      if (!hasChanges) {
+        UserService.logger.info('No changes detected in user update', { userId: user._id });
+        return {
+          success: true,
+          message: 'No changes detected',
+          data: user,
+          timestamp: new Date()
+        };
+      }
+
+      // Update user data only if there are changes
       Object.assign(user, updateData);
       await user.save();
 
-      UserService.logger.info('User updated successfully', { userId: user._id });
+      UserService.logger.info('User updated successfully', { 
+        userId: user._id,
+        changedFields: Object.keys(updateData)
+      });
       
       return {
         success: true,

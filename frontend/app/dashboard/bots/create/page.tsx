@@ -1,7 +1,6 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { PlanLimitModal } from '@/components/modals/PlanLimitModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ import { BotsAPI } from '@/lib/api';
 import { ArrowLeft, Bot as BotIcon, Check, ExternalLink, Eye, EyeOff, Mail, Plus, Shield, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function CreateBotPage() {
   const router = useRouter();
@@ -27,34 +26,7 @@ export default function CreateBotPage() {
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
-  const [userBots, setUserBots] = useState<any[]>([]);
-  const [userPlan, setUserPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE');
 
-  // Check user's current bots and plan limits
-  useEffect(() => {
-    const checkUserLimits = async () => {
-      try {
-        const response = await BotsAPI.getBots({ page: 1, limit: 100 });
-        if (response.success && response.data) {
-          setUserBots(response.data.data || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch user bots:', error);
-      }
-    };
-
-    checkUserLimits();
-  }, []);
-
-  const getMaxBots = (plan: string) => {
-    switch (plan) {
-      case 'FREE': return 2;
-      case 'PRO': return 10;
-      case 'ENTERPRISE': return 50;
-      default: return 2;
-    }
-  };
 
   const handleVerifyCredentials = async () => {
     if (!formData.email.trim() || !formData.password.trim()) {
@@ -110,13 +82,6 @@ export default function CreateBotPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if user has reached bot limit
-    const maxBots = getMaxBots(userPlan);
-    if (userBots.length >= maxBots) {
-      setShowPlanLimitModal(true);
-      return;
-    }
-    
     // Form validation errors (don't affect verification status)
     if (!formData.name.trim() || formData.name.length > 50 || formData.description.length > 200) {
       setVerificationMessage('Please check your bot name and description. Name must be 1-50 characters, description must be under 200 characters.');
@@ -129,7 +94,7 @@ export default function CreateBotPage() {
       return;
     }
 
-    if (formData.prompt.trim().length > 1000) {
+    if (formData.prompt.trim() && formData.prompt.trim().length > 1000) {
       setVerificationMessage('AI prompt must be no more than 1000 characters long.');
       return;
     }
@@ -161,7 +126,11 @@ export default function CreateBotPage() {
     } catch (error) {
       console.error('Failed to create bot:', error);
       // Don't reset verification status, just show the error message
-      setVerificationMessage('Network error. Please try again.');
+      if (error instanceof Error) {
+        setVerificationMessage(error.message);
+      } else {
+        setVerificationMessage('Network error. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -172,53 +141,25 @@ export default function CreateBotPage() {
                      formData.description.length <= 200 &&
                      formData.email.trim() &&
                      formData.password.trim() &&
-                     verificationStatus === 'success';
+                     verificationStatus === 'success' &&
+                     (!formData.prompt.trim() || (formData.prompt.trim().length >= 10 && formData.prompt.trim().length <= 1000));
 
   return (
-    <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-800">
-          <div className="relative z-10">
-            <div className="flex items-center space-x-4 mb-6">
+    <DashboardLayout
+      title="Create New Bot"
+      description="Set up your AI email bot with custom configuration and SMTP settings"
+      actions={
         <Button 
-                variant="ghost"
+          variant="outline"
           onClick={() => router.push('/dashboard/bots')}
-                className="p-3 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-xl transition-all duration-200"
+          className="flex items-center gap-2"
         >
-                <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4" />
+          Back to Bots
         </Button>
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Create New Bot
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-                  Set up your AI email bot with custom configuration and SMTP settings
-                </p>
-              </div>
-            </div>
-            
-            {/* Progress Overview */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-full">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Bot Configuration
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-full">
-                <BotIcon className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  AI Email Bot
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full translate-y-12 -translate-x-12"></div>
-        </div>
+      }
+    >
+      <div className="max-w-5xl mx-auto space-y-8">
 
         {/* Main Content */}
         <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/20">
@@ -554,14 +495,6 @@ export default function CreateBotPage() {
         </Card>
       </div>
 
-      {/* Plan Limit Modal */}
-      <PlanLimitModal
-        isOpen={showPlanLimitModal}
-        onClose={() => setShowPlanLimitModal(false)}
-        currentPlan={userPlan}
-        currentBots={userBots.length}
-        maxBots={getMaxBots(userPlan)}
-      />
     </DashboardLayout>
   );
 }

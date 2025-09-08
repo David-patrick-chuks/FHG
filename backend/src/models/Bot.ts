@@ -65,7 +65,7 @@ export class BotModel {
       },
       prompt: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
         minlength: 10,
         maxlength: 2000

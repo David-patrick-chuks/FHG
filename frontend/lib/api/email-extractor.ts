@@ -15,6 +15,16 @@ export interface EmailExtractionJob {
   duration?: number; // Duration in milliseconds
 }
 
+export interface ExtractionStep {
+  step: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped';
+  message?: string;
+  startedAt?: string;
+  completedAt?: string;
+  duration?: number;
+  details?: any;
+}
+
 export interface ExtractionResult {
   url: string;
   emails: string[];
@@ -23,6 +33,8 @@ export interface ExtractionResult {
   extractedAt: string;
   startedAt?: string;
   duration?: number; // Duration in milliseconds
+  progress?: ExtractionStep[]; // Detailed progress tracking
+  currentStep?: string; // Current step being processed
 }
 
 export interface StartExtractionRequest {
@@ -136,7 +148,7 @@ export class EmailExtractorAPI {
    * Download extraction results as CSV
    */
   static async downloadResults(jobId: string): Promise<Blob> {
-    const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+    const token = localStorage.getItem('jwt_token');
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/download/${jobId}`, {
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -157,7 +169,7 @@ export class EmailExtractorAPI {
     const formData = new FormData();
     formData.append('csvFile', file);
 
-    const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+    const token = localStorage.getItem('jwt_token');
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/parse-csv`, {
       method: 'POST',
       headers: {

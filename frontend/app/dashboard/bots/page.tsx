@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { PlanLimitModal } from '@/components/modals/PlanLimitModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/contexts/AuthContext';
 import { BotsAPI } from '@/lib/api';
 import { Bot } from '@/types';
 import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
@@ -17,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export default function BotsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [bots, setBots] = useState<Bot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -37,7 +40,63 @@ export default function BotsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateBotMessage, setShowCreateBotMessage] = useState(false);
   const [showInactiveBots, setShowInactiveBots] = useState(false);
+  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+  const [userPlan, setUserPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE');
+  const [botActiveCampaigns, setBotActiveCampaigns] = useState<Record<string, boolean>>({});
   const fetchInProgress = useRef(false);
+
+  // Helper function to get max bots for a plan
+  const getMaxBots = (plan: string) => {
+    switch (plan) {
+      case 'FREE': return 2;
+      case 'PRO': return 10;
+      case 'ENTERPRISE': return 50;
+      default: return 2;
+    }
+  };
+
+  // Check if user can create more bots
+  const canCreateMoreBots = () => {
+    const maxBots = getMaxBots(userPlan);
+    return bots.length < maxBots;
+  };
+
+  // Handle create bot button click
+  const handleCreateBotClick = () => {
+    if (canCreateMoreBots()) {
+      router.push('/dashboard/bots/create');
+    } else {
+      setShowPlanLimitModal(true);
+    }
+  };
+
+  // Handle inactive bots toggle
+  const handleToggleInactiveBots = () => {
+    setShowInactiveBots(!showInactiveBots);
+    setCurrentPage(1); // Reset to first page when toggling
+  };
+
+  // Check active campaigns for bots
+  const checkBotActiveCampaigns = async (botId: string) => {
+    try {
+      const response = await BotsAPI.checkActiveCampaigns(botId);
+      if (response.success && response.data) {
+        setBotActiveCampaigns(prev => ({
+          ...prev,
+          [botId]: response.data.hasActiveCampaigns
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to check active campaigns:', error);
+    }
+  };
+
+  // Check active campaigns for all bots
+  const checkAllBotsActiveCampaigns = async () => {
+    if (bots.length > 0) {
+      await Promise.all(bots.map(bot => checkBotActiveCampaigns(bot._id)));
+    }
+  };
 
   // Debounce search query
   useEffect(() => {
@@ -71,6 +130,9 @@ export default function BotsPage() {
         setBots(response.data.data || []);
         setTotalPages(response.data.pagination.totalPages);
         setTotalItems(response.data.pagination.total);
+        
+        // Set user plan from auth context
+        setUserPlan((user?.subscription?.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE') || 'FREE');
       } else {
         setError(response.error || 'Failed to fetch bots');
       }
@@ -80,11 +142,18 @@ export default function BotsPage() {
       setIsLoading(false);
       fetchInProgress.current = false;
     }
-  }, [currentPage, pageSize, debouncedSearchQuery, showInactiveBots]);
+  }, [currentPage, pageSize, debouncedSearchQuery, showInactiveBots, user?.subscription]);
 
   useEffect(() => {
     fetchBots();
   }, [fetchBots]);
+
+  // Check active campaigns when bots are loaded
+  useEffect(() => {
+    if (bots.length > 0) {
+      checkAllBotsActiveCampaigns();
+    }
+  }, [bots]);
 
   // Check for redirect message from campaign creation
   useEffect(() => {
@@ -97,6 +166,11 @@ export default function BotsPage() {
   }, [searchParams, router]);
 
   const handleEditBot = (bot: Bot) => {
+    // Check if bot has active campaigns
+    if (botActiveCampaigns[bot._id]) {
+      setVerificationMessage('Cannot edit bot while it has active campaigns. Please pause or complete the campaigns first.');
+      return;
+    }
     setEditingBot(bot);
     setFormData({
       name: bot.name,
@@ -120,7 +194,14 @@ export default function BotsPage() {
       });
 
       if (response.success) {
-        await fetchBots(); // Refresh the list
+        // Update the bot in the local state instead of refetching
+        setBots(prevBots => 
+          prevBots.map(bot => 
+            bot._id === editingBot._id 
+              ? { ...bot, name: formData.name, description: formData.description }
+              : bot
+          )
+        );
         setIsEditDialogOpen(false);
         setEditingBot(null);
         setFormData({ name: '', description: '' });
@@ -151,13 +232,26 @@ export default function BotsPage() {
   };
 
   const handleToggleBotStatus = async (bot: Bot) => {
+    // Check if bot has active campaigns and user is trying to deactivate
+    if (bot.isActive && botActiveCampaigns[bot._id]) {
+      setVerificationMessage('Cannot deactivate bot while it has active campaigns. Please pause or complete the campaigns first.');
+      return;
+    }
+
     try {
       const response = await BotsAPI.updateBot(bot._id, {
         isActive: !bot.isActive
       });
 
       if (response.success) {
-        await fetchBots(); // Refresh the list
+        // Update the bot in the local state instead of refetching
+        setBots(prevBots => 
+          prevBots.map(b => 
+            b._id === bot._id 
+              ? { ...b, isActive: !b.isActive }
+              : b
+          )
+        );
       } else {
         console.error('Failed to toggle bot status:', response.error);
       }
@@ -191,7 +285,7 @@ export default function BotsPage() {
         description="Manage your AI-powered email bots and their configurations"
         actions={
           <Button 
-            onClick={() => router.push('/dashboard/bots/create')}
+            onClick={handleCreateBotClick}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -295,15 +389,15 @@ export default function BotsPage() {
     <DashboardLayout
       title="Bots"
       description="Manage your AI-powered email bots and their configurations"
-      actions={
-        <Button 
-          onClick={() => router.push('/dashboard/bots/create')}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Bot
-        </Button>
-      }
+        actions={
+          <Button 
+            onClick={handleCreateBotClick}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Bot
+          </Button>
+        }
     >
       <div className="space-y-6">
 
@@ -327,7 +421,7 @@ export default function BotsPage() {
                     <Button
                       onClick={() => {
                         setShowCreateBotMessage(false);
-                        router.push('/dashboard/bots/create');
+                        handleCreateBotClick();
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
@@ -352,51 +446,66 @@ export default function BotsPage() {
         {bots.length > 0 && (
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <div className="flex flex-col gap-4">
+                {/* Search bar */}
+                <div className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                      placeholder="Search bots..."
-              value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1); // Reset to first page when searching
-                      }}
-                      className="pl-10"
-                    />
+                    placeholder="Search bots..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1); // Reset to first page when searching
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Controls row */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                  {/* View mode and filter buttons */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant={viewMode === 'grid' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('grid')}
+                        className="px-3"
+                      >
+                        <Grid3X3 className="w-4 h-4" />
+                        <span className="ml-1 hidden sm:inline">Grid</span>
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('list')}
+                        className="px-3"
+                      >
+                        <List className="w-4 h-4" />
+                        <span className="ml-1 hidden sm:inline">List</span>
+                      </Button>
+                    </div>
+                    
+                    {/* Toggle for inactive bots */}
+                    <Button
+                      variant={showInactiveBots ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={handleToggleInactiveBots}
+                      className="text-xs sm:text-sm"
+                    >
+                      {showInactiveBots ? 'Hide Inactive' : 'Show Inactive'}
+                    </Button>
+                  </div>
+                  
+                  {/* Results count */}
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {totalItems} bot{totalItems !== 1 ? 's' : ''} found
                   </div>
                 </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                    <Grid3X3 className="w-4 h-4" />
-              </Button>
-                  <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                    <List className="w-4 h-4" />
-              </Button>
-              
-              {/* Toggle for inactive bots */}
-              <Button
-                variant={showInactiveBots ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setShowInactiveBots(!showInactiveBots)}
-                className="ml-2"
-              >
-                {showInactiveBots ? 'Hide Inactive' : 'Show Inactive'}
-                  </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-            )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Inactive bots explanation */}
         {showInactiveBots && bots.some(bot => !bot.isActive) && (
@@ -438,7 +547,7 @@ export default function BotsPage() {
               </p>
               {!searchQuery && (
                   <Button 
-                    onClick={() => router.push('/dashboard/bots/create')}
+                    onClick={handleCreateBotClick}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -455,56 +564,88 @@ export default function BotsPage() {
             {bots.map((bot) => (
                   <Card key={bot._id} className={`hover:shadow-md transition-shadow ${!bot.isActive ? 'opacity-60 border-dashed border-2 border-gray-300 dark:border-gray-600' : ''}`}>
                     <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          <Avatar className="h-12 w-12">
+                      {/* Mobile-first responsive layout */}
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        {/* Bot info section */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+                          <Avatar className="h-12 w-12 flex-shrink-0">
                             <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
                             <AvatarFallback>{getBotAvatar(bot)}</AvatarFallback>
                           </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                                 {bot.name}
                               </h3>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
-                                {bot.isActive ? 'Active' : 'Inactive'}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${getBotStatusColor(bot.isActive)}`}>
+                                  {bot.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                                {botActiveCampaigns[bot._id] && (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                    Running Campaign
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-gray-600 dark:text-gray-400 mb-2">
+                            <p className="text-gray-600 dark:text-gray-400 mb-3 text-sm sm:text-base">
                               {bot.description || 'No description provided'}
                             </p>
-                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                              <span>Daily Limit: {bot.dailyEmailLimit}</span>
-                              <span>Sent Today: {bot.emailsSentToday}</span>
-                              <span>From: {bot.smtpConfig?.fromEmail || bot.email}</span>
-                              <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
+                            {/* Bot stats - responsive grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                                <span className="font-medium sm:font-normal">Daily Limit:</span>
+                                <span className="font-semibold sm:font-normal">{bot.dailyEmailLimit}</span>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                                <span className="font-medium sm:font-normal">Sent Today:</span>
+                                <span className="font-semibold sm:font-normal">{bot.emailsSentToday}</span>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                                <span className="font-medium sm:font-normal">From:</span>
+                                <span className="font-semibold sm:font-normal truncate">{bot.smtpConfig?.fromEmail || bot.email}</span>
+                              </div>
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                                <span className="font-medium sm:font-normal">Created:</span>
+                                <span className="font-semibold sm:font-normal">{new Date(bot.createdAt).toLocaleDateString()}</span>
+                              </div>
                             </div>
-                    </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        
+                        {/* Action buttons - responsive layout */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:flex-shrink-0">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleToggleBotStatus(bot)}
+                            className="w-full sm:w-auto"
+                            disabled={bot.isActive && botActiveCampaigns[bot._id]}
+                            title={bot.isActive && botActiveCampaigns[bot._id] ? "Cannot deactivate bot with active campaigns" : bot.isActive ? "Deactivate bot" : "Activate bot"}
                           >
                             {bot.isActive ? 'Deactivate' : 'Activate'}
                           </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                            onClick={() => handleEditBot(bot)}
-                      >
-                            <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                            onClick={() => handleDeleteBot(bot)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditBot(bot)}
+                              className="flex-1 sm:flex-none"
+                              disabled={botActiveCampaigns[bot._id]}
+                              title={botActiveCampaigns[bot._id] ? "Cannot edit bot with active campaigns" : "Edit bot"}
+                            >
+                              <Edit className="w-4 h-4 sm:mr-1" />
+                              <span className="sm:inline hidden">Edit</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteBot(bot)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -524,9 +665,16 @@ export default function BotsPage() {
                           </Avatar>
                           <div>
                             <CardTitle className="text-lg">{bot.name}</CardTitle>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
-                              {bot.isActive ? 'Active' : 'Inactive'}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
+                                {bot.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                              {botActiveCampaigns[bot._id] && (
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                                  Running Campaign
                                 </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -559,6 +707,8 @@ export default function BotsPage() {
                           size="sm"
                           className="flex-1"
                           onClick={() => handleToggleBotStatus(bot)}
+                          disabled={bot.isActive && botActiveCampaigns[bot._id]}
+                          title={bot.isActive && botActiveCampaigns[bot._id] ? "Cannot deactivate bot with active campaigns" : bot.isActive ? "Deactivate bot" : "Activate bot"}
                         >
                           {bot.isActive ? 'Deactivate' : 'Activate'}
                         </Button>
@@ -566,6 +716,8 @@ export default function BotsPage() {
                             variant="outline"
                             size="sm"
                           onClick={() => handleEditBot(bot)}
+                          disabled={botActiveCampaigns[bot._id]}
+                          title={botActiveCampaigns[bot._id] ? "Cannot edit bot with active campaigns" : "Edit bot"}
                           >
                           <Edit className="w-4 h-4" />
                       </Button>
@@ -588,47 +740,49 @@ export default function BotsPage() {
             {totalPages > 1 && (
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
-              </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
+                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} bots
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </Button>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        disabled={currentPage === 1}
+                        className="px-3"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="ml-1 hidden sm:inline">Previous</span>
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
                               onClick={() => setCurrentPage(pageNum)}
-                      className="w-8 h-8 p-0"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
+                              className="w-8 h-8 p-0 text-xs sm:text-sm"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+                        disabled={currentPage === totalPages}
+                        className="px-3"
+                      >
+                        <span className="mr-1 hidden sm:inline">Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -711,6 +865,15 @@ export default function BotsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Plan Limit Modal */}
+      <PlanLimitModal
+        isOpen={showPlanLimitModal}
+        onClose={() => setShowPlanLimitModal(false)}
+        currentPlan={userPlan}
+        currentBots={bots.length}
+        maxBots={getMaxBots(userPlan)}
+      />
       </div>
     </DashboardLayout>
   );

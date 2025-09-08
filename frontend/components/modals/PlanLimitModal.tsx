@@ -50,12 +50,12 @@ export function PlanLimitModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl mx-4 sm:mx-0">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Plan Limit Reached
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center">
+            Plan Limit Reached 💥
           </DialogTitle>
-          <DialogDescription className="text-center text-lg">
+          <DialogDescription className="text-center text-base sm:text-lg">
             You've reached the maximum number of bots for your current plan
           </DialogDescription>
         </DialogHeader>
@@ -86,31 +86,31 @@ export function PlanLimitModal({
                 </p>
                 
                 {/* Plan Features */}
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4">
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                       {currentFeatures.bots}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       Bots
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       {currentBots}/{maxBots} used
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4">
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                       {currentFeatures.dailyEmails.toLocaleString()}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       Daily Emails
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4">
+                    <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                       {currentFeatures.campaigns}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       Campaigns
                     </div>
                   </div>
@@ -128,16 +128,16 @@ export function PlanLimitModal({
               Unlock more bots and advanced features to scale your email marketing
             </p>
             
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="px-6"
+                className="px-6 w-full sm:w-auto"
               >
                 Maybe Later
               </Button>
-              <Button asChild className="px-6 bg-blue-600 hover:bg-blue-700">
-                <Link href="/pricing" className="flex items-center gap-2">
+              <Button asChild className="px-6 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                <Link href="/pricing" className="flex items-center justify-center gap-2">
                   <ExternalLink className="w-4 h-4" />
                   Upgrade Plan
                 </Link>
@@ -154,9 +154,9 @@ export function PlanLimitModal({
                   <h5 className="font-semibold text-blue-900 dark:text-blue-100">
                     PRO Plan Benefits
                   </h5>
-                                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                     Get 10 bots, 10,000 daily emails, and 10 campaigns for just ₦45,000/$29/month
-                   </p>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Get 10 bots, 10,000 daily emails, and 10 campaigns for just ₦2,999/$1.99/month
+                  </p>
                 </div>
               </div>
             </div>

@@ -84,6 +84,13 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  // Cleanup effect to clear generated API key when component unmounts
+  useEffect(() => {
+    return () => {
+      setGeneratedApiKey(null);
+    };
+  }, []);
+
   const handleProfileUpdate = async (data: ProfileFormData) => {
     setIsLoading(true);
     setMessage(null);
@@ -121,6 +128,11 @@ export default function ProfilePage() {
           lastUsed: response.data.lastUsed
         });
         setMessage({ type: 'success', text: 'API key generated successfully! Copy it now - you won\'t be able to see it again.' });
+        
+        // Clear the generated API key display after 30 seconds
+        setTimeout(() => {
+          setGeneratedApiKey(null);
+        }, 30000);
       } else {
         setMessage({ type: 'error', text: response.message || 'Failed to generate API key' });
       }

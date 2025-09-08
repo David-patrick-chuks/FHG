@@ -100,9 +100,8 @@ class ApiClient {
 
   private getAuthToken(): string | null {
     if (typeof window === 'undefined') return null;
-    // Check both localStorage (remember me) and sessionStorage (session only)
-    return localStorage.getItem(config.auth.jwtStorageKey) || 
-           sessionStorage.getItem(config.auth.jwtStorageKey);
+    // Check localStorage for token (backend handles expiration)
+    return localStorage.getItem(config.auth.jwtStorageKey);
   }
 
   // Generic HTTP methods

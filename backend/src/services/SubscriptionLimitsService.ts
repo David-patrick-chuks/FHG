@@ -151,10 +151,11 @@ export class SubscriptionLimitsService {
 
       let totalUrlsUsed = 0;
       todayActivities.forEach(activity => {
-        if (activity.metadata?.urlCount) {
-          totalUrlsUsed += activity.metadata.urlCount;
-        } else if (activity.metadata?.totalUrls) {
+        // Use totalUrls if available (more accurate), otherwise use urlCount, otherwise assume 1
+        if (activity.metadata?.totalUrls) {
           totalUrlsUsed += activity.metadata.totalUrls;
+        } else if (activity.metadata?.urlCount) {
+          totalUrlsUsed += activity.metadata.urlCount;
         } else {
           // If no URL count in metadata, assume 1 URL per activity
           totalUrlsUsed += 1;

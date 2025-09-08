@@ -17,6 +17,16 @@ export interface IEmailExtraction {
   duration?: number; // Duration in milliseconds
 }
 
+export interface ExtractionStep {
+  step: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped';
+  message?: string;
+  startedAt?: Date;
+  completedAt?: Date;
+  duration?: number;
+  details?: any;
+}
+
 export interface ExtractionResult {
   url: string;
   emails: string[];
@@ -25,6 +35,8 @@ export interface ExtractionResult {
   extractedAt: Date;
   startedAt?: Date;
   duration?: number; // Duration in milliseconds
+  progress?: ExtractionStep[]; // Detailed progress tracking
+  currentStep?: string; // Current step being processed
 }
 
 export enum ExtractionStatus {
@@ -38,6 +50,38 @@ export enum ExtractionStatus {
 export interface IEmailExtractionDocument extends IEmailExtraction, Document {
   _id: string;
 }
+
+const extractionStepSchema = new Schema({
+  step: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'processing', 'completed', 'failed', 'skipped'],
+    default: 'pending'
+  },
+  message: {
+    type: String,
+    default: null
+  },
+  startedAt: {
+    type: Date,
+    default: null
+  },
+  completedAt: {
+    type: Date,
+    default: null
+  },
+  duration: {
+    type: Number,
+    default: null
+  },
+  details: {
+    type: Schema.Types.Mixed,
+    default: null
+  }
+}, { _id: false });
 
 const extractionResultSchema = new Schema({
   url: {
@@ -67,6 +111,11 @@ const extractionResultSchema = new Schema({
   },
   duration: {
     type: Number,
+    default: null
+  },
+  progress: [extractionStepSchema],
+  currentStep: {
+    type: String,
     default: null
   }
 }, { _id: false });
@@ -214,6 +263,67 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
   return true;
 };
 
+emailExtractionSchema.statics.updateExtractionProgress = async function(
+  jobId: string,
+  url: string,
+  step: string,
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped',
+  message?: string,
+  details?: any
+): Promise<boolean> {
+  const extraction = await this.findOne({ jobId });
+  if (!extraction) return false;
+  
+  const resultIndex = extraction.results.findIndex(r => r.url === url);
+  if (resultIndex === -1) return false;
+  
+  const result = extraction.results[resultIndex];
+  
+  // Initialize progress array if it doesn't exist
+  if (!result.progress) {
+    result.progress = [];
+  }
+  
+  // Find existing step or create new one
+  let stepIndex = result.progress.findIndex(p => p.step === step);
+  const now = new Date();
+  
+  if (stepIndex === -1) {
+    // Create new step
+    result.progress.push({
+      step,
+      status,
+      message,
+      startedAt: status === 'processing' ? now : undefined,
+      completedAt: (status === 'completed' || status === 'failed') ? now : undefined,
+      details
+    });
+  } else {
+    // Update existing step
+    const existingStep = result.progress[stepIndex];
+    existingStep.status = status;
+    existingStep.message = message;
+    existingStep.details = details;
+    
+    if (status === 'processing' && !existingStep.startedAt) {
+      existingStep.startedAt = now;
+    }
+    
+    if (status === 'completed' || status === 'failed') {
+      existingStep.completedAt = now;
+      if (existingStep.startedAt) {
+        existingStep.duration = now.getTime() - existingStep.startedAt.getTime();
+      }
+    }
+  }
+  
+  // Update current step
+  result.currentStep = step;
+  
+  await extraction.save();
+  return true;
+};
+
 // Instance methods
 emailExtractionSchema.methods.toJSON = function() {
   const obj = this.toObject();
@@ -289,9 +399,22 @@ export class EmailExtractionModel {
     url: string,
     emails: string[],
     status: 'success' | 'failed',
-    error?: string
+    error?: string,
+    duration?: number
   ): Promise<boolean> {
     const model = EmailExtractionModel.getInstance();
-    return await (model as any).updateExtractionResult(jobId, url, emails, status, error);
+    return await (model as any).updateExtractionResult(jobId, url, emails, status, error, undefined, duration);
+  }
+
+  public static async updateExtractionProgress(
+    jobId: string,
+    url: string,
+    step: string,
+    status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped',
+    message?: string,
+    details?: any
+  ): Promise<boolean> {
+    const model = EmailExtractionModel.getInstance();
+    return await (model as any).updateExtractionProgress(jobId, url, step, status, message, details);
   }
 }

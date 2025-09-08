@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { AnimatedSection } from './AnimatedSection';
-import { ArrowRight, Brain, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export function HeroSection() {
@@ -93,14 +93,18 @@ export function HeroSection() {
           <AnimatedSection delay={1000}>
             <div className="relative">
               <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl hover:scale-105 transition-transform duration-500">
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 min-h-[500px] flex items-center justify-center">
-                  {/* Placeholder Image */}
-                  <div className="text-center">
-                    <div className="w-32 h-32 bg-white/10 rounded-2xl flex items-center justify-center mb-6 mx-auto border border-white/20 hover:scale-110 transition-transform duration-300">
-                      <Brain className="w-16 h-16 text-white/50" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">MailQuill Dashboard</h3>
-                    <p className="text-white/60 text-sm">Screenshot placeholder</p>
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6  flex items-center justify-center overflow-hidden">
+                  {/* Dashboard Screenshot */}
+                  <div className="relative w-full h-full">
+                    <img 
+                      src="/dashboard.png" 
+                      alt="MailQuill Dashboard" 
+                      className="w-full h-full object-cover rounded-xl shadow-2xl border border-white/10"
+                    />
+                    {/* Glassmorphic Overlay */}
+                    {/* <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-xl backdrop-blur-sm"></div> */}
+                    {/* Subtle border glow */}
+                    <div className="absolute inset-0 rounded-xl border border-white/20 shadow-inner"></div>
                   </div>
                 </div>
               </div>

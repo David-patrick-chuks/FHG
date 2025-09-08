@@ -8,9 +8,6 @@ import {
     BarChart3,
     Bot,
     CheckCircle,
-    Clock,
-    FileText,
-    Globe,
     Mail,
     Shield,
     Target,
@@ -159,69 +156,31 @@ export default function FeaturesPage() {
           })}
         </div>
 
-        {/* Additional Features Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 mb-16">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              And Much More...
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Additional features that make MailQuill the complete email marketing solution
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">24/7 Support</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Round-the-clock customer support</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Global Reach</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Send emails worldwide with high deliverability</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Rich Templates</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Professional email templates for every need</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Lightning Fast</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Optimized for speed and performance</p>
-            </div>
-          </div>
-        </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl p-8 text-white">
-          <h3 className="text-2xl font-bold mb-4">
+        <div className="text-center bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 rounded-2xl p-12 text-white shadow-2xl">
+          <h3 className="text-3xl lg:text-4xl font-bold mb-6">
             Ready to Get Started?
           </h3>
-          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+          <p className="text-blue-100 mb-8 max-w-2xl mx-auto text-lg leading-relaxed">
             Join thousands of businesses already using MailQuill to scale their email marketing campaigns.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/signup">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-700 hover:bg-gray-50 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              >
                 Start Free Trial
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/pricing">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-8 py-3 text-lg font-semibold backdrop-blur-sm transition-all duration-200"
+              >
                 View Pricing
               </Button>
             </Link>

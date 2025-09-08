@@ -3,7 +3,7 @@ import { Logger } from '../../utils/Logger';
 
 export class HtmlFetcher {
   private static logger: Logger = new Logger();
-  private static readonly REQUEST_TIMEOUT = 15000;
+  private static readonly REQUEST_TIMEOUT = 8000; // Reduced from 15s to 8s for faster extraction
 
   /**
    * Fetch HTML content from URL

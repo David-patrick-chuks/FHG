@@ -29,11 +29,51 @@ export function EmailExtractorForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Domain validation function
+  const isValidDomain = (url: string): boolean => {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return false;
+    
+    // Remove protocol if present
+    const cleanUrl = trimmedUrl.replace(/^https?:\/\//, '');
+    
+    // Check if it has a valid domain pattern
+    const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+    
+    return domainRegex.test(cleanUrl);
+  };
+
+  // Validate single URL
+  const validateSingleUrl = (url: string): boolean => {
+    return isValidDomain(url);
+  };
+
+  // Validate multiple URLs
+  const validateMultipleUrls = (urls: string): boolean => {
+    const urlList = urls
+      .split('\n')
+      .map(url => url.trim())
+      .filter(url => url.length > 0);
+    
+    if (urlList.length === 0) return false;
+    
+    return urlList.every(url => isValidDomain(url));
+  };
+
   const handleSingleUrlExtraction = () => {
     if (!singleUrl.trim()) {
       toast({
         title: 'Error',
         description: 'Please enter a website URL',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!validateSingleUrl(singleUrl)) {
+      toast({
+        title: 'Invalid URL',
+        description: 'Please enter a valid domain (e.g., example.com, mysite.org)',
         variant: 'destructive'
       });
       return;
@@ -62,6 +102,15 @@ export function EmailExtractorForm({
       toast({
         title: 'Error',
         description: 'Please enter at least one website URL',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!validateMultipleUrls(multipleUrls)) {
+      toast({
+        title: 'Invalid URLs',
+        description: 'Please enter valid domains (e.g., example.com, mysite.org). Each URL must have a valid domain extension.',
         variant: 'destructive'
       });
       return;
@@ -146,6 +195,7 @@ export function EmailExtractorForm({
   };
 
   const isLimitReached = subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited;
+  const canUseMultipleUrls = subscriptionInfo && (subscriptionInfo.limits.planName === 'pro' || subscriptionInfo.limits.planName === 'enterprise');
 
   return (
     <Tabs defaultValue="single" className="w-full">
@@ -160,11 +210,11 @@ export function EmailExtractorForm({
         </TabsTrigger>
         <TabsTrigger 
           value="multiple" 
-          disabled={isLimitReached}
+          disabled={isLimitReached || !canUseMultipleUrls}
           className="flex items-center gap-2"
         >
           Multiple URLs
-          {isLimitReached && <Crown className="h-4 w-4" />}
+          {(isLimitReached || !canUseMultipleUrls) && <Crown className="h-4 w-4" />}
         </TabsTrigger>
         <TabsTrigger 
           value="csv" 
@@ -195,13 +245,13 @@ export function EmailExtractorForm({
               <Input
                 id="single-url"
                 type="text"
-                placeholder="https://example.com"
+                placeholder="example.com"
                 value={singleUrl}
                 onChange={(e) => setSingleUrl(e.target.value)}
                 className="mt-1"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Enter a website URL (https:// will be added automatically if missing)
+                Enter a website URL. Must include a valid domain (.com, .org, .net, etc.)
               </p>
             </div>
             <Button 
@@ -227,19 +277,30 @@ export function EmailExtractorForm({
               Upgrade Plan
             </Button>
           </div>
+        ) : !canUseMultipleUrls ? (
+          <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
+            <Crown className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Multiple URLs Not Available</h3>
+            <p className="text-gray-600 mb-4">
+              Multiple URL extraction is only available in Pro and Enterprise plans. Upgrade to use this feature.
+            </p>
+            <Button onClick={() => window.location.href = '/pricing'}>
+              Upgrade Plan
+            </Button>
+          </div>
         ) : (
           <div className="space-y-4">
             <div>
               <Label htmlFor="multiple-urls">Website URLs (one per line)</Label>
               <Textarea
                 id="multiple-urls"
-                placeholder="https://example1.com&#10;https://example2.com&#10;https://example3.com"
+                placeholder="example1.com&#10;example2.com&#10;example3.com"
                 value={multipleUrls}
                 onChange={(e) => setMultipleUrls(e.target.value)}
-                className="mt-1 min-h-[120px]"
+                className="mt-1 min-h-[120px] border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-md"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Enter multiple website URLs, one per line (https:// will be added automatically if missing)
+                Enter multiple website URLs, one per line. Must include a valid domain (.com, .org, .net, etc.)
               </p>
             </div>
             <Button 

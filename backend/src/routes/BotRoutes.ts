@@ -69,6 +69,12 @@ export class BotRoutes {
       BotController.getBotEmailStats
     );
 
+    // Check if bot has active campaigns
+    router.get('/:id/active-campaigns', 
+      AuthMiddleware.validateOwnership('bot', 'id'),
+      BotController.checkActiveCampaigns
+    );
+
     return router;
   }
 
