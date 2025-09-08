@@ -150,7 +150,7 @@ export default function HelpCenterPage() {
   })).filter(category => category.items.length > 0);
 
   const quickLinks = [
-    { title: 'API Documentation', href: '/docs/api', icon: FileText },
+    { title: 'API Documentation', href: '/api-docs', icon: FileText },
     { title: 'System Status', href: '/system-status', icon: Clock }
   ];
 
