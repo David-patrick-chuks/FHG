@@ -349,6 +349,46 @@ export class ActivityService {
   }
 
   /**
+   * Log API key-related activities
+   */
+  public static async logApiKeyActivity(
+    userId: string,
+    type: ActivityType,
+    endpoint?: string,
+    additionalInfo?: string
+  ): Promise<void> {
+    const activityMap = {
+      [ActivityType.API_KEY_GENERATED]: {
+        title: 'API Key Generated',
+        description: 'A new API key has been generated for your account.'
+      },
+      [ActivityType.API_KEY_REVOKED]: {
+        title: 'API Key Revoked',
+        description: 'Your API key has been revoked and is no longer valid.'
+      },
+      [ActivityType.API_KEY_USED]: {
+        title: 'API Key Used',
+        description: endpoint ? `API key was used to access ${endpoint}.` : 'API key was used to access the API.'
+      },
+      [ActivityType.API_KEY_VIEWED]: {
+        title: 'API Key Viewed',
+        description: 'API key information was viewed in the dashboard.'
+      }
+    };
+
+    const activity = activityMap[type];
+    if (activity) {
+      await ActivityService.createActivity(
+        userId,
+        type,
+        activity.title,
+        additionalInfo ? `${activity.description} ${additionalInfo}` : activity.description,
+        { endpoint }
+      );
+    }
+  }
+
+  /**
    * Get unread activity count for a user
    */
   public static async getUnreadCount(

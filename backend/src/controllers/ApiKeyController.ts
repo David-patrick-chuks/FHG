@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import UserModel from '../models/User';
+import { ActivityService } from '../services/ActivityService';
+import { ActivityType } from '../models/Activity';
 import { Logger } from '../utils/Logger';
 
 export class ApiKeyController {
@@ -33,6 +35,14 @@ export class ApiKeyController {
 
       // Generate new API key
       const apiKey = await user.generateApiKey();
+
+      // Log API key generation activity
+      await ActivityService.logApiKeyActivity(
+        userId,
+        ActivityType.API_KEY_GENERATED,
+        undefined,
+        `API key created at ${new Date().toISOString()}`
+      );
 
       ApiKeyController.logger.info('API key generated', { userId, apiKeyCreatedAt: user.apiKeyCreatedAt });
 
@@ -80,6 +90,15 @@ export class ApiKeyController {
           timestamp: new Date()
         });
         return;
+      }
+
+      // Log API key viewed activity
+      if (user.apiKey) {
+        await ActivityService.logApiKeyActivity(
+          userId,
+          ActivityType.API_KEY_VIEWED,
+          '/api/api-keys/info'
+        );
       }
 
       res.status(200).json({
@@ -139,6 +158,14 @@ export class ApiKeyController {
       }
 
       await user.revokeApiKey();
+
+      // Log API key revocation activity
+      await ActivityService.logApiKeyActivity(
+        userId,
+        ActivityType.API_KEY_REVOKED,
+        undefined,
+        `API key revoked at ${new Date().toISOString()}`
+      );
 
       ApiKeyController.logger.info('API key revoked', { userId });
 

@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
+import { ActivityType } from '../models/Activity';
 import UserModel from '../models/User';
+import { ActivityService } from '../services/ActivityService';
 import { Logger } from '../utils/Logger';
 
 export class ApiKeyMiddleware {
@@ -44,6 +46,14 @@ export class ApiKeyMiddleware {
 
       // Update last used timestamp
       await user.updateApiKeyLastUsed();
+
+      // Log API key usage activity
+      await ActivityService.logApiKeyActivity(
+        String(user._id),
+        ActivityType.API_KEY_USED,
+        req.path,
+        `API key used to access ${req.method} ${req.path}`
+      );
 
       // Add user to request object
       (req as any).user = {

@@ -16,8 +16,8 @@ export class RouteService {
     // Health check endpoint
     app.get('/health', this.handleHealthCheck.bind(this));
 
-    // API routes
-    app.use('/api', Routes.getRouter());
+    // API routes - pass the health service instance
+    app.use('/api', Routes.getRouter(this.healthService));
 
     // 404 handler for undefined routes
     app.use('/', this.handleNotFound.bind(this));

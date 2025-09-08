@@ -43,6 +43,18 @@ export interface SystemStatus {
     activeConnections: number;
     routes: number;
   };
+  apiServices: {
+    status: string;
+    responseTime: number;
+    endpoints: number;
+    lastCheck: string;
+  };
+  emailService: {
+    status: string;
+    deliveryRate: number;
+    smtpConfigured: boolean;
+    lastCheck: string;
+  };
   performance: {
     responseTime: number;
     memoryUsage: number;
@@ -57,12 +69,7 @@ export class SystemStatusAPI {
    */
   static async getSystemStatus(): Promise<SystemStatus> {
     try {
-      console.log('Making API call to /system-status...');
       const response = await apiClient.get('/system-status');
-      console.log('API response received:', response);
-      console.log('Response type:', typeof response);
-      console.log('Response keys:', Object.keys(response || {}));
-      
       // The API client returns the data directly, not wrapped in a response object
       return response as SystemStatus;
     } catch (error) {

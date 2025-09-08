@@ -50,6 +50,12 @@ export enum ActivityType {
   USER_PROFILE_UPDATED = 'user_profile_updated',
   USER_PASSWORD_CHANGED = 'user_password_changed',
   
+  // API Key Activities
+  API_KEY_GENERATED = 'api_key_generated',
+  API_KEY_REVOKED = 'api_key_revoked',
+  API_KEY_USED = 'api_key_used',
+  API_KEY_VIEWED = 'api_key_viewed',
+  
   // Subscription Activities
   SUBSCRIPTION_CREATED = 'subscription_created',
   SUBSCRIPTION_UPDATED = 'subscription_updated',

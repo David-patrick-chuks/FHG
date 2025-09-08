@@ -16,7 +16,7 @@ import { SubscriptionRoutes } from './SubscriptionRoutes';
 import { TrackingRoutes } from './TrackingRoutes';
 
 export class Routes {
-  public static getRouter(): Router {
+  public static getRouter(healthService?: any): Router {
     const router = Router();
 
     // Health check endpoint
@@ -33,15 +33,21 @@ export class Routes {
     // System status endpoint for detailed monitoring
     router.get('/system-status', async (_req, res) => {
       try {
-        // Import HealthService dynamically to avoid circular dependencies
-        const { HealthService } = await import('../services/HealthService');
-        const { DatabaseConnection } = await import('../database/DatabaseConnection');
-        
-        const database = DatabaseConnection.getInstance();
-        const healthService = new HealthService(database);
-        
-        const status = await healthService.getHealthStatus(null);
-        res.status(200).json(status);
+        if (healthService) {
+          // Use the shared health service instance from the server
+          const status = await healthService.getHealthStatus(null);
+          res.status(200).json(status);
+        } else {
+          // Fallback: create new instance (should not happen in normal operation)
+          const { HealthService } = await import('../services/HealthService');
+          const { DatabaseConnection } = await import('../database/DatabaseConnection');
+          
+          const database = DatabaseConnection.getInstance();
+          const fallbackHealthService = new HealthService(database);
+          
+          const status = await fallbackHealthService.getHealthStatus(null);
+          res.status(200).json(status);
+        }
       } catch (error) {
         res.status(503).json({
           status: 'ERROR',
