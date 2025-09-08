@@ -47,8 +47,8 @@ export default function RootLayout({
       <body className={`${dmSansHeading.variable} ${dmSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}>
          <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <AuthProvider>
