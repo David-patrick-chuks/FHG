@@ -178,16 +178,19 @@ export default function AdminActivityPage() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <select
-            value={daysFilter}
-            onChange={(e) => setDaysFilter(parseInt(e.target.value))}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          >
-            <option value={1}>Last 24 hours</option>
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
-          </select>
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span>Period:</span>
+            <select
+              value={daysFilter}
+              onChange={(e) => setDaysFilter(parseInt(e.target.value))}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value={1}>Last 24 hours</option>
+              <option value={7}>Last 7 days</option>
+              <option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option>
+            </select>
+          </label>
         </div>
       }
     >

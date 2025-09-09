@@ -223,11 +223,14 @@ export default function AdminUsersPage() {
                 </div>
               </div>
               <div className="w-48">
+                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Status
+                </label>
                 <select
+                  id="status-filter"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  aria-label="Filter by status"
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
@@ -235,11 +238,14 @@ export default function AdminUsersPage() {
                 </select>
               </div>
               <div className="w-48">
+                <label htmlFor="subscription-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Plan
+                </label>
                 <select
+                  id="subscription-filter"
                   value={subscriptionFilter}
                   onChange={(e) => setSubscriptionFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  aria-label="Filter by subscription"
                 >
                   <option value="all">All Plans</option>
                   <option value="free">Free</option>
@@ -379,8 +385,9 @@ export default function AdminUsersPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Subscription Tier</label>
+                  <label htmlFor="subscription-tier" className="block text-sm font-medium mb-2">Subscription Tier</label>
                   <select
+                    id="subscription-tier"
                     value={updateData.tier}
                     onChange={(e) => setUpdateData({ ...updateData, tier: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -410,8 +417,9 @@ export default function AdminUsersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Payment Method</label>
+                  <label htmlFor="payment-method" className="block text-sm font-medium mb-2">Payment Method</label>
                   <select
+                    id="payment-method"
                     value={updateData.paymentMethod}
                     onChange={(e) => setUpdateData({ ...updateData, paymentMethod: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"

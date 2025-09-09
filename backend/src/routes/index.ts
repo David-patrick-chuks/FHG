@@ -6,11 +6,11 @@ import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
 import { CampaignRoutes } from './CampaignRoutes';
 import { ContactRoutes } from './ContactRoutes';
-import CookieRoutes from './CookieRoutes';
+import { CookieRoutes } from './CookieRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { EmailExtractorRoutes } from './EmailExtractorRoutes';
 import { IncidentRoutes } from './IncidentRoutes';
-import PaymentRoutes from './payment';
+import { PaymentRoutes } from './PaymentRoutes';
 import { PublicApiRoutes } from './PublicApiRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
@@ -91,11 +91,11 @@ export class Routes {
     router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
     router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());
     router.use(ContactRoutes.getBasePath(), ContactRoutes.getRouter());
-    router.use('/cookies', CookieRoutes);
+    router.use(CookieRoutes.getBasePath(), CookieRoutes.getRouter());
     router.use(DashboardRoutes.getBasePath(), DashboardRoutes.getRouter());
     router.use(EmailExtractorRoutes.getBasePath(), EmailExtractorRoutes.getRouter());
     router.use(IncidentRoutes.getBasePath(), IncidentRoutes.getRouter());
-    router.use('/payment', PaymentRoutes);
+    router.use(PaymentRoutes.getBasePath(), PaymentRoutes.getRouter());
     router.use(PublicApiRoutes.getBasePath(), PublicApiRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
@@ -119,10 +119,16 @@ export class Routes {
   public static getRegisteredRoutes(): string[] {
     return [
       AuthRoutes.getBasePath(),
+      ApiKeyRoutes.getBasePath(),
       BotRoutes.getBasePath(),
       CampaignRoutes.getBasePath(),
+      ContactRoutes.getBasePath(),
+      CookieRoutes.getBasePath(),
       DashboardRoutes.getBasePath(),
       EmailExtractorRoutes.getBasePath(),
+      IncidentRoutes.getBasePath(),
+      PaymentRoutes.getBasePath(),
+      PublicApiRoutes.getBasePath(),
       SubscriptionRoutes.getBasePath(),
       AdminRoutes.getBasePath(),
       QueueRoutes.getBasePath(),

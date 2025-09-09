@@ -2,39 +2,47 @@ import { Router } from 'express';
 import { CookieController } from '../controllers/CookieController';
 import { CookieMiddleware } from '../middleware/CookieMiddleware';
 
-const router = Router();
+export class CookieRoutes {
+  public static getBasePath(): string {
+    return '/api/cookies';
+  }
 
-// Apply cookie parsing middleware to all routes
-router.use(CookieMiddleware.parseCookies);
+  public static getRouter(): Router {
+    const router = Router();
 
-/**
- * @route POST /api/cookies/consent
- * @desc Set cookie consent preferences
- * @access Public
- */
-router.post('/consent', CookieController.setCookieConsent);
+    // Apply cookie parsing middleware to all routes
+    router.use(CookieMiddleware.parseCookies);
 
-/**
- * @route GET /api/cookies/consent
- * @desc Get current cookie consent status
- * @access Public
- */
-router.get('/consent', CookieController.getCookieConsent);
+    /**
+     * @route POST /api/cookies/consent
+     * @desc Set cookie consent preferences
+     * @access Public
+     */
+    router.post('/consent', CookieController.setCookieConsent);
 
-/**
- * @route DELETE /api/cookies/consent
- * @desc Clear all cookie consent data
- * @access Public
- */
-router.delete('/consent', CookieController.clearCookieConsent);
+    /**
+     * @route GET /api/cookies/consent
+     * @desc Get current cookie consent status
+     * @access Public
+     */
+    router.get('/consent', CookieController.getCookieConsent);
 
-/**
- * @route PATCH /api/cookies/preference
- * @desc Update specific cookie preference
- * @access Public
- */
-router.patch('/preference', CookieController.updateCookiePreference);
+    /**
+     * @route DELETE /api/cookies/consent
+     * @desc Clear all cookie consent data
+     * @access Public
+     */
+    router.delete('/consent', CookieController.clearCookieConsent);
 
-export default router;
+    /**
+     * @route PATCH /api/cookies/preference
+     * @desc Update specific cookie preference
+     * @access Public
+     */
+    router.patch('/preference', CookieController.updateCookiePreference);
+
+    return router;
+  }
+}
 
 
