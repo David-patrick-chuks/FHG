@@ -122,6 +122,8 @@ export interface Campaign extends BaseEntity {
   sentEmails: string[];
   startedAt?: Date;
   completedAt?: Date;
+  scheduledFor?: Date;
+  isScheduled: boolean;
 }
 
 

@@ -10,6 +10,7 @@ import CookieRoutes from './CookieRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { EmailExtractorRoutes } from './EmailExtractorRoutes';
 import { IncidentRoutes } from './IncidentRoutes';
+import PaymentRoutes from './payment';
 import { PublicApiRoutes } from './PublicApiRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
@@ -94,6 +95,7 @@ export class Routes {
     router.use(DashboardRoutes.getBasePath(), DashboardRoutes.getRouter());
     router.use(EmailExtractorRoutes.getBasePath(), EmailExtractorRoutes.getRouter());
     router.use(IncidentRoutes.getBasePath(), IncidentRoutes.getRouter());
+    router.use('/payment', PaymentRoutes);
     router.use(PublicApiRoutes.getBasePath(), PublicApiRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());

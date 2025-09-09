@@ -285,6 +285,120 @@ export class CampaignController {
     }
   }
 
+  public static async prepareCampaign(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      CampaignController.logger.info('Campaign prepare request', {
+        userId,
+        campaignId,
+        ip: req.ip
+      });
+
+      const result = await CampaignService.prepareCampaign(campaignId, userId);
+
+      if (result.success && result.data) {
+        // Log campaign preparation activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_UPDATED,
+          result.data.name,
+          campaignId,
+          'Campaign prepared for launch'
+        );
+
+        res.status(200).json({
+          success: true,
+          message: 'Campaign prepared successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      CampaignController.logger.error('Campaign prepare error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  public static async scheduleCampaign(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+      const { scheduledFor } = req.body;
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (!scheduledFor) {
+        res.status(400).json({
+          success: false,
+          message: 'Scheduled time is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const scheduledDate = new Date(scheduledFor);
+      if (isNaN(scheduledDate.getTime())) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid scheduled time format',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      CampaignController.logger.info('Campaign schedule request', {
+        userId,
+        campaignId,
+        scheduledFor: scheduledDate,
+        ip: req.ip
+      });
+
+      const result = await CampaignService.scheduleCampaign(campaignId, userId, scheduledDate);
+
+      if (result.success && result.data) {
+        // Log campaign scheduling activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_UPDATED,
+          result.data.name,
+          campaignId,
+          `Campaign scheduled for ${scheduledDate.toISOString()}`
+        );
+
+        res.status(200).json({
+          success: true,
+          message: 'Campaign scheduled successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      CampaignController.logger.error('Campaign schedule error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
   public static async startCampaign(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user['id'];

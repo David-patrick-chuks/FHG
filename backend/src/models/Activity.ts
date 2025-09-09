@@ -62,6 +62,13 @@ export enum ActivityType {
   SUBSCRIPTION_CANCELLED = 'subscription_cancelled',
   SUBSCRIPTION_EXPIRED = 'subscription_expired',
   
+  // Payment Activities
+  PAYMENT_INITIALIZED = 'payment_initialized',
+  PAYMENT_COMPLETED = 'payment_completed',
+  PAYMENT_FAILED = 'payment_failed',
+  PAYMENT_CANCELLED = 'payment_cancelled',
+  PAYMENT_REFUNDED = 'payment_refunded',
+  
   // Email Extractor Activities
   EMAIL_EXTRACTION_STARTED = 'email_extraction_started',
   EMAIL_EXTRACTION_COMPLETED = 'email_extraction_completed',

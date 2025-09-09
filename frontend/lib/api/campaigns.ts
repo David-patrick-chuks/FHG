@@ -1,5 +1,5 @@
+import { ApiResponse, Campaign, PaginatedResponse } from '@/types';
 import { apiClient } from '../api-client';
-import { Campaign, ApiResponse, PaginatedResponse } from '@/types';
 
 export interface CreateCampaignRequest {
   name: string;
@@ -118,6 +118,14 @@ export class CampaignsAPI {
   }
 
   // Campaign lifecycle management
+  static async prepareCampaign(id: string): Promise<ApiResponse<Campaign>> {
+    return apiClient.post<Campaign>(`/campaigns/${id}/prepare`);
+  }
+
+  static async scheduleCampaign(id: string, scheduledFor: Date): Promise<ApiResponse<Campaign>> {
+    return apiClient.post<Campaign>(`/campaigns/${id}/schedule`, { scheduledFor });
+  }
+
   static async startCampaign(id: string): Promise<ApiResponse<Campaign>> {
     return apiClient.post<Campaign>(`/campaigns/${id}/start`);
   }

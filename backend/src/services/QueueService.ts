@@ -105,7 +105,8 @@ export class QueueService {
     campaignId: string,
     botId: string,
     emails: Array<{ email: string; message: string }>,
-    delayBetweenEmails: number = 60000 // 1 minute
+    delayBetweenEmails: number = 60000, // 1 minute
+    startTime?: Date
   ): Promise<Bull.Job[]> {
     try {
       if (!this.isInitialized) {
@@ -113,13 +114,13 @@ export class QueueService {
       }
 
       const jobs: Bull.Job[] = [];
-      const now = Date.now();
+      const baseTime = startTime ? startTime.getTime() : Date.now();
 
       for (let i = 0; i < emails.length; i++) {
         const emailItem = emails[i];
         if (!emailItem) continue;
         const { email, message } = emailItem;
-        const scheduledFor = new Date(now + (i * delayBetweenEmails));
+        const scheduledFor = new Date(baseTime + (i * delayBetweenEmails));
 
         const job = await this.addEmailJob(
           campaignId,

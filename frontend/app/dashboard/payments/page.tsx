@@ -1,0 +1,234 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { PaymentAPI, PaymentHistory } from '@/lib/api/payment';
+import { 
+  CreditCard, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Download, 
+  ExternalLink,
+  Loader2,
+  Crown,
+  Zap
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+
+export default function UserPaymentsPage() {
+  const router = useRouter();
+  const [payments, setPayments] = useState<PaymentHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      const response = await PaymentAPI.getPaymentHistory();
+      
+      if (response.success && response.data) {
+        setPayments(response.data);
+      } else {
+        toast.error('Failed to load payment history');
+      }
+    } catch (error) {
+      toast.error('Failed to load payment history');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />Completed</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      case 'failed':
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"><XCircle className="w-3 h-3 mr-1" />Failed</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400">Cancelled</Badge>;
+      case 'refunded':
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">Refunded</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getPlanIcon = (tier: string) => {
+    switch (tier) {
+      case 'pro':
+        return <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+      case 'enterprise':
+        return <Crown className="w-5 h-5 text-purple-600 dark:text-purple-400" />;
+      default:
+        return <CreditCard className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
+    }
+  };
+
+  const handleUpgrade = () => {
+    router.push('/payment');
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout
+        title="Payment History"
+        description="View your payment transactions and subscription history"
+      >
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout
+      title="Payment History"
+      description="View your payment transactions and subscription history"
+      actions={
+        <Button
+          onClick={handleUpgrade}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+        >
+          <Crown className="w-4 h-4 mr-2" />
+          Upgrade Plan
+        </Button>
+      }
+    >
+      <div className="space-y-6">
+        {/* Payment List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {payments.length > 0 ? (
+              <div className="space-y-4">
+                {payments.map((payment) => (
+                  <div
+                    key={payment._id}
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                        {getPlanIcon(payment.subscriptionTier)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {payment.subscriptionTier.toUpperCase()} - {payment.billingCycle}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Reference: {payment.reference}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatDate(payment.createdAt)}
+                        </p>
+                        {payment.paidAt && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Paid: {formatDate(payment.paidAt)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {formatPrice(payment.amount)}
+                      </p>
+                      <div className="mt-2">
+                        {getStatusBadge(payment.status)}
+                      </div>
+                      {payment.status === 'completed' && payment.authorizationUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => window.open(payment.authorizationUrl, '_blank')}
+                        >
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Receipt
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">No payment history</p>
+                <p className="text-sm mb-4">You haven't made any payments yet.</p>
+                <Button
+                  onClick={handleUpgrade}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade Your Plan
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Current Subscription Info */}
+        {payments.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Subscription</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Active Subscription
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Your subscription is active and up to date
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleUpgrade}
+                >
+                  Manage Subscription
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

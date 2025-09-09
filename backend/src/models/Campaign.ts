@@ -2,7 +2,9 @@ import mongoose, { Document, Schema, Model } from 'mongoose';
 import { ICampaign, CampaignStatus, ISentEmail } from '../types';
 
 export interface ICampaignDocument extends Omit<ICampaign, '_id'>, Document {
+  prepareCampaign(): Promise<void>;
   startCampaign(): Promise<void>;
+  scheduleCampaign(scheduledFor: Date): Promise<void>;
   pauseCampaign(): Promise<void>;
   resumeCampaign(): Promise<void>;
   completeCampaign(): Promise<void>;
@@ -87,6 +89,13 @@ export class CampaignModel {
       },
       completedAt: {
         type: Date
+      },
+      scheduledFor: {
+        type: Date
+      },
+      isScheduled: {
+        type: Boolean,
+        default: false
       }
     }, {
       timestamps: true
@@ -105,6 +114,15 @@ export class CampaignModel {
     campaignSchema.index({ userId: 1, createdAt: -1 });
 
     // Instance methods
+    campaignSchema.methods['prepareCampaign'] = async function(): Promise<void> {
+      if (this['status'] !== CampaignStatus.DRAFT) {
+        throw new Error('Campaign must be in DRAFT status to prepare');
+      }
+      
+      this['status'] = CampaignStatus.READY;
+      await this['save']();
+    };
+
     campaignSchema.methods['startCampaign'] = async function(): Promise<void> {
       if (this['status'] !== CampaignStatus.READY) {
         throw new Error('Campaign must be in READY status to start');
@@ -112,6 +130,21 @@ export class CampaignModel {
       
       this['status'] = CampaignStatus.RUNNING;
       this['startedAt'] = new Date();
+      await this['save']();
+    };
+
+    campaignSchema.methods['scheduleCampaign'] = async function(scheduledFor: Date): Promise<void> {
+      if (this['status'] !== CampaignStatus.DRAFT && this['status'] !== CampaignStatus.READY) {
+        throw new Error('Campaign must be in DRAFT or READY status to schedule');
+      }
+      
+      if (scheduledFor <= new Date()) {
+        throw new Error('Scheduled time must be in the future');
+      }
+      
+      this['status'] = CampaignStatus.READY;
+      this['scheduledFor'] = scheduledFor;
+      this['isScheduled'] = true;
       await this['save']();
     };
 

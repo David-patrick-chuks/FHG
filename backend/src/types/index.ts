@@ -1,5 +1,58 @@
 // Core Types for Email Outreach Bot
 
+// Enums
+export enum CampaignStatus {
+  DRAFT = 'draft',
+  READY = 'ready',
+  RUNNING = 'running',
+  PAUSED = 'paused',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled'
+}
+
+export enum EmailStatus {
+  PENDING = 'pending',
+  SENT = 'sent',
+  DELIVERED = 'delivered',
+  OPENED = 'opened',
+  REPLIED = 'replied',
+  FAILED = 'failed',
+  BOUNCED = 'bounced'
+}
+
+export enum QueueJobStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  RETRYING = 'retrying'
+}
+
+export enum SubscriptionTier {
+  FREE = 'free',
+  BASIC = 'basic',
+  PREMIUM = 'premium',
+  ENTERPRISE = 'enterprise'
+}
+
+export enum SubscriptionStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired'
+}
+
+export enum BillingCycle {
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly'
+}
+
+export enum PaymentMethod {
+  PAYSTACK = 'paystack',
+  STRIPE = 'stripe',
+  BANK_TRANSFER = 'bank_transfer'
+}
+
 export interface IUser {
   _id: string;
   email: string;
@@ -51,6 +104,8 @@ export interface ICampaign {
   updatedAt: Date;
   startedAt?: Date;
   completedAt?: Date;
+  scheduledFor?: Date;
+  isScheduled: boolean;
 }
 
 export interface ISentEmail {
@@ -93,6 +148,30 @@ export interface ISubscription {
   paymentMethod: PaymentMethod;
   amount: number;
   currency: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IPayment {
+  _id: string;
+  userId: string;
+  subscriptionTier: SubscriptionTier;
+  billingCycle: BillingCycle;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  paymentMethod: PaymentMethod;
+  reference: string;
+  paystackReference?: string;
+  paystackAccessCode?: string;
+  authorizationUrl?: string;
+  transactionId?: string;
+  gatewayResponse?: string;
+  paidAt?: Date;
+  failureReason?: string;
+  metadata: Record<string, any>;
+  subscriptionExpiresAt: Date;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -160,7 +239,16 @@ export enum PaymentMethod {
   CASH = 'cash',
   BANK_TRANSFER = 'bank_transfer',
   CHECK = 'check',
+  PAYSTACK = 'paystack',
   OTHER = 'other'
+}
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  REFUNDED = 'refunded'
 }
 
 // API Response Types
@@ -242,6 +330,26 @@ export interface CreateSubscriptionRequest {
   duration: number; // in months
   paymentMethod: PaymentMethod;
   amount: number;
+}
+
+export interface InitializePaymentRequest {
+  subscriptionTier: SubscriptionTier;
+  billingCycle: BillingCycle;
+  email: string;
+}
+
+export interface VerifyPaymentRequest {
+  reference: string;
+}
+
+export interface PaymentCallbackRequest {
+  reference: string;
+  status: string;
+  transaction_id?: string;
+  amount?: number;
+  currency?: string;
+  gateway_response?: string;
+  paid_at?: string;
 }
 
 // Utility Types

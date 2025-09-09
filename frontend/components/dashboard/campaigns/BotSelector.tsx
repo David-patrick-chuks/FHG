@@ -1,6 +1,4 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bot } from '@/types';
@@ -39,7 +37,35 @@ export function BotSelector({ bots, selectedBotId, onBotSelect, isLoading, disab
       
       <Select value={selectedBotId} onValueChange={onBotSelect} disabled={isLoading || disabled}>
         <SelectTrigger className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200">
-          <SelectValue placeholder="Choose your AI email bot" />
+          {selectedBot ? (
+            <div className="flex items-center space-x-3">
+              <div className="relative flex-shrink-0">
+                <img
+                  src={getBotAvatarUrl(selectedBot.name)}
+                  alt={`${selectedBot.name} avatar`}
+                  className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-600"
+                />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                  <BotIcon className="w-1.5 h-1.5 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-gray-900 dark:text-white truncate">
+                    {selectedBot.name}
+                  </span>
+                  <div className={`w-1.5 h-1.5 rounded-full ${
+                    selectedBot.isActive ? 'bg-green-500' : 'bg-gray-400'
+                  }`}></div>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {selectedBot.email}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <SelectValue placeholder="Choose your AI email bot" />
+          )}
         </SelectTrigger>
         <SelectContent className="rounded-xl border-2 max-h-96">
           {bots?.map((bot) => {
@@ -49,49 +75,49 @@ export function BotSelector({ bots, selectedBotId, onBotSelect, isLoading, disab
             
             return (
               <SelectItem key={bot._id} value={bot._id} className="rounded-lg p-0">
-                <div className="flex items-center space-x-4 p-4 w-full">
+                <div className="flex items-center space-x-3 p-3 w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   {/* Bot Avatar */}
                   <div className="relative flex-shrink-0">
                     <img
                       src={getBotAvatarUrl(bot.name)}
                       alt={`${bot.name} avatar`}
-                      className="w-12 h-12 rounded-xl border-2 border-white dark:border-gray-700 shadow-md"
+                      className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-600"
                     />
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                      <BotIcon className="w-3 h-3 text-white" />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm">
+                      <BotIcon className="w-2 h-2 text-white" />
                     </div>
                   </div>
                   
                   {/* Bot Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
-                      <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                      <h4 className="font-medium text-gray-900 dark:text-white truncate text-sm">
                         {bot.name}
                       </h4>
-                      <div className={`w-2 h-2 rounded-full ${
-                        bot.isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        bot.isActive ? 'bg-green-500' : 'bg-gray-400'
                       }`}></div>
                     </div>
                     
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                       <Mail className="w-3 h-3" />
                       <span className="truncate">{bot.email}</span>
                     </div>
                     
                     {/* Email Limits */}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 mt-1">
                       <Zap className="w-3 h-3 text-blue-500" />
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {remainingEmails} emails remaining today
+                        {remainingEmails} remaining
                       </span>
                       {isAtLimit && (
-                        <Badge variant="destructive" className="text-xs px-2 py-0.5">
-                          Limit Reached
+                        <Badge variant="destructive" className="text-xs px-1 py-0.5 h-4">
+                          Limit
                         </Badge>
                       )}
                       {isNearLimit && !isAtLimit && (
-                        <Badge variant="outline" className="text-xs px-2 py-0.5 border-orange-300 text-orange-600">
-                          Near Limit
+                        <Badge variant="outline" className="text-xs px-1 py-0.5 border-orange-300 text-orange-600 h-4">
+                          Low
                         </Badge>
                       )}
                     </div>
@@ -105,58 +131,59 @@ export function BotSelector({ bots, selectedBotId, onBotSelect, isLoading, disab
       
       {/* Selected Bot Details */}
       {selectedBot && (
-        <Card className="border-2 border-blue-200 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-shrink-0">
-                <img
-                  src={getBotAvatarUrl(selectedBot.name)}
-                  alt={`${selectedBot.name} avatar`}
-                  className="w-16 h-16 rounded-xl border-2 border-white dark:border-gray-700 shadow-lg"
-                />
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                  <BotIcon className="w-4 h-4 text-white" />
-                </div>
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {selectedBot.name}
-                  </h4>
-                  <div className={`w-2 h-2 rounded-full ${
-                    selectedBot.isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                  }`}></div>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Mail className="w-4 h-4" />
-                    <span>{selectedBot.email}</span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Zap className="w-4 h-4 text-blue-500" />
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {getRemainingEmails(selectedBot)} of {DAILY_EMAIL_LIMIT} emails remaining today
-                    </span>
-                    {getRemainingEmails(selectedBot) < 100 && (
-                      <Badge variant="outline" className="text-xs px-2 py-0.5 border-orange-300 text-orange-600">
-                        Gmail Limit
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {selectedBot.description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      {selectedBot.description}
-                    </p>
-                  )}
-                </div>
+        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300 flex items-center">
+              <BotIcon className="w-4 h-4 mr-2" />
+              Selected Bot
+            </h4>
+            <div className={`w-2 h-2 rounded-full ${
+              selectedBot.isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+            }`}></div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <div className="relative flex-shrink-0">
+              <img
+                src={getBotAvatarUrl(selectedBot.name)}
+                alt={`${selectedBot.name} avatar`}
+                className="w-12 h-12 rounded-lg border-2 border-white dark:border-gray-700 shadow-md"
+              />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                <BotIcon className="w-2 h-2 text-white" />
               </div>
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="flex-1 min-w-0">
+              <h5 className="font-semibold text-gray-900 dark:text-white truncate">
+                {selectedBot.name}
+              </h5>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                <Mail className="w-3 h-3" />
+                <span className="truncate">{selectedBot.email}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <Zap className="w-3 h-3 text-blue-500" />
+                <span>
+                  {getRemainingEmails(selectedBot)} of {DAILY_EMAIL_LIMIT} emails remaining today
+                </span>
+                {getRemainingEmails(selectedBot) < 100 && (
+                  <Badge variant="outline" className="text-xs px-1 py-0.5 border-orange-300 text-orange-600">
+                    Gmail Limit
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {selectedBot.description && (
+            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">Description:</span> {selectedBot.description}
+              </p>
+            </div>
+          )}
+        </div>
       )}
       
       <p className="text-xs text-gray-500 dark:text-gray-400">

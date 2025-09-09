@@ -1,14 +1,12 @@
 'use client';
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { Navbar } from '@/components/navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TermsOfServicePage() {
   return (
     <AuthGuard requireAuth={false}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
 
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

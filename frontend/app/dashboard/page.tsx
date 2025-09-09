@@ -13,6 +13,7 @@ import {
     Bot,
     CheckCircle,
     Clock,
+    Crown,
     Download,
     FileText,
     Mail,
@@ -517,11 +518,22 @@ export default function DashboardPage() {
         </div>
       }
       actions={
-        <div className="text-right">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
-          <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
-            {user?.subscription || 'Free'}
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+            <p className="text-lg font-semibold text-blue-600 dark:text-blue-400 capitalize">
+              {user?.subscription || 'Free'}
+            </p>
+          </div>
+          {user?.subscription === 'free' && (
+            <Button
+              onClick={() => router.push('/payment')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade
+            </Button>
+          )}
         </div>
       }
     >

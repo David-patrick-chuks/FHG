@@ -303,6 +303,124 @@ export class CampaignService {
     }
   }
 
+  public static async prepareCampaign(campaignId: string, userId: string): Promise<ApiResponse<ICampaignDocument>> {
+    try {
+      const campaign = await CampaignModel.findById(campaignId);
+      if (!campaign) {
+        return {
+          success: false,
+          message: 'Campaign not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Check if campaign belongs to user
+      if (campaign.userId !== userId) {
+        return {
+          success: false,
+          message: 'Access denied',
+          timestamp: new Date()
+        };
+      }
+
+      // Check if campaign can be prepared
+      if (campaign.status !== CampaignStatus.DRAFT) {
+        return {
+          success: false,
+          message: 'Campaign must be in DRAFT status to prepare',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate campaign has required data
+      if (campaign.emailList.length === 0) {
+        return {
+          success: false,
+          message: 'Campaign must have at least one email address',
+          timestamp: new Date()
+        };
+      }
+
+      if (campaign.aiMessages.length === 0) {
+        return {
+          success: false,
+          message: 'Campaign must have AI-generated messages',
+          timestamp: new Date()
+        };
+      }
+
+      // Prepare campaign
+      await campaign.prepareCampaign();
+
+      CampaignService.logger.info('Campaign prepared successfully', {
+        campaignId: campaign._id,
+        userId,
+        campaignName: campaign.name
+      });
+
+      return {
+        success: true,
+        message: 'Campaign prepared successfully',
+        data: campaign,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      CampaignService.logger.error('Error preparing campaign:', error);
+      throw error;
+    }
+  }
+
+  public static async scheduleCampaign(campaignId: string, userId: string, scheduledFor: Date): Promise<ApiResponse<ICampaignDocument>> {
+    try {
+      const campaign = await CampaignModel.findById(campaignId);
+      if (!campaign) {
+        return {
+          success: false,
+          message: 'Campaign not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Check if campaign belongs to user
+      if (campaign.userId !== userId) {
+        return {
+          success: false,
+          message: 'Access denied',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate scheduled time
+      if (scheduledFor <= new Date()) {
+        return {
+          success: false,
+          message: 'Scheduled time must be in the future',
+          timestamp: new Date()
+        };
+      }
+
+      // Schedule campaign
+      await campaign.scheduleCampaign(scheduledFor);
+
+      CampaignService.logger.info('Campaign scheduled successfully', {
+        campaignId: campaign._id,
+        userId,
+        campaignName: campaign.name,
+        scheduledFor
+      });
+
+      return {
+        success: true,
+        message: 'Campaign scheduled successfully',
+        data: campaign,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      CampaignService.logger.error('Error scheduling campaign:', error);
+      throw error;
+    }
+  }
+
   public static async startCampaign(campaignId: string, userId: string): Promise<ApiResponse<ICampaignDocument>> {
     try {
       const campaign = await CampaignModel.findById(campaignId);
@@ -345,33 +463,39 @@ export class CampaignService {
       // Start campaign
       await campaign.startCampaign();
 
-             // Add email jobs to queue
-       const selectedMessage = campaign.aiMessages[campaign.selectedMessageIndex];
-       if (!selectedMessage) {
-         return {
-           success: false,
-           message: 'No AI message selected for campaign',
-           timestamp: new Date()
-         };
-       }
+      // Add email jobs to queue
+      const selectedMessage = campaign.aiMessages[campaign.selectedMessageIndex];
+      if (!selectedMessage) {
+        return {
+          success: false,
+          message: 'No AI message selected for campaign',
+          timestamp: new Date()
+        };
+      }
 
-       const emailJobs = campaign.emailList.map((email) => ({
-         email,
-         message: selectedMessage
-       }));
+      const emailJobs = campaign.emailList.map((email) => ({
+        email,
+        message: selectedMessage
+      }));
 
+      // Use scheduled time if campaign is scheduled, otherwise start immediately
+      const startTime = campaign.isScheduled && campaign.scheduledFor ? campaign.scheduledFor : new Date();
+      
       await QueueService.addBulkEmailJobs(
         campaignId,
         campaign.botId,
         emailJobs,
-        60000 // 1 minute delay between emails
+        60000, // 1 minute delay between emails
+        startTime
       );
 
       CampaignService.logger.info('Campaign started successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name,
-        emailCount: campaign.emailList.length
+        emailCount: campaign.emailList.length,
+        isScheduled: campaign.isScheduled,
+        scheduledFor: campaign.scheduledFor
       });
 
       return {

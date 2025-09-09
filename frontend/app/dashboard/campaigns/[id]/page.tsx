@@ -1,5 +1,6 @@
 'use client';
 
+import { CampaignScheduler } from '@/components/campaigns/CampaignScheduler';
 import {
     AIMessages,
     CampaignDialogs,
@@ -121,6 +122,55 @@ export default function CampaignDetailsPage() {
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete campaign');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleScheduleCampaign = async (scheduledFor: Date) => {
+    if (!campaign) return;
+    
+    try {
+      setIsUpdating(true);
+      const response = await CampaignsAPI.scheduleCampaign(campaign._id, scheduledFor);
+      
+      if (response.success && response.data) {
+        setCampaign(response.data);
+      } else {
+        setError(response.error || 'Failed to schedule campaign');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to schedule campaign');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleStartCampaign = async () => {
+    if (!campaign) return;
+    
+    try {
+      setIsUpdating(true);
+      
+      // First prepare the campaign if it's in draft status
+      if (campaign.status === 'draft') {
+        const prepareResponse = await CampaignsAPI.prepareCampaign(campaign._id);
+        if (!prepareResponse.success) {
+          setError(prepareResponse.error || 'Failed to prepare campaign');
+          return;
+        }
+      }
+      
+      // Then start the campaign
+      const response = await CampaignsAPI.startCampaign(campaign._id);
+      
+      if (response.success && response.data) {
+        setCampaign(response.data);
+      } else {
+        setError(response.error || 'Failed to start campaign');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to start campaign');
     } finally {
       setIsUpdating(false);
     }
@@ -279,6 +329,22 @@ export default function CampaignDetailsPage() {
           campaign={campaign}
           getProgressPercentage={getProgressPercentage}
         />
+
+        {/* Campaign Scheduler - Only show for draft/ready campaigns */}
+        {(campaign.status === 'draft' || campaign.status === 'ready') && (
+          <Card>
+            <CardContent className="pt-6">
+              <CampaignScheduler
+                campaignId={campaign._id}
+                onSchedule={handleScheduleCampaign}
+                onStartNow={handleStartCampaign}
+                isScheduled={campaign.isScheduled}
+                scheduledFor={campaign.scheduledFor}
+                disabled={isUpdating}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Campaign Details */}
         <CampaignInfo

@@ -67,6 +67,16 @@ export class CampaignRoutes {
     );
 
     // Campaign lifecycle management
+    router.post('/:id/prepare', 
+      AuthMiddleware.validateOwnership('campaign', 'id'),
+      CampaignController.prepareCampaign
+    );
+
+    router.post('/:id/schedule', 
+      AuthMiddleware.validateOwnership('campaign', 'id'),
+      CampaignController.scheduleCampaign
+    );
+
     router.post('/:id/start', 
       AuthMiddleware.validateOwnership('campaign', 'id'),
       CampaignController.startCampaign

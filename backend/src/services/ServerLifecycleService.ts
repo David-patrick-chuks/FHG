@@ -1,6 +1,8 @@
 import { Application } from 'express';
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { Logger } from '../utils/Logger';
+import { PaystackService } from './PaystackService';
+import { SchedulerService } from './SchedulerService';
 
 export class ServerLifecycleService {
   private app: Application;
@@ -24,6 +26,12 @@ export class ServerLifecycleService {
       // Connect to database first
       await this.database.connect();
       this.logger.info('Database connection established');
+      
+      // Initialize Paystack service
+      this.initializePaystack();
+      
+      // Start scheduler service
+      await SchedulerService.start();
       
       // Start HTTP server
       await this.startHttpServer(port);
@@ -73,6 +81,9 @@ export class ServerLifecycleService {
     this.logger.info('Initiating server shutdown...');
     
     try {
+      // Stop scheduler service
+      await SchedulerService.stop();
+      
       // Stop HTTP server
       if (this.server) {
         await this.stopHttpServer();
@@ -112,6 +123,29 @@ export class ServerLifecycleService {
       port: port,
       uptime: process.uptime()
     };
+  }
+
+  /**
+   * Initialize Paystack service
+   */
+  private initializePaystack(): void {
+    try {
+      const paystackConfig = {
+        secretKey: process.env.PAYSTACK_SECRET_KEY || '',
+        publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
+        baseUrl: process.env.PAYSTACK_BASE_URL || 'https://api.paystack.co'
+      };
+
+      if (!paystackConfig.secretKey || !paystackConfig.publicKey) {
+        this.logger.warn('Paystack configuration incomplete. Payment features will be disabled.');
+        return;
+      }
+
+      PaystackService.initialize(paystackConfig);
+      this.logger.info('Paystack service initialized successfully');
+    } catch (error) {
+      this.logger.error('Failed to initialize Paystack service:', error);
+    }
   }
 
   /**
