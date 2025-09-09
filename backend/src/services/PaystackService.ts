@@ -91,12 +91,12 @@ export class PaystackService {
   // Subscription pricing in NGN (Nigerian Naira)
   private static readonly SUBSCRIPTION_PRICES = {
     [SubscriptionTier.PRO]: {
-      [BillingCycle.MONTHLY]: 15000, // ₦15,000 per month
-      [BillingCycle.YEARLY]: 150000  // ₦150,000 per year (2 months free)
+      [BillingCycle.MONTHLY]: 2999, // ₦2,999 per month
+      [BillingCycle.YEARLY]: 28790  // ₦28,790 per year (2 months free)
     },
     [SubscriptionTier.ENTERPRISE]: {
-      [BillingCycle.MONTHLY]: 50000, // ₦50,000 per month
-      [BillingCycle.YEARLY]: 500000  // ₦500,000 per year (2 months free)
+      [BillingCycle.MONTHLY]: 14999, // ₦14,999 per month
+      [BillingCycle.YEARLY]: 143990  // ₦143,990 per year (2 months free)
     }
   };
 

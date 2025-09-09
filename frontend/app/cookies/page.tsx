@@ -44,11 +44,10 @@ export default function CookiePolicyPage() {
                     MailQuill uses cookies for several purposes to enhance your experience and provide our services effectively:
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4">
-                    <li><strong>Authentication:</strong> To keep you logged in and maintain your session</li>
-                    <li><strong>Preferences:</strong> To remember your settings and preferences</li>
-                    <li><strong>Analytics:</strong> To understand how you use our platform and improve our services</li>
+                    <li><strong>Authentication:</strong> To keep you logged in and maintain your session using JWT tokens</li>
+                    <li><strong>Preferences:</strong> To remember your cookie consent preferences and theme settings</li>
+                    <li><strong>Analytics:</strong> To understand how you use our platform and improve our services (with your consent)</li>
                     <li><strong>Security:</strong> To protect against fraud and ensure platform security</li>
-                    <li><strong>Performance:</strong> To optimize website performance and loading times</li>
                   </ul>
                 </section>
 
@@ -60,50 +59,47 @@ export default function CookiePolicyPage() {
                     These cookies are necessary for the website to function properly. They enable basic functions like page navigation, access to secure areas, and authentication. The website cannot function properly without these cookies.
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4">
+                    <li>JWT authentication tokens (stored in localStorage)</li>
                     <li>Session management cookies</li>
-                    <li>Authentication tokens</li>
-                    <li>Security cookies</li>
-                    <li>Load balancing cookies</li>
+                    <li>CSRF protection tokens</li>
+                    <li>Cookie consent preferences</li>
                   </ul>
 
                   <h3 className="text-xl font-medium mb-3 mt-6">3.2 Functional Cookies</h3>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                    These cookies enable the website to provide enhanced functionality and personalization. They may be set by us or by third-party providers whose services we have added to our pages.
+                    These cookies enable the website to provide enhanced functionality and personalization. They are only set with your explicit consent.
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4">
-                    <li>User preference settings</li>
-                    <li>Language preferences</li>
-                    <li>Theme settings (dark/light mode)</li>
-                    <li>Dashboard layout preferences</li>
+                    <li>Theme preferences (dark/light mode)</li>
+                    <li>User interface preferences</li>
+                    <li>Dashboard layout settings</li>
                   </ul>
 
                   <h3 className="text-xl font-medium mb-3 mt-6">3.3 Analytics Cookies</h3>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                    These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. This helps us improve our website and services.
+                    These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. This helps us improve our website and services. We use Vercel Analytics for this purpose.
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4">
-                    <li>Page view tracking</li>
-                    <li>User journey analysis</li>
-                    <li>Feature usage statistics</li>
+                    <li>Page view tracking (anonymized)</li>
+                    <li>User journey analysis (no personal data)</li>
                     <li>Performance monitoring</li>
+                    <li>Feature usage statistics (aggregated)</li>
                   </ul>
 
                   <h3 className="text-xl font-medium mb-3 mt-6">3.4 Marketing Cookies</h3>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    These cookies are used to track visitors across websites to display relevant and engaging advertisements. They help us measure the effectiveness of our marketing campaigns.
+                    Currently, we do not use marketing cookies or third-party advertising services. If this changes in the future, we will update this policy and seek your consent.
                   </p>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-semibold mb-4">4. Third-Party Cookies</h2>
+                  <h2 className="text-2xl font-semibold mb-4">4. Third-Party Services</h2>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                    We may use third-party services that set their own cookies. These include:
+                    We use the following third-party services that may set cookies:
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4">
-                    <li><strong>Analytics Services:</strong> Google Analytics, Mixpanel, or similar services</li>
-                    <li><strong>Payment Processors:</strong> Stripe, PayPal, or other payment providers</li>
-                    <li><strong>Customer Support:</strong> Intercom, Zendesk, or similar support tools</li>
-                    <li><strong>Marketing Tools:</strong> HubSpot, Mailchimp, or similar marketing platforms</li>
+                    <li><strong>Vercel Analytics:</strong> For website analytics and performance monitoring (with consent)</li>
+                    <li><strong>Paystack:</strong> For payment processing (essential for subscription services)</li>
                   </ul>
                 </section>
 
@@ -117,7 +113,7 @@ export default function CookiePolicyPage() {
                     <li><strong>Persistent Cookies:</strong> These remain on your device for a set period or until you delete them</li>
                   </ul>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed mt-4">
-                    Most of our cookies expire within 30 days, but some may persist for up to 2 years depending on their purpose.
+                    Our authentication tokens expire after 24 hours (or 30 days if "Remember Me" is selected). Cookie consent preferences are stored for 1 year. Analytics data is retained for up to 24 months.
                   </p>
                 </section>
 
@@ -127,7 +123,12 @@ export default function CookiePolicyPage() {
                     You have several options for managing cookies:
                   </p>
                   
-                  <h3 className="text-xl font-medium mb-3">6.1 Browser Settings</h3>
+                  <h3 className="text-xl font-medium mb-3">6.1 Cookie Consent Banner</h3>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                    When you first visit our website, you'll see a cookie consent banner where you can choose which types of cookies to accept. You can change your preferences at any time by clicking the cookie settings link in our footer.
+                  </p>
+
+                  <h3 className="text-xl font-medium mb-3 mt-6">6.2 Browser Settings</h3>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                     Most web browsers allow you to control cookies through their settings. You can:
                   </p>
@@ -137,11 +138,6 @@ export default function CookiePolicyPage() {
                     <li>Delete existing cookies</li>
                     <li>Set preferences for specific websites</li>
                   </ul>
-
-                  <h3 className="text-xl font-medium mb-3 mt-6">6.2 Cookie Consent Banner</h3>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    When you first visit our website, you'll see a cookie consent banner where you can choose which types of cookies to accept. You can change your preferences at any time through our cookie settings.
-                  </p>
                 </section>
 
                 <section>
@@ -151,27 +147,34 @@ export default function CookiePolicyPage() {
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4 mt-4">
                     <li>Inability to stay logged in</li>
-                    <li>Loss of personalized settings</li>
-                    <li>Reduced website performance</li>
-                    <li>Limited access to certain features</li>
+                    <li>Loss of theme preferences</li>
+                    <li>Need to re-accept cookie preferences on each visit</li>
+                    <li>Reduced ability to track and improve website performance</li>
                   </ul>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-semibold mb-4">8. Updates to This Cookie Policy</h2>
+                  <h2 className="text-2xl font-semibold mb-4">8. Data Protection</h2>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    We are committed to protecting your privacy. Our analytics cookies do not collect personal information and are used only to improve our services. All data is processed in accordance with our Privacy Policy and applicable data protection laws.
+                  </p>
+                </section>
+
+                <section>
+                  <h2 className="text-2xl font-semibold mb-4">9. Updates to This Cookie Policy</h2>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                     We may update this Cookie Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of any material changes by posting the updated policy on this page and updating the "Last updated" date.
                   </p>
                 </section>
 
                 <section>
-                  <h2 className="text-2xl font-semibold mb-4">9. Contact Us</h2>
+                  <h2 className="text-2xl font-semibold mb-4">10. Contact Us</h2>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                     If you have any questions about our use of cookies or this Cookie Policy, please contact us at:
                   </p>
                   <div className="mt-2 text-gray-600 dark:text-gray-300">
                     <p>Email: privacy@mailquill.com</p>
-                    <p>Address: Lagos Nigeria</p>
+                    <p>Address: Lagos, Nigeria</p>
                   </div>
                 </section>
               </div>

@@ -197,12 +197,7 @@ export default function PricingPage() {
               </ul>
               <Button 
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => {
-                  const price = billingCycle === 'yearly' ? '₦28,790/$19.09 per year' : '₦2,999/$1.99 per month';
-                  const message = encodeURIComponent(`Hi! I want to subscribe to the PRO plan for ${price}. Please help me with the subscription process.`);
-                  const whatsappUrl = `https://wa.me/2347014185686?text=${message}`;
-                  window.open(whatsappUrl, '_blank');
-                }}
+                onClick={() => window.location.href = '/payment'}
               >
                 Upgrade to PRO
               </Button>
@@ -281,12 +276,7 @@ export default function PricingPage() {
               </ul>
               <Button 
                 className="w-full bg-purple-600 hover:bg-purple-700"
-                onClick={() => {
-                  const price = billingCycle === 'yearly' ? '₦143,990/$95.48 per year' : '₦14,999/$9.95 per month';
-                  const message = encodeURIComponent(`Hi! I want to subscribe to the ENTERPRISE plan for ${price}. Please help me with the subscription process.`);
-                  const whatsappUrl = `https://wa.me/2347014185686?text=${message}`;
-                  window.open(whatsappUrl, '_blank');
-                }}
+                onClick={() => window.location.href = '/payment'}
               >
                 Upgrade to ENTERPRISE
               </Button>

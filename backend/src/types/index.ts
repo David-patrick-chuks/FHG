@@ -25,7 +25,8 @@ export enum QueueJobStatus {
   PROCESSING = 'processing',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  RETRYING = 'retrying'
+  RETRYING = 'retrying',
+  CANCELLED = 'cancelled'
 }
 
 export enum SubscriptionTier {
@@ -40,8 +41,8 @@ export enum SubscriptionStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   CANCELLED = 'cancelled',
-  EXPIRED = 'expired'
-  
+  EXPIRED = 'expired',
+  SUSPENDED = 'suspended'
 }
 
 export enum BillingCycle {

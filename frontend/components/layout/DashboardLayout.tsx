@@ -17,7 +17,10 @@ import {
   Search,
   User,
   Users,
-  X
+  X,
+  Shield,
+  CreditCard,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -31,44 +34,81 @@ interface SidebarItem {
   badge?: string | number;
 }
 
-const getSidebarItems = (unreadCount: number): SidebarItem[] => [
-  {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    label: 'Campaigns',
-    href: '/dashboard/campaigns',
-    icon: Mail,
-  },
-  {
-    label: 'Bots',
-    href: '/dashboard/bots',
-    icon: Bot,
-  },
-  {
-    label: 'Email Extractor',
-    href: '/dashboard/email-extractor',
-    icon: Search,
-  },
-  {
-    label: 'Audience',
-    href: '/dashboard/audience',
-    icon: Users,
-  },
-  {
-    label: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: BarChart3,
-  },
-  {
-    label: 'Activity',
-    href: '/dashboard/activity',
-    icon: Activity,
-    badge: unreadCount > 0 ? unreadCount : undefined,
-  },
-];
+const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): SidebarItem[] => {
+  const regularItems: SidebarItem[] = [
+    {
+      label: 'Dashboard',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      label: 'Campaigns',
+      href: '/dashboard/campaigns',
+      icon: Mail,
+    },
+    {
+      label: 'Bots',
+      href: '/dashboard/bots',
+      icon: Bot,
+    },
+    {
+      label: 'Email Extractor',
+      href: '/dashboard/email-extractor',
+      icon: Search,
+    },
+    {
+      label: 'Audience',
+      href: '/dashboard/audience',
+      icon: Users,
+    },
+    {
+      label: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: BarChart3,
+    },
+    {
+      label: 'Activity',
+      href: '/dashboard/activity',
+      icon: Activity,
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
+    {
+      label: 'Payments',
+      href: '/dashboard/payments',
+      icon: CreditCard,
+    },
+    {
+      label: 'Profile',
+      href: '/dashboard/profile',
+      icon: User,
+    },
+  ];
+
+  const adminItems: SidebarItem[] = [
+    {
+      label: 'Admin Dashboard',
+      href: '/dashboard/admin',
+      icon: Shield,
+    },
+    {
+      label: 'User Management',
+      href: '/dashboard/admin/users',
+      icon: Users,
+    },
+    {
+      label: 'Payment Management',
+      href: '/dashboard/admin/payments',
+      icon: CreditCard,
+    },
+    {
+      label: 'System Activity',
+      href: '/dashboard/admin/activity',
+      icon: Activity,
+    },
+  ];
+
+  return isAdmin ? [...regularItems, ...adminItems] : regularItems;
+};
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -133,45 +173,102 @@ export function DashboardLayout({
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {getSidebarItems(unreadCount).map((item) => {
-            // Debug logging for activity item
-            if (item.label === 'Activity') {
-              console.log('Activity item badge:', item.badge, 'unreadCount:', unreadCount);
-            }
-            
-            // Simplified active state logic
-            let isActive = false;
-            if (item.href === '/dashboard') {
-              isActive = pathname === '/dashboard';
-            } else {
-              isActive = pathname.startsWith(item.href);
-            }
+          {(() => {
+            const sidebarItems = getSidebarItems(unreadCount, user?.isAdmin);
+            const regularItems = sidebarItems.slice(0, 9); // First 9 items are regular
+            const adminItems = sidebarItems.slice(9); // Rest are admin items
             
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                  isActive
-                    ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              <>
+                {/* Regular navigation items */}
+                {regularItems.map((item) => {
+                  // Debug logging for activity item
+                  if (item.label === 'Activity') {
+                    console.log('Activity item badge:', item.badge, 'unreadCount:', unreadCount);
+                  }
+                  
+                  // Simplified active state logic
+                  let isActive = false;
+                  if (item.href === '/dashboard') {
+                    isActive = pathname === '/dashboard';
+                  } else {
+                    isActive = pathname.startsWith(item.href);
+                  }
+                  
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                        isActive
+                          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                          : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                      )}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <item.icon className={cn(
+                        "mr-3 h-5 w-5",
+                        isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
+                      )} />
+                      {item.label}
+                      {item.badge && (
+                        <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+                
+                {/* Admin section separator */}
+                {adminItems.length > 0 && (
+                  <>
+                    <div className="my-4 border-t border-gray-200 dark:border-gray-700"></div>
+                    <div className="px-3 py-2">
+                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Admin
+                      </h3>
+                    </div>
+                    {adminItems.map((item) => {
+                      // Simplified active state logic
+                      let isActive = false;
+                      if (item.href === '/dashboard') {
+                        isActive = pathname === '/dashboard';
+                      } else {
+                        isActive = pathname.startsWith(item.href);
+                      }
+                      
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                            isActive
+                              ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                              : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                          )}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <item.icon className={cn(
+                            "mr-3 h-5 w-5",
+                            isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
+                          )} />
+                          {item.label}
+                          {item.badge && (
+                            <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </>
                 )}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <item.icon className={cn(
-                  "mr-3 h-5 w-5",
-                  isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
-                )} />
-                {item.label}
-                {item.badge && (
-                  <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
+              </>
             );
-          })}
+          })()}
         </nav>
 
         {/* User section - Fixed at bottom */}

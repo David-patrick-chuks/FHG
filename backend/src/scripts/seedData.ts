@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { UserModel } from '../models/User';
@@ -116,12 +115,10 @@ export class DataSeeder {
           }
 
           // Create new user
-          const hashedPassword = await bcrypt.hash(userData.password, 12);
-          
           const user = new User({
             email: userData.email,
             username: userData.username,
-            password: hashedPassword,
+            password: userData.password, // Pass plain text password - User model will hash it
             subscription: userData.subscription,
             billingCycle: userData.billingCycle,
             isAdmin: userData.isAdmin,

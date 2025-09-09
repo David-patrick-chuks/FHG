@@ -4,7 +4,7 @@ import { CookieMiddleware } from '../middleware/CookieMiddleware';
 
 export class CookieRoutes {
   public static getBasePath(): string {
-    return '/api/cookies';
+    return '/cookies';
   }
 
   public static getRouter(): Router {

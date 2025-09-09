@@ -1,5 +1,7 @@
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import { Logger } from '../utils/Logger';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export class DatabaseConnection {
   private static instance: DatabaseConnection;

@@ -1,27 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { PaymentAPI, PaymentHistory } from '@/lib/api/payment';
-import { 
-  CreditCard, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Download, 
-  ExternalLink,
-  Loader2,
-  Crown,
-  Zap
+import {
+    CheckCircle,
+    Clock,
+    CreditCard,
+    Crown,
+    ExternalLink,
+    Loader2,
+    XCircle,
+    Zap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
 export default function UserPaymentsPage() {
-  const router = useRouter();
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,9 +89,6 @@ export default function UserPaymentsPage() {
     }
   };
 
-  const handleUpgrade = () => {
-    router.push('/payment');
-  };
 
   if (loading) {
     return (
@@ -113,17 +107,31 @@ export default function UserPaymentsPage() {
     <DashboardLayout
       title="Payment History"
       description="View your payment transactions and subscription history"
-      actions={
-        <Button
-          onClick={handleUpgrade}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-        >
-          <Crown className="w-4 h-4 mr-2" />
-          Upgrade Plan
-        </Button>
-      }
     >
       <div className="space-y-6">
+        {/* Upgrade Section */}
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Need to upgrade your plan?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Access more features and higher limits with our premium plans.
+                </p>
+              </div>
+              <Button
+                onClick={() => window.location.href = '/payment'}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Upgrade Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Payment List */}
         <Card>
           <CardHeader>
@@ -186,10 +194,10 @@ export default function UserPaymentsPage() {
                 <p className="text-lg font-medium mb-2">No payment history</p>
                 <p className="text-sm mb-4">You haven't made any payments yet.</p>
                 <Button
-                  onClick={handleUpgrade}
+                  onClick={() => window.location.href = '/payment'}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                 >
-                  <Crown className="w-4 h-4 mr-2" />
+                  <Zap className="w-4 h-4 mr-2" />
                   Upgrade Your Plan
                 </Button>
               </div>
@@ -220,7 +228,7 @@ export default function UserPaymentsPage() {
                 </div>
                 <Button
                   variant="outline"
-                  onClick={handleUpgrade}
+                  onClick={() => window.location.href = '/payment'}
                 >
                   Manage Subscription
                 </Button>

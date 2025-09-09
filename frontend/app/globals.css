@@ -17,8 +17,8 @@
   --secondary-foreground: #ffffff; /* Text color on secondary buttons */
   --muted: #fefce8; /* Soft background for muted elements */
   --muted-foreground: #475569; /* Text color for muted elements */
-  --accent: #f97316; /* Used sparingly for emphasis */
-  --accent-foreground: #ffffff; /* Text color on accent elements */
+  --accent: #f1f5f9; /* Light gray for subtle emphasis */
+  --accent-foreground: #475569; /* Dark gray text on accent elements */
   --destructive: #dc2626; /* Color for errors or destructive actions */
   --destructive-foreground: #ffffff; /* Text color for destructive actions */
   --border: #d1d5db; /* Light border for separation */
@@ -54,8 +54,8 @@
   --secondary-foreground: #ffffff; /* White text on secondary */
   --muted: #334155; /* Muted dark gray */
   --muted-foreground: #94a3b8; /* Muted light gray text */
-  --accent: #f97316; /* Orange accent */
-  --accent-foreground: #ffffff; /* White text on accent */
+  --accent: #334155; /* Dark gray accent */
+  --accent-foreground: #f8fafc; /* Light text on accent */
   --destructive: #f97316; /* Orange for destructive actions in dark mode */
   --destructive-foreground: #ffffff; /* White text on destructive */
   --border: #334155; /* Dark border */

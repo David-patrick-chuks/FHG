@@ -137,7 +137,7 @@ export function PlanLimitModal({
                 Maybe Later
               </Button>
               <Button asChild className="px-6 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                <Link href="/pricing" className="flex items-center justify-center gap-2">
+                <Link href="/payment" className="flex items-center justify-center gap-2">
                   <ExternalLink className="w-4 h-4" />
                   Upgrade Plan
                 </Link>

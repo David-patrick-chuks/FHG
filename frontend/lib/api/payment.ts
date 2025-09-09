@@ -1,4 +1,4 @@
-import { ApiResponse } from './types';
+import { ApiResponse } from "@/types";
 
 export interface PaymentPricing {
   pro: {
@@ -54,7 +54,7 @@ export interface PaymentStats {
 }
 
 export class PaymentAPI {
-  private static baseUrl = '/api/payment';
+  private static baseUrl = '/api/payments';
 
   /**
    * Get subscription pricing

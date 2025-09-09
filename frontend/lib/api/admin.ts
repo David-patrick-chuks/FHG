@@ -1,4 +1,5 @@
-import { ApiResponse } from './types';
+import { ApiResponse } from "@/types";
+
 
 export interface AdminUser {
   _id: string;

@@ -4,7 +4,7 @@ import { AuthMiddleware } from '../middleware/AuthMiddleware';
 
 export class PaymentRoutes {
   public static getBasePath(): string {
-    return '/api/payments';
+    return '/payments';
   }
 
   public static getRouter(): Router {
