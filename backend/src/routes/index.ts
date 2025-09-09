@@ -10,11 +10,11 @@ import { CookieRoutes } from './CookieRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { EmailExtractorRoutes } from './EmailExtractorRoutes';
 import { IncidentRoutes } from './IncidentRoutes';
+import { PaymentRoutes } from './PaymentRoutes';
 import { PublicApiRoutes } from './PublicApiRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
 import { TrackingRoutes } from './TrackingRoutes';
-import { PaymentRoutes } from './PaymentRoutes';
 
 export class Routes {
   public static getRouter(healthService?: any): Router {

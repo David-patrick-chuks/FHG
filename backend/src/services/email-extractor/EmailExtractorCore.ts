@@ -24,9 +24,23 @@ export class EmailExtractorCore {
     extractionType: 'single' | 'multiple' | 'csv' = 'multiple'
   ): Promise<ApiResponse<{ jobId: string }>> {
     try {
+      EmailExtractorCore.logger.info('EmailExtractorCore.startExtraction called', { 
+        userId, 
+        urls, 
+        extractionType,
+        urlCount: urls.length 
+      });
+      
       // Validate URLs
       const validUrls = this.validateUrls(urls);
+      EmailExtractorCore.logger.info('URL validation result', { 
+        inputUrls: urls, 
+        validUrls, 
+        validCount: validUrls.length 
+      });
+      
       if (validUrls.length === 0) {
+        EmailExtractorCore.logger.warn('No valid URLs found after validation', { inputUrls: urls });
         return {
           success: false,
           message: 'No valid URLs provided',

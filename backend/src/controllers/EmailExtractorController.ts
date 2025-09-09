@@ -58,6 +58,13 @@ export class EmailExtractorController {
         return;
       }
 
+      EmailExtractorController.logger.info('Starting extraction with URLs', { 
+        userId, 
+        urlArray, 
+        extractionType,
+        urlCount: urlArray.length 
+      });
+      
       const result = await EmailExtractorCore.startExtraction(userId, urlArray, extractionType);
       
       if (result.success) {
