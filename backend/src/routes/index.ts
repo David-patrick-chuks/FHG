@@ -10,11 +10,11 @@ import { CookieRoutes } from './CookieRoutes';
 import { DashboardRoutes } from './DashboardRoutes';
 import { EmailExtractorRoutes } from './EmailExtractorRoutes';
 import { IncidentRoutes } from './IncidentRoutes';
-import { PaymentRoutes } from './PaymentRoutes';
 import { PublicApiRoutes } from './PublicApiRoutes';
 import { QueueRoutes } from './QueueRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
 import { TrackingRoutes } from './TrackingRoutes';
+import { PaymentRoutes } from './PaymentRoutes';
 
 export class Routes {
   public static getRouter(healthService?: any): Router {
@@ -145,10 +145,16 @@ export class Routes {
       
       // Count routes from each module
       totalRoutes += this.countRoutesInModule(AuthRoutes);
+      totalRoutes += this.countRoutesInModule(ApiKeyRoutes);
       totalRoutes += this.countRoutesInModule(BotRoutes);
       totalRoutes += this.countRoutesInModule(CampaignRoutes);
+      totalRoutes += this.countRoutesInModule(ContactRoutes);
+      totalRoutes += this.countRoutesInModule(CookieRoutes);
       totalRoutes += this.countRoutesInModule(DashboardRoutes);
       totalRoutes += this.countRoutesInModule(EmailExtractorRoutes);
+      totalRoutes += this.countRoutesInModule(IncidentRoutes);
+      totalRoutes += this.countRoutesInModule(PaymentRoutes);
+      totalRoutes += this.countRoutesInModule(PublicApiRoutes);
       totalRoutes += this.countRoutesInModule(SubscriptionRoutes);
       totalRoutes += this.countRoutesInModule(AdminRoutes);
       totalRoutes += this.countRoutesInModule(QueueRoutes);

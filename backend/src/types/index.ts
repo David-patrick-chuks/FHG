@@ -32,6 +32,7 @@ export enum SubscriptionTier {
   FREE = 'free',
   BASIC = 'basic',
   PREMIUM = 'premium',
+  PRO = 'pro',
   ENTERPRISE = 'enterprise'
 }
 
@@ -40,6 +41,7 @@ export enum SubscriptionStatus {
   INACTIVE = 'inactive',
   CANCELLED = 'cancelled',
   EXPIRED = 'expired'
+  
 }
 
 export enum BillingCycle {
@@ -189,59 +191,6 @@ export interface IAdminAction {
   createdAt: Date;
 }
 
-// Enums
-export enum SubscriptionTier {
-  FREE = 'free',
-  PRO = 'pro',
-  ENTERPRISE = 'enterprise'
-}
-
-export enum BillingCycle {
-  MONTHLY = 'monthly',
-  YEARLY = 'yearly'
-}
-
-export enum CampaignStatus {
-  DRAFT = 'draft',
-  READY = 'ready',
-  RUNNING = 'running',
-  PAUSED = 'paused',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
-}
-
-export enum EmailStatus {
-  PENDING = 'pending',
-  SENT = 'sent',
-  DELIVERED = 'delivered',
-  OPENED = 'opened',
-  REPLIED = 'replied',
-  FAILED = 'failed',
-  BOUNCED = 'bounced'
-}
-
-export enum QueueJobStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled'
-}
-
-export enum SubscriptionStatus {
-  ACTIVE = 'active',
-  EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
-  SUSPENDED = 'suspended'
-}
-
-export enum PaymentMethod {
-  CASH = 'cash',
-  BANK_TRANSFER = 'bank_transfer',
-  CHECK = 'check',
-  PAYSTACK = 'paystack',
-  OTHER = 'other'
-}
 
 export enum PaymentStatus {
   PENDING = 'pending',

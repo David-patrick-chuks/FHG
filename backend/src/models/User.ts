@@ -165,6 +165,8 @@ export class UserModel {
     userSchema.methods['getDailyEmailLimit'] = function(): number {
       const limits: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 500,
+        [SubscriptionTier.BASIC]: 500,
+        [SubscriptionTier.PREMIUM]: 500,
         [SubscriptionTier.PRO]: 500,
         [SubscriptionTier.ENTERPRISE]: 500
       };
@@ -175,6 +177,8 @@ export class UserModel {
     userSchema.methods['getMaxBots'] = function(): number {
       const maxBots: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 2,
+        [SubscriptionTier.BASIC]: 5,
+        [SubscriptionTier.PREMIUM]: 10,
         [SubscriptionTier.PRO]: 10,
         [SubscriptionTier.ENTERPRISE]: 50
       };
@@ -185,6 +189,8 @@ export class UserModel {
     userSchema.methods['getMaxCampaigns'] = function(): number {
       const maxCampaigns: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 2,
+        [SubscriptionTier.BASIC]: 5,
+        [SubscriptionTier.PREMIUM]: 10,
         [SubscriptionTier.PRO]: 10,
         [SubscriptionTier.ENTERPRISE]: 50
       };
@@ -195,6 +201,8 @@ export class UserModel {
     userSchema.methods['getMaxAIMessageVariations'] = function(): number {
       const maxVariations: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 10,
+        [SubscriptionTier.BASIC]: 15,
+        [SubscriptionTier.PREMIUM]: 20,
         [SubscriptionTier.PRO]: 20,
         [SubscriptionTier.ENTERPRISE]: 50
       };

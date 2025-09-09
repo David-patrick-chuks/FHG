@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from 'axios';
-import { ApiResponse, InitializePaymentRequest, PaymentStatus, SubscriptionTier, BillingCycle } from '../types';
-import { Logger } from '../utils/Logger';
+import { ActivityType } from '../models/Activity';
 import PaymentModel, { IPaymentDocument } from '../models/Payment';
 import UserModel from '../models/User';
+import { ApiResponse, BillingCycle, InitializePaymentRequest, PaymentStatus, SubscriptionTier } from '../types';
+import { Logger } from '../utils/Logger';
 import { ActivityService } from './ActivityService';
-import { ActivityType } from '../models/Activity';
 
 export interface PaystackConfig {
   secretKey: string;
@@ -203,10 +203,7 @@ export class PaystackService {
         await ActivityService.logUserActivity(
           userId,
           ActivityType.SUBSCRIPTION_CREATED,
-          'Payment initialized',
-          `Payment initialized for ${paymentData.subscriptionTier} ${paymentData.billingCycle} subscription`,
-          undefined,
-          `Payment ID: ${payment._id}`
+          `Payment initialized for ${paymentData.subscriptionTier} ${paymentData.billingCycle} subscription - Payment ID: ${payment._id}`
         );
 
         PaystackService.logger.info(`Payment initialized for user ${userId}, reference: ${reference}`);
@@ -279,10 +276,7 @@ export class PaystackService {
           await ActivityService.logUserActivity(
             payment.userId,
             ActivityType.SUBSCRIPTION_CREATED,
-            'Payment completed',
-            `Payment completed for ${payment.subscriptionTier} ${payment.billingCycle} subscription`,
-            undefined,
-            `Payment ID: ${payment._id}`
+            `Payment completed for ${payment.subscriptionTier} ${payment.billingCycle} subscription - Payment ID: ${payment._id}`
           );
         }
 
