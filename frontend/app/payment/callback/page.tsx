@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PaymentAPI } from '@/lib/api/payment';
 import { ArrowRight, CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { toast } from 'sonner';
 
-export default function PaymentCallbackPage() {
+function PaymentCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
@@ -19,8 +19,9 @@ export default function PaymentCallbackPage() {
     const reference = searchParams.get('reference');
     const trxref = searchParams.get('trxref');
 
-    if (reference || trxref) {
-      verifyPayment(reference || trxref);
+    const paymentRef = reference || trxref;
+    if (paymentRef) {
+      verifyPayment(paymentRef);
     } else {
       setStatus('failed');
       setMessage('No payment reference found');
@@ -143,5 +144,34 @@ export default function PaymentCallbackPage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function PaymentCallbackPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout
+        title="Payment Status"
+        description="Loading..."
+      >
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
+              </div>
+              <CardTitle className="text-2xl">Loading...</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Please wait while we load the payment status...
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    }>
+      <PaymentCallbackContent />
+    </Suspense>
   );
 }
