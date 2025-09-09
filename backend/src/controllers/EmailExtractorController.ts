@@ -24,17 +24,32 @@ export class EmailExtractorController {
         return;
       }
 
-      if (!urls || !Array.isArray(urls) || urls.length === 0) {
+      // Handle both single URL string and array of URLs
+      let urlArray: string[] = [];
+      if (typeof urls === 'string') {
+        urlArray = [urls];
+      } else if (Array.isArray(urls)) {
+        urlArray = urls;
+      } else {
         res.status(400).json({
           success: false,
-          message: 'URLs array is required and must not be empty',
+          message: 'URLs must be provided as a string or array',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (urlArray.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'At least one URL is required',
           timestamp: new Date()
         });
         return;
       }
 
       // Limit number of URLs per request
-      if (urls.length > 50) {
+      if (urlArray.length > 50) {
         res.status(400).json({
           success: false,
           message: 'Maximum 50 URLs allowed per extraction request',
@@ -43,7 +58,7 @@ export class EmailExtractorController {
         return;
       }
 
-      const result = await EmailExtractorCore.startExtraction(userId, urls, extractionType);
+      const result = await EmailExtractorCore.startExtraction(userId, urlArray, extractionType);
       
       if (result.success) {
         res.status(200).json(result);

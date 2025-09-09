@@ -95,7 +95,7 @@ export class AdminAPI {
   /**
    * Get all users
    */
-  static async getAllUsers(page: number = 1, limit: number = 20): Promise<ApiResponse<{
+  static async getAllUsers(page: number = 1, limit: number = 20): Promise<ApiResponse<AdminUser[] | {
     users: AdminUser[];
     pagination: {
       page: number;
@@ -104,7 +104,7 @@ export class AdminAPI {
       totalPages: number;
     };
   }>> {
-    return apiClient.get<{
+    return apiClient.get<AdminUser[] | {
       users: AdminUser[];
       pagination: {
         page: number;

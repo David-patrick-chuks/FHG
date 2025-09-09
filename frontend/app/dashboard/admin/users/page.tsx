@@ -1,34 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { AdminAPI, AdminUser, UpdateSubscriptionRequest, SuspendUserRequest } from '@/lib/api/admin';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  MoreHorizontal,
-  Crown,
-  Zap,
-  User,
-  Shield,
-  Ban,
-  CheckCircle,
-  XCircle,
-  Edit,
-  Trash2,
-  Loader2,
-  RefreshCw,
-  Calendar,
-  Mail
+import { AdminAPI, AdminUser, SuspendUserRequest, UpdateSubscriptionRequest } from '@/lib/api/admin';
+import {
+    Ban,
+    CheckCircle,
+    Crown,
+    Edit,
+    Loader2,
+    RefreshCw,
+    Search,
+    Shield,
+    User,
+    Users,
+    XCircle,
+    Zap
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
@@ -67,13 +62,35 @@ export default function AdminUsersPage() {
       const response = await AdminAPI.getAllUsers(currentPage, 20);
       
       if (response.success && response.data) {
-        setUsers(response.data.users);
-        setTotalPages(response.data.pagination.totalPages);
+        console.log('API Response:', response);
+        console.log('Response data type:', typeof response.data);
+        console.log('Is array:', Array.isArray(response.data));
+        
+        // Handle both possible response structures
+        if (Array.isArray(response.data)) {
+          // Direct array response
+          console.log('Using direct array response, users count:', response.data.length);
+          setUsers(response.data);
+          setTotalPages(1); // Default to 1 page if no pagination info
+        } else if (response.data.users) {
+          // Nested structure with users and pagination
+          console.log('Using nested response, users count:', response.data.users.length);
+          setUsers(response.data.users);
+          setTotalPages(response.data.pagination?.totalPages || 1);
+        } else {
+          console.log('No valid data structure found');
+          setUsers([]);
+          setTotalPages(1);
+        }
       } else {
+        console.log('API call failed or no data:', response);
         toast.error('Failed to load users');
+        setUsers([]);
       }
     } catch (error) {
+      console.error('Error fetching users:', error);
       toast.error('Failed to load users');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -163,13 +180,19 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = (users || []).filter(user => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.username.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? user.isActive : !user.isActive);
     const matchesSubscription = subscriptionFilter === 'all' || user.subscription === subscriptionFilter;
     return matchesSearch && matchesStatus && matchesSubscription;
   });
+
+  // Debug logging
+  console.log('Users state:', users);
+  console.log('Users length:', users?.length);
+  console.log('Filtered users:', filteredUsers);
+  console.log('Filtered users length:', filteredUsers.length);
 
   if (!user?.isAdmin) {
     return null;

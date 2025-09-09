@@ -99,7 +99,7 @@ export function SubscriptionLimitsDisplay({ subscriptionInfo }: SubscriptionLimi
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm">Daily Extractions</span>
-              <Badge variant={limits.isUnlimited ? "default" : "secondary"}>
+              <Badge variant={limits.isUnlimited ? "default" : "default"}>
                 {limits.isUnlimited ? 'Unlimited' : limits.dailyExtractionLimit}
               </Badge>
             </div>

@@ -131,7 +131,7 @@ export default function AdminActivityPage() {
     }
   };
 
-  const filteredAdminActivities = adminActivityStats?.recentActions.filter(activity => {
+  const filteredAdminActivities = adminActivityStats?.recentActions?.filter(activity => {
     const matchesSearch = activity.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          activity.targetType.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          activity.targetId.toLowerCase().includes(searchTerm.toLowerCase());
@@ -139,7 +139,7 @@ export default function AdminActivityPage() {
     return matchesSearch && matchesType;
   }) || [];
 
-  const filteredSystemActivities = systemActivityStats?.recentActivities.filter(activity => {
+  const filteredSystemActivities = systemActivityStats?.recentActivities?.filter(activity => {
     const matchesSearch = activity.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          activity.description.toLowerCase().includes(searchTerm.toLowerCase());

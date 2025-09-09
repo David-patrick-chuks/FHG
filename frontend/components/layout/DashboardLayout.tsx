@@ -10,17 +10,16 @@ import {
   Activity,
   BarChart3,
   Bot,
+  CreditCard,
   LayoutDashboard,
   LogOut,
   Mail,
   Menu,
   Search,
+  Shield,
   User,
   Users,
-  X,
-  Shield,
-  CreditCard,
-  Settings
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -291,14 +290,14 @@ export function DashboardLayout({
             </div>
           </div>
           <div className="space-y-1">
-            <Link
+            {/* <Link
               href="/dashboard/profile"
               className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
               onClick={() => setSidebarOpen(false)}
             >
               <User className="mr-3 h-4 w-4" />
               Profile
-            </Link>
+            </Link> */}
             <button
               onClick={handleLogout}
               className="flex w-full items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"

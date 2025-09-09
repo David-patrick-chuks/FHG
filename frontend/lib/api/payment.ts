@@ -55,7 +55,7 @@ export interface PaymentStats {
 }
 
 export class PaymentAPI {
-  private static baseUrl = '/api/payments';
+  private static baseUrl = '/payments';
 
   /**
    * Get subscription pricing

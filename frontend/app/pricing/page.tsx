@@ -3,11 +3,112 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Check, Crown, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { Building, Check, Crown, Zap, CreditCard, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { PaymentAPI, PaymentPricing } from '@/lib/api/payment';
+import { toast } from 'sonner';
 
 export default function PricingPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'pro' | 'enterprise'>('pro');
+  const [pricing, setPricing] = useState<PaymentPricing | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    fetchPricing();
+    handlePaymentCallback();
+  }, []);
+
+  const fetchPricing = async () => {
+    try {
+      const response = await PaymentAPI.getPricing();
+      if (response.success && response.data) {
+        setPricing(response.data);
+      } else {
+        toast.error('Failed to load pricing information');
+      }
+    } catch (error) {
+      toast.error('Failed to load pricing information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentCallback = async () => {
+    const reference = searchParams.get('reference');
+    const status = searchParams.get('status');
+    
+    if (reference && status) {
+      try {
+        setProcessing(true);
+        const response = await PaymentAPI.verifyPayment(reference);
+        
+        if (response.success) {
+          toast.success('Payment successful! Your subscription has been activated.');
+          // Redirect to dashboard after successful payment
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
+        } else {
+          toast.error(response.message || 'Payment verification failed');
+        }
+      } catch (error) {
+        toast.error('Payment verification failed');
+      } finally {
+        setProcessing(false);
+      }
+    }
+  };
+
+  const handlePayment = async (plan: 'pro' | 'enterprise') => {
+    if (!pricing) return;
+
+    setSelectedPlan(plan);
+    setProcessing(true);
+    try {
+      const userEmail = localStorage.getItem('userEmail') || '';
+      
+      const response = await PaymentAPI.initializePayment({
+        subscriptionTier: plan,
+        billingCycle: billingCycle,
+        email: userEmail
+      });
+
+      if (response.success && response.data) {
+        // Redirect to Paystack payment page
+        window.location.href = response.data.authorizationUrl;
+      } else {
+        toast.error(response.message || 'Failed to initialize payment');
+      }
+    } catch (error) {
+      toast.error('Failed to initialize payment');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading pricing information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -146,12 +247,15 @@ export default function PricingPage() {
                 For growing businesses
               </CardDescription>
               <div className="text-3xl font-bold text-gray-900 dark:text-white mt-4">
-                {billingCycle === 'yearly' ? (
+                {pricing ? (
                   <>
-                    ₦28,790 / $19.09<span className="text-lg font-normal text-gray-500">/year</span>
-                    <div className="text-sm text-green-600 dark:text-green-400 mt-1">
-                      Save ₦7,200 / $4.77 (20% off)
-                    </div>
+                    {formatPrice(pricing.pro[billingCycle])}
+                    <span className="text-lg font-normal text-gray-500">/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
+                    {billingCycle === 'yearly' && (
+                      <div className="text-sm text-green-600 dark:text-green-400 mt-1">
+                        Save {formatPrice(pricing.pro.monthly * 12 - pricing.pro.yearly)} (20% off)
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
@@ -197,9 +301,20 @@ export default function PricingPage() {
               </ul>
               <Button 
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => window.location.href = '/payment'}
+                onClick={() => handlePayment('pro')}
+                disabled={processing || !pricing}
               >
-                Upgrade to PRO
+                {processing && selectedPlan === 'pro' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Upgrade to PRO
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -217,12 +332,15 @@ export default function PricingPage() {
                 For large organizations
               </CardDescription>
               <div className="text-3xl font-bold text-gray-900 dark:text-white mt-4">
-                {billingCycle === 'yearly' ? (
+                {pricing ? (
                   <>
-                    ₦143,990 / $95.48<span className="text-lg font-normal text-gray-500">/year</span>
-                    <div className="text-sm text-green-600 dark:text-green-400 mt-1">
-                      Save ₦36,000 / $23.87 (20% off)
-                    </div>
+                    {formatPrice(pricing.enterprise[billingCycle])}
+                    <span className="text-lg font-normal text-gray-500">/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
+                    {billingCycle === 'yearly' && (
+                      <div className="text-sm text-green-600 dark:text-green-400 mt-1">
+                        Save {formatPrice(pricing.enterprise.monthly * 12 - pricing.enterprise.yearly)} (20% off)
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
@@ -276,9 +394,20 @@ export default function PricingPage() {
               </ul>
               <Button 
                 className="w-full bg-purple-600 hover:bg-purple-700"
-                onClick={() => window.location.href = '/payment'}
+                onClick={() => handlePayment('enterprise')}
+                disabled={processing || !pricing}
               >
-                Upgrade to ENTERPRISE
+                {processing && selectedPlan === 'enterprise' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Upgrade to ENTERPRISE
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>

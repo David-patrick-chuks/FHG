@@ -172,7 +172,7 @@ export class PaystackService {
         amount: amount * 100, // Convert to kobo (Paystack expects amount in smallest currency unit)
         currency: 'NGN',
         reference,
-        callback_url: `${process.env.FRONTEND_URL}/payment/callback`,
+        callback_url: `${process.env.FRONTEND_URL}/pricing`,
         metadata: {
           userId,
           subscriptionTier: paymentData.subscriptionTier,
