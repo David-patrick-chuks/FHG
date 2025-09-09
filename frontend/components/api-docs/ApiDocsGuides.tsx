@@ -16,7 +16,7 @@ export function ApiDocsGuides({ searchQuery, activeGuide }: ApiDocsGuidesProps) 
     return <div className="text-center py-8 text-gray-500">No matching content found.</div>;
   }
 
-  const gettingStartedCode = `curl -X POST https://api.mailquill.com/api/v1/extract \\
+  const gettingStartedCode = `curl -X POST https://backend.agentworld.online/api/v1/extract \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -160,7 +160,7 @@ app.post('/webhook/mailquill', (req, res) => {
               Use the job ID to check the status and get results:
             </p>
             <CodeBlock
-              code={`curl -X GET https://api.mailquill.com/api/v1/extract/ext_1234567890abcdef \\
+              code={`curl -X GET https://backend.agentworld.online/api/v1/extract/ext_1234567890abcdef \\
   -H "Authorization: Bearer YOUR_API_KEY"`}
               language="bash"
               id="getting-started-poll"
@@ -457,7 +457,7 @@ const getCachedResult = async (url) => {
     "jobId": "ext_1234567890abcdef",
     "url": "https://example.com",
     "emailsFound": 25,
-    "downloadUrl": "https://api.mailquill.com/api/v1/extract/ext_1234567890abcdef/download"
+    "downloadUrl": "https://backend.agentworld.online/api/v1/extract/ext_1234567890abcdef/download"
   }
 }`}
               language="json"

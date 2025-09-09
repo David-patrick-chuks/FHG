@@ -9,7 +9,7 @@ interface ApiDocsOverviewProps {
 }
 
 export function ApiDocsOverview({ searchQuery }: ApiDocsOverviewProps) {
-  const baseUrlCode = "https://your-domain.com/api/v1";
+  const baseUrlCode = "https://backend.agentworld.online/api/v1";
   const responseFormatCode = `{
   "success": true,
   "message": "Operation completed successfully",

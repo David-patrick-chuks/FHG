@@ -9,7 +9,7 @@ interface ApiDocsExamplesProps {
 }
 
 export function ApiDocsExamples({ searchQuery, activeExample }: ApiDocsExamplesProps) {
-  const curlExampleCode = `curl -X POST "https://your-domain.com/api/v1/extract" \\
+  const curlExampleCode = `curl -X POST "https://backend.agentworld.online/api/v1/extract" \\
   -H "Authorization: Bearer fhg_your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -17,7 +17,7 @@ export function ApiDocsExamples({ searchQuery, activeExample }: ApiDocsExamplesP
     "extractionType": "multiple"
   }'`;
 
-  const jsExampleCode = `const response = await fetch('https://your-domain.com/api/v1/extract', {
+  const jsExampleCode = `const response = await fetch('https://backend.agentworld.online/api/v1/extract', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer fhg_your_api_key_here',
@@ -33,7 +33,7 @@ const data = await response.json();
 console.log('Job ID:', data.data.jobId);
 
 // Check status
-const statusResponse = await fetch(\`https://your-domain.com/api/v1/extract/\${data.data.jobId}\`, {
+const statusResponse = await fetch(\`https://backend.agentworld.online/api/v1/extract/\${data.data.jobId}\`, {
   headers: {
     'Authorization': 'Bearer fhg_your_api_key_here'
   }
@@ -46,7 +46,7 @@ console.log('Results:', statusData.data.results);`;
 
 # Start extraction
 response = requests.post(
-    'https://your-domain.com/api/v1/extract',
+    'https://backend.agentworld.online/api/v1/extract',
     headers={
         'Authorization': 'Bearer fhg_your_api_key_here',
         'Content-Type': 'application/json'
@@ -63,7 +63,7 @@ print(f'Job ID: {job_id}')
 
 # Check status
 status_response = requests.get(
-    f'https://your-domain.com/api/v1/extract/{job_id}',
+    f'https://backend.agentworld.online/api/v1/extract/{job_id}',
     headers={'Authorization': 'Bearer fhg_your_api_key_here'}
 )
 

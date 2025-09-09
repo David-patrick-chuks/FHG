@@ -73,22 +73,22 @@ export function HeroSection() {
 
           {/* Dashboard Screenshot - Centered Below */}
           <AnimatedSection delay={1000}>
-            <div className="relative max-w-4xl w-full mt-8">
-              <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-2xl hover:scale-[1.02] transition-transform duration-500">
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 flex items-center justify-center overflow-hidden">
+            <div className="relative max-w-4xl w-full mt-8 px-4 sm:px-0">
+              <div className="relative z-10 bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-white/20 p-2 sm:p-4 shadow-2xl hover:scale-[1.02] transition-transform duration-500">
+                <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl p-2 sm:p-4 flex items-center justify-center overflow-hidden">
                   <div className="relative w-full h-full">
                     <img
                       src="/dashboard.png"
                       alt="MailQuill Dashboard"
-                      className="w-full h-full object-cover rounded-lg shadow-2xl border border-white/10"
+                      className="w-full h-full object-cover rounded-md sm:rounded-lg shadow-2xl border border-white/10"
                     />
-                    <div className="absolute inset-0 rounded-lg border border-white/20 shadow-inner"></div>
+                    <div className="absolute inset-0 rounded-md sm:rounded-lg border border-white/20 shadow-inner"></div>
                   </div>
                 </div>
               </div>
               {/* Floating Elements */}
-              <div className="absolute -top-2 -right-2 w-12 h-12 bg-blue-500/30 rounded-full blur-xl animate-bounce"></div>
-              <div className="absolute -bottom-2 -left-2 w-10 h-10 bg-cyan-500/30 rounded-full blur-xl animate-bounce delay-1000"></div>
+              <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-8 h-8 sm:w-12 sm:h-12 bg-blue-500/30 rounded-full blur-xl animate-bounce"></div>
+              <div className="absolute -bottom-1 -left-1 sm:-bottom-2 sm:-left-2 w-6 h-6 sm:w-10 sm:h-10 bg-cyan-500/30 rounded-full blur-xl animate-bounce delay-1000"></div>
             </div>
           </AnimatedSection>
         </div>
