@@ -59,43 +59,6 @@ export class Routes {
       }
     });
 
-    // Root API endpoint
-    router.get('/', (_req, res) => {
-      res.status(200).json({
-        success: true,
-        message: 'Welcome to Email Outreach Bot API',
-        data: {
-          name: 'Email Outreach Bot API',
-          version: '1.0.0',
-          description: 'AI-powered email outreach platform with multi-user support and subscription tiers',
-          status: 'operational',
-          endpoints: {
-            health: '/health',
-            version: '/version',
-            systemStatus: '/system-status',
-            auth: '/api/auth',
-            dashboard: '/api/dashboard',
-            bots: '/api/bots',
-            campaigns: '/api/campaigns',
-            emailExtractor: '/api/email-extractor',
-            payments: '/api/payments',
-            admin: '/api/admin',
-            apiKeys: '/api/api-keys',
-            contacts: '/api/contacts',
-            cookies: '/api/cookies',
-            incidents: '/api/incidents',
-            publicApi: '/api/public',
-            subscriptions: '/api/subscriptions',
-            tracking: '/api/tracking',
-            queue: '/api/queue'
-          },
-          documentation: 'https://www.agentworld.online/api-docs',
-          support: 'support@agentworld.online'
-        },
-        timestamp: new Date()
-      });
-    });
-
     // API version endpoint
     router.get('/version', (_req, res) => {
       res.status(200).json({
@@ -140,7 +103,7 @@ export class Routes {
     router.use(TrackingRoutes.getBasePath(), TrackingRoutes.getRouter());
 
     // 404 handler for undefined routes (excluding root path)
-    router.use('*', (req, res) => {
+    router.use('/', (req, res) => {
       res.status(404).json({
         success: false,
         message: 'Route not found',

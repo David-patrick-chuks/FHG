@@ -4,12 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, Check, Crown, Zap, CreditCard, Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PaymentAPI, PaymentPricing } from '@/lib/api/payment';
 import { toast } from 'sonner';
 
-export default function PricingPage() {
+function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -455,5 +455,20 @@ export default function PricingPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading pricing page...</p>
+        </div>
+      </div>
+    }>
+      <PricingContent />
+    </Suspense>
   );
 }

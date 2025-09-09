@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Campaign } from '@/types';
-import { Pause, Play, SquarePi } from 'lucide-react';
+import { Pause, Play, SquareStop } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface CampaignCardProps {
@@ -74,7 +74,7 @@ export function CampaignCard({
                     onClick={() => onStop(campaign)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <SquarePi className="w-4 h-4 mr-1" />
+                    <SquareStop className="w-4 h-4 mr-1" />
                     Stop
                   </Button>
                 </>
@@ -95,7 +95,7 @@ export function CampaignCard({
                     onClick={() => onStop(campaign)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <SquarePi className="w-4 h-4 mr-1" />
+                    <SquareStop className="w-4 h-4 mr-1" />
                     Stop
                   </Button>
                 </>

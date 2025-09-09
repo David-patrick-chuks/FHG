@@ -13,6 +13,43 @@ export class RouteService {
    * Configure application routes
    */
   public setupRoutes(app: Application): void {
+    // Root endpoint
+    app.get('/', (_req, res) => {
+      res.status(200).json({
+        success: true,
+        message: 'Welcome to Email Outreach Bot API',
+        data: {
+          name: 'Email Outreach Bot API',
+          version: '1.0.0',
+          description: 'AI-powered email outreach platform with multi-user support and subscription tiers',
+          status: 'operational',
+          endpoints: {
+            health: '/health',
+            version: '/api/version',
+            systemStatus: '/api/system-status',
+            auth: '/api/auth',
+            dashboard: '/api/dashboard',
+            bots: '/api/bots',
+            campaigns: '/api/campaigns',
+            emailExtractor: '/api/email-extractor',
+            payments: '/api/payments',
+            admin: '/api/admin',
+            apiKeys: '/api/api-keys',
+            contacts: '/api/contacts',
+            cookies: '/api/cookies',
+            incidents: '/api/incidents',
+            publicApi: '/api/public',
+            subscriptions: '/api/subscriptions',
+            tracking: '/api/tracking',
+            queue: '/api/queue'
+          },
+          documentation: 'https://www.agentworld.online/api-docs',
+          support: 'support@agentworld.online'
+        },
+        timestamp: new Date()
+      });
+    });
+
     // Health check endpoint
     app.get('/health', this.handleHealthCheck.bind(this));
 
@@ -20,6 +57,7 @@ export class RouteService {
     app.use('/api', Routes.getRouter(this.healthService));
 
     // 404 handler for undefined routes
+    // app.use('*', this.handleNotFound.bind(this));
     app.use('/', this.handleNotFound.bind(this));
   }
 
