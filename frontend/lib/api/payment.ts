@@ -1,3 +1,4 @@
+import { apiClient } from "@/lib/api-client";
 import { ApiResponse } from "@/types";
 
 export interface PaymentPricing {
@@ -60,83 +61,34 @@ export class PaymentAPI {
    * Get subscription pricing
    */
   static async getPricing(): Promise<ApiResponse<PaymentPricing>> {
-    const response = await fetch(`${this.baseUrl}/pricing`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    return response.json();
+    return apiClient.get<PaymentPricing>(`${this.baseUrl}/pricing`);
   }
 
   /**
    * Initialize a payment
    */
   static async initializePayment(data: InitializePaymentRequest): Promise<ApiResponse<InitializePaymentResponse>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/initialize`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    return response.json();
+    return apiClient.post<InitializePaymentResponse>(`${this.baseUrl}/initialize`, data);
   }
 
   /**
    * Verify a payment
    */
   static async verifyPayment(reference: string): Promise<ApiResponse<PaymentHistory>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ reference }),
-    });
-
-    return response.json();
+    return apiClient.post<PaymentHistory>(`${this.baseUrl}/verify`, { reference });
   }
 
   /**
    * Get user payment history
    */
   static async getPaymentHistory(): Promise<ApiResponse<PaymentHistory[]>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/history`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<PaymentHistory[]>(`${this.baseUrl}/history`);
   }
 
   /**
    * Get payment statistics (Admin only)
    */
   static async getPaymentStats(): Promise<ApiResponse<PaymentStats>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/stats`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<PaymentStats>(`${this.baseUrl}/stats`);
   }
 }

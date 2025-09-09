@@ -1,3 +1,4 @@
+import { apiClient } from "@/lib/api-client";
 import { ApiResponse } from "@/types";
 
 
@@ -103,34 +104,22 @@ export class AdminAPI {
       totalPages: number;
     };
   }>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/users?page=${page}&limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<{
+      users: AdminUser[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>(`${this.baseUrl}/users?page=${page}&limit=${limit}`);
   }
 
   /**
    * Get user by ID
    */
   static async getUserById(userId: string): Promise<ApiResponse<AdminUser>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/users/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<AdminUser>(`${this.baseUrl}/users/${userId}`);
   }
 
   /**
@@ -140,104 +129,42 @@ export class AdminAPI {
     userId: string, 
     data: UpdateSubscriptionRequest
   ): Promise<ApiResponse<AdminUser>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/users/${userId}/subscription`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    return response.json();
+    return apiClient.put<AdminUser>(`${this.baseUrl}/users/${userId}/subscription`, data);
   }
 
   /**
    * Suspend user
    */
   static async suspendUser(userId: string, data: SuspendUserRequest): Promise<ApiResponse<AdminUser>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/users/${userId}/suspend`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    return response.json();
+    return apiClient.post<AdminUser>(`${this.baseUrl}/users/${userId}/suspend`, data);
   }
 
   /**
    * Activate user
    */
   static async activateUser(userId: string): Promise<ApiResponse<AdminUser>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/users/${userId}/activate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.post<AdminUser>(`${this.baseUrl}/users/${userId}/activate`);
   }
 
   /**
    * Delete user
    */
   static async deleteUser(userId: string): Promise<ApiResponse<void>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/users/${userId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.delete<void>(`${this.baseUrl}/users/${userId}`);
   }
 
   /**
    * Get platform statistics
    */
   static async getPlatformStats(): Promise<ApiResponse<PlatformStats>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/stats/platform`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<PlatformStats>(`${this.baseUrl}/stats/platform`);
   }
 
   /**
    * Get subscription statistics
    */
   static async getSubscriptionStats(): Promise<ApiResponse<SubscriptionStats>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/stats/subscriptions`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<SubscriptionStats>(`${this.baseUrl}/stats/subscriptions`);
   }
 
   /**
@@ -247,37 +174,18 @@ export class AdminAPI {
     adminId?: string, 
     days: number = 7
   ): Promise<ApiResponse<AdminActivityStats>> {
-    const token = localStorage.getItem('token');
     const url = adminId 
       ? `${this.baseUrl}/actions/${adminId}?days=${days}`
       : `${this.baseUrl}/actions?days=${days}`;
     
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<AdminActivityStats>(url);
   }
 
   /**
    * Get system activity statistics
    */
   static async getSystemActivityStats(days: number = 7): Promise<ApiResponse<SystemActivityStats>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/stats/system-activity?days=${days}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.get<SystemActivityStats>(`${this.baseUrl}/stats/system-activity?days=${days}`);
   }
 
   /**
@@ -287,16 +195,9 @@ export class AdminAPI {
     deletedRecords: number;
     cleanedCollections: string[];
   }>> {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${this.baseUrl}/cleanup?days=${days}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    return response.json();
+    return apiClient.post<{
+      deletedRecords: number;
+      cleanedCollections: string[];
+    }>(`${this.baseUrl}/cleanup?days=${days}`);
   }
 }

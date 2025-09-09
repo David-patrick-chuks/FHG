@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Campaign } from '@/types';
-import { Pause, Play, SquareStop } from 'lucide-react';
+import { Pause, Play, Square } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface CampaignCardProps {

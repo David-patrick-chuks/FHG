@@ -31,7 +31,7 @@ import {
     Shield,
     Play,
     Pause,
-    Stop,
+    Square,
     Upload,
     Eye,
     AlertCircle,
@@ -158,7 +158,7 @@ export default function DashboardPage() {
       case 'email_extraction_failed':
         return XCircle;
       case 'email_extraction_cancelled':
-        return Stop;
+        return Square;
       case 'email_extraction_results_downloaded':
         return Download;
       case 'email_extraction_results_viewed':
