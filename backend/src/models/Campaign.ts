@@ -11,6 +11,8 @@ export interface ICampaignDocument extends Omit<ICampaign, '_id'>, Document {
   cancelCampaign(): Promise<void>;
   addSentEmail(emailData: Partial<ISentEmail>): Promise<void>;
   getProgress(): { sent: number; total: number; percentage: number };
+  scheduledFor?: Date;
+  isScheduled: boolean;
 }
 
 export interface ICampaignModel extends Model<ICampaignDocument> {

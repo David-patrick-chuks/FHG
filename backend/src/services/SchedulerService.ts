@@ -63,7 +63,7 @@ export class SchedulerService {
           
           // Start the campaign
           const result = await CampaignService.startCampaign(
-            campaign._id.toString(),
+            String(campaign._id),
             campaign.userId
           );
 

@@ -177,7 +177,7 @@ export class PaystackService {
           userId,
           subscriptionTier: paymentData.subscriptionTier,
           billingCycle: paymentData.billingCycle,
-          paymentId: payment._id.toString()
+          paymentId: String(payment._id)
         }
       };
 
@@ -204,7 +204,9 @@ export class PaystackService {
           userId,
           ActivityType.SUBSCRIPTION_CREATED,
           'Payment initialized',
-          `Payment initialized for ${paymentData.subscriptionTier} ${paymentData.billingCycle} subscription`
+          `Payment initialized for ${paymentData.subscriptionTier} ${paymentData.billingCycle} subscription`,
+          undefined,
+          `Payment ID: ${payment._id}`
         );
 
         PaystackService.logger.info(`Payment initialized for user ${userId}, reference: ${reference}`);
@@ -278,7 +280,9 @@ export class PaystackService {
             payment.userId,
             ActivityType.SUBSCRIPTION_CREATED,
             'Payment completed',
-            `Payment completed for ${payment.subscriptionTier} ${payment.billingCycle} subscription`
+            `Payment completed for ${payment.subscriptionTier} ${payment.billingCycle} subscription`,
+            undefined,
+            `Payment ID: ${payment._id}`
           );
         }
 
