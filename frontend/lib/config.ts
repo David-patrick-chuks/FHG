@@ -8,7 +8,7 @@ export const config = {
     version: '1.0.0',
   },
   auth: {
-    jwtStorageKey: process.env.NEXT_PUBLIC_JWT_STORAGE_KEY || 'mail_quill_auth_token',
+    // Using HTTP-only cookies for authentication
     tokenExpiryBuffer: 5 * 60 * 1000, // 5 minutes
   },
   features: {

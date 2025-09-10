@@ -1,7 +1,7 @@
 'use client';
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function CookiePolicyPage() {
   return (
@@ -59,10 +59,10 @@ export default function CookiePolicyPage() {
                     These cookies are necessary for the website to function properly. They enable basic functions like page navigation, access to secure areas, and authentication. The website cannot function properly without these cookies.
                   </p>
                   <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2 ml-4">
-                    <li>JWT authentication tokens (stored in localStorage)</li>
+                    <li>HTTP-only authentication cookies (secure, not accessible to JavaScript)</li>
                     <li>Session management cookies</li>
-                    <li>CSRF protection tokens</li>
                     <li>Cookie consent preferences</li>
+                    <li>Remember me preferences (stored in localStorage)</li>
                   </ul>
 
                   <h3 className="text-xl font-medium mb-3 mt-6">3.2 Functional Cookies</h3>
@@ -113,7 +113,7 @@ export default function CookiePolicyPage() {
                     <li><strong>Persistent Cookies:</strong> These remain on your device for a set period or until you delete them</li>
                   </ul>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed mt-4">
-                    Our authentication tokens expire after 24 hours (or 30 days if "Remember Me" is selected). Cookie consent preferences are stored for 1 year. Analytics data is retained for up to 24 months.
+                    Our authentication cookies expire after 15 minutes (access token) and 7 days (refresh token), or 30 days if "Remember Me" is selected. Cookie consent preferences are stored for 1 year. Analytics data is retained for up to 24 months.
                   </p>
                 </section>
 

@@ -15,7 +15,7 @@ export function FeaturesSection() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-24">
           <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-8">
-            <span className="text-white/90 text-sm font-medium">🚀 Features</span>
+            <span className="text-white/90 text-sm font-medium">Features</span>
           </div>
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">
             Everything You Need for

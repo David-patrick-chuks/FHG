@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { ActivityType } from '../models/Activity';
-import PaymentModel, { IPaymentDocument } from '../models/Payment';
+import PaymentModel from '../models/Payment';
 import UserModel from '../models/User';
 import { ApiResponse, BillingCycle, InitializePaymentRequest, PaymentStatus, SubscriptionTier } from '../types';
 import { Logger } from '../utils/Logger';
@@ -240,7 +240,7 @@ export class PaystackService {
   /**
    * Verify a payment transaction with Paystack
    */
-  public static async verifyPayment(reference: string): Promise<ApiResponse<IPaymentDocument>> {
+  public static async verifyPayment(reference: string): Promise<ApiResponse<any>> {
     try {
       // Find payment record
       const payment = await PaymentModel.findByReference(reference);
@@ -282,10 +282,35 @@ export class PaystackService {
 
         PaystackService.logger.info(`Payment verified successfully for reference: ${reference}`);
 
+        // Properly serialize the payment document
+        const paymentObj = payment.toObject();
+        const serializedPayment = {
+          _id: paymentObj._id.toString(),
+          userId: paymentObj.userId.toString(),
+          subscriptionTier: paymentObj.subscriptionTier,
+          billingCycle: paymentObj.billingCycle,
+          amount: paymentObj.amount,
+          currency: paymentObj.currency,
+          status: paymentObj.status,
+          paymentMethod: paymentObj.paymentMethod,
+          reference: paymentObj.reference,
+          metadata: paymentObj.metadata,
+          subscriptionExpiresAt: paymentObj.subscriptionExpiresAt?.toISOString(),
+          isActive: paymentObj.isActive,
+          createdAt: paymentObj.createdAt?.toISOString(),
+          updatedAt: paymentObj.updatedAt?.toISOString(),
+          authorizationUrl: paymentObj.authorizationUrl,
+          paystackAccessCode: paymentObj.paystackAccessCode,
+          paystackReference: paymentObj.paystackReference,
+          gatewayResponse: paymentObj.gatewayResponse,
+          paidAt: paymentObj.paidAt?.toISOString(),
+          transactionId: paymentObj.transactionId
+        };
+
         return {
           success: true,
           message: 'Payment verified successfully',
-          data: payment,
+          data: serializedPayment,
           timestamp: new Date()
         };
       } else {
@@ -312,14 +337,41 @@ export class PaystackService {
   /**
    * Get payment history for a user
    */
-  public static async getUserPayments(userId: string): Promise<ApiResponse<IPaymentDocument[]>> {
+  public static async getUserPayments(userId: string): Promise<ApiResponse<any[]>> {
     try {
       const payments = await PaymentModel.findByUserId(userId);
+      
+      // Properly serialize MongoDB documents to JSON
+      const serializedPayments = payments.map(payment => {
+        const paymentObj = payment.toObject();
+        return {
+          _id: paymentObj._id.toString(),
+          userId: paymentObj.userId.toString(),
+          subscriptionTier: paymentObj.subscriptionTier,
+          billingCycle: paymentObj.billingCycle,
+          amount: paymentObj.amount,
+          currency: paymentObj.currency,
+          status: paymentObj.status,
+          paymentMethod: paymentObj.paymentMethod,
+          reference: paymentObj.reference,
+          metadata: paymentObj.metadata,
+          subscriptionExpiresAt: paymentObj.subscriptionExpiresAt?.toISOString(),
+          isActive: paymentObj.isActive,
+          createdAt: paymentObj.createdAt?.toISOString(),
+          updatedAt: paymentObj.updatedAt?.toISOString(),
+          authorizationUrl: paymentObj.authorizationUrl,
+          paystackAccessCode: paymentObj.paystackAccessCode,
+          paystackReference: paymentObj.paystackReference,
+          gatewayResponse: paymentObj.gatewayResponse,
+          paidAt: paymentObj.paidAt?.toISOString(),
+          transactionId: paymentObj.transactionId
+        };
+      });
       
       return {
         success: true,
         message: 'Payment history retrieved successfully',
-        data: payments,
+        data: serializedPayments,
         timestamp: new Date()
       };
     } catch (error) {

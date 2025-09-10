@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import { ActivityType } from '../models/Activity';
@@ -79,11 +78,29 @@ export class AuthController {
       const result = await UserService.createUser(req.body);
 
       if (result.success && result.data) {
-        // Remove sensitive fields from response
+        // Remove sensitive fields from response and properly serialize
         const userData = { ...result.data.toObject() };
         delete userData.password;
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
+
+        // Properly serialize MongoDB objects to JSON
+        const serializedUserData = {
+          _id: userData._id.toString(),
+          email: userData.email,
+          username: userData.username,
+          subscription: userData.subscription,
+          billingCycle: userData.billingCycle,
+          isActive: userData.isActive,
+          isAdmin: userData.isAdmin,
+          subscriptionExpiresAt: userData.subscriptionExpiresAt?.toISOString(),
+          createdAt: userData.createdAt?.toISOString(),
+          updatedAt: userData.updatedAt?.toISOString(),
+          lastLoginAt: userData.lastLoginAt?.toISOString(),
+          apiKey: userData.apiKey,
+          apiKeyCreatedAt: userData.apiKeyCreatedAt?.toISOString(),
+          apiKeyLastUsed: userData.apiKeyLastUsed?.toISOString()
+        };
 
         // Generate JWT tokens
         const tokens = AuthController.generateToken(result.data);
@@ -95,9 +112,9 @@ export class AuthController {
           success: true,
           message: 'User registered successfully',
           data: {
-            user: userData
+            user: serializedUserData
           },
-          timestamp: new Date()
+          timestamp: new Date().toISOString()
         });
 
         // Log user registration activity
@@ -132,11 +149,29 @@ export class AuthController {
       const result = await UserService.loginUser(req.body);
 
       if (result.success && result.data) {
-        // Remove sensitive fields from response
+        // Remove sensitive fields from response and properly serialize
         const userData = { ...result.data.user.toObject() };
         delete userData.password;
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
+
+        // Properly serialize MongoDB objects to JSON
+        const serializedUserData = {
+          _id: userData._id.toString(),
+          email: userData.email,
+          username: userData.username,
+          subscription: userData.subscription,
+          billingCycle: userData.billingCycle,
+          isActive: userData.isActive,
+          isAdmin: userData.isAdmin,
+          subscriptionExpiresAt: userData.subscriptionExpiresAt?.toISOString(),
+          createdAt: userData.createdAt?.toISOString(),
+          updatedAt: userData.updatedAt?.toISOString(),
+          lastLoginAt: userData.lastLoginAt?.toISOString(),
+          apiKey: userData.apiKey,
+          apiKeyCreatedAt: userData.apiKeyCreatedAt?.toISOString(),
+          apiKeyLastUsed: userData.apiKeyLastUsed?.toISOString()
+        };
 
         // Generate tokens with appropriate expiration based on rememberMe
         const tokens = AuthController.generateToken(result.data.user, rememberMe);
@@ -148,9 +183,9 @@ export class AuthController {
           success: true,
           message: 'Login successful',
           data: {
-            user: userData
+            user: serializedUserData
           },
-          timestamp: new Date()
+          timestamp: new Date().toISOString()
         });
 
         // Log user login activity
@@ -179,17 +214,35 @@ export class AuthController {
       const result = await UserService.getUserById(userId);
 
       if (result.success && result.data) {
-        // Remove sensitive fields from response
+        // Remove sensitive fields from response and properly serialize
         const userData = { ...result.data.toObject() };
         delete userData.password;
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
 
+        // Properly serialize MongoDB objects to JSON
+        const serializedUserData = {
+          _id: userData._id.toString(),
+          email: userData.email,
+          username: userData.username,
+          subscription: userData.subscription,
+          billingCycle: userData.billingCycle,
+          isActive: userData.isActive,
+          isAdmin: userData.isAdmin,
+          subscriptionExpiresAt: userData.subscriptionExpiresAt?.toISOString(),
+          createdAt: userData.createdAt?.toISOString(),
+          updatedAt: userData.updatedAt?.toISOString(),
+          lastLoginAt: userData.lastLoginAt?.toISOString(),
+          apiKey: userData.apiKey,
+          apiKeyCreatedAt: userData.apiKeyCreatedAt?.toISOString(),
+          apiKeyLastUsed: userData.apiKeyLastUsed?.toISOString()
+        };
+
         res.status(200).json({
           success: true,
           message: 'Profile retrieved successfully',
-          data: userData,
-          timestamp: new Date()
+          data: serializedUserData,
+          timestamp: new Date().toISOString()
         });
       } else {
         res.status(404).json(result);
@@ -229,17 +282,35 @@ export class AuthController {
           );
         }
 
-        // Remove sensitive fields from response
+        // Remove sensitive fields from response and properly serialize
         const userData = { ...result.data.toObject() };
         delete userData.password;
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
 
+        // Properly serialize MongoDB objects to JSON
+        const serializedUserData = {
+          _id: userData._id.toString(),
+          email: userData.email,
+          username: userData.username,
+          subscription: userData.subscription,
+          billingCycle: userData.billingCycle,
+          isActive: userData.isActive,
+          isAdmin: userData.isAdmin,
+          subscriptionExpiresAt: userData.subscriptionExpiresAt?.toISOString(),
+          createdAt: userData.createdAt?.toISOString(),
+          updatedAt: userData.updatedAt?.toISOString(),
+          lastLoginAt: userData.lastLoginAt?.toISOString(),
+          apiKey: userData.apiKey,
+          apiKeyCreatedAt: userData.apiKeyCreatedAt?.toISOString(),
+          apiKeyLastUsed: userData.apiKeyLastUsed?.toISOString()
+        };
+
         res.status(200).json({
           success: true,
           message: result.message, // Use the message from UserService
-          data: userData,
-          timestamp: new Date()
+          data: serializedUserData,
+          timestamp: new Date().toISOString()
         });
       } else {
         res.status(400).json(result);

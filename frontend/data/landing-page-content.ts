@@ -53,7 +53,7 @@ export const stats = [
     duration: 2500,
     gradient: 'from-blue-400 to-cyan-400',
     color: 'from-blue-500/20 to-cyan-500/20',
-    label: 'Emails Delivered',
+    label: 'emails that actually got opened',
   },
   {
     end: 98.5,
@@ -61,7 +61,7 @@ export const stats = [
     duration: 2000,
     gradient: 'from-green-400 to-emerald-400',
     color: 'from-green-500/20 to-emerald-500/20',
-    label: 'Deliverability Rate',
+    label: 'of emails reach inboxes (not spam)',
   },
   {
     end: 45,
@@ -69,7 +69,7 @@ export const stats = [
     duration: 1800,
     gradient: 'from-cyan-400 to-blue-400',
     color: 'from-cyan-500/20 to-blue-500/20',
-    label: 'Average Open Rate',
+    label: 'of people actually read our emails',
   },
   {
     end: 500,
@@ -77,7 +77,7 @@ export const stats = [
     duration: 2200,
     gradient: 'from-orange-400 to-red-400',
     color: 'from-orange-500/20 to-red-500/20',
-    label: 'Enterprise Clients',
+    label: 'businesses who made the switch',
   },
 ];
 
@@ -86,21 +86,21 @@ export const testimonials = [
     name: 'Sarah Johnson',
     role: 'Marketing Director',
     company: 'TechFlow Inc.',
-    content: 'MailQuill revolutionized our email marketing strategy. The intelligent content generation increased our open rates by 40% while automation saved us 15 hours weekly.',
+    content: 'Honestly, I was skeptical at first. But MailQuill actually works. Our emails went from being ignored to getting real responses. My team loves how easy it is to use.',
     rating: 5,
   },
   {
     name: 'Michael Chen',
-    role: 'CEO',
+    role: 'Founder',
     company: 'GrowthStart',
-    content: 'MailQuill\'s advanced automation and precision targeting helped us scale from 1,000 to 50,000 engaged subscribers in just 6 months.',
+    content: 'We were struggling to grow our email list. MailQuill helped us connect with our audience in a way that felt genuine. The automation is smart, not spammy.',
     rating: 5,
   },
   {
     name: 'Emily Rodriguez',
     role: 'E-commerce Manager',
     company: 'StyleHub',
-    content: 'The platform\'s intuitive design and powerful automation features improved our conversion rates by 25% while freeing us to focus on strategic initiatives.',
+    content: 'Finally, an email tool that doesn\'t make me feel like I\'m bothering people. The templates are beautiful and our customers actually look forward to our emails now.',
     rating: 5,
   },
 ];

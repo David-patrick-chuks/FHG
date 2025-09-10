@@ -80,6 +80,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.data) {
         const { user: userData } = response.data;
         
+        // Store remember me preference in localStorage for frontend use
+        if (rememberMe) {
+          localStorage.setItem('remember_me', 'true');
+        } else {
+          localStorage.removeItem('remember_me');
+        }
+        
         // No need to store tokens - they're in HTTP-only cookies
         // Update state
         setUser(userData);
@@ -137,6 +144,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Add a small delay to show the overlay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Clear remember me flag
+      localStorage.removeItem('remember_me');
+      
       // Update state
       setUser(null);
       setIsAuthenticated(false);
@@ -147,6 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
       // Even if there's an error, ensure user is logged out locally
+      localStorage.removeItem('remember_me');
       setUser(null);
       setIsAuthenticated(false);
       

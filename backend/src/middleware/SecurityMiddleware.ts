@@ -97,6 +97,15 @@ export class SecurityMiddleware {
       /eval\(/i,  // Code injection
       /javascript:/i,  // JavaScript injection
       /onload=/i,  // Event handler injection
+      /<iframe/i,  // Iframe injection
+      /<object/i,  // Object injection
+      /<embed/i,  // Embed injection
+      /<form/i,  // Form injection
+      /document\.cookie/i,  // Cookie access attempts
+      /window\.location/i,  // Location manipulation
+      /alert\(/i,  // Alert injection
+      /confirm\(/i,  // Confirm injection
+      /prompt\(/i,  // Prompt injection
     ];
 
     const isSuspicious = suspiciousPatterns.some(pattern => 
@@ -183,8 +192,15 @@ export class SecurityMiddleware {
     res.json = function(obj: any) {
       // Remove sensitive data from responses
       if (obj && typeof obj === 'object') {
+        // Check if this is an API key related endpoint that needs to preserve apiKey
+        const isApiKeyEndpoint = req.path.includes('/api-keys/') || 
+                                req.path.includes('/profile') ||
+                                req.path.includes('/auth/profile') ||
+                                req.path.includes('/auth/stats') ||
+                                req.path.includes('/dashboard');
+        
         // Since we're using HTTP-only cookies, we don't need to allow tokens in responses
-        obj = SecurityMiddleware.removeSensitiveData(obj, false);
+        obj = SecurityMiddleware.removeSensitiveData(obj, false, isApiKeyEndpoint);
       }
       
       return originalJson.call(this, obj);
@@ -193,9 +209,9 @@ export class SecurityMiddleware {
     next();
   }
 
-  private static removeSensitiveData(obj: any, isAuthResponse: boolean = false): any {
+  private static removeSensitiveData(obj: any, isAuthResponse: boolean = false, allowApiKey: boolean = false): any {
     if (Array.isArray(obj)) {
-      return obj.map(item => SecurityMiddleware.removeSensitiveData(item, isAuthResponse));
+      return obj.map(item => SecurityMiddleware.removeSensitiveData(item, isAuthResponse, allowApiKey));
     }
 
     if (obj && typeof obj === 'object') {
@@ -203,9 +219,14 @@ export class SecurityMiddleware {
       
       // Remove sensitive fields
       const sensitiveFields = [
-        'password', 'secret', 'key', 'ssn', 'creditCard',
-        'apiKey', 'privateKey', 'authorization'
+        'password', 'secret', 'ssn', 'creditCard',
+        'privateKey', 'authorization'
       ];
+
+      // Only remove apiKey if not explicitly allowed
+      if (!allowApiKey) {
+        sensitiveFields.push('apiKey');
+      }
 
       // Only remove tokens if it's not an auth response
       if (!isAuthResponse) {
@@ -221,7 +242,7 @@ export class SecurityMiddleware {
       // Recursively sanitize nested objects
       Object.keys(sanitized).forEach(key => {
         if (sanitized[key] && typeof sanitized[key] === 'object') {
-          sanitized[key] = SecurityMiddleware.removeSensitiveData(sanitized[key], isAuthResponse);
+          sanitized[key] = SecurityMiddleware.removeSensitiveData(sanitized[key], isAuthResponse, allowApiKey);
         }
       });
 

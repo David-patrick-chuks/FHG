@@ -10,6 +10,25 @@ import { QueueService } from './QueueService';
 export class CampaignService {
   private static logger: Logger = new Logger();
 
+  /**
+   * Helper function to serialize campaign document to JSON
+   */
+  private static serializeCampaign(campaign: ICampaignDocument): any {
+    const campaignObj = campaign.toObject();
+    return {
+      _id: campaignObj._id.toString(),
+      userId: campaignObj.userId.toString(),
+      name: campaignObj.name,
+      description: campaignObj.description,
+      emailList: campaignObj.emailList,
+      botId: campaignObj.botId.toString(),
+      aiMessages: campaignObj.aiMessages,
+      status: campaignObj.status,
+      createdAt: campaignObj.createdAt?.toISOString(),
+      updatedAt: campaignObj.updatedAt?.toISOString()
+    };
+  }
+
   public static async createCampaign(userId: string, campaignData: CreateCampaignRequest): Promise<ApiResponse<ICampaignDocument>> {
     try {
       // Check if user exists and has active subscription
@@ -95,7 +114,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign created successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -104,14 +123,17 @@ export class CampaignService {
     }
   }
 
-  public static async getCampaignsByUserId(userId: string): Promise<ApiResponse<ICampaignDocument[]>> {
+  public static async getCampaignsByUserId(userId: string): Promise<ApiResponse<any[]>> {
     try {
       const campaigns = await CampaignModel.findByUserId(userId);
+      
+      // Properly serialize MongoDB documents to JSON
+      const serializedCampaigns = campaigns.map(campaign => CampaignService.serializeCampaign(campaign));
       
       return {
         success: true,
         message: 'Campaigns retrieved successfully',
-        data: campaigns,
+        data: serializedCampaigns,
         timestamp: new Date()
       };
     } catch (error) {
@@ -151,9 +173,12 @@ export class CampaignService {
         .skip(paginationParams.offset)
         .limit(paginationParams.limit);
 
+      // Serialize campaigns before creating pagination result
+      const serializedCampaigns = campaigns.map(campaign => CampaignService.serializeCampaign(campaign));
+      
       // Create pagination result
       const paginationResult = PaginationUtils.createPaginationResult(
-        campaigns,
+        serializedCampaigns,
         total,
         paginationParams.page,
         paginationParams.limit
@@ -194,7 +219,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign retrieved successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -245,7 +270,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign updated successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -361,7 +386,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign prepared successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -412,7 +437,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign scheduled successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -501,7 +526,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign started successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -551,7 +576,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign paused successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -601,7 +626,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign resumed successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -651,7 +676,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign completed successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -701,7 +726,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'Campaign cancelled successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {
@@ -751,18 +776,18 @@ export class CampaignService {
 
       // Generate new AI messages
       const user = await UserModel.findById(userId);
-             if (!user) {
-         return {
-           success: false,
-           message: 'User not found',
-           timestamp: new Date()
-         };
-       }
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
 
-       const aiResult = await AIService.generateEmailMessages(
-         prompt || bot.prompt,
-         user.getMaxAIMessageVariations()
-       );
+      const aiResult = await AIService.generateEmailMessages(
+        prompt || bot.prompt,
+        user.getMaxAIMessageVariations()
+      );
 
       if (!aiResult.success) {
         return {
@@ -772,18 +797,18 @@ export class CampaignService {
         };
       }
 
-             // Update campaign with new messages
-       if (!aiResult.data) {
-         return {
-           success: false,
-           message: 'Failed to generate AI messages',
-           timestamp: new Date()
-         };
-       }
+      // Update campaign with new messages
+      if (!aiResult.data) {
+        return {
+          success: false,
+          message: 'Failed to generate AI messages',
+          timestamp: new Date()
+        };
+      }
 
-       campaign.aiMessages = aiResult.data;
-       campaign.selectedMessageIndex = 0;
-       await campaign.save();
+      campaign.aiMessages = aiResult.data;
+      campaign.selectedMessageIndex = 0;
+      await campaign.save();
 
       CampaignService.logger.info('AI messages regenerated successfully', {
         campaignId: campaign._id,
@@ -795,7 +820,7 @@ export class CampaignService {
       return {
         success: true,
         message: 'AI messages regenerated successfully',
-        data: campaign,
+        data: CampaignService.serializeCampaign(campaign),
         timestamp: new Date()
       };
     } catch (error) {

@@ -35,13 +35,14 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    isRetry: boolean = false
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
     // No need to get token - cookies are sent automatically
 
     // Create a unique key for this request to prevent duplicates
-    const requestKey = `${options.method || 'GET'}:${url}:${JSON.stringify(options.body || '')}`;
+    const requestKey = `${options.method || 'GET'}:${url}:${JSON.stringify(options.body || '')}:${isRetry}`;
     
     // Check if there's already a pending request for this endpoint
     if (this.pendingRequests.has(requestKey)) {
@@ -87,23 +88,44 @@ class ApiClient {
         if (!response.ok) {
           const errorMessage = responseData.message || responseData.error || `HTTP ${response.status}: ${response.statusText}`;
           
+          // Check for token expiration (try to refresh first)
+          if (response.status === 401 && !isRetry &&
+              (responseData.message?.toLowerCase().includes('token expired') ||
+               responseData.error?.toLowerCase().includes('token expired'))) {
+            
+            // Try to refresh token before giving up
+            try {
+              const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh-token`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
+              
+              if (refreshResponse.ok) {
+                // Token refreshed successfully, retry original request
+                return this.request(endpoint, options, true);
+              }
+            } catch (refreshError) {
+              console.warn('Token refresh failed:', refreshError);
+            }
+          }
+          
           // Check for authentication-related errors that should trigger logout
           const isAuthError = response.status === 401 || 
               (responseData.message && (
                 responseData.message.toLowerCase().includes('invalid token') ||
-                responseData.message.toLowerCase().includes('token expired') ||
                 responseData.message.toLowerCase().includes('unauthorized') ||
                 responseData.message.toLowerCase().includes('authentication failed')
               )) ||
               (responseData.error && (
                 responseData.error.toLowerCase().includes('invalid token') ||
-                responseData.error.toLowerCase().includes('token expired') ||
                 responseData.error.toLowerCase().includes('unauthorized') ||
                 responseData.error.toLowerCase().includes('authentication failed')
               ));
 
           if (isAuthError) {
-            
             console.warn('Authentication error detected, triggering logout');
             
             // Show toast notification

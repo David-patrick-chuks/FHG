@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
+import { ActivityType } from '../models/Activity';
 import UserModel from '../models/User';
 import { ActivityService } from '../services/ActivityService';
-import { ActivityType } from '../models/Activity';
 import { Logger } from '../utils/Logger';
 
 export class ApiKeyController {
@@ -51,10 +51,10 @@ export class ApiKeyController {
         message: 'API key generated successfully',
         data: {
           apiKey: apiKey,
-          createdAt: user.apiKeyCreatedAt,
-          lastUsed: user.apiKeyLastUsed
+          createdAt: user.apiKeyCreatedAt?.toISOString(),
+          lastUsed: user.apiKeyLastUsed?.toISOString()
         },
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       ApiKeyController.logger.error('Error generating API key:', error);
@@ -106,11 +106,11 @@ export class ApiKeyController {
         message: 'API key information retrieved successfully',
         data: {
           hasApiKey: !!user.apiKey,
-          apiKey: user.apiKey ? `${user.apiKey.substring(0, 8)}...${user.apiKey.substring(user.apiKey.length - 8)}` : null,
-          createdAt: user.apiKeyCreatedAt,
-          lastUsed: user.apiKeyLastUsed
+          apiKey: user.apiKey, // Return full API key for legitimate use
+          createdAt: user.apiKeyCreatedAt?.toISOString(),
+          lastUsed: user.apiKeyLastUsed?.toISOString()
         },
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       ApiKeyController.logger.error('Error getting API key info:', error);
@@ -172,7 +172,7 @@ export class ApiKeyController {
       res.status(200).json({
         success: true,
         message: 'API key revoked successfully',
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
     } catch (error) {
       ApiKeyController.logger.error('Error revoking API key:', error);

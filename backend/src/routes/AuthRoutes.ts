@@ -39,6 +39,10 @@ export class AuthRoutes {
       AuthController.verifyToken
     );
 
+    router.post('/refresh-token', 
+      AuthController.refreshToken
+    );
+
     // Protected routes (authentication required)
     router.get('/profile', 
       AuthMiddleware.authenticate,
