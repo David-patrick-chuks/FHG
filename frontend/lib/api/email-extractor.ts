@@ -148,11 +148,8 @@ export class EmailExtractorAPI {
    * Download extraction results as CSV
    */
   static async downloadResults(jobId: string): Promise<Blob> {
-    const token = localStorage.getItem('jwt_token');
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/download/${jobId}`, {
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
+      credentials: 'include', // Include cookies automatically
     });
     
     if (!response.ok) {
@@ -169,12 +166,9 @@ export class EmailExtractorAPI {
     const formData = new FormData();
     formData.append('csvFile', file);
 
-    const token = localStorage.getItem('jwt_token');
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/parse-csv`, {
       method: 'POST',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
+      credentials: 'include', // Include cookies automatically
       body: formData,
     });
 

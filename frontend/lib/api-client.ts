@@ -38,7 +38,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    const token = this.getAuthToken();
+    // No need to get token - cookies are sent automatically
 
     // Create a unique key for this request to prevent duplicates
     const requestKey = `${options.method || 'GET'}:${url}:${JSON.stringify(options.body || '')}`;
@@ -50,8 +50,9 @@ class ApiClient {
 
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
     };
+
+    // No need to add authorization header - cookies are sent automatically
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -64,6 +65,7 @@ class ApiClient {
             ...defaultHeaders,
             ...options.headers,
           },
+          credentials: 'include', // Include cookies in requests
           signal: controller.signal,
         });
 
@@ -155,11 +157,7 @@ class ApiClient {
     };
   }
 
-  private getAuthToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    // Check localStorage for token (backend handles expiration)
-    return localStorage.getItem(config.auth.jwtStorageKey);
-  }
+  // No need for getAuthToken - cookies are handled automatically
 
   // Generic HTTP methods
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
@@ -224,12 +222,8 @@ class ApiClient {
       });
 
       xhr.open('POST', `${this.baseUrl}${endpoint}`);
+      xhr.withCredentials = true; // Include cookies in XMLHttpRequest
       
-      const token = this.getAuthToken();
-      if (token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      }
-
       xhr.send(formData);
     });
   }

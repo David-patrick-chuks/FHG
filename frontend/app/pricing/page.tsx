@@ -82,13 +82,7 @@ function PricingContent() {
     try {
       const userEmail = user?.email || '';
       
-      // Debug: Check if token exists
-      const token = localStorage.getItem(config.auth.jwtStorageKey);
-      if (!token) {
-        toast.error('Authentication token not found. Please sign in again.');
-        router.push('/signin?redirect=/pricing');
-        return;
-      }
+      // No need to check for tokens - cookies are handled automatically
       
       const response = await PaymentAPI.initializePayment({
         subscriptionTier: plan,

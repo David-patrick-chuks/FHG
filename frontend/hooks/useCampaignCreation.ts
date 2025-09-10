@@ -85,9 +85,7 @@ export function useCampaignCreation() {
     try {
       const response = await fetch('/api/campaigns/upload-emails', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        credentials: 'include', // Include cookies automatically
         body: formData,
       });
 

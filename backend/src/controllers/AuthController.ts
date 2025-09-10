@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
@@ -13,7 +12,7 @@ import { Logger } from '../utils/Logger';
 export class AuthController {
   private static logger: Logger = new Logger();
 
-  private static generateToken(user: any, rememberMe: boolean = false): string {
+  private static generateToken(user: any, rememberMe: boolean = false): { accessToken: string; refreshToken: string; expiresIn: number } {
     const payload = {
       userId: user._id.toString(),
       email: user.email,
@@ -22,7 +21,51 @@ export class AuthController {
     };
     
     const tokenPair = JwtService.generateTokenPair(payload);
-    return tokenPair.accessToken;
+    return tokenPair;
+  }
+
+  /**
+   * Set HTTP-only authentication cookies
+   */
+  private static setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken: string; expiresIn: number }, rememberMe: boolean = false): void {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Access token cookie (15 minutes)
+    res.cookie('accessToken', tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction, // HTTPS only in production
+      sameSite: 'strict',
+      maxAge: tokens.expiresIn * 1000, // 15 minutes
+      path: '/'
+    });
+
+    // Refresh token cookie (7 days or 30 days if remember me)
+    const refreshMaxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000; // 30 days or 7 days
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: refreshMaxAge,
+      path: '/'
+    });
+
+    // User session cookie (for frontend to know if user is logged in)
+    res.cookie('isAuthenticated', 'true', {
+      httpOnly: false, // Frontend can read this
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: refreshMaxAge,
+      path: '/'
+    });
+  }
+
+  /**
+   * Clear authentication cookies
+   */
+  private static clearAuthCookies(res: Response): void {
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/' });
+    res.clearCookie('isAuthenticated', { path: '/' });
   }
 
   public static async register(req: Request, res: Response): Promise<void> {
@@ -42,15 +85,17 @@ export class AuthController {
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
 
-        // Generate JWT token
-        const token = AuthController.generateToken(result.data);
+        // Generate JWT tokens
+        const tokens = AuthController.generateToken(result.data);
+
+        // Set HTTP-only cookies
+        AuthController.setAuthCookies(res, tokens);
 
         res.status(201).json({
           success: true,
           message: 'User registered successfully',
           data: {
-            user: userData,
-            token: token
+            user: userData
           },
           timestamp: new Date()
         });
@@ -93,15 +138,17 @@ export class AuthController {
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
 
-        // Generate token with appropriate expiration based on rememberMe
-        const token = AuthController.generateToken(result.data.user, rememberMe);
+        // Generate tokens with appropriate expiration based on rememberMe
+        const tokens = AuthController.generateToken(result.data.user, rememberMe);
+
+        // Set HTTP-only cookies
+        AuthController.setAuthCookies(res, tokens, rememberMe);
 
         res.status(200).json({
           success: true,
           message: 'Login successful',
           data: {
-            user: userData,
-            token: token
+            user: userData
           },
           timestamp: new Date()
         });
@@ -419,8 +466,101 @@ export class AuthController {
     }
   }
 
+  public static async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      // Get refresh token from cookie
+      const refreshToken = req.cookies.refreshToken;
+
+      if (!refreshToken) {
+        res.status(401).json({
+          success: false,
+          message: 'Refresh token not found',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AuthController.logger.info('Token refresh request', {
+        ip: req.ip
+      });
+
+      // Verify refresh token
+      const { userId } = JwtService.verifyRefreshToken(refreshToken);
+
+      // Get user data
+      const userResult = await UserService.getUserById(userId);
+      if (!userResult.success || !userResult.data) {
+        res.status(401).json({
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Generate new token pair
+      const tokenPair = AuthController.generateToken(userResult.data);
+
+      // Blacklist old refresh token
+      JwtService.blacklistToken(refreshToken);
+
+      // Set new cookies
+      AuthController.setAuthCookies(res, tokenPair);
+
+      res.status(200).json({
+        success: true,
+        message: 'Token refreshed successfully',
+        timestamp: new Date()
+      });
+    } catch (error: any) {
+      AuthController.logger.error('Token refresh error:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      });
+      
+      // Clear cookies on refresh failure
+      AuthController.clearAuthCookies(res);
+      
+      res.status(401).json({
+        success: false,
+        message: error?.message || 'Invalid refresh token',
+        timestamp: new Date()
+      });
+    }
+  }
+
   public static async logout(req: Request, res: Response): Promise<void> {
-    // Use the secure logout method from AuthMiddleware
-    AuthMiddleware.logout(req, res, () => {});
+    try {
+      // Clear authentication cookies
+      AuthController.clearAuthCookies(res);
+
+      // Log logout activity if user is authenticated
+      const userId = (req as any).user?.id;
+      if (userId) {
+        await ActivityService.logUserActivity(userId, ActivityType.USER_LOGOUT);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Logged out successfully',
+        timestamp: new Date()
+      });
+    } catch (error: any) {
+      AuthController.logger.error('Logout error:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      });
+      
+      // Still clear cookies even if logging fails
+      AuthController.clearAuthCookies(res);
+      
+      res.status(200).json({
+        success: true,
+        message: 'Logged out successfully',
+        timestamp: new Date()
+      });
+    }
   }
 }

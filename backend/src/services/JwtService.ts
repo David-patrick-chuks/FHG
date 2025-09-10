@@ -250,11 +250,17 @@ export class JwtService {
   }
 
   /**
-   * Extract token from request headers
+   * Extract token from request cookies (HTTP-only cookies)
    */
   public static extractToken(req: any): string | null {
+    // First try to get from HTTP-only cookie
+    const cookieToken = req.cookies?.accessToken;
+    if (cookieToken) {
+      return cookieToken;
+    }
+
+    // Fallback to Authorization header for backward compatibility
     const authHeader = req.headers.authorization;
-    
     if (!authHeader) {
       return null;
     }

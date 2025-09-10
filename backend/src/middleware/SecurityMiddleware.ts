@@ -183,7 +183,8 @@ export class SecurityMiddleware {
     res.json = function(obj: any) {
       // Remove sensitive data from responses
       if (obj && typeof obj === 'object') {
-        obj = SecurityMiddleware.removeSensitiveData(obj);
+        // Since we're using HTTP-only cookies, we don't need to allow tokens in responses
+        obj = SecurityMiddleware.removeSensitiveData(obj, false);
       }
       
       return originalJson.call(this, obj);
@@ -192,9 +193,9 @@ export class SecurityMiddleware {
     next();
   }
 
-  private static removeSensitiveData(obj: any): any {
+  private static removeSensitiveData(obj: any, isAuthResponse: boolean = false): any {
     if (Array.isArray(obj)) {
-      return obj.map(item => SecurityMiddleware.removeSensitiveData(item));
+      return obj.map(item => SecurityMiddleware.removeSensitiveData(item, isAuthResponse));
     }
 
     if (obj && typeof obj === 'object') {
@@ -202,9 +203,14 @@ export class SecurityMiddleware {
       
       // Remove sensitive fields
       const sensitiveFields = [
-        'password', 'token', 'secret', 'key', 'ssn', 'creditCard',
-        'apiKey', 'refreshToken', 'privateKey', 'authorization'
+        'password', 'secret', 'key', 'ssn', 'creditCard',
+        'apiKey', 'privateKey', 'authorization'
       ];
+
+      // Only remove tokens if it's not an auth response
+      if (!isAuthResponse) {
+        sensitiveFields.push('token', 'refreshToken');
+      }
 
       sensitiveFields.forEach(field => {
         if (field in sanitized) {
@@ -215,7 +221,7 @@ export class SecurityMiddleware {
       // Recursively sanitize nested objects
       Object.keys(sanitized).forEach(key => {
         if (sanitized[key] && typeof sanitized[key] === 'object') {
-          sanitized[key] = SecurityMiddleware.removeSensitiveData(sanitized[key]);
+          sanitized[key] = SecurityMiddleware.removeSensitiveData(sanitized[key], isAuthResponse);
         }
       });
 

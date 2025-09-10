@@ -5,6 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Target } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -13,20 +14,19 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const router = useRouter()
+  const { isAuthenticated: authState, isLoading } = useAuth()
 
   useEffect(() => {
-    const token = localStorage.getItem("mail_quill_auth_token")
-    const userData = localStorage.getItem("mail_quill_user")
-
-    if (!token || !userData) {
-      router.push("/login")
-      return
+    if (!isLoading) {
+      if (!authState) {
+        router.push("/login")
+        return
+      }
+      setIsAuthenticated(true)
     }
+  }, [authState, isLoading, router])
 
-    setIsAuthenticated(true)
-  }, [router])
-
-  if (isAuthenticated === null) {
+  if (isLoading || isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
