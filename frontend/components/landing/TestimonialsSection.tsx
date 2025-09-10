@@ -1,8 +1,8 @@
 'use client';
 
 import { testimonials } from '@/data/landing-page-content';
-import { AnimatedSection } from './AnimatedSection';
 import { Star } from 'lucide-react';
+import { AnimatedSection } from './AnimatedSection';
 
 export function TestimonialsSection() {
   return (
@@ -24,10 +24,10 @@ export function TestimonialsSection() {
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
             <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Real stories from real people</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight px-4">
             Loved by 
             <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              real businesses
+              Real Businesses
             </span>
           </h2>
           <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
@@ -50,7 +50,7 @@ export function TestimonialsSection() {
                     <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">Verified customer</span>
                   </div>
                   <blockquote className="text-sm text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
-                    "{testimonial.content}"
+                    {testimonial.content}
                   </blockquote>
                   <div className="border-t border-slate-200/50 dark:border-slate-700/50 pt-4">
                     <div className="font-semibold text-slate-900 dark:text-white text-sm mb-1">

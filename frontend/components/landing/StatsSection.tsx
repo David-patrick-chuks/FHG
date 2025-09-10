@@ -24,7 +24,7 @@ export function StatsSection() {
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
             <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Real results from real people</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6">
             Here's what happens when you
             <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
               stop sending boring emails

@@ -24,23 +24,23 @@ export function HeroSection() {
           {/* Hero Text Content - Centered */}
           <div className="text-center mb-8">
             <AnimatedSection delay={0}>
-              <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6">
-                <span className="text-white/90 text-[8px] font-medium uppercase tracking-wide"> AI-Powered Email Marketing</span>
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6">
+                <span className="text-white/90 text-sm font-medium">Finally, emails that don't suck</span>
               </div>
             </AnimatedSection>
 
             <AnimatedSection delay={200}>
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-                Transform Your
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                Stop sending emails that
                 <span className="block mt-2">
-                  <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Email Marketing</span> with AI
+                  <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">nobody wants to read</span>
                 </span>
               </h1>
             </AnimatedSection>
 
             <AnimatedSection delay={400}>
-              <p className="text-base md:text-lg text-white/80 mb-6 max-w-xl leading-relaxed">
-                Create, automate, and optimize email campaigns with AI technology that delivers results.
+              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl leading-relaxed">
+                MailQuill helps you write emails that actually get opened, clicked, and replied to. No more spam folders or ignored messages.
               </p>
             </AnimatedSection>
 
@@ -52,7 +52,7 @@ export function HeroSection() {
                       size="lg"
                       className="text-base px-8 py-3 h-12 bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 transition-all duration-300 hover:scale-105"
                     >
-                      Access Dashboard
+                      Go to Dashboard
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
@@ -62,7 +62,7 @@ export function HeroSection() {
                       size="lg"
                       className="text-base px-8 py-3 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105"
                     >
-                      Get Started Free
+                      Try MailQuill Free
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>

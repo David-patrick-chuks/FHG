@@ -26,15 +26,18 @@ export function CTASection() {
       <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center">
         <AnimatedSection delay={0}>
           <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
-              <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Join 10,000+ businesses who switched to MailQuill</span>
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
+              <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300 text-center">
+                <span className="hidden sm:inline">Join 10,000+ businesses who switched to MailQuill</span>
+                <span className="sm:hidden">10,000+ businesses trust MailQuill</span>
+              </span>
             </div>
           </div>
         </AnimatedSection>
         
               <AnimatedSection delay={100}>
-                <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight px-4">
                   Ready to send emails that
                   <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                     people actually want to read?
@@ -43,42 +46,32 @@ export function CTASection() {
               </AnimatedSection>
               
               <AnimatedSection delay={200}>
-                <p className="text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed px-4">
                   Stop sending emails that get ignored. Start building real relationships with your audience using MailQuill.
                 </p>
               </AnimatedSection>
         
         <AnimatedSection delay={300}>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
             {isAuthenticated ? (
-              <Link href="/dashboard">
+              <Link href="/dashboard" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  className="group relative px-8 py-4 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30"
+                  className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30"
                 >
-                  <span className="relative z-10">Go to Dashboard</span>
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <span className="relative z-10 text-sm sm:text-base">Go to Dashboard</span>
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             ) : (
               <>
-                <Link href="/signup">
+                <Link href="/signup" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
-                    className="group relative px-8 py-4 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30"
+                    className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30"
                   >
-                    <span className="relative z-10">Start Free Trial</span>
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="px-8 py-4 h-14 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800/70 transition-all duration-300"
-                  >
-                    Sign In
-                  </Button>
+                    <span className="relative z-10 text-sm sm:text-base">Get Started</span>
+                     </Button>
                 </Link>
               </>
             )}
