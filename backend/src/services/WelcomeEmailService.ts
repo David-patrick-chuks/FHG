@@ -11,7 +11,7 @@ export class WelcomeEmailService {
       
       await EmailService.sendSimpleEmail(
         user.email,
-        'Welcome to FHG AI Bot - Your AI Email Marketing Journey Begins! 🚀',
+        'Welcome to MailQuill - Your AI Email Marketing Journey Begins! 🚀',
         welcomeEmailHtml,
         WelcomeEmailService.generateWelcomeEmailText(user)
       );
@@ -36,7 +36,7 @@ export class WelcomeEmailService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to FHG AI Bot</title>
+    <title>Welcome to MailQuill</title>
     <style>
         body {
             margin: 0;
@@ -210,7 +210,7 @@ export class WelcomeEmailService {
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🤖 FHG AI Bot</h1>
+            <h1>MailQuill</h1>
             <p>Your AI-Powered Email Marketing Assistant</p>
         </div>
 
@@ -219,7 +219,7 @@ export class WelcomeEmailService {
             <!-- Welcome Section -->
             <div class="welcome-section">
                 <h2>Welcome aboard, ${userName}! 🎉</h2>
-                <p>Thank you for joining FHG AI Bot. You're now part of a community that's revolutionizing email marketing with the power of artificial intelligence.</p>
+                <p>Thank you for joining MailQuill. You're now part of a community that's revolutionizing email marketing with the power of artificial intelligence.</p>
             </div>
 
             <!-- Plan Information -->
@@ -286,11 +286,11 @@ export class WelcomeEmailService {
             <p><strong>Need help getting started?</strong></p>
             <p>Our support team is here to help you succeed. Reach out anytime!</p>
             <div class="social-links">
-                <a href="mailto:support@fhgaibot.com">📧 support@fhgaibot.com</a>
+                <a href="mailto:support@mailquill.com">📧 support@mailquill.com</a>
             </div>
             <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
-                © ${currentYear} FHG AI Bot. All rights reserved.<br>
-                You're receiving this email because you signed up for FHG AI Bot.
+                © ${currentYear} MailQuill. All rights reserved.<br>
+                You're receiving this email because you signed up for MailQuill.
             </p>
         </div>
     </div>
@@ -304,9 +304,9 @@ export class WelcomeEmailService {
     const dashboardUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`;
     
     return `
-Welcome to FHG AI Bot, ${userName}! 🎉
+Welcome to MailQuill, ${userName}! 🎉
 
-Thank you for joining FHG AI Bot. You're now part of a community that's revolutionizing email marketing with the power of artificial intelligence.
+Thank you for joining MailQuill. You're now part of a community that's revolutionizing email marketing with the power of artificial intelligence.
 
 YOUR FREE PLAN INCLUDES:
 • 2 AI Bots - Create intelligent email assistants
@@ -333,10 +333,10 @@ QUICK START TIPS:
 
 NEED HELP?
 Our support team is here to help you succeed. Reach out anytime!
-Email: support@fhgaibot.com
+Email: support@mailquill.com
 
-© ${new Date().getFullYear()} FHG AI Bot. All rights reserved.
-You're receiving this email because you signed up for FHG AI Bot.
+© ${new Date().getFullYear()} MailQuill. All rights reserved.
+You're receiving this email because you signed up for MailQuill.
     `;
   }
 }

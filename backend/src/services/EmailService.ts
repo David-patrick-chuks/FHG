@@ -51,7 +51,7 @@ export class EmailService {
       const transporter = await this.getTransporter();
       
       const mailOptions = {
-        from: `"FHG AI Bot" <${process.env.SMTP_AUTH_USER || 'noreply@fhgaibot.com'}>`,
+        from: `"MAILQUILL TEAM" <${process.env.SMTP_AUTH_USER || 'noreply@mailquill.com'}>`,
         to: to,
         subject: subject,
         html: html,
@@ -161,7 +161,7 @@ export class EmailService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset - FHG AI Bot</title>
+    <title>Password Reset - MailQuill Team</title>
     <style>
         body {
             margin: 0;
@@ -312,7 +312,7 @@ export class EmailService {
         <!-- Header -->
         <div class="header">
             <h1>🔐 Password Reset</h1>
-            <p>FHG AI Bot - Secure Account Recovery</p>
+            <p>MailQuill Team - Secure Account Recovery</p>
         </div>
 
         <!-- Main Content -->
@@ -320,7 +320,7 @@ export class EmailService {
             <!-- Welcome Section -->
             <div class="welcome-section">
                 <h2>Hello ${username}! 👋</h2>
-                <p>We received a request to reset your password for your FHG AI Bot account.</p>
+                <p>We received a request to reset your password for your MailQuill account.</p>
             </div>
 
             <!-- Call to Action -->
@@ -350,10 +350,10 @@ export class EmailService {
 
         <!-- Footer -->
         <div class="footer">
-            <p><strong>FHG AI Bot Support Team</strong></p>
+            <p><strong>MailQuill Support Team</strong></p>
             <p>We're here to help you succeed with your AI email marketing journey.</p>
             <p style="margin-top: 20px; font-size: 12px; color: #9ca3af;">
-                © ${currentYear} FHG AI Bot. All rights reserved.<br>
+                © ${currentYear} MailQuill. All rights reserved.<br>
                 This is an automated email. Please do not reply to this message.
             </p>
         </div>
@@ -368,12 +368,12 @@ export class EmailService {
    */
   private static generatePasswordResetLinkText(username: string, resetLink: string): string {
     return `
-🔐 Password Reset - FHG AI Bot
-FHG AI Bot - Secure Account Recovery
+🔐 Password Reset - MailQuill
+MailQuill - Secure Account Recovery
 
 Hello ${username}! 👋
 
-We received a request to reset your password for your FHG AI Bot account.
+We received a request to reset your password for your MailQuill account.
 
 READY TO RESET YOUR PASSWORD?
 Click the link below to create a new secure password for your account:
@@ -387,11 +387,11 @@ ${resetLink}
 For any questions or concerns, please contact our support team.
 
 Best regards,
-FHG AI Bot Support Team
+MailQuill Support Team
 We're here to help you succeed with your AI email marketing journey.
 
 ---
-© ${new Date().getFullYear()} FHG AI Bot. All rights reserved.
+© ${new Date().getFullYear()} MailQuill. All rights reserved.
 This is an automated email. Please do not reply to this message.
     `;
   }

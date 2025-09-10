@@ -264,7 +264,7 @@ export class UserModel {
 
     userSchema.methods['generateApiKey'] = async function(): Promise<string> {
       const crypto = await import('crypto');
-      const apiKey = `fhg_${crypto.randomBytes(32).toString('hex')}`;
+      const apiKey = `mail_quill_${crypto.randomBytes(32).toString('hex')}`;
       
       this['apiKey'] = apiKey;
       this['apiKeyCreatedAt'] = new Date();
