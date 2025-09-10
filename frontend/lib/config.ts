@@ -4,11 +4,11 @@ export const config = {
     timeout: 30000,
   },
   app: {
-    name: process.env.NEXT_PUBLIC_APP_NAME || 'FHG AI Email Bot',
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'MailQuill',
     version: '1.0.0',
   },
   auth: {
-    jwtStorageKey: process.env.NEXT_PUBLIC_JWT_STORAGE_KEY || 'fhg_auth_token',
+    jwtStorageKey: process.env.NEXT_PUBLIC_JWT_STORAGE_KEY || 'mail_quill_auth_token',
     tokenExpiryBuffer: 5 * 60 * 1000, // 5 minutes
   },
   features: {

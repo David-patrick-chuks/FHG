@@ -5,21 +5,23 @@ export class ErrorHandler {
   private static logger: Logger = new Logger();
 
   public static handle(error: any, req: Request, res: Response, _next: NextFunction): void {
-    // Log the error
+    // Log the error with sanitized information
     ErrorHandler.logger.error('Error occurred:', {
-      error: error.message,
-      stack: error.stack,
+      error: error?.message || 'Unknown error',
+      stack: this.sanitizeStack(error?.stack),
       url: req.originalUrl,
       method: req.method,
       ip: req.ip,
       userAgent: req.get('User-Agent'),
-      userId: (req as any).user?.id || 'anonymous'
+      userId: (req as any).user?.id || 'anonymous',
+      timestamp: new Date().toISOString()
     });
 
     // Determine error type and status code
     let statusCode = 500;
     let message = 'Internal Server Error';
     let details: any = null;
+    let isDevelopment = process.env['NODE_ENV'] === 'development';
 
     // Handle different types of errors
     if (error.name === 'ValidationError') {
@@ -69,16 +71,27 @@ export class ErrorHandler {
       details = null;
     }
 
-    // Send error response
-    res.status(statusCode).json({
+    // Send secure error response
+    const response: any = {
       success: false,
       message,
-      error: process.env['NODE_ENV'] === 'development' ? error.message : undefined,
-      details: process.env['NODE_ENV'] === 'development' ? details : undefined,
-      timestamp: new Date().toISOString(),
-      path: req.originalUrl,
-      method: req.method
-    });
+      timestamp: new Date().toISOString()
+    };
+
+    // Only include sensitive information in development
+    if (isDevelopment) {
+      response.error = error?.message;
+      response.details = details;
+      response.path = req.originalUrl;
+      response.method = req.method;
+    }
+
+    // Add request ID for tracking (if available)
+    if (req.headers['x-request-id']) {
+      response.requestId = req.headers['x-request-id'];
+    }
+
+    res.status(statusCode).json(response);
   }
 
   private static formatValidationErrors(error: any): Record<string, string[]> {
@@ -124,6 +137,26 @@ export class ErrorHandler {
     return (req: Request, res: Response, next: NextFunction) => {
       Promise.resolve(fn(req, res, next)).catch(next);
     };
+  }
+
+  // Sanitize stack trace to prevent information disclosure
+  private static sanitizeStack(stack: string | undefined): string | undefined {
+    if (!stack) return undefined;
+
+    const isDevelopment = process.env['NODE_ENV'] === 'development';
+    
+    if (isDevelopment) {
+      return stack;
+    }
+
+    // In production, only return first few lines and remove sensitive paths
+    const lines = stack.split('\n').slice(0, 3);
+    return lines.map(line => {
+      // Remove file paths and line numbers
+      return line.replace(/at\s+.*?\(.*?\)/g, 'at [internal]')
+                 .replace(/at\s+.*?:\d+:\d+/g, 'at [internal]')
+                 .replace(/\/.*?\//g, '/[path]/');
+    }).join('\n');
   }
 
   // Method to handle 404 errors

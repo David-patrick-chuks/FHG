@@ -1,10 +1,10 @@
 'use client';
 
+import { EmailListManager } from '@/components/dashboard/campaigns/EmailListManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmailListManager } from '@/components/dashboard/campaigns/EmailListManager';
 import { Bot } from '@/types';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Users } from 'lucide-react';
 
 interface TargetAudienceStepProps {
   formData: {
@@ -47,24 +47,22 @@ export function TargetAudienceStep({
   onBack
 }: TargetAudienceStepProps) {
   return (
-    <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-green-50/30 dark:from-gray-800 dark:to-green-900/20">
-      <CardHeader className="pb-6">
-        <CardTitle className="flex items-center space-x-3 text-2xl">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold">2</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <span className="bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
-              Target Audience
-            </span>
-            <p className="text-gray-600 dark:text-gray-400 text-base font-normal mt-1">
+            <span className="text-xl">Target Audience</span>
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
               Define who will receive your emails
             </p>
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-8">
-        <div className="bg-gradient-to-br from-gray-50 to-green-50/50 dark:from-gray-700 dark:to-green-900/20 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+      <CardContent className="space-y-6">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border">
           <EmailListManager
             emailList={formData.emailList}
             onEmailListChange={(emails) => onFormDataChange({ emailList: emails })}
@@ -87,23 +85,23 @@ export function TargetAudienceStep({
           />
         </div>
 
-        <div className="flex justify-between pt-6">
+        <div className="flex justify-between pt-4">
           <Button
             variant="outline"
             onClick={onBack}
             disabled={isFormDisabled}
-            className="px-8 py-4 text-lg font-semibold rounded-xl border-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+            className="h-12 px-6"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Basics
           </Button>
           <Button
             onClick={onNext}
             disabled={!canProceed || isFormDisabled}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+            className="h-12 px-8 bg-green-600 hover:bg-green-700"
           >
             Continue to AI Configuration
-            <ArrowLeft className="w-5 h-5 ml-2 rotate-180" />
+            <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
           </Button>
         </div>
       </CardContent>

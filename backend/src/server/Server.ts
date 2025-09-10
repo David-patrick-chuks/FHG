@@ -5,6 +5,7 @@ import { HealthService } from '../services/HealthService';
 import { MiddlewareService } from '../services/MiddlewareService';
 import { RouteService } from '../services/RouteService';
 import { ServerLifecycleService } from '../services/ServerLifecycleService';
+import { EnvironmentValidationService } from '../services/EnvironmentValidationService';
 import { Logger } from '../utils/Logger';
 
 export class Server {
@@ -17,15 +18,44 @@ export class Server {
   private lifecycleService: ServerLifecycleService;
 
   constructor() {
-    this.app = express();
-    this.port = parseInt(process.env['PORT'] || '3001', 10);
-    this.database = new DatabaseConnection();
+    // Initialize logger first
     this.logger = new Logger();
+    
+    // Validate environment variables
+    this.validateEnvironment();
+    
+    this.app = express();
+    this.port = EnvironmentValidationService.getEnvNumber('PORT', 3001);
+    this.database = new DatabaseConnection();
     this.healthService = new HealthService(this.database);
     this.routeService = new RouteService(this.healthService);
     this.lifecycleService = new ServerLifecycleService(this.app, this.database);
     
     this.initializeServer();
+  }
+
+  /**
+   * Validate environment variables on startup
+   */
+  private validateEnvironment(): void {
+    const validation = EnvironmentValidationService.validateEnvironment();
+    
+    if (!validation.isValid) {
+      this.logger.error('Environment validation failed:', {
+        errors: validation.errors
+      });
+      
+      console.error('❌ Environment validation failed:');
+      validation.errors.forEach(error => {
+        console.error(`  - ${error}`);
+      });
+      
+      process.exit(1);
+    }
+    
+    this.logger.info('Environment validation passed', {
+      envInfo: EnvironmentValidationService.getSanitizedEnvInfo()
+    });
   }
 
   /**

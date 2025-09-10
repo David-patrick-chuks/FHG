@@ -184,7 +184,7 @@ export default function AppPasswordGuidePage() {
                     Choose Your Device
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Select "Other (custom name)" and enter a descriptive name like "FHG AI Bot" or "Email Bot".
+                    Select "Other (custom name)" and enter a descriptive name like "MailQuill AI Bot" or "Email Bot".
                   </p>
                 </div>
               </div>

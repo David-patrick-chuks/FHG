@@ -1,15 +1,13 @@
 'use client';
 
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Brain, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -70,6 +68,7 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormData) => {
     try {
       setIsLoading(true);
+      
       setError(null);
       
       await registerUser(data);

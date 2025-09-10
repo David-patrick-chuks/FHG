@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { PaystackService } from '../services/PaystackService';
+import { ValidationService } from '../services/ValidationService';
 import { InitializePaymentRequest, VerifyPaymentRequest } from '../types';
 import { Logger } from '../utils/Logger';
 
@@ -14,31 +15,54 @@ export class PaymentController {
       const userId = (req as any).user['id'];
       const { subscriptionTier, billingCycle, email } = req.body as InitializePaymentRequest;
 
-      // Validate required fields
-      if (!subscriptionTier || !billingCycle || !email) {
+      // Validate subscription tier
+      const subscriptionTierResult = ValidationService.validateEnum(
+        subscriptionTier,
+        ['pro', 'enterprise'],
+        { required: true }
+      );
+
+      if (!subscriptionTierResult.isValid) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: subscriptionTier, billingCycle, email',
+          message: `Invalid subscription tier: ${subscriptionTierResult.errors.join(', ')}`,
           timestamp: new Date()
         });
         return;
       }
 
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      // Validate billing cycle
+      const billingCycleResult = ValidationService.validateEnum(
+        billingCycle,
+        ['monthly', 'yearly'],
+        { required: true }
+      );
+
+      if (!billingCycleResult.isValid) {
         res.status(400).json({
           success: false,
-          message: 'Invalid email format',
+          message: `Invalid billing cycle: ${billingCycleResult.errors.join(', ')}`,
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Validate email
+      const emailResult = ValidationService.validateEmail(email);
+
+      if (!emailResult.isValid) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid email: ${emailResult.errors.join(', ')}`,
           timestamp: new Date()
         });
         return;
       }
 
       const result = await PaystackService.initializePayment(userId, {
-        subscriptionTier,
-        billingCycle,
-        email
+        subscriptionTier: subscriptionTierResult.sanitizedValue,
+        billingCycle: billingCycleResult.sanitizedValue,
+        email: emailResult.sanitizedValue
       });
 
       if (result.success) {
@@ -46,8 +70,12 @@ export class PaymentController {
       } else {
         res.status(400).json(result);
       }
-    } catch (error) {
-      PaymentController.logger.error('Error in initializePayment controller:', error);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in initializePayment controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -63,24 +91,36 @@ export class PaymentController {
     try {
       const { reference } = req.body as VerifyPaymentRequest;
 
-      if (!reference) {
+      // Validate payment reference
+      const referenceResult = ValidationService.validateString(reference, {
+        required: true,
+        minLength: 1,
+        maxLength: 100,
+        pattern: /^[a-zA-Z0-9_-]+$/
+      });
+
+      if (!referenceResult.isValid) {
         res.status(400).json({
           success: false,
-          message: 'Payment reference is required',
+          message: `Invalid payment reference: ${referenceResult.errors.join(', ')}`,
           timestamp: new Date()
         });
         return;
       }
 
-      const result = await PaystackService.verifyPayment(reference);
+      const result = await PaystackService.verifyPayment(referenceResult.sanitizedValue);
 
       if (result.success) {
         res.status(200).json(result);
       } else {
         res.status(400).json(result);
       }
-    } catch (error) {
-      PaymentController.logger.error('Error in verifyPayment controller:', error);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in verifyPayment controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -126,8 +166,12 @@ export class PaymentController {
           timestamp: new Date()
         });
       }
-    } catch (error) {
-      PaymentController.logger.error('Error in handleWebhook controller:', error);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in handleWebhook controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -150,8 +194,12 @@ export class PaymentController {
       } else {
         res.status(400).json(result);
       }
-    } catch (error) {
-      PaymentController.logger.error('Error in getUserPayments controller:', error);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in getUserPayments controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -167,8 +215,12 @@ export class PaymentController {
     try {
       const result = PaystackService.getSubscriptionPricing();
       res.status(200).json(result);
-    } catch (error) {
-      PaymentController.logger.error('Error in getSubscriptionPricing controller:', error);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in getSubscriptionPricing controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -200,8 +252,12 @@ export class PaymentController {
       } else {
         res.status(400).json(result);
       }
-    } catch (error) {
-      PaymentController.logger.error('Error in getPaymentStats controller:', error);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in getPaymentStats controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error',

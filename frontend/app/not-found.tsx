@@ -11,7 +11,7 @@ export default function NotFound() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Brain className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-semibold text-gray-900 dark:text-white">FHG AI Bot</span>
+          <span className="text-xl font-semibold text-gray-900 dark:text-white">MailQuill</span>
         </div>
 
         {/* 404 Content */}

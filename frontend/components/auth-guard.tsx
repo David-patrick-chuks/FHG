@@ -15,8 +15,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem("fhg_auth_token")
-    const userData = localStorage.getItem("fhg_user")
+    const token = localStorage.getItem("mail_quill_auth_token")
+    const userData = localStorage.getItem("mail_quill_user")
 
     if (!token || !userData) {
       router.push("/login")

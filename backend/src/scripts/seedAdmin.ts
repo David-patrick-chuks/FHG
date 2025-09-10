@@ -22,9 +22,9 @@ export class AdminSeeder {
     this.logger = new Logger();
     this.adminUsers = [
       {
-        email: 'admin@emailoutreachbot.com',
+        email: 'admin@mailquil.com',
         username: 'admin',
-        password: 'Admin123!@#',
+        password: 'Admin123456',
         subscription: SubscriptionTier.ENTERPRISE,
         billingCycle: BillingCycle.YEARLY,
         isAdmin: true,

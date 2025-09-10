@@ -1,14 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import UserModel from '../models/User';
 import { Logger } from '../utils/Logger';
+import { JwtService } from '../services/JwtService';
+import { DatabaseSecurityService } from '../services/DatabaseSecurityService';
 
 export class AuthMiddleware {
   private static logger: Logger = new Logger();
 
   public static async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const token = AuthMiddleware.extractToken(req);
+      const token = JwtService.extractToken(req);
       
       if (!token) {
         res.status(401).json({
@@ -19,8 +20,21 @@ export class AuthMiddleware {
         return;
       }
 
-      const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as { userId: string };
-      const user = await UserModel.findById(decoded.userId);
+      // Verify token using secure JWT service
+      const decoded = JwtService.verifyAccessToken(token);
+      
+      // Verify user still exists and is active using secure query
+      const sanitizedUserId = DatabaseSecurityService.sanitizeObjectId(decoded.userId);
+      if (!sanitizedUserId) {
+        res.status(401).json({
+          success: false,
+          message: 'Invalid user ID',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const user = await UserModel.findById(sanitizedUserId);
 
       if (!user || !user.isActive) {
         res.status(401).json({
@@ -31,7 +45,7 @@ export class AuthMiddleware {
         return;
       }
 
-      // Add user to request object
+      // Add user to request object with validated data
       (req as any).user = {
         id: String(user._id),
         email: user.email,
@@ -48,19 +62,30 @@ export class AuthMiddleware {
       });
 
       next();
-    } catch (error) {
-      AuthMiddleware.logger.error('Authentication error:', error);
+    } catch (error: any) {
+      AuthMiddleware.logger.error('Authentication error:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
       
-      if (error instanceof jwt.JsonWebTokenError) {
+      // Handle specific JWT errors
+      if (error.message === 'Invalid token' || error.message === 'Token has been revoked') {
         res.status(401).json({
           success: false,
           message: 'Invalid token',
           timestamp: new Date()
         });
-      } else if (error instanceof jwt.TokenExpiredError) {
+      } else if (error.message === 'Token expired') {
         res.status(401).json({
           success: false,
           message: 'Token expired',
+          timestamp: new Date()
+        });
+      } else if (error.message === 'Token not active') {
+        res.status(401).json({
+          success: false,
+          message: 'Token not active',
           timestamp: new Date()
         });
       } else {
@@ -95,7 +120,19 @@ export class AuthMiddleware {
       return;
     }
 
-    if (!(req as any).user.isAdmin) {
+    const user = (req as any).user;
+    
+    if (!user.isAdmin) {
+      // Log unauthorized admin access attempt
+      AuthMiddleware.logger.warn('Unauthorized admin access attempt', {
+        userId: user.id,
+        email: user.email,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        path: req.path,
+        method: req.method
+      });
+      
       res.status(403).json({
         success: false,
         message: 'Admin access required',
@@ -103,6 +140,15 @@ export class AuthMiddleware {
       });
       return;
     }
+
+    // Log successful admin access
+    AuthMiddleware.logger.info('Admin access granted', {
+      userId: user.id,
+      email: user.email,
+      ip: req.ip,
+      path: req.path,
+      method: req.method
+    });
 
     next();
   }
@@ -191,29 +237,77 @@ export class AuthMiddleware {
 
   public static optionalAuth(req: Request, _res: Response, next: NextFunction): void {
     try {
-      const token = AuthMiddleware.extractToken(req);
+      const token = JwtService.extractToken(req);
       
       if (token) {
-        const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as { userId: string };
-        UserModel.findById(decoded.userId).then(user => {
-          if (user && user.isActive) {
-            (req as any).user = {
-              id: user._id,
-              email: user.email,
-              username: user.username,
-              subscriptionTier: user.subscription,
-              subscriptionExpiresAt: user.subscriptionExpiresAt,
-              isAdmin: user.isAdmin
-            };
+        try {
+          const decoded = JwtService.verifyAccessToken(token);
+          const sanitizedUserId = DatabaseSecurityService.sanitizeObjectId(decoded.userId);
+          if (!sanitizedUserId) {
+            next();
+            return;
           }
+          
+          UserModel.findById(sanitizedUserId).then(user => {
+            if (user && user.isActive) {
+              (req as any).user = {
+                id: String(user._id),
+                email: user.email,
+                username: user.username,
+                subscriptionTier: user.subscription,
+                subscriptionExpiresAt: user.subscriptionExpiresAt,
+                isAdmin: user.isAdmin
+              };
+            }
+            next();
+          }).catch(() => next());
+        } catch (jwtError) {
+          // Token is invalid, continue without authentication
           next();
-        }).catch(() => next());
+        }
       } else {
         next();
       }
     } catch (error) {
       // If token is invalid, continue without authentication
       next();
+    }
+  }
+
+  /**
+   * Logout user by blacklisting their token
+   */
+  public static logout(req: Request, res: Response, next: NextFunction): void {
+    try {
+      const token = JwtService.extractToken(req);
+      
+      if (token) {
+        JwtService.blacklistToken(token);
+        
+        AuthMiddleware.logger.info('User logged out successfully', {
+          userId: (req as any).user?.id,
+          email: (req as any).user?.email,
+          ip: req.ip
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Logged out successfully',
+        timestamp: new Date()
+      });
+    } catch (error: any) {
+      AuthMiddleware.logger.error('Logout error:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      
+      res.status(500).json({
+        success: false,
+        message: 'Logout failed',
+        timestamp: new Date()
+      });
     }
   }
 
@@ -419,25 +513,6 @@ export class AuthMiddleware {
     };
   }
 
-  private static extractToken(req: Request): string | null {
-    // Check Authorization header
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      return authHeader.substring(7);
-    }
-
-    // Check query parameter
-    if (req.query['token']) {
-      return req.query['token'] as string;
-    }
-
-    // Check cookie
-    if (req.cookies && req.cookies.token) {
-      return req.cookies.token;
-    }
-
-    return null;
-  }
 
   public static cleanupRateLimitStore(): void {
     const now = Date.now();

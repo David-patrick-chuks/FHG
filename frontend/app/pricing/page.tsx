@@ -3,15 +3,18 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Check, Crown, Zap, CreditCard, Loader2 } from 'lucide-react';
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { PaymentAPI, PaymentPricing } from '@/lib/api/payment';
+import { config } from '@/lib/config';
+import { Building, Check, CreditCard, Crown, Loader2, Zap } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, user } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<'pro' | 'enterprise'>('pro');
   const [pricing, setPricing] = useState<PaymentPricing | null>(null);
@@ -65,12 +68,27 @@ function PricingContent() {
   };
 
   const handlePayment = async (plan: 'pro' | 'enterprise') => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast.error('Please sign in to continue with payment');
+      router.push('/signin?redirect=/pricing');
+      return;
+    }
+
     if (!pricing) return;
 
     setSelectedPlan(plan);
     setProcessing(true);
     try {
-      const userEmail = localStorage.getItem('userEmail') || '';
+      const userEmail = user?.email || '';
+      
+      // Debug: Check if token exists
+      const token = localStorage.getItem(config.auth.jwtStorageKey);
+      if (!token) {
+        toast.error('Authentication token not found. Please sign in again.');
+        router.push('/signin?redirect=/pricing');
+        return;
+      }
       
       const response = await PaymentAPI.initializePayment({
         subscriptionTier: plan,
@@ -84,8 +102,14 @@ function PricingContent() {
       } else {
         toast.error(response.message || 'Failed to initialize payment');
       }
-    } catch (error) {
-      toast.error('Failed to initialize payment');
+    } catch (error: any) {
+      console.error('Payment initialization error:', error);
+      if (error.message?.includes('Access token required') || error.message?.includes('401')) {
+        toast.error('Authentication expired. Please sign in again.');
+        router.push('/signin?redirect=/pricing');
+      } else {
+        toast.error('Failed to initialize payment');
+      }
     } finally {
       setProcessing(false);
     }
@@ -312,7 +336,7 @@ function PricingContent() {
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Upgrade to PRO
+                    {isAuthenticated ? 'Upgrade to PRO' : 'Sign in to Upgrade'}
                   </>
                 )}
               </Button>
@@ -405,7 +429,7 @@ function PricingContent() {
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Upgrade to ENTERPRISE
+                    {isAuthenticated ? 'Upgrade to ENTERPRISE' : 'Sign in to Upgrade'}
                   </>
                 )}
               </Button>

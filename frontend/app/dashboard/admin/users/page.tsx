@@ -39,7 +39,7 @@ export default function AdminUsersPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [updateData, setUpdateData] = useState<UpdateSubscriptionRequest>({
-    tier: 'FREE',
+    tier: 'free',
     duration: 1,
     amount: 0,
     paymentMethod: 'CASH'
@@ -324,7 +324,7 @@ export default function AdminUsersPage() {
                           onClick={() => {
                             setSelectedUser(user);
                             setUpdateData({
-                              tier: user.subscription.toUpperCase() as any,
+                              tier: user.subscription.toLowerCase() as any,
                               duration: 1,
                               amount: 0,
                               paymentMethod: 'CASH'
@@ -401,12 +401,12 @@ export default function AdminUsersPage() {
 
         {/* Update Subscription Modal */}
         {showUpdateModal && selectedUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>Update Subscription</CardTitle>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2 border-gray-200/50 dark:border-gray-700/50 shadow-2xl">
+              <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50">
+                <CardTitle className="text-xl font-semibold">Update Subscription</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 p-6">
                 <div>
                   <label htmlFor="subscription-tier" className="block text-sm font-medium mb-2">Subscription Tier</label>
                   <select
@@ -415,9 +415,9 @@ export default function AdminUsersPage() {
                     onChange={(e) => setUpdateData({ ...updateData, tier: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
-                    <option value="FREE">Free</option>
-                    <option value="PRO">Pro</option>
-                    <option value="ENTERPRISE">Enterprise</option>
+                    <option value="free">Free</option>
+                    <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
                   </select>
                 </div>
                 <div>
@@ -453,7 +453,7 @@ export default function AdminUsersPage() {
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-4">
                   <Button
                     onClick={handleUpdateSubscription}
                     className="flex-1"
@@ -475,12 +475,12 @@ export default function AdminUsersPage() {
 
         {/* Suspend User Modal */}
         {showSuspendModal && selectedUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>Suspend User</CardTitle>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2 border-gray-200/50 dark:border-gray-700/50 shadow-2xl">
+              <CardHeader className="border-b border-gray-200/50 dark:border-gray-700/50">
+                <CardTitle className="text-xl font-semibold">Suspend User</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 p-6">
                 <div>
                   <label className="block text-sm font-medium mb-2">Reason for suspension</label>
                   <Input
@@ -489,7 +489,7 @@ export default function AdminUsersPage() {
                     placeholder="Enter reason for suspension..."
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-4">
                   <Button
                     onClick={handleSuspendUser}
                     className="flex-1"

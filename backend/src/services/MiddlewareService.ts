@@ -2,7 +2,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, Request } from 'express';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import helmet from 'helmet';
 import { RequestLogger } from '../middleware/RequestLogger';
 
@@ -14,29 +14,71 @@ export class MiddlewareService {
     // Compression for response optimization
     app.use(compression());
     
-    // Security headers
+    // Enhanced security headers
     app.use(helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
           scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:"],
+          imgSrc: ["'self'", "data:", "https:", "blob:"],
+          fontSrc: ["'self'", "https://fonts.gstatic.com"],
+          connectSrc: ["'self'"],
+          frameSrc: ["'none'"],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          frameAncestors: ["'none'"],
+          upgradeInsecureRequests: []
         },
       },
       hsts: {
-        maxAge: 31536000,
+        maxAge: 31536000, // 1 year
         includeSubDomains: true,
         preload: true
-      }
+      },
+      noSniff: true,
+      xssFilter: true,
+      referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+      crossOriginEmbedderPolicy: false, // Disable for API compatibility
+      crossOriginOpenerPolicy: { policy: "same-origin" },
+      crossOriginResourcePolicy: { policy: "cross-origin" }
     }));
     
-    // CORS configuration
+    // Enhanced CORS configuration
     app.use(cors({
-      origin: this.getCorsOrigins(),
+      origin: (origin, callback) => {
+        const allowedOrigins = this.getCorsOrigins();
+        
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) {
+          return callback(null, true);
+        }
+        
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        // Log unauthorized CORS attempts
+        console.warn(`CORS blocked request from origin: ${origin}`);
+        return callback(new Error('Not allowed by CORS'), false);
+      },
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: [
+        'Content-Type', 
+        'Authorization', 
+        'X-Requested-With',
+        'X-API-Key',
+        'Accept',
+        'Origin',
+        'Cache-Control',
+        'Pragma'
+      ],
+      exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+      maxAge: 86400, // 24 hours
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     }));
 
     // Rate limiting
@@ -62,7 +104,7 @@ export class MiddlewareService {
       : ['http://localhost:3000', 'http://localhost:3001'];
   }
   /**
-   * Create rate limiter configuration
+   * Create enhanced rate limiter configuration
    */
   private static createRateLimiter() {
     // More lenient rate limits for development
@@ -74,14 +116,26 @@ export class MiddlewareService {
       windowMs,
       max: maxRequests,
       message: {
+        success: false,
         error: 'Too many requests from this IP, please try again later.',
-        retryAfter: Math.ceil(windowMs / 1000)
+        retryAfter: Math.ceil(windowMs / 1000),
+        timestamp: new Date()
       },
       standardHeaders: true,
       legacyHeaders: false,
       skip: (req: Request) => {
-        return req.path === '/health' || req.path.startsWith('/api/admin');
-      }
+        // Skip rate limiting for health checks and admin endpoints (with proper auth)
+        return req.path === '/health' || 
+               req.path === '/api/health' ||
+               (req.path.startsWith('/api/admin') && (req as any).user?.isAdmin);
+      },
+      keyGenerator: (req: Request) => {
+        // Use user ID if authenticated, otherwise IP (with proper IPv6 handling)
+        const userId = (req as any).user?.id;
+        return userId ? `user:${userId}` : ipKeyGenerator(req.ip || req.connection.remoteAddress || 'unknown');
+      },
+      // Note: onLimitReached might not be available in all versions of express-rate-limit
+      // Using standardHeaders and legacyHeaders for rate limit info instead
     });
   }
 }

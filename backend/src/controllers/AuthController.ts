@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
 import { ActivityType } from '../models/Activity';
 import { ActivityService } from '../services/ActivityService';
+import { JwtService } from '../services/JwtService';
 import { UserService } from '../services/UserService';
 import { WelcomeEmailService } from '../services/WelcomeEmailService';
 import { Logger } from '../utils/Logger';
@@ -11,13 +13,16 @@ import { Logger } from '../utils/Logger';
 export class AuthController {
   private static logger: Logger = new Logger();
 
-  private static generateToken(userId: string, rememberMe: boolean = false): string {
-    const expiresIn = rememberMe ? '30d' : '24h'; // 30 days for remember me, 24 hours for session
-    return jwt.sign(
-      { userId },
-      process.env['JWT_SECRET']!,
-      { expiresIn } as any
-    );
+  private static generateToken(user: any, rememberMe: boolean = false): string {
+    const payload = {
+      userId: user._id.toString(),
+      email: user.email,
+      username: user.username,
+      isAdmin: user.isAdmin || false
+    };
+    
+    const tokenPair = JwtService.generateTokenPair(payload);
+    return tokenPair.accessToken;
   }
 
   public static async register(req: Request, res: Response): Promise<void> {
@@ -38,7 +43,7 @@ export class AuthController {
         delete userData.passwordResetExpires;
 
         // Generate JWT token
-        const token = AuthController.generateToken((result.data._id as any).toString());
+        const token = AuthController.generateToken(result.data);
 
         res.status(201).json({
           success: true,
@@ -89,7 +94,7 @@ export class AuthController {
         delete userData.passwordResetExpires;
 
         // Generate token with appropriate expiration based on rememberMe
-        const token = AuthController.generateToken((result.data.user._id as any).toString(), rememberMe);
+        const token = AuthController.generateToken(result.data.user, rememberMe);
 
         res.status(200).json({
           success: true,
@@ -415,24 +420,7 @@ export class AuthController {
   }
 
   public static async logout(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = (req as any).user['id'];
-
-      AuthController.logger.info('User logout', {
-        userId,
-        ip: req.ip
-      });
-
-      // In a stateless JWT system, logout is handled client-side
-      // But we can log the action for audit purposes
-      res.status(200).json({
-        success: true,
-        message: 'Logout successful',
-        timestamp: new Date()
-      });
-    } catch (error) {
-      AuthController.logger.error('Logout error:', error);
-      ErrorHandler.handle(error, req, res, () => {});
-    }
+    // Use the secure logout method from AuthMiddleware
+    AuthMiddleware.logout(req, res, () => {});
   }
 }

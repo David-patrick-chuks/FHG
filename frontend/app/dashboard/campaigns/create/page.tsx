@@ -51,17 +51,7 @@ export default function CreateCampaignPage() {
   return (
     <DashboardLayout
       title="Create New Campaign"
-      description={
-        <div className="flex items-center gap-4">
-          <span>Build your email campaign step by step with AI-powered automation</span>
-          <div className="flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-              Step {currentStep} of {steps.length}: {steps[currentStep - 1]?.title}
-            </span>
-          </div>
-        </div>
-      }
+      description="Build your email campaign step by step with AI-powered automation"
       actions={
         <Button
           variant="outline"
@@ -73,7 +63,7 @@ export default function CreateCampaignPage() {
         </Button>
       }
     >
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="space-y-6">
         {/* Progress Steps */}
         <CampaignProgressSteps steps={steps} currentStep={currentStep} />
 

@@ -65,10 +65,21 @@ export function RecentExtractions({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Extractions</CardTitle>
-        <CardDescription>
-          Your recent email extraction jobs
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Recent Extractions</CardTitle>
+            <CardDescription>
+              Your recent email extraction jobs
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onViewAll}
+          >
+            View All
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -121,17 +132,6 @@ export function RecentExtractions({
             </div>
           ))}
           
-          {extractionHistory.length > 5 && (
-            <div className="pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={onViewAll}
-                className="w-full"
-              >
-                View All Extractions ({extractionHistory.length})
-              </Button>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BotsAPI } from '@/lib/api';
-import { ArrowLeft, Bot as BotIcon, Check, ExternalLink, Eye, EyeOff, Mail, Plus, Shield, Users, X } from 'lucide-react';
+import { ArrowLeft, Bot as BotIcon, Check, ExternalLink, Eye, EyeOff, Mail, Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function CreateBotPage() {
   const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -26,6 +27,17 @@ export default function CreateBotPage() {
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const steps = [
+    { id: 1, title: 'Basic Info', description: 'Set up your bot foundation' },
+    { id: 2, title: 'AI Configuration', description: 'Configure your AI settings' },
+    { id: 3, title: 'Email Setup', description: 'Configure email credentials' }
+  ];
+
+  // Validation functions
+  const canProceedToStep2 = formData.name.trim() && formData.name.length <= 50 && formData.email.trim();
+  const canProceedToStep3 = canProceedToStep2 && formData.description.length <= 200;
+  const canCreateBot = canProceedToStep3 && verificationStatus === 'success';
 
 
   const handleVerifyCredentials = async () => {
@@ -159,33 +171,66 @@ export default function CreateBotPage() {
         </Button>
       }
     >
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="space-y-6">
+        {/* Progress Steps */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex items-center space-x-2">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
+                    currentStep >= step.id 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {step.id}
+                  </div>
+                  <span className={`text-sm font-medium transition-colors ${
+                    currentStep >= step.id 
+                      ? 'text-gray-700 dark:text-gray-300' 
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {step.title}
+                  </span>
+                  {index < steps.length - 1 && (
+                    <div className={`w-8 h-0.5 ml-4 transition-all duration-300 ${
+                      currentStep > step.id 
+                        ? 'bg-blue-500' 
+                        : 'bg-gray-200 dark:bg-gray-600'
+                    }`}></div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Step {currentStep} of {steps.length}
+            </div>
+          </div>
+        </div>
 
-        {/* Main Content */}
-        <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-800 dark:to-blue-900/20">
-          <CardHeader className="pb-6">
-            <CardTitle className="flex items-center space-x-3 text-2xl">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <BotIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                  Bot Configuration
-                </span>
-                <p className="text-gray-600 dark:text-gray-400 text-base font-normal mt-1">
-                  Configure your AI email bot with custom settings and SMTP credentials
-                </p>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                    <BotIcon className="w-4 h-4 mr-2 text-blue-500" />
-                    Bot Name 
-                    <span className="text-red-500 ml-1">*</span>
+        {/* Step Content */}
+        <div className="space-y-6">
+          {/* Step 1: Basic Information */}
+          {currentStep === 1 && (
+            <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <BotIcon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-xl">Basic Information</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
+                    Set up your bot's basic details and identity
+                  </p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Bot Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
@@ -194,20 +239,18 @@ export default function CreateBotPage() {
                     placeholder="e.g., Sales Assistant Bot"
                     maxLength={50}
                     required
-                    className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200"
+                    className="h-12"
                   />
                   <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>Bot name should be descriptive and unique</span>
+                    <span>Descriptive and unique name</span>
                     <span className={formData.name.length > 45 ? 'text-orange-500' : ''}>
                       {formData.name.length}/50
                     </span>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                    <Mail className="w-4 h-4 mr-2 text-green-500" />
-                    Bot Email 
-                    <span className="text-red-500 ml-1">*</span>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Bot Email <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
@@ -216,17 +259,16 @@ export default function CreateBotPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="bot@company.com"
                     required
-                    className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200"
+                    className="h-12"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    The email address this bot will use to send emails
+                    Email address for sending emails
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label htmlFor="description" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                  <Users className="w-4 h-4 mr-2 text-purple-500" />
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Bot Description
                 </Label>
                 <Textarea
@@ -236,21 +278,80 @@ export default function CreateBotPage() {
                   placeholder="Describe what this bot does and its purpose (max 200 characters)"
                   rows={3}
                   maxLength={200}
-                  className="border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl resize-none transition-all duration-200"
+                  className="resize-none border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
                 <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>Brief description of the bot's purpose and functionality</span>
+                  <span>Brief description of the bot's purpose</span>
                   <span className={formData.description.length > 180 ? 'text-orange-500' : ''}>
                     {formData.description.length}/200
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <Label htmlFor="prompt" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                  <BotIcon className="w-4 h-4 mr-2 text-indigo-500" />
-                  AI Prompt 
-                  <span className="text-indigo-600 font-normal ml-2">(Optional)</span>
+              {/* Bot Avatar Preview */}
+              {formData.name.trim() && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Bot Avatar Preview
+                  </Label>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border">
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={`https://robohash.org/${encodeURIComponent(formData.name)}?set=set3&size=200x200`}
+                        alt={`${formData.name} avatar`}
+                        className="w-16 h-16 rounded-lg border-2 border-white dark:border-gray-600"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                          {formData.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Unique avatar generated from your bot name
+                        </p>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-green-600 dark:text-green-400 font-medium">Ready</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+            <div className="flex justify-end p-6 pt-0">
+              <Button
+                onClick={() => setCurrentStep(2)}
+                disabled={!canProceedToStep2}
+                className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
+              >
+                Continue to AI Configuration
+                <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+              </Button>
+            </div>
+          </Card>
+          )}
+
+          {/* Step 2: AI Configuration */}
+          {currentStep === 2 && (
+            <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <BotIcon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-xl">AI Configuration</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
+                    Customize how your bot writes emails
+                  </p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+
+              <div className="space-y-2">
+                <Label htmlFor="prompt" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  AI Prompt <span className="text-gray-500 font-normal">(Optional)</span>
                 </Label>
                 <Textarea
                   id="prompt"
@@ -259,12 +360,12 @@ export default function CreateBotPage() {
                   placeholder="Enter the AI prompt for this bot...&#10;Example: Write professional, friendly emails that focus on building relationships with potential customers"
                   rows={4}
                   maxLength={1000}
-                  className={`border-2 rounded-xl resize-none transition-all duration-200 ${
+                  className={`resize-none border border-gray-300 dark:border-gray-600 focus:ring-1 ${
                     formData.prompt.trim() && formData.prompt.trim().length < 10
-                      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
                       : formData.prompt.length > 900
-                      ? 'border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20'
-                      : 'border-gray-200 dark:border-gray-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20'
+                      ? 'border-orange-300 focus:border-orange-500 focus:ring-orange-500'
+                      : 'focus:border-purple-500 focus:ring-purple-500'
                   }`}
                 />
                 <div className="flex justify-between text-xs">
@@ -286,67 +387,67 @@ export default function CreateBotPage() {
                     {formData.prompt.length}/1000
                   </span>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
-                      <span className="text-white text-sm font-bold">i</span>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-white text-xs font-bold">i</span>
                     </div>
                     <div>
-                      <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                      <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
                         AI Prompt Guidelines
                       </p>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
-                        This prompt defines how your AI bot will write emails. Be specific about tone, style, and goals. 
-                        <span className="font-semibold"> This field is optional and can be configured later.</span>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        Define how your bot writes emails. Be specific about tone, style, and goals. This field is optional.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
+            </CardContent>
+            <div className="flex justify-between p-6 pt-0">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(1)}
+                className="h-12 px-6"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Basic Info
+              </Button>
+              <Button
+                onClick={() => setCurrentStep(3)}
+                disabled={!canProceedToStep3}
+                className="h-12 px-8 bg-purple-600 hover:bg-purple-700"
+              >
+                Continue to Email Setup
+                <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+              </Button>
+            </div>
+          </Card>
+          )}
 
-              {/* Profile Image Preview */}
-              {formData.name.trim() && (
-                <div className="space-y-4">
-                  <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                    <BotIcon className="w-4 h-4 mr-2 text-cyan-500" />
-                    Bot Avatar Preview
-                  </Label>
-                  <div className="bg-gradient-to-br from-gray-50 to-cyan-50/50 dark:from-gray-700 dark:to-cyan-900/20 rounded-2xl p-6 border border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center space-x-6">
-                    <div className="relative">
-                      <img
-                        src={`https://robohash.org/${encodeURIComponent(formData.name)}?set=set3&size=200x200`}
-                        alt={`${formData.name} avatar`}
-                          className="w-24 h-24 rounded-2xl border-4 border-white dark:border-gray-700 shadow-lg"
-                      />
-                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                          <BotIcon className="w-4 h-4 text-white" />
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                        <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                        {formData.name}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                          This unique robot avatar is automatically generated based on your bot's name using RoboHash. Each bot gets a distinctive visual identity that reflects its personality and purpose.
-                        </p>
-                        <div className="flex items-center space-x-2 mt-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-green-600 dark:text-green-400 font-medium">Avatar Ready</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          {/* Step 3: Email Setup */}
+          {currentStep === 3 && (
+            <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-white" />
                 </div>
-              )}
+                <div>
+                  <span className="text-xl">Email Setup</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
+                    Configure SMTP credentials for sending emails
+                  </p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Shield className="w-4 h-4 mr-2 text-orange-500" />
-                    Email Password 
-                    <span className="text-red-500 ml-1">*</span>
-                  </div>
+                  <span>
+                    Email Password <span className="text-red-500">*</span>
+                  </span>
                   <Link 
                     href="/app-password-guide" 
                     target="_blank"
@@ -358,45 +459,45 @@ export default function CreateBotPage() {
                 </Label>
                 <div className="flex gap-3">
                   <div className="relative flex-1">
-                  <Input
-                    id="password"
+                    <Input
+                      id="password"
                       type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => {
-                      // Remove spaces from password input
-                      const cleanPassword = e.target.value.replace(/\s/g, '');
-                      setFormData(prev => ({ ...prev, password: cleanPassword }));
-                                              // Reset verification status when password changes
+                      value={formData.password}
+                      onChange={(e) => {
+                        // Remove spaces from password input
+                        const cleanPassword = e.target.value.replace(/\s/g, '');
+                        setFormData(prev => ({ ...prev, password: cleanPassword }));
+                        // Reset verification status when password changes
                         if (verificationStatus !== 'idle') {
                           setVerificationStatus('idle');
                           setVerificationMessage('');
                         }
-                    }}
-                    onPaste={(e) => {
-                      // Handle paste event to remove spaces
-                      e.preventDefault();
-                      const pastedText = e.clipboardData.getData('text');
-                      const cleanPassword = pastedText.replace(/\s/g, '');
-                      setFormData(prev => ({ ...prev, password: cleanPassword }));
-                      // Reset verification status when password changes
-                      if (verificationStatus !== 'idle') {
-                        setVerificationStatus('idle');
-                        setVerificationMessage('');
-                      }
-                    }}
+                      }}
+                      onPaste={(e) => {
+                        // Handle paste event to remove spaces
+                        e.preventDefault();
+                        const pastedText = e.clipboardData.getData('text');
+                        const cleanPassword = pastedText.replace(/\s/g, '');
+                        setFormData(prev => ({ ...prev, password: cleanPassword }));
+                        // Reset verification status when password changes
+                        if (verificationStatus !== 'idle') {
+                          setVerificationStatus('idle');
+                          setVerificationMessage('');
+                        }
+                      }}
                       placeholder="Enter your email password"
-                    required
-                      className="h-14 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl pr-12 transition-all duration-200"
+                      required
+                      className="h-12 pr-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
+                        <EyeOff className="h-4 w-4" />
                       ) : (
-                        <Eye className="h-5 w-5" />
+                        <Eye className="h-4 w-4" />
                       )}
                     </button>
                   </div>
@@ -404,32 +505,32 @@ export default function CreateBotPage() {
                     type="button"
                     onClick={handleVerifyCredentials}
                     disabled={isVerifying || !formData.email.trim() || !formData.password.trim()}
-                    className={`h-14 px-8 font-semibold text-base rounded-xl transition-all duration-200 transform hover:scale-105 ${
+                    className={`h-12 px-6 ${
                       verificationStatus === 'success' 
-                        ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg shadow-green-500/25' 
+                        ? 'bg-green-600 hover:bg-green-700 text-white' 
                         : verificationStatus === 'error'
-                        ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg shadow-red-500/25'
-                        : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/25'
+                        ? 'bg-red-600 hover:bg-red-700 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                   >
                     {isVerifying ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                         Verifying...
                       </>
                     ) : verificationStatus === 'success' ? (
                       <>
-                        <Check className="h-5 w-5 mr-3" />
+                        <Check className="h-4 w-4 mr-2" />
                         Verified
                       </>
                     ) : verificationStatus === 'error' ? (
                       <>
-                        <X className="h-5 w-5 mr-3" />
+                        <X className="h-4 w-4 mr-2" />
                         Failed
                       </>
                     ) : (
                       <>
-                        <Check className="h-5 w-5 mr-3" />
+                        <Check className="h-4 w-4 mr-2" />
                         Verify
                       </>
                     )}
@@ -442,59 +543,58 @@ export default function CreateBotPage() {
                 
                 {/* Verification Status */}
                 {verificationMessage && (
-                  <div className={`text-sm p-4 rounded-xl border-2 transition-all duration-200 ${
+                  <div className={`text-sm p-3 rounded-lg border ${
                     verificationStatus === 'success' 
-                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-green-200 dark:from-green-900/20 dark:to-emerald-900/20 dark:text-green-200 dark:border-green-700' 
+                      ? 'bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-700' 
                       : verificationStatus === 'error'
-                      ? 'bg-gradient-to-r from-red-50 to-rose-50 text-red-800 border-red-200 dark:from-red-900/20 dark:to-rose-900/20 dark:text-red-200 dark:border-red-700'
-                      : 'bg-gradient-to-r from-orange-50 to-amber-50 text-orange-800 border-orange-200 dark:from-orange-900/20 dark:to-amber-900/20 dark:text-orange-200 dark:border-orange-700'
+                      ? 'bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-700'
+                      : 'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-200 dark:border-orange-700'
                   }`}>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
                       {verificationStatus === 'success' ? (
-                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                       ) : verificationStatus === 'error' ? (
-                        <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <X className="w-4 h-4 text-red-600 dark:text-red-400" />
                       ) : (
-                        <X className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                        <X className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                       )}
                       <span className="font-medium">{verificationMessage}</span>
                     </div>
                   </div>
                 )}
               </div>
-
-              <div className="flex gap-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/dashboard/bots')}
-                  className="flex-1 h-14 text-lg font-semibold rounded-xl border-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={!isFormValid || isLoading}
-                  className="flex-1 h-14 text-lg font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3"></div>
-                      Creating Bot...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="mr-3 h-6 w-6" />
-                      Create Bot
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            </CardContent>
+            <div className="flex justify-between p-6 pt-0">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(2)}
+                className="h-12 px-6"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to AI Configuration
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                disabled={!canCreateBot || isLoading}
+                className="h-12 px-8 bg-green-600 hover:bg-green-700"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Creating Bot...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Bot
+                  </>
+                )}
+              </Button>
+            </div>
+          </Card>
+          )}
+        </div>
       </div>
-
     </DashboardLayout>
   );
 }

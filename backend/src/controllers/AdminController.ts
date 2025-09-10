@@ -94,9 +94,10 @@ export class AdminController {
         return;
       }
 
-      // Validate tier
+      // Validate tier (case-insensitive)
       const validTiers = ['FREE', 'PRO', 'ENTERPRISE'];
-      if (!validTiers.includes(tier)) {
+      const normalizedTier = tier.toUpperCase();
+      if (!validTiers.includes(normalizedTier)) {
         res.status(400).json({
           success: false,
           message: 'Valid subscription tier is required',
@@ -149,7 +150,7 @@ export class AdminController {
       const result = await AdminService.updateUserSubscription(
         userId,
         adminId,
-        tier,
+        normalizedTier,
         duration,
         amount,
         paymentMethod,

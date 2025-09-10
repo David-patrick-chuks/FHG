@@ -8,9 +8,9 @@ interface ApiDocsAuthenticationProps {
 }
 
 export function ApiDocsAuthentication({ searchQuery }: ApiDocsAuthenticationProps) {
-  const authHeaderCode = `Authorization: Bearer fhg_your_api_key_here
+  const authHeaderCode = `Authorization: Bearer mail_quill_your_api_key_here
 # OR
-X-API-Key: fhg_your_api_key_here`;
+X-API-Key: mail_quill_your_api_key_here`;
 
   const isVisible = (text: string) => 
     !searchQuery || text.toLowerCase().includes(searchQuery.toLowerCase());

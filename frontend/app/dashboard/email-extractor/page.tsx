@@ -100,6 +100,9 @@ export default function EmailExtractorPage() {
           startedAt: new Date().toISOString()
         });
 
+        // Immediately refresh subscription info to update usage count
+        refreshSubscriptionInfo();
+
         toast({
           title: 'Success',
           description: 'Email extraction job started successfully'
@@ -141,6 +144,7 @@ export default function EmailExtractorPage() {
             clearInterval(pollInterval);
             setJobStartTime(null); // Clear start time when job completes
             loadExtractionHistory();
+            refreshSubscriptionInfo(); // Refresh subscription info to update usage count
             
             // Show completion toast
             if (response.data.status === 'completed') {
@@ -189,6 +193,17 @@ export default function EmailExtractorPage() {
       }
     } catch (error) {
       console.error('Error loading extraction history:', error);
+    }
+  };
+
+  const refreshSubscriptionInfo = async () => {
+    try {
+      const response = await EmailExtractorAPI.getSubscriptionInfo();
+      if (response.success && response.data) {
+        setSubscriptionInfo(response.data);
+      }
+    } catch (error) {
+      console.error('Error refreshing subscription info:', error);
     }
   };
 
@@ -270,6 +285,7 @@ export default function EmailExtractorPage() {
             subscriptionInfo={subscriptionInfo}
             onExtractionStart={startExtraction}
             isLoading={isLoading}
+            onExtractionComplete={refreshSubscriptionInfo}
           />
         </div>
 

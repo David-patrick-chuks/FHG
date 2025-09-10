@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { EmailExtractorCore } from '../services/email-extractor/EmailExtractorCore';
 import { EmailExtractorActivityService } from '../services/EmailExtractorActivityService';
 import { SubscriptionLimitsService } from '../services/SubscriptionLimitsService';
+import { ValidationService } from '../services/ValidationService';
+import { FileUploadService } from '../services/FileUploadService';
 import { Logger } from '../utils/Logger';
 
 export class EmailExtractorController {
@@ -12,7 +14,6 @@ export class EmailExtractorController {
    */
   public static async startExtraction(req: Request, res: Response): Promise<void> {
     try {
-      const { urls, extractionType = 'multiple' } = req.body;
       const userId = (req as any).user['id'];
 
       if (!userId) {
@@ -24,39 +25,43 @@ export class EmailExtractorController {
         return;
       }
 
-      // Handle both single URL string and array of URLs
-      let urlArray: string[] = [];
-      if (typeof urls === 'string') {
-        urlArray = [urls];
-      } else if (Array.isArray(urls)) {
-        urlArray = urls;
-      } else {
+      // Validate and sanitize input
+      const { urls, extractionType = 'multiple' } = req.body;
+
+      // Validate extraction type
+      const extractionTypeResult = ValidationService.validateEnum(
+        extractionType,
+        ['single', 'multiple', 'csv'],
+        { required: true }
+      );
+
+      if (!extractionTypeResult.isValid) {
         res.status(400).json({
           success: false,
-          message: 'URLs must be provided as a string or array',
+          message: `Invalid extraction type: ${extractionTypeResult.errors.join(', ')}`,
           timestamp: new Date()
         });
         return;
       }
 
-      if (urlArray.length === 0) {
+      // Validate URLs with SSRF protection
+      const urlValidationResult = ValidationService.validateUrlArray(urls, {
+        maxCount: 50,
+        allowedProtocols: ['http:', 'https:'],
+        allowLocalhost: false,
+        allowPrivateIPs: false
+      });
+
+      if (!urlValidationResult.isValid) {
         res.status(400).json({
           success: false,
-          message: 'At least one URL is required',
+          message: `URL validation failed: ${urlValidationResult.errors.join(', ')}`,
           timestamp: new Date()
         });
         return;
       }
 
-      // Limit number of URLs per request
-      if (urlArray.length > 50) {
-        res.status(400).json({
-          success: false,
-          message: 'Maximum 50 URLs allowed per extraction request',
-          timestamp: new Date()
-        });
-        return;
-      }
+      const urlArray = urlValidationResult.sanitizedValue as string[];
 
       EmailExtractorController.logger.info('Starting extraction with URLs', { 
         userId, 
@@ -299,54 +304,27 @@ export class EmailExtractorController {
         return;
       }
 
-      // Parse CSV content
-      const csvContent = req.file.buffer.toString('utf-8');
-      const lines = csvContent.split('\n').filter(line => line.trim());
-      
-      if (lines.length === 0) {
+      // Validate CSV file content
+      const csvValidationResult = FileUploadService.validateCsvFile(req.file, {
+        maxRows: 1000,
+        maxColumns: 10,
+        maxCellLength: 500
+      });
+
+      if (!csvValidationResult.isValid) {
         res.status(400).json({
           success: false,
-          message: 'CSV file is empty',
+          message: `CSV validation failed: ${csvValidationResult.errors.join(', ')}`,
           timestamp: new Date()
         });
         return;
       }
 
-      const urls: string[] = [];
-      const validUrls: string[] = [];
-
-      // Skip header row if it exists
-      const startIndex = lines[0].toLowerCase().includes('url') ? 1 : 0;
+      // Extract URLs from validated CSV content
+      const csvContent = csvValidationResult.sanitizedContent || req.file.buffer.toString('utf-8');
+      const urls = FileUploadService.extractUrlsFromCsv(csvContent);
       
-      for (let i = startIndex; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (line) {
-          // Extract URL from CSV line (assuming first column is URL)
-          const url = line.split(',')[0].replace(/"/g, '').trim();
-          if (url) {
-            urls.push(url);
-            
-            // Validate URL - automatically add https:// if no protocol
-            try {
-              let normalizedUrl = url.trim();
-              
-              // If no protocol is provided, try adding https://
-              if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-                normalizedUrl = `https://${normalizedUrl}`;
-              }
-              
-              const urlObj = new URL(normalizedUrl);
-              if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
-                validUrls.push(normalizedUrl);
-              }
-            } catch (error) {
-              EmailExtractorController.logger.warn('Invalid URL in CSV', { url, error });
-            }
-          }
-        }
-      }
-
-      if (validUrls.length === 0) {
+      if (urls.length === 0) {
         res.status(400).json({
           success: false,
           message: 'No valid URLs found in CSV file',
@@ -354,6 +332,25 @@ export class EmailExtractorController {
         });
         return;
       }
+
+      // Validate extracted URLs with SSRF protection
+      const urlValidationResult = ValidationService.validateUrlArray(urls, {
+        maxCount: 1000,
+        allowedProtocols: ['http:', 'https:'],
+        allowLocalhost: false,
+        allowPrivateIPs: false
+      });
+
+      if (!urlValidationResult.isValid) {
+        res.status(400).json({
+          success: false,
+          message: `URL validation failed: ${urlValidationResult.errors.join(', ')}`,
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const validUrls = urlValidationResult.sanitizedValue as string[];
 
       // Check subscription limits for CSV upload
       const canExtract = await SubscriptionLimitsService.canPerformExtraction(

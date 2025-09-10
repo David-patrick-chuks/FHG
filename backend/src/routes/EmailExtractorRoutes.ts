@@ -1,26 +1,19 @@
 import { Router } from 'express';
-import multer from 'multer';
 import { EmailExtractorController } from '../controllers/EmailExtractorController';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import { FileUploadService } from '../services/FileUploadService';
 
 export class EmailExtractorRoutes {
   public static getRouter(): Router {
     const router = Router();
 
-    // Configure multer for CSV file uploads
-    const upload = multer({
-      storage: multer.memoryStorage(),
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
-      },
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
-          cb(null, true);
-        } else {
-          cb(new Error('Only CSV files are allowed'));
-        }
-      }
+    // Configure secure file upload middleware
+    const upload = FileUploadService.createUploadMiddleware({
+      maxSize: 5 * 1024 * 1024, // 5MB limit
+      allowedMimeTypes: ['text/csv', 'application/csv', 'text/plain'],
+      allowedExtensions: ['.csv', '.txt'],
+      maxFiles: 1
     });
 
     // Apply global middleware

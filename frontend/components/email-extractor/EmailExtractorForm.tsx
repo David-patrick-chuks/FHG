@@ -15,12 +15,14 @@ interface EmailExtractorFormProps {
   subscriptionInfo: SubscriptionInfo | null;
   onExtractionStart: (urls: string[], extractionType: 'single' | 'multiple' | 'csv') => void;
   isLoading: boolean;
+  onExtractionComplete?: () => void;
 }
 
 export function EmailExtractorForm({ 
   subscriptionInfo, 
   onExtractionStart, 
-  isLoading 
+  isLoading,
+  onExtractionComplete
 }: EmailExtractorFormProps) {
   const [singleUrl, setSingleUrl] = useState('');
   const [multipleUrls, setMultipleUrls] = useState('');
@@ -28,6 +30,17 @@ export function EmailExtractorForm({
   const [parsedUrls, setParsedUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Clear form fields after extraction starts
+  const clearFormFields = () => {
+    setSingleUrl('');
+    setMultipleUrls('');
+    setCsvFile(null);
+    setParsedUrls([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Domain validation function
   const isValidDomain = (url: string): boolean => {
@@ -90,6 +103,7 @@ export function EmailExtractorForm({
     }
 
     onExtractionStart([singleUrl.trim()], 'single');
+    clearFormFields();
   };
 
   const handleMultipleUrlsExtraction = () => {
@@ -127,6 +141,7 @@ export function EmailExtractorForm({
     }
 
     onExtractionStart(urls, 'multiple');
+    clearFormFields();
   };
 
   const handleCsvFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,6 +207,7 @@ export function EmailExtractorForm({
     }
 
     onExtractionStart(parsedUrls, 'csv');
+    clearFormFields();
   };
 
   const isLimitReached = subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited;

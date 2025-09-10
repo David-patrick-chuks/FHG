@@ -1,6 +1,5 @@
-import { UserService } from './UserService';
 import { Logger } from '../utils/Logger';
-import { EmailExtractorActivityService } from './EmailExtractorActivityService';
+import { UserService } from './UserService';
 
 export interface SubscriptionLimits {
   dailyExtractionLimit: number;
@@ -123,7 +122,6 @@ export class SubscriptionLimitsService {
         1000, // Get a large number to count all today's activities
         0,
         [
-          ActivityType.EMAIL_EXTRACTION_STARTED,
           ActivityType.EMAIL_EXTRACTION_SINGLE_URL,
           ActivityType.EMAIL_EXTRACTION_MULTIPLE_URLS,
           ActivityType.EMAIL_EXTRACTION_CSV_UPLOAD

@@ -79,7 +79,7 @@ export interface SystemActivityStats {
 }
 
 export interface UpdateSubscriptionRequest {
-  tier: 'FREE' | 'PRO' | 'ENTERPRISE';
+  tier: 'free' | 'pro' | 'enterprise';
   duration: number;
   amount: number;
   paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK' | 'OTHER';
@@ -90,7 +90,7 @@ export interface SuspendUserRequest {
 }
 
 export class AdminAPI {
-  private static baseUrl = '/api/admin';
+  private static baseUrl = '/admin';
 
   /**
    * Get all users
