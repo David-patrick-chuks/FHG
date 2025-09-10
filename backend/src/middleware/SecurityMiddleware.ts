@@ -64,8 +64,8 @@ export class SecurityMiddleware {
     });
 
     // Override res.end to log response
-    const originalEnd = res.end;
-    res.end = function(chunk?: any, encoding?: any) {
+    const originalEnd = res.end.bind(res);
+    res.end = function(chunk?: any, encoding?: any, cb?: any) {
       const responseTime = Date.now() - startTime;
       
       SecurityMiddleware.logger.info('API Response', {
@@ -75,7 +75,7 @@ export class SecurityMiddleware {
         contentLength: res.get('Content-Length') || 0
       });
 
-      originalEnd.call(this, chunk, encoding);
+      return originalEnd(chunk, encoding, cb);
     };
 
     next();
