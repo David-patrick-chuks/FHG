@@ -17,11 +17,11 @@ export class RouteService {
     app.get('/', (_req, res) => {
       res.status(200).json({
         success: true,
-        message: 'Welcome to Email Outreach Bot API',
+        message: 'Welcome to MailQuill API',
         data: {
-          name: 'Email Outreach Bot API',
+          name: 'MailQuill API',
           version: '1.0.0',
-          description: 'AI-powered email outreach platform with multi-user support and subscription tiers',
+          description: 'MailQuill - AI-powered email outreach platform with multi-user support and subscription tiers',
           status: 'operational',
           endpoints: {
             health: '/health',

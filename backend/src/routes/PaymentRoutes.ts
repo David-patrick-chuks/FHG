@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PaymentController } from '../controllers/PaymentController';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
+import { WebhookMiddleware } from '../middleware/WebhookMiddleware';
 
 export class PaymentRoutes {
   public static getBasePath(): string {
@@ -27,9 +28,30 @@ export class PaymentRoutes {
     /**
      * @route POST /api/payments/webhook
      * @desc Paystack webhook callback
+     * @access Public (IP whitelisted)
+     */
+    router.post('/webhook', WebhookMiddleware.verifyPaystackIP, PaymentController.handleWebhook);
+
+    /**
+     * @route GET /api/payments/webhook-test
+     * @desc Test webhook endpoint connectivity
      * @access Public
      */
-    router.post('/webhook', PaymentController.handleWebhook);
+    router.get('/webhook-test', (req, res) => {
+      res.json({
+        success: true,
+        message: 'Webhook endpoint is accessible',
+        timestamp: new Date(),
+        url: req.url
+      });
+    });
+
+    /**
+     * @route POST /api/payments/verify-manual
+     * @desc Manually verify payment by reference
+     * @access Private
+     */
+    router.post('/verify-manual', AuthMiddleware.authenticate, PaymentController.verifyPayment);
 
     /**
      * @route GET /api/payments/history
