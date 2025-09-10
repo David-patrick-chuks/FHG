@@ -25,7 +25,7 @@ export function HeroSection() {
           <div className="text-center mb-8">
             <AnimatedSection delay={0}>
               <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6">
-                <span className="text-white/90 text-xs font-medium uppercase tracking-wide">✨ AI-Powered Email Marketing</span>
+                <span className="text-white/90 text-[8px] font-medium uppercase tracking-wide">✨ AI-Powered Email Marketing</span>
               </div>
             </AnimatedSection>
 
