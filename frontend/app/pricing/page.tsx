@@ -71,7 +71,7 @@ function PricingContent() {
     // Check if user is authenticated
     if (!isAuthenticated) {
       toast.error('Please sign in to continue with payment');
-      router.push('/signin?redirect=/pricing');
+      router.push('/login?redirect=/pricing');
       return;
     }
 

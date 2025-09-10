@@ -122,7 +122,7 @@ export default function UserPaymentsPage() {
                 </p>
               </div>
               <Button
-                onClick={() => window.location.href = '/payment'}
+                onClick={() => window.location.href = '/pricing'}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Zap className="w-4 h-4 mr-2" />
@@ -194,7 +194,7 @@ export default function UserPaymentsPage() {
                 <p className="text-lg font-medium mb-2">No payment history</p>
                 <p className="text-sm mb-4">You haven't made any payments yet.</p>
                 <Button
-                  onClick={() => window.location.href = '/payment'}
+                  onClick={() => window.location.href = '/pricing'}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                 >
                   <Zap className="w-4 h-4 mr-2" />

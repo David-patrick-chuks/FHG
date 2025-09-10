@@ -1,6 +1,7 @@
 'use client';
 
-import { apiClient } from '@/lib/api-client';
+import { LogoutOverlay } from '@/components/ui/LogoutOverlay';
+import { apiClient, setGlobalLogout, setGlobalSetLoggingOut } from '@/lib/api-client';
 import { config } from '@/lib/config';
 import { AuthResponse, LoginCredentials, RegisterData, User } from '@/types';
 import { useRouter } from 'next/navigation';
@@ -10,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isLoggingOut: boolean;
   login: (credentials: LoginCredentials & { rememberMe?: boolean }) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
@@ -35,11 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Check if user is authenticated on mount
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Check authentication status
   const checkAuthStatus = useCallback(async () => {
@@ -71,16 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Backend is not available, but we have a token
           // In development, we'll assume the user is authenticated if they have a token
           console.log('Backend not available, using stored token for development');
-          setIsAuthenticated(true);
-          // We can't get user data, so we'll set a basic user object
-          setUser({
-            id: 'dev-user',
-            username: 'Development User',
-            email: 'dev@example.com',
-            subscription: 'free',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          } as User);
+
         }
       } else {
         // Production: verify token by making a request to get user profile
@@ -116,6 +105,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     }
   }, []);
+
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   // Login function
   const login = useCallback(async (credentials: LoginCredentials & { rememberMe?: boolean }) => {
@@ -186,6 +180,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Logout function
   const logout = useCallback(async () => {
     try {
+      // Show logout overlay
+      setIsLoggingOut(true);
+      
       // Get the current token before clearing it (check both storages)
       const token = localStorage.getItem(config.auth.jwtStorageKey);
       
@@ -198,6 +195,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Logout API call failed (this is normal if backend is down):', error);
         }
       }
+      
+      // Add a small delay to show the overlay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Now clear tokens and update state from storage
       localStorage.removeItem(config.auth.jwtStorageKey);
@@ -222,10 +222,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Navigate to login page even on error
       router.push('/login');
+    } finally {
+      // Hide logout overlay
+      setIsLoggingOut(false);
     }
   }, [router]);
 
-  
+  // Register logout function with API client for automatic logout on invalid token
+  useEffect(() => {
+    setGlobalLogout(logout);
+    setGlobalSetLoggingOut(setIsLoggingOut);
+  }, [logout]);
 
   // Update user function
   const updateUser = useCallback((userData: Partial<User>) => {
@@ -238,6 +245,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     isAuthenticated,
     isLoading,
+    isLoggingOut,
     login,
     register,
     logout,
@@ -247,6 +255,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return (
     <AuthContext.Provider value={value}>
       {children}
+      <LogoutOverlay isVisible={isLoggingOut} />
     </AuthContext.Provider>
   );
 };

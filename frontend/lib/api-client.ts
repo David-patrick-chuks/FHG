@@ -1,6 +1,28 @@
 import { ApiError, ApiResponse } from '@/types';
 import { config } from './config';
 
+// Global logout function that will be set by AuthContext
+let globalLogout: (() => void) | null = null;
+let globalSetLoggingOut: ((isLoggingOut: boolean) => void) | null = null;
+
+export const setGlobalLogout = (logoutFn: () => void) => {
+  globalLogout = logoutFn;
+};
+
+export const setGlobalSetLoggingOut = (setLoggingOutFn: (isLoggingOut: boolean) => void) => {
+  globalSetLoggingOut = setLoggingOutFn;
+};
+
+// Dynamic import for toast to avoid SSR issues
+const showToast = async (message: string, type: 'error' | 'warning' = 'error') => {
+  try {
+    const { toast } = await import('sonner');
+    toast[type](message);
+  } catch (error) {
+    console.warn('Could not show toast:', error);
+  }
+};
+
 class ApiClient {
   private baseUrl: string;
   private timeout: number;
@@ -62,6 +84,41 @@ class ApiClient {
         // If response is not successful, throw error with message from response body
         if (!response.ok) {
           const errorMessage = responseData.message || responseData.error || `HTTP ${response.status}: ${response.statusText}`;
+          
+          // Check for authentication-related errors that should trigger logout
+          const isAuthError = response.status === 401 || 
+              (responseData.message && (
+                responseData.message.toLowerCase().includes('invalid token') ||
+                responseData.message.toLowerCase().includes('token expired') ||
+                responseData.message.toLowerCase().includes('unauthorized') ||
+                responseData.message.toLowerCase().includes('authentication failed')
+              )) ||
+              (responseData.error && (
+                responseData.error.toLowerCase().includes('invalid token') ||
+                responseData.error.toLowerCase().includes('token expired') ||
+                responseData.error.toLowerCase().includes('unauthorized') ||
+                responseData.error.toLowerCase().includes('authentication failed')
+              ));
+
+          if (isAuthError) {
+            
+            console.warn('Authentication error detected, triggering logout');
+            
+            // Show toast notification
+            showToast('Your session has expired. Please sign in again.', 'warning');
+            
+            // Show logout overlay and trigger global logout if available
+            if (globalSetLoggingOut && globalLogout) {
+              // Show overlay immediately
+              globalSetLoggingOut(true);
+              
+              // Use setTimeout to avoid blocking the current request
+              setTimeout(() => {
+                globalLogout!();
+              }, 0);
+            }
+          }
+          
           throw new Error(errorMessage);
         }
 

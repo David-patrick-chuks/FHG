@@ -255,7 +255,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </div>
               <Button 
-                onClick={() => window.location.href = '/payment'}
+                onClick={() => window.location.href = '/pricing'}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <CreditCard className="h-4 w-4 mr-2" />

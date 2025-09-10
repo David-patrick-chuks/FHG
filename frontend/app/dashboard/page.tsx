@@ -7,55 +7,42 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardAPI } from '@/lib/api';
 import { DashboardStats, RecentActivity } from '@/types';
 import {
-    Activity,
-    AlertTriangle,
-    BarChart3,
-    Bot,
-    CheckCircle,
-    Clock,
-    Crown,
-    Download,
-    FileText,
-    Mail,
-    Search,
-    TrendingUp,
-    Users,
-    XCircle,
-    Zap,
-    User,
-    UserPlus,
-    LogIn,
-    LogOut,
-    Settings,
-    Key,
-    Shield,
-    Play,
-    Pause,
-    Square,
-    Upload,
-    Eye,
-    AlertCircle,
-    Database,
-    Globe,
-    Link,
-    FileUp,
-    Target,
-    Send,
-    Calendar,
-    Timer,
-    RefreshCw,
-    Trash2,
-    Edit,
-    Copy,
-    ExternalLink,
-    Lock,
-    Unlock,
-    Star,
-    Heart,
-    ThumbsUp,
-    MessageSquare,
-    Bell,
-    Info
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  BarChart3,
+  Bell,
+  Bot,
+  CheckCircle,
+  Clock,
+  Crown,
+  Database,
+  Download,
+  ExternalLink,
+  Eye,
+  FileUp,
+  Globe,
+  Heart,
+  Key,
+  Link,
+  LogIn,
+  LogOut,
+  Mail,
+  Play,
+  RefreshCw,
+  Search,
+  Send,
+  Settings,
+  Shield,
+  Square,
+  Star,
+  Target,
+  Trash2,
+  TrendingUp,
+  UserPlus,
+  Users,
+  XCircle,
+  Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -525,9 +512,9 @@ export default function DashboardPage() {
               {user?.subscription || 'Free'}
             </p>
           </div>
-          {user?.subscription === 'free' && (
+          {user?.subscription.toUpperCase() === 'FREE' && (
             <Button
-              onClick={() => router.push('/payment')}
+              onClick={() => router.push('/pricing')}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               <Crown className="w-4 h-4 mr-2" />
