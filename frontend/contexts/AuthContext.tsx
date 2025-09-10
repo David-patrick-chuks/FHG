@@ -53,7 +53,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      // For profile check, 401 errors are expected for unauthenticated users
+      // Don't log this as an error, just set unauthenticated state
       setUser(null);
       setIsAuthenticated(false);
     } finally {

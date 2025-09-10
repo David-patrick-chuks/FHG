@@ -3,23 +3,23 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { MailQuillIcon } from '@/components/ui/MailQuillIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-    Bot,
-    LayoutDashboard,
-    LogOut,
-    Mail,
-    Menu,
-    User,
-    X
+  Bot,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  User,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

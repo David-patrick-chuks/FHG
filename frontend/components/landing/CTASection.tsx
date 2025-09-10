@@ -24,7 +24,7 @@ export function CTASection() {
       </div>
       
       <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center">
-        <AnimatedSection delay={0}>
+          <AnimatedSection delay={0}>
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
               <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
@@ -41,19 +41,19 @@ export function CTASection() {
                   Ready to send emails that
                   <span className="block bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                     people actually want to read?
-                  </span>
-                </h2>
-              </AnimatedSection>
-              
-              <AnimatedSection delay={200}>
+              </span>
+            </h2>
+          </AnimatedSection>
+          
+          <AnimatedSection delay={200}>
                 <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed px-4">
                   Stop sending emails that get ignored. Start building real relationships with your audience using MailQuill.
-                </p>
-              </AnimatedSection>
-        
+            </p>
+          </AnimatedSection>
+          
         <AnimatedSection delay={300}>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
-            {isAuthenticated ? (
+              {isAuthenticated ? (
               <Link href="/dashboard" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
@@ -61,22 +61,22 @@ export function CTASection() {
                 >
                   <span className="relative z-10 text-sm sm:text-base">Go to Dashboard</span>
                   <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            ) : (
-              <>
+                  </Button>
+                </Link>
+              ) : (
+                <>
                 <Link href="/signup" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30"
                   >
                     <span className="relative z-10 text-sm sm:text-base">Get Started</span>
-                     </Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </AnimatedSection>
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </AnimatedSection>
         
  
       </div>
