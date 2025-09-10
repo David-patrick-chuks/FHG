@@ -5,6 +5,8 @@ import express, { Application, Request } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import helmet from 'helmet';
 import { RequestLogger } from '../middleware/RequestLogger';
+import { WebhookBodyParser } from '../middleware/WebhookBodyParser';
+import { SecurityMiddleware } from '../middleware/SecurityMiddleware';
 
 export class MiddlewareService {
   /**
@@ -84,12 +86,22 @@ export class MiddlewareService {
     // Rate limiting
     app.use(this.createRateLimiter());
 
+    // Webhook body parsing (must be before regular JSON parsing)
+    app.use(WebhookBodyParser.captureRawBody);
+
     // Body parsing
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
     
     // Cookie parsing
     app.use(cookieParser());
+    
+    // Enhanced security middleware
+    app.use(SecurityMiddleware.generateRequestId);
+    app.use(SecurityMiddleware.enhancedSecurityHeaders);
+    app.use(SecurityMiddleware.logSecurityEvent);
+    app.use(SecurityMiddleware.detectSuspiciousActivity);
+    app.use(SecurityMiddleware.sanitizeResponse);
     
     // Request logging
     app.use(RequestLogger.log);

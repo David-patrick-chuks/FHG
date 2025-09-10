@@ -152,12 +152,34 @@ export class PaymentController {
         return;
       }
 
-      // Validate signature
-      const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+      // Get raw body for signature verification
+      // The raw body was captured by WebhookBodyParser middleware
+      const rawBody = (req as any).rawBody;
+      
+      if (!rawBody) {
+        PaymentController.logger.error('Raw body not available for webhook signature verification');
+        res.status(400).json({
+          success: false,
+          message: 'Raw body not available',
+          timestamp: new Date()
+        });
+        return;
+      }
+      
+      // Validate signature using raw body
+      const hash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
+      
+      PaymentController.logger.info('Webhook signature verification', {
+        receivedSignature: signature,
+        computedHash: hash,
+        signatureMatch: hash === signature
+      });
+
       if (hash !== signature) {
         PaymentController.logger.warn('Invalid webhook signature', {
           receivedSignature: signature,
-          computedHash: hash
+          computedHash: hash,
+          rawBodyLength: rawBody.length
         });
         res.status(400).json({
           success: false,

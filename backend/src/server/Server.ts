@@ -6,6 +6,7 @@ import { MiddlewareService } from '../services/MiddlewareService';
 import { RouteService } from '../services/RouteService';
 import { ServerLifecycleService } from '../services/ServerLifecycleService';
 import { EnvironmentValidationService } from '../services/EnvironmentValidationService';
+import { AuditService } from '../services/AuditService';
 import { Logger } from '../utils/Logger';
 
 export class Server {
@@ -62,6 +63,9 @@ export class Server {
    * Initialize the server with all middleware, routes, and error handling
    */
   private initializeServer(): void {
+    // Initialize services
+    AuditService.initialize();
+    
     MiddlewareService.setupMiddleware(this.app);
     this.routeService.setupRoutes(this.app);
     this.setupErrorHandling();
