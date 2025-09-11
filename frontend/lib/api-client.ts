@@ -4,6 +4,7 @@ import { config } from './config';
 // Global logout function that will be set by AuthContext
 let globalLogout: (() => void) | null = null;
 let globalSetLoggingOut: ((isLoggingOut: boolean) => void) | null = null;
+let isLogoutInProgress = false; // Flag to prevent multiple logout triggers
 
 export const setGlobalLogout = (logoutFn: () => void) => {
   globalLogout = logoutFn;
@@ -11,6 +12,10 @@ export const setGlobalLogout = (logoutFn: () => void) => {
 
 export const setGlobalSetLoggingOut = (setLoggingOutFn: (isLoggingOut: boolean) => void) => {
   globalSetLoggingOut = setLoggingOutFn;
+};
+
+export const resetLogoutFlag = () => {
+  isLogoutInProgress = false;
 };
 
 // Dynamic import for toast to avoid SSR issues
@@ -127,8 +132,9 @@ class ApiClient {
                 responseData.error.toLowerCase().includes('authentication failed')
               )));
 
-          if (isAuthError) {
+          if (isAuthError && !isLogoutInProgress) {
             console.warn('Authentication error detected, triggering logout');
+            isLogoutInProgress = true; // Set flag to prevent multiple triggers
             
             // Show toast notification
             showToast('Your session has expired. Please sign in again.', 'warning');
@@ -141,7 +147,14 @@ class ApiClient {
               // Use setTimeout to avoid blocking the current request
               setTimeout(() => {
                 globalLogout!();
+                // Reset flag after logout is called
+                setTimeout(() => {
+                  isLogoutInProgress = false;
+                }, 1000);
               }, 0);
+            } else {
+              // Reset flag if no logout function available
+              isLogoutInProgress = false;
             }
           }
           

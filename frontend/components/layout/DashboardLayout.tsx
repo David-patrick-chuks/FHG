@@ -17,6 +17,7 @@ import {
     Menu,
     Search,
     Shield,
+    Template,
     User,
     Users,
     X
@@ -44,6 +45,11 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
       label: 'Campaigns',
       href: '/dashboard/campaigns',
       icon: Mail,
+    },
+    {
+      label: 'Templates',
+      href: '/dashboard/templates',
+      icon: Template,
     },
     {
       label: 'Bots',
@@ -174,8 +180,8 @@ export function DashboardLayout({
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {(() => {
             const sidebarItems = getSidebarItems(unreadCount, user?.isAdmin);
-            const regularItems = sidebarItems.slice(0, 9); // First 9 items are regular
-            const adminItems = sidebarItems.slice(9); // Rest are admin items
+            const regularItems = sidebarItems.slice(0, 10); // First 10 items are regular (added Templates)
+            const adminItems = sidebarItems.slice(10); // Rest are admin items
             
             return (
               <>

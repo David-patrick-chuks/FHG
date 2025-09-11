@@ -5,8 +5,8 @@ import express, { Application, Request } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import helmet from 'helmet';
 import { RequestLogger } from '../middleware/RequestLogger';
-import { WebhookBodyParser } from '../middleware/WebhookBodyParser';
 import { SecurityMiddleware } from '../middleware/SecurityMiddleware';
+import { WebhookBodyParser } from '../middleware/WebhookBodyParser';
 
 export class MiddlewareService {
   /**
@@ -136,9 +136,10 @@ export class MiddlewareService {
       standardHeaders: true,
       legacyHeaders: false,
       skip: (req: Request) => {
-        // Skip rate limiting for health checks and admin endpoints (with proper auth)
+        // Skip rate limiting for health checks, dev endpoints, and admin endpoints (with proper auth)
         return req.path === '/health' || 
                req.path === '/api/health' ||
+               req.path.startsWith('/api/dev/') ||
                (req.path.startsWith('/api/admin') && (req as any).user?.isAdmin);
       },
       keyGenerator: (req: Request) => {

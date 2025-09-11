@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check if user is authenticated on mount
   useEffect(() => {
     checkAuthStatus();
-  }, [checkAuthStatus]);
+  }, []); // Remove checkAuthStatus from dependencies to prevent infinite loop
 
   // Login function
   const login = useCallback(async (credentials: LoginCredentials & { rememberMe?: boolean }) => {
@@ -149,6 +149,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Logout function
   const logout = useCallback(async () => {
+    // Prevent multiple logout calls
+    if (isLoggingOut) {
+      console.log('Logout already in progress, skipping...');
+      return;
+    }
+    
     try {
       // Show logout overlay
       setIsLoggingOut(true);
@@ -193,7 +199,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     setGlobalLogout(logout);
     setGlobalSetLoggingOut(setIsLoggingOut);
-  }, [logout]);
+  }, []); // Remove logout dependency to prevent re-registration on every render
 
   // Update user function
   const updateUser = useCallback((userData: Partial<User>) => {
