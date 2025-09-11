@@ -396,47 +396,6 @@ export class BotService {
     }
   }
 
-  public static async updateBotPrompt(botId: string, userId: string, prompt: string): Promise<ApiResponse<IBotDocument>> {
-    try {
-      const bot = await BotModel.findById(botId);
-      if (!bot) {
-        return {
-          success: false,
-          message: 'Bot not found',
-          timestamp: new Date()
-        };
-      }
-
-      // Check if bot belongs to user
-      if (bot.userId.toString() !== userId.toString()) {
-        return {
-          success: false,
-          message: 'Access denied',
-          timestamp: new Date()
-        };
-      }
-
-      // Update prompt
-      bot.prompt = prompt;
-      await bot.save();
-
-      BotService.logger.info('Bot prompt updated', { 
-        botId: bot._id, 
-        userId, 
-        botName: bot.name 
-      });
-      
-      return {
-        success: true,
-        message: 'Bot prompt updated successfully',
-        data: bot,
-        timestamp: new Date()
-      };
-    } catch (error) {
-      BotService.logger.error('Error updating bot prompt:', error);
-      throw error;
-    }
-  }
 
   public static async getBotStats(botId: string, userId: string): Promise<ApiResponse<{
     totalEmailsSent: number;

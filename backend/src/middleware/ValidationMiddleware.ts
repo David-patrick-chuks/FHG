@@ -172,7 +172,7 @@ export class ValidationMiddleware {
 
   public static validateCreateBot(req: Request, res: Response, next: NextFunction): void {
     try {
-      const { name, email, password, prompt } = req.body;
+      const { name, email, password } = req.body;
       const errors: string[] = [];
 
       // Validate name
@@ -194,14 +194,6 @@ export class ValidationMiddleware {
         errors.push('Password is required');
       }
 
-      // Validate prompt (optional)
-      if (prompt && prompt.trim().length > 0 && prompt.trim().length < 10) {
-        errors.push('Bot prompt must be at least 10 characters long if provided');
-      }
-
-      if (prompt && prompt.trim().length > 1000) {
-        errors.push('Bot prompt must be no more than 1000 characters long');
-      }
 
       if (errors.length > 0) {
         res.status(400).json({
@@ -216,7 +208,6 @@ export class ValidationMiddleware {
       // Sanitize inputs
       req.body.name = ValidationMiddleware.sanitizeString(name);
       req.body.email = ValidationMiddleware.sanitizeEmail(email);
-      req.body.prompt = ValidationMiddleware.sanitizeString(prompt);
 
       next();
     } catch (error) {
@@ -231,7 +222,7 @@ export class ValidationMiddleware {
 
   public static validateCreateCampaign(req: Request, res: Response, next: NextFunction): void {
     try {
-      const { name, description, emailList, prompt, botId } = req.body;
+      const { name, description, emailList, botId } = req.body;
       const errors: string[] = [];
 
       // Validate name
@@ -263,10 +254,6 @@ export class ValidationMiddleware {
         }
       }
 
-      // Validate prompt (optional)
-      if (prompt && prompt.trim().length > 1000) {
-        errors.push('Campaign prompt must be no more than 1000 characters long');
-      }
 
       // Validate bot ID
       if (!botId) {
@@ -288,9 +275,6 @@ export class ValidationMiddleware {
       if (description) {
         req.body.description = ValidationMiddleware.sanitizeString(description);
       }
-      if (prompt) {
-        req.body.prompt = ValidationMiddleware.sanitizeString(prompt);
-      }
       req.body.emailList = emailList.map((email: string) => ValidationMiddleware.sanitizeEmail(email));
 
       next();
@@ -306,7 +290,7 @@ export class ValidationMiddleware {
 
   public static validateUpdateCampaign(req: Request, res: Response, next: NextFunction): void {
     try {
-      const { name, description, emailList, prompt } = req.body;
+      const { name, description, emailList } = req.body;
       const errors: string[] = [];
 
       // Validate name (optional in updates)
@@ -342,10 +326,6 @@ export class ValidationMiddleware {
         }
       }
 
-      // Validate prompt (optional)
-      if (prompt !== undefined && prompt.trim().length > 1000) {
-        errors.push('Campaign prompt must be no more than 1000 characters long');
-      }
 
       if (errors.length > 0) {
         res.status(400).json({
@@ -363,9 +343,6 @@ export class ValidationMiddleware {
       }
       if (description !== undefined) {
         req.body.description = ValidationMiddleware.sanitizeString(description);
-      }
-      if (prompt !== undefined) {
-        req.body.prompt = ValidationMiddleware.sanitizeString(prompt);
       }
       if (emailList !== undefined) {
         req.body.emailList = emailList.map((email: string) => ValidationMiddleware.sanitizeEmail(email));

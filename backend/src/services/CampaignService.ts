@@ -24,6 +24,13 @@ export class CampaignService {
       botId: campaignObj.botId.toString(),
       aiMessages: campaignObj.aiMessages,
       status: campaignObj.status,
+      selectedMessageIndex: campaignObj.selectedMessageIndex,
+      scheduledFor: campaignObj.scheduledFor?.toISOString(),
+      isScheduled: campaignObj.isScheduled,
+      emailInterval: campaignObj.emailInterval,
+      emailIntervalUnit: campaignObj.emailIntervalUnit,
+      startedAt: campaignObj.startedAt?.toISOString(),
+      completedAt: campaignObj.completedAt?.toISOString(),
       createdAt: campaignObj.createdAt?.toISOString(),
       updatedAt: campaignObj.updatedAt?.toISOString()
     };
@@ -81,7 +88,7 @@ export class CampaignService {
 
       // Generate AI messages
       const aiResult = await AIService.generateEmailMessages(
-        bot.prompt,
+        'Generate professional email content for this campaign',
         user.getMaxAIMessageVariations()
       );
 
@@ -93,12 +100,18 @@ export class CampaignService {
         };
       }
 
-      // Create campaign
+      // Create campaign with optional scheduling and interval settings
       const campaign = new CampaignModel({
         ...campaignData,
         userId,
         aiMessages: aiResult.data,
-        status: CampaignStatus.DRAFT
+        status: CampaignStatus.DRAFT,
+        // Handle optional scheduling
+        scheduledFor: campaignData.scheduledFor,
+        isScheduled: !!campaignData.scheduledFor,
+        // Handle optional email intervals
+        emailInterval: campaignData.emailInterval || 0,
+        emailIntervalUnit: campaignData.emailIntervalUnit || 'minutes'
       });
 
       await campaign.save();
@@ -506,11 +519,27 @@ export class CampaignService {
       // Use scheduled time if campaign is scheduled, otherwise start immediately
       const startTime = campaign.isScheduled && campaign.scheduledFor ? campaign.scheduledFor : new Date();
       
+      // Calculate email interval in milliseconds
+      let emailIntervalMs = 0; // Default: send all at once
+      if (campaign.emailInterval > 0) {
+        switch (campaign.emailIntervalUnit) {
+          case 'seconds':
+            emailIntervalMs = campaign.emailInterval * 1000;
+            break;
+          case 'minutes':
+            emailIntervalMs = campaign.emailInterval * 60 * 1000;
+            break;
+          case 'hours':
+            emailIntervalMs = campaign.emailInterval * 60 * 60 * 1000;
+            break;
+        }
+      }
+      
       await QueueService.addBulkEmailJobs(
         campaignId,
         campaign.botId,
         emailJobs,
-        60000, // 1 minute delay between emails
+        emailIntervalMs,
         startTime
       );
 
@@ -520,7 +549,10 @@ export class CampaignService {
         campaignName: campaign.name,
         emailCount: campaign.emailList.length,
         isScheduled: campaign.isScheduled,
-        scheduledFor: campaign.scheduledFor
+        scheduledFor: campaign.scheduledFor,
+        emailInterval: campaign.emailInterval,
+        emailIntervalUnit: campaign.emailIntervalUnit,
+        emailIntervalMs
       });
 
       return {
@@ -735,7 +767,7 @@ export class CampaignService {
     }
   }
 
-  public static async regenerateAIMessages(campaignId: string, userId: string, prompt?: string): Promise<ApiResponse<ICampaignDocument>> {
+  public static async regenerateAIMessages(campaignId: string, userId: string): Promise<ApiResponse<ICampaignDocument>> {
     try {
       const campaign = await CampaignModel.findById(campaignId);
       if (!campaign) {
@@ -785,7 +817,7 @@ export class CampaignService {
       }
 
       const aiResult = await AIService.generateEmailMessages(
-        prompt || bot.prompt,
+        'Generate professional email content for this campaign',
         user.getMaxAIMessageVariations()
       );
 

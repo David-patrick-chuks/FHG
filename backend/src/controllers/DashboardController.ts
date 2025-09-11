@@ -155,14 +155,14 @@ export class DashboardController {
       if (result.success && result.data) {
         // Transform activities to match frontend expectations
         const activities = result.data.map(activity => ({
-          id: activity._id,
+          id: activity._id.toString(),
           type: activity.type,
           title: activity.title,
           description: activity.description,
           time: DashboardController.formatTimeAgo(activity.timestamp),
-          timestamp: activity.timestamp,
+          timestamp: activity.timestamp.toISOString(),
           isRead: activity.isRead,
-          readAt: activity.readAt,
+          readAt: activity.readAt ? activity.readAt.toISOString() : null,
           metadata: activity.metadata
         }));
 

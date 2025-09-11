@@ -6,7 +6,6 @@ export interface CreateBotRequest {
   description: string;
   email: string;
   password: string;
-  prompt?: string;
   profileImage?: string;
 }
 
@@ -15,7 +14,6 @@ export interface UpdateBotRequest {
   description?: string;
   email?: string;
   password?: string;
-  prompt?: string;
   isActive?: boolean;
   profileImage?: string;
 }

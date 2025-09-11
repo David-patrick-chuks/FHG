@@ -1,6 +1,7 @@
 'use client';
 
-import { AIConfigurationStep } from '@/components/dashboard/campaigns/AIConfigurationStep';
+import { CampaignScheduler } from '@/components/campaigns/CampaignScheduler';
+import { EmailIntervalSelector } from '@/components/campaigns/EmailIntervalSelector';
 import { CampaignBasicsStep } from '@/components/dashboard/campaigns/CampaignBasicsStep';
 import { CampaignProgressSteps } from '@/components/dashboard/campaigns/CampaignProgressSteps';
 import { TargetAudienceStep } from '@/components/dashboard/campaigns/TargetAudienceStep';
@@ -45,7 +46,8 @@ export default function CreateCampaignPage() {
   const steps = [
     { id: 1, title: 'Campaign Basics', description: 'Set up your campaign foundation' },
     { id: 2, title: 'Target Audience', description: 'Define who will receive your emails' },
-    { id: 3, title: 'AI Configuration', description: 'Configure your AI email bot' }
+    { id: 3, title: 'AI Configuration', description: 'Configure your AI email bot' },
+    { id: 4, title: 'Schedule & Timing', description: 'Set when and how often to send emails' }
   ];
 
   return (
@@ -111,18 +113,47 @@ export default function CreateCampaignPage() {
             />
           )}
 
-          {/* Step 3: AI Configuration */}
+          {/* Step 3: Schedule & Timing */}
           {currentStep === 3 && (
-            <AIConfigurationStep
-              formData={{
-                aiPrompt: formData.aiPrompt
-              }}
-              onFormDataChange={updateFormData}
-              isFormDisabled={isFormDisabled}
-              creating={creating}
-              onBack={() => setCurrentStep(2)}
-              onCreateCampaign={handleCreateCampaign}
-            />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CampaignScheduler
+                  campaignId=""
+                  onSchedule={(scheduledFor) => updateFormData({ scheduledFor })}
+                  onStartNow={() => updateFormData({ scheduledFor: undefined })}
+                  isScheduled={!!formData.scheduledFor}
+                  scheduledFor={formData.scheduledFor}
+                  disabled={isFormDisabled}
+                />
+                
+                <EmailIntervalSelector
+                  emailInterval={formData.emailInterval}
+                  emailIntervalUnit={formData.emailIntervalUnit}
+                  onIntervalChange={(interval, unit) => updateFormData({ emailInterval: interval, emailIntervalUnit: unit })}
+                  disabled={isFormDisabled}
+                />
+              </div>
+              
+              <div className="flex justify-between pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(2)}
+                  disabled={isFormDisabled}
+                  className="h-12 px-8"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Target Audience
+                </Button>
+                
+                <Button
+                  onClick={handleCreateCampaign}
+                  disabled={!canCreateCampaign || isFormDisabled}
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
+                >
+                  {creating ? 'Creating Campaign...' : 'Create Campaign'}
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </div>

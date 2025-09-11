@@ -441,4 +441,415 @@ export class PaystackService {
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     return `MailQuill_${timestamp}_${random}`;
   }
+
+  /**
+   * Generate digital receipt for a payment
+   */
+  public static async generateReceipt(
+    userId: string,
+    reference: string
+  ): Promise<ApiResponse<Buffer>> {
+    try {
+      // Find payment record
+      const payment = await PaymentModel.findByReference(reference);
+      if (!payment) {
+        return {
+          success: false,
+          message: 'Payment not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Verify user owns this payment
+      if (payment.userId !== userId) {
+        return {
+          success: false,
+          message: 'Unauthorized access to payment',
+          timestamp: new Date()
+        };
+      }
+
+      // Get user details
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Generate PDF receipt using a simple HTML template
+      const receiptHtml = PaystackService.generateReceiptHTML(payment, user);
+      const pdfBuffer = await PaystackService.generatePDF(receiptHtml);
+
+      return {
+        success: true,
+        message: 'Receipt generated successfully',
+        data: pdfBuffer,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      PaystackService.logger.error('Error generating receipt:', error);
+      return {
+        success: false,
+        message: 'Failed to generate receipt',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Get current subscription details
+   */
+  public static async getCurrentSubscription(userId: string): Promise<ApiResponse<any>> {
+    try {
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      const subscriptionData = {
+        tier: user.subscription,
+        billingCycle: user.billingCycle,
+        isActive: user.hasActiveSubscription(),
+        expiresAt: user.subscriptionExpiresAt?.toISOString(),
+        features: PaystackService.getSubscriptionFeatures(user.subscription),
+        limits: {
+          maxBots: user.getMaxBots ? user.getMaxBots() : 0,
+          maxCampaigns: user.getMaxCampaigns ? user.getMaxCampaigns() : 0,
+          maxAIMessageVariations: user.getMaxAIMessageVariations ? user.getMaxAIMessageVariations() : 0,
+          maxEmailExtractions: 0 // Method not implemented yet
+        }
+      };
+
+      return {
+        success: true,
+        message: 'Subscription details retrieved successfully',
+        data: subscriptionData,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      PaystackService.logger.error('Error getting current subscription:', error);
+      return {
+        success: false,
+        message: 'Failed to retrieve subscription details',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Cancel subscription
+   */
+  public static async cancelSubscription(
+    userId: string,
+    reason?: string
+  ): Promise<ApiResponse<any>> {
+    try {
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Update user subscription to free
+      user.subscription = SubscriptionTier.FREE;
+      user.billingCycle = BillingCycle.MONTHLY;
+      user.subscriptionExpiresAt = new Date();
+      await user.save();
+
+      // Log activity
+      await ActivityService.logUserActivity(
+        userId,
+        ActivityType.SUBSCRIPTION_CANCELLED,
+        `Subscription cancelled. Reason: ${reason || 'No reason provided'}`
+      );
+
+      PaystackService.logger.info(`Subscription cancelled for user ${userId}`, { reason });
+
+      return {
+        success: true,
+        message: 'Subscription cancelled successfully',
+        data: {
+          newTier: 'free',
+          cancelledAt: new Date().toISOString()
+        },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      PaystackService.logger.error('Error cancelling subscription:', error);
+      return {
+        success: false,
+        message: 'Failed to cancel subscription',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Check if user can upgrade (hide upgrade banner for highest tier)
+   */
+  public static async canUpgrade(userId: string): Promise<ApiResponse<{ canUpgrade: boolean; currentTier: string; highestTier: string }>> {
+    try {
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          timestamp: new Date()
+        };
+      }
+
+      const currentTier = user.subscription;
+      const highestTier = 'enterprise';
+      const canUpgrade = currentTier !== highestTier;
+
+      return {
+        success: true,
+        message: 'Upgrade eligibility checked successfully',
+        data: {
+          canUpgrade,
+          currentTier,
+          highestTier
+        },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      PaystackService.logger.error('Error checking upgrade eligibility:', error);
+      return {
+        success: false,
+        message: 'Failed to check upgrade eligibility',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  /**
+   * Generate receipt HTML template
+   */
+  private static generateReceiptHTML(payment: any, user: any): string {
+    const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`;
+    const formatDate = (date: Date) => date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Payment Receipt - MailQuill</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+          }
+          .receipt-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+          }
+          .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+          }
+          .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          .receipt-title {
+            font-size: 24px;
+            margin: 0;
+            opacity: 0.9;
+          }
+          .content {
+            padding: 40px;
+          }
+          .receipt-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+          }
+          .info-section h3 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+          }
+          .info-label {
+            color: #6b7280;
+            font-weight: 500;
+          }
+          .info-value {
+            color: #111827;
+            font-weight: 600;
+          }
+          .amount-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+          }
+          .amount-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 5px;
+          }
+          .amount-value {
+            color: #059669;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+          }
+          .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+          }
+          .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          <div class="header">
+            <div class="logo">📧 MailQuill</div>
+            <h1 class="receipt-title">Payment Receipt</h1>
+          </div>
+          
+          <div class="content">
+            <div class="receipt-info">
+              <div class="info-section">
+                <h3>Payment Details</h3>
+                <div class="info-item">
+                  <span class="info-label">Reference:</span>
+                  <span class="info-value">${payment.reference}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Date:</span>
+                  <span class="info-value">${formatDate(payment.createdAt)}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Paid:</span>
+                  <span class="info-value">${payment.paidAt ? formatDate(payment.paidAt) : 'Pending'}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Status:</span>
+                  <span class="info-value">
+                    <span class="status-badge status-completed">${payment.status}</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div class="info-section">
+                <h3>Customer Details</h3>
+                <div class="info-item">
+                  <span class="info-label">Name:</span>
+                  <span class="info-value">${user.username}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Email:</span>
+                  <span class="info-value">${user.email}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Plan:</span>
+                  <span class="info-value">${payment.subscriptionTier.toUpperCase()}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Billing:</span>
+                  <span class="info-value">${payment.billingCycle}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="amount-section">
+              <div class="amount-label">Total Amount</div>
+              <div class="amount-value">${formatCurrency(payment.amount)}</div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>Thank you for choosing MailQuill! 🚀</p>
+            <p>For support, visit <a href="https://mailquill.com">mailquill.com</a></p>
+            <p>This is an automated receipt. No signature required.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate PDF from HTML
+   */
+  private static async generatePDF(html: string): Promise<Buffer> {
+    // For now, return a simple text representation
+    // In production, you would use a library like puppeteer or html-pdf
+    const textContent = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return Buffer.from(textContent, 'utf-8');
+  }
+
+  /**
+   * Get subscription features
+   */
+  private static getSubscriptionFeatures(tier: string): string[] {
+    const features = {
+      free: ['2 Bots', '2 Campaigns', '10 AI Variations', '10 Email Extractions'],
+      pro: ['10 Bots', '10 Campaigns', '20 AI Variations', '100 Email Extractions'],
+      enterprise: ['50 Bots', '50 Campaigns', '50 AI Variations', 'Unlimited Email Extractions']
+    };
+    return features[tier as keyof typeof features] || features.free;
+  }
 }

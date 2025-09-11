@@ -6,24 +6,29 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PaymentAPI, PaymentHistory } from '@/lib/api/payment';
 import {
-    CheckCircle,
-    Clock,
-    CreditCard,
-    Crown,
-    ExternalLink,
-    Loader2,
-    XCircle,
-    Zap
+  CheckCircle,
+  Clock,
+  CreditCard,
+  Crown,
+  Download,
+  Loader2,
+  Settings,
+  XCircle,
+  Zap
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function UserPaymentsPage() {
+  const router = useRouter();
   const [payments, setPayments] = useState<PaymentHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canUpgrade, setCanUpgrade] = useState(true);
 
   useEffect(() => {
     fetchPayments();
+    checkUpgradeEligibility();
   }, []);
 
   const fetchPayments = async () => {
@@ -40,6 +45,47 @@ export default function UserPaymentsPage() {
       toast.error('Failed to load payment history');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkUpgradeEligibility = async () => {
+    try {
+      const response = await PaymentAPI.canUpgrade();
+      if (response.success && response.data) {
+        setCanUpgrade(response.data.canUpgrade);
+      }
+    } catch (error) {
+      console.error('Error checking upgrade eligibility:', error);
+      // Default to showing upgrade banner if API fails
+      setCanUpgrade(true);
+    }
+  };
+
+  const handleDownloadReceipt = async (reference: string) => {
+    try {
+      const response = await fetch(`/api/payments/receipt/${reference}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${reference}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Receipt downloaded successfully');
+      } else {
+        toast.error('Failed to download receipt');
+      }
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error('Failed to download receipt');
     }
   };
 
@@ -89,7 +135,6 @@ export default function UserPaymentsPage() {
     }
   };
 
-
   if (loading) {
     return (
       <DashboardLayout
@@ -107,30 +152,42 @@ export default function UserPaymentsPage() {
     <DashboardLayout
       title="Payment History"
       description="View your payment transactions and subscription history"
+      actions={
+        <Button
+          variant="outline"
+          onClick={() => router.push('/dashboard/payments/subscription')}
+          className="flex items-center gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          Manage Subscription
+        </Button>
+      }
     >
       <div className="space-y-6">
-        {/* Upgrade Section */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Need to upgrade your plan?
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Access more features and higher limits with our premium plans.
-                </p>
+        {/* Upgrade Section - Only show if user can upgrade */}
+        {canUpgrade && (
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Need to upgrade your plan?
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Access more features and higher limits with our premium plans.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => window.location.href = '/pricing'}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Upgrade Now
+                </Button>
               </div>
-              <Button
-                onClick={() => window.location.href = '/pricing'}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Upgrade Now
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Payment List */}
         <Card>
@@ -173,14 +230,14 @@ export default function UserPaymentsPage() {
                       <div className="mt-2">
                         {getStatusBadge(payment.status)}
                       </div>
-                      {payment.status === 'completed' && payment.authorizationUrl && (
+                      {payment.status === 'completed' && (
                         <Button
                           variant="outline"
                           size="sm"
                           className="mt-2"
-                          onClick={() => window.open(payment.authorizationUrl, '_blank')}
+                          onClick={() => handleDownloadReceipt(payment.reference)}
                         >
-                          <ExternalLink className="w-3 h-3 mr-1" />
+                          <Download className="w-3 h-3 mr-1" />
                           Receipt
                         </Button>
                       )}
@@ -228,7 +285,7 @@ export default function UserPaymentsPage() {
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => window.location.href = '/payment'}
+                  onClick={() => router.push('/dashboard/payments/subscription')}
                 >
                   Manage Subscription
                 </Button>

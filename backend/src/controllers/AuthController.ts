@@ -114,7 +114,7 @@ export class AuthController {
           data: {
             user: serializedUserData
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date()
         });
 
         // Log user registration activity
@@ -185,7 +185,7 @@ export class AuthController {
           data: {
             user: serializedUserData
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date()
         });
 
         // Log user login activity
@@ -242,7 +242,7 @@ export class AuthController {
           success: true,
           message: 'Profile retrieved successfully',
           data: serializedUserData,
-          timestamp: new Date().toISOString()
+          timestamp: new Date()
         });
       } else {
         res.status(404).json(result);
@@ -310,7 +310,7 @@ export class AuthController {
           success: true,
           message: result.message, // Use the message from UserService
           data: serializedUserData,
-          timestamp: new Date().toISOString()
+          timestamp: new Date()
         });
       } else {
         res.status(400).json(result);

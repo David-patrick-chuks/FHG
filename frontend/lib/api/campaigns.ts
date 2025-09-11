@@ -6,6 +6,9 @@ export interface CreateCampaignRequest {
   description: string;
   botId: string;
   emailList: string[];
+  scheduledFor?: Date; // Optional: when to start the campaign
+  emailInterval?: number; // Optional: delay between emails (0 = send all at once)
+  emailIntervalUnit?: 'seconds' | 'minutes' | 'hours'; // Optional: unit for interval
 }
 
 export interface UpdateCampaignRequest {
@@ -147,14 +150,14 @@ export class CampaignsAPI {
   }
 
   // Campaign content management
-  static async regenerateAIMessages(id: string, prompt?: string): Promise<ApiResponse<{
+  static async regenerateAIMessages(id: string): Promise<ApiResponse<{
     messages: string[];
     selectedMessageIndex: number;
   }>> {
     return apiClient.post<{
       messages: string[];
       selectedMessageIndex: number;
-    }>(`/campaigns/${id}/regenerate-messages`, { prompt });
+    }>(`/campaigns/${id}/regenerate-messages`, {});
   }
 
   static async selectMessage(id: string, messageIndex: number): Promise<ApiResponse<{

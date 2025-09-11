@@ -91,4 +91,11 @@ export class PaymentAPI {
   static async getPaymentStats(): Promise<ApiResponse<PaymentStats>> {
     return apiClient.get<PaymentStats>(`${this.baseUrl}/stats`);
   }
+
+  /**
+   * Check if user can upgrade their subscription
+   */
+  static async canUpgrade(): Promise<ApiResponse<{ canUpgrade: boolean }>> {
+    return apiClient.get<{ canUpgrade: boolean }>(`${this.baseUrl}/can-upgrade`);
+  }
 }

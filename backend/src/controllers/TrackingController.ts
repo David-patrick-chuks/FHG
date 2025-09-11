@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
-import { Logger } from '../utils/Logger';
 import { TrackingService } from '../services/TrackingService';
+import { Logger } from '../utils/Logger';
 
 export class TrackingController {
   private static logger: Logger = new Logger();

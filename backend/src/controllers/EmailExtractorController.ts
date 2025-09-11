@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { EmailExtractorCore } from '../services/email-extractor/EmailExtractorCore';
 import { EmailExtractorActivityService } from '../services/EmailExtractorActivityService';
+import { FileUploadService } from '../services/FileUploadService';
 import { SubscriptionLimitsService } from '../services/SubscriptionLimitsService';
 import { ValidationService } from '../services/ValidationService';
-import { FileUploadService } from '../services/FileUploadService';
 import { Logger } from '../utils/Logger';
 
 export class EmailExtractorController {

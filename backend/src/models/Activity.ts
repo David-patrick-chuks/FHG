@@ -69,6 +69,14 @@ export enum ActivityType {
   PAYMENT_CANCELLED = 'payment_cancelled',
   PAYMENT_REFUNDED = 'payment_refunded',
   
+  // Template Activities
+  TEMPLATE_CREATED = 'template_created',
+  TEMPLATE_PUBLISHED = 'template_published',
+  TEMPLATE_APPROVED = 'template_approved',
+  TEMPLATE_REJECTED = 'template_rejected',
+  TEMPLATE_USED = 'template_used',
+  TEMPLATE_REVIEWED = 'template_reviewed',
+  
   // Email Extractor Activities
   EMAIL_EXTRACTION_STARTED = 'email_extraction_started',
   EMAIL_EXTRACTION_COMPLETED = 'email_extraction_completed',

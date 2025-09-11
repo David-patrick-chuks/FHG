@@ -98,6 +98,17 @@ export class CampaignModel {
       isScheduled: {
         type: Boolean,
         default: false
+      },
+      emailInterval: {
+        type: Number,
+        default: 0, // 0 means no interval (send all at once)
+        min: 0,
+        max: 1440 // Maximum 24 hours (1440 minutes)
+      },
+      emailIntervalUnit: {
+        type: String,
+        enum: ['seconds', 'minutes', 'hours'],
+        default: 'minutes'
       }
     }, {
       timestamps: true

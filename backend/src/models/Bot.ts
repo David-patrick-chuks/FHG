@@ -63,13 +63,6 @@ export class BotModel {
         required: true
         // Note: This will be encrypted by the service layer
       },
-      prompt: {
-        type: String,
-        required: false,
-        trim: true,
-        minlength: 10,
-        maxlength: 2000
-      },
       isActive: {
         type: Boolean,
         default: true

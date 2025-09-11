@@ -19,8 +19,7 @@ export default function CreateBotPage() {
     name: '',
     description: '',
     email: '',
-    password: '',
-    prompt: ''
+    password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -30,14 +29,12 @@ export default function CreateBotPage() {
 
   const steps = [
     { id: 1, title: 'Basic Info', description: 'Set up your bot foundation' },
-    { id: 2, title: 'AI Configuration', description: 'Configure your AI settings' },
-    { id: 3, title: 'Email Setup', description: 'Configure email credentials' }
+    { id: 2, title: 'Email Setup', description: 'Configure email credentials' }
   ];
 
   // Validation functions
-  const canProceedToStep2 = formData.name.trim() && formData.name.length <= 50 && formData.email.trim();
-  const canProceedToStep3 = canProceedToStep2 && formData.description.length <= 200;
-  const canCreateBot = canProceedToStep3 && verificationStatus === 'success';
+  const canProceedToStep2 = formData.name.trim() && formData.name.length <= 50 && formData.email.trim() && formData.description.length <= 200;
+  const canCreateBot = canProceedToStep2 && verificationStatus === 'success';
 
 
   const handleVerifyCredentials = async () => {
@@ -123,8 +120,7 @@ export default function CreateBotPage() {
           name: formData.name,
           description: formData.description,
           email: formData.email,
-        password: formData.password,
-        prompt: formData.prompt
+        password: formData.password
       });
 
       if (response.success) {
@@ -324,100 +320,6 @@ export default function CreateBotPage() {
                 disabled={!canProceedToStep2}
                 className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
               >
-                Continue to AI Configuration
-                <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-              </Button>
-            </div>
-          </Card>
-          )}
-
-          {/* Step 2: AI Configuration */}
-          {currentStep === 2 && (
-            <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <BotIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <span className="text-xl">AI Configuration</span>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
-                    Customize how your bot writes emails
-                  </p>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-
-              <div className="space-y-2">
-                <Label htmlFor="prompt" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  AI Prompt <span className="text-gray-500 font-normal">(Optional)</span>
-                </Label>
-                <Textarea
-                  id="prompt"
-                  value={formData.prompt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, prompt: e.target.value }))}
-                  placeholder="Enter the AI prompt for this bot...&#10;Example: Write professional, friendly emails that focus on building relationships with potential customers"
-                  rows={4}
-                  maxLength={1000}
-                  className={`resize-none border border-gray-300 dark:border-gray-600 focus:ring-1 ${
-                    formData.prompt.trim() && formData.prompt.trim().length < 10
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                      : formData.prompt.length > 900
-                      ? 'border-orange-300 focus:border-orange-500 focus:ring-orange-500'
-                      : 'focus:border-purple-500 focus:ring-purple-500'
-                  }`}
-                />
-                <div className="flex justify-between text-xs">
-                  <div>
-                    {formData.prompt.trim() && formData.prompt.trim().length < 10 && (
-                      <span className="text-red-500 font-medium">
-                        AI prompt must be at least 10 characters long if provided
-                      </span>
-                    )}
-                    {formData.prompt.trim() && formData.prompt.trim().length >= 10 && (
-                      <span className="text-green-500 font-medium">
-                        ✓ AI prompt is valid
-                      </span>
-                    )}
-                  </div>
-                  <span className={`${
-                    formData.prompt.length > 900 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {formData.prompt.length}/1000
-                  </span>
-                </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
-                  <div className="flex items-start space-x-2">
-                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
-                      <span className="text-white text-xs font-bold">i</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                        AI Prompt Guidelines
-                      </p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300">
-                        Define how your bot writes emails. Be specific about tone, style, and goals. This field is optional.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-            <div className="flex justify-between p-6 pt-0">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(1)}
-                className="h-12 px-6"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Basic Info
-              </Button>
-              <Button
-                onClick={() => setCurrentStep(3)}
-                disabled={!canProceedToStep3}
-                className="h-12 px-8 bg-purple-600 hover:bg-purple-700"
-              >
                 Continue to Email Setup
                 <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
               </Button>
@@ -425,8 +327,8 @@ export default function CreateBotPage() {
           </Card>
           )}
 
-          {/* Step 3: Email Setup */}
-          {currentStep === 3 && (
+          {/* Step 2: Email Setup */}
+          {currentStep === 2 && (
             <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-3">

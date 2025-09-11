@@ -54,7 +54,7 @@ export class ApiKeyController {
           createdAt: user.apiKeyCreatedAt?.toISOString(),
           lastUsed: user.apiKeyLastUsed?.toISOString()
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       });
     } catch (error) {
       ApiKeyController.logger.error('Error generating API key:', error);
@@ -110,7 +110,7 @@ export class ApiKeyController {
           createdAt: user.apiKeyCreatedAt?.toISOString(),
           lastUsed: user.apiKeyLastUsed?.toISOString()
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       });
     } catch (error) {
       ApiKeyController.logger.error('Error getting API key info:', error);
@@ -172,7 +172,7 @@ export class ApiKeyController {
       res.status(200).json({
         success: true,
         message: 'API key revoked successfully',
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       });
     } catch (error) {
       ApiKeyController.logger.error('Error revoking API key:', error);

@@ -80,7 +80,6 @@ export interface Bot extends BaseEntity {
   description: string;
   email: string;
   password: string; // encrypted
-  prompt: string;
   isActive: boolean;
   dailyEmailCount: number;
   lastEmailSentAt?: Date;
@@ -124,6 +123,115 @@ export interface Campaign extends BaseEntity {
   completedAt?: Date;
   scheduledFor?: Date;
   isScheduled: boolean;
+  emailInterval: number; // 0 means no interval (send all at once)
+  emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
+}
+
+export interface CreateCampaignRequest {
+  name: string;
+  description: string;
+  botId: string;
+  emailList: string[];
+  scheduledFor?: Date; // Optional: when to start the campaign
+  emailInterval?: number; // Optional: delay between emails (0 = send all at once)
+  emailIntervalUnit?: 'seconds' | 'minutes' | 'hours'; // Optional: unit for interval
+}
+
+// Template types
+export type TemplateStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'published' | 'archived';
+
+export type TemplateCategory = 
+  | 'sales' 
+  | 'marketing' 
+  | 'follow_up' 
+  | 'cold_outreach' 
+  | 'networking' 
+  | 'partnership' 
+  | 'customer_success' 
+  | 'recruitment' 
+  | 'event_invitation' 
+  | 'thank_you' 
+  | 'apology' 
+  | 'reminder' 
+  | 'introduction' 
+  | 'proposal' 
+  | 'feedback_request' 
+  | 'other';
+
+export interface TemplateVariable {
+  name: string;
+  description: string;
+  required: boolean;
+  defaultValue?: string;
+}
+
+export interface TemplateSample {
+  _id: string;
+  title: string;
+  content: string;
+  useCase: string;
+  variables: TemplateVariable[];
+  createdAt: Date;
+}
+
+export interface TemplateReview {
+  _id: string;
+  userId: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+}
+
+export interface Template extends BaseEntity {
+  userId: string;
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  industry?: string;
+  targetAudience?: string;
+  status: TemplateStatus;
+  isPublic: boolean;
+  isApproved: boolean;
+  approvedBy?: string;
+  approvedAt?: Date;
+  rejectionReason?: string;
+  samples: TemplateSample[];
+  tags: string[];
+  usageCount: number;
+  rating: {
+    average: number;
+    count: number;
+  };
+  reviews: TemplateReview[];
+  featured: boolean;
+  featuredAt?: Date;
+}
+
+export interface CreateTemplateRequest {
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  industry?: string;
+  targetAudience?: string;
+  isPublic: boolean;
+  samples: Omit<TemplateSample, '_id' | 'createdAt'>[];
+  tags: string[];
+}
+
+export interface UpdateTemplateRequest {
+  name?: string;
+  description?: string;
+  category?: TemplateCategory;
+  industry?: string;
+  targetAudience?: string;
+  isPublic?: boolean;
+  samples?: Omit<TemplateSample, '_id' | 'createdAt'>[];
+  tags?: string[];
+}
+
+export interface ReviewTemplateRequest {
+  rating: number;
+  comment?: string;
 }
 
 

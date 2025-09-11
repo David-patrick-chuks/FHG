@@ -632,8 +632,6 @@ export class CampaignController {
     try {
       const userId = (req as any).user['id'];
       const campaignId = req.params['id'];
-      const { prompt } = req.body;
-
       if (!campaignId) {
         res.status(400).json({
           success: false,
@@ -643,24 +641,13 @@ export class CampaignController {
         return;
       }
 
-      // Validate prompt if provided
-      if (prompt && prompt.trim().length > 1000) {
-        res.status(400).json({
-          success: false,
-          message: 'Prompt must be no more than 1000 characters long',
-          timestamp: new Date()
-        });
-        return;
-      }
-
       CampaignController.logger.info('AI message regeneration request', {
         userId,
         campaignId,
-        hasCustomPrompt: !!prompt,
         ip: req.ip
       });
 
-      const result = await CampaignService.regenerateAIMessages(campaignId, userId, prompt);
+      const result = await CampaignService.regenerateAIMessages(campaignId, userId);
 
       if (result.success) {
         res.status(200).json({

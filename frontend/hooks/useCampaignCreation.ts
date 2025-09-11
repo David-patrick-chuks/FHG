@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { BotsAPI, CampaignsAPI } from '@/lib/api';
 import { Bot } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useCampaignCreation() {
   const router = useRouter();
@@ -13,7 +13,9 @@ export function useCampaignCreation() {
     description: '',
     botId: '',
     emailList: '',
-    aiPrompt: ''
+    scheduledFor: undefined as Date | undefined,
+    emailInterval: 0,
+    emailIntervalUnit: 'minutes' as 'seconds' | 'minutes' | 'hours'
   });
   const [uploadedEmails, setUploadedEmails] = useState<string[]>([]);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
@@ -151,7 +153,10 @@ export function useCampaignCreation() {
         name: formData.name,
         description: formData.description,
         botId: formData.botId,
-        emailList
+        emailList,
+        scheduledFor: formData.scheduledFor,
+        emailInterval: formData.emailInterval,
+        emailIntervalUnit: formData.emailIntervalUnit
       });
       
       if (response.success) {

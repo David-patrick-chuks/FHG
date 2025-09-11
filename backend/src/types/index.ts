@@ -50,6 +50,60 @@ export enum BillingCycle {
   YEARLY = 'yearly'
 }
 
+export enum TemplateStatus {
+  DRAFT = 'draft',
+  PENDING_APPROVAL = 'pending_approval',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  PUBLISHED = 'published',
+  ARCHIVED = 'archived'
+}
+
+export enum TemplateCategory {
+  SALES = 'sales',
+  MARKETING = 'marketing',
+  FOLLOW_UP = 'follow_up',
+  COLD_OUTREACH = 'cold_outreach',
+  NETWORKING = 'networking',
+  PARTNERSHIP = 'partnership',
+  CUSTOMER_SUCCESS = 'customer_success',
+  RECRUITMENT = 'recruitment',
+  EVENT_INVITATION = 'event_invitation',
+  THANK_YOU = 'thank_you',
+  APOLOGY = 'apology',
+  REMINDER = 'reminder',
+  INTRODUCTION = 'introduction',
+  PROPOSAL = 'proposal',
+  FEEDBACK_REQUEST = 'feedback_request',
+  OTHER = 'other'
+}
+
+export enum ActivityType {
+  USER_REGISTERED = 'user_registered',
+  USER_LOGIN = 'user_login',
+  USER_LOGOUT = 'user_logout',
+  PROFILE_UPDATED = 'profile_updated',
+  PASSWORD_CHANGED = 'password_changed',
+  BOT_CREATED = 'bot_created',
+  BOT_UPDATED = 'bot_updated',
+  BOT_DELETED = 'bot_deleted',
+  CAMPAIGN_CREATED = 'campaign_created',
+  CAMPAIGN_STARTED = 'campaign_started',
+  CAMPAIGN_PAUSED = 'campaign_paused',
+  CAMPAIGN_COMPLETED = 'campaign_completed',
+  CAMPAIGN_CANCELLED = 'campaign_cancelled',
+  TEMPLATE_CREATED = 'template_created',
+  TEMPLATE_PUBLISHED = 'template_published',
+  TEMPLATE_APPROVED = 'template_approved',
+  TEMPLATE_REJECTED = 'template_rejected',
+  TEMPLATE_USED = 'template_used',
+  TEMPLATE_REVIEWED = 'template_reviewed',
+  SUBSCRIPTION_CREATED = 'subscription_created',
+  SUBSCRIPTION_UPGRADED = 'subscription_upgraded',
+  SUBSCRIPTION_CANCELLED = 'subscription_cancelled',
+  PAYMENT_MADE = 'payment_made'
+}
+
 export enum PaymentMethod {
   PAYSTACK = 'paystack',
   STRIPE = 'stripe',
@@ -83,7 +137,6 @@ export interface IBot {
   description: string;
   email: string;
   password: string; // encrypted
-  prompt: string;
   isActive: boolean;
   dailyEmailCount: number;
   lastEmailSentAt?: Date;
@@ -109,6 +162,8 @@ export interface ICampaign {
   completedAt?: Date;
   scheduledFor?: Date;
   isScheduled: boolean;
+  emailInterval: number; // 0 means no interval (send all at once)
+  emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
 }
 
 export interface ISentEmail {
@@ -123,6 +178,58 @@ export interface ISentEmail {
   openedAt?: Date;
   repliedAt?: Date;
   errorMessage?: string;
+}
+
+export interface ITemplateSample {
+  _id: string;
+  title: string;
+  content: string;
+  useCase: string;
+  variables: ITemplateVariable[];
+  createdAt: Date;
+}
+
+export interface ITemplateVariable {
+  name: string;
+  description: string;
+  required: boolean;
+  defaultValue?: string;
+}
+
+export interface ITemplateReview {
+  _id: string;
+  userId: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+}
+
+export interface ITemplate {
+  _id: string;
+  userId: string;
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  industry?: string;
+  targetAudience?: string;
+  status: TemplateStatus;
+  isPublic: boolean;
+  isApproved: boolean;
+  approvedBy?: string;
+  approvedAt?: Date;
+  rejectionReason?: string;
+  samples: ITemplateSample[];
+  tags: string[];
+  usageCount: number;
+  rating: {
+    average: number;
+    count: number;
+  };
+  reviews: ITemplateReview[];
+  featured: boolean;
+  featuredAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IQueueJob {
@@ -265,6 +372,41 @@ export interface CreateCampaignRequest {
   description: string;
   botId: string;
   emailList: string[];
+  scheduledFor?: Date; // Optional: when to start the campaign
+  emailInterval?: number; // Optional: delay between emails (0 = send all at once)
+  emailIntervalUnit?: 'seconds' | 'minutes' | 'hours'; // Optional: unit for interval
+}
+
+export interface CreateTemplateRequest {
+  name: string;
+  description: string;
+  category: TemplateCategory;
+  industry?: string;
+  targetAudience?: string;
+  isPublic: boolean;
+  samples: Omit<ITemplateSample, '_id' | 'createdAt'>[];
+  tags: string[];
+}
+
+export interface UpdateTemplateRequest {
+  name?: string;
+  description?: string;
+  category?: TemplateCategory;
+  industry?: string;
+  targetAudience?: string;
+  isPublic?: boolean;
+  samples?: Omit<ITemplateSample, '_id' | 'createdAt'>[];
+  tags?: string[];
+}
+
+export interface ApproveTemplateRequest {
+  approved: boolean;
+  rejectionReason?: string;
+}
+
+export interface ReviewTemplateRequest {
+  rating: number;
+  comment?: string;
 }
 
 export interface UpdateSubscriptionRequest {

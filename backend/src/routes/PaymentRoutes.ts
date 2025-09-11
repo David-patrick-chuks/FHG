@@ -74,6 +74,34 @@ export class PaymentRoutes {
      */
     router.get('/stats', AuthMiddleware.authenticate, PaymentController.getPaymentStats);
 
+    /**
+     * @route GET /api/payments/receipt/:reference
+     * @desc Generate digital receipt for a payment
+     * @access Private
+     */
+    router.get('/receipt/:reference', AuthMiddleware.authenticate, PaymentController.generateReceipt);
+
+    /**
+     * @route GET /api/payments/subscription
+     * @desc Get current subscription details
+     * @access Private
+     */
+    router.get('/subscription', AuthMiddleware.authenticate, PaymentController.getCurrentSubscription);
+
+    /**
+     * @route POST /api/payments/cancel-subscription
+     * @desc Cancel current subscription
+     * @access Private
+     */
+    router.post('/cancel-subscription', AuthMiddleware.authenticate, PaymentController.cancelSubscription);
+
+    /**
+     * @route GET /api/payments/can-upgrade
+     * @desc Check if user can upgrade (hide upgrade banner for highest tier)
+     * @access Private
+     */
+    router.get('/can-upgrade', AuthMiddleware.authenticate, PaymentController.canUpgrade);
+
     return router;
   }
 }

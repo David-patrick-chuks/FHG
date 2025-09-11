@@ -426,4 +426,126 @@ export class PaymentController {
       });
     }
   }
+
+  /**
+   * Generate digital receipt for a payment
+   */
+  public static async generateReceipt(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const { reference } = req.params;
+
+      if (!reference) {
+        res.status(400).json({
+          success: false,
+          message: 'Payment reference is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const result = await PaystackService.generateReceipt(userId, reference);
+
+      if (result.success) {
+        // Set headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.pdf"`);
+        res.status(200).send(result.data);
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error: any) {
+      PaymentController.logger.error('Error in generateReceipt controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Get current subscription details
+   */
+  public static async getCurrentSubscription(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      const result = await PaystackService.getCurrentSubscription(userId);
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      PaymentController.logger.error('Error in getCurrentSubscription controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Cancel subscription
+   */
+  public static async cancelSubscription(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const { reason } = req.body;
+
+      const result = await PaystackService.cancelSubscription(userId, reason);
+
+      if (result.success) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error: any) {
+      PaymentController.logger.error('Error in cancelSubscription controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Check if user can upgrade (hide upgrade banner for highest tier)
+   */
+  public static async canUpgrade(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      const result = await PaystackService.canUpgrade(userId);
+
+      res.status(200).json(result);
+    } catch (error: any) {
+      PaymentController.logger.error('Error in canUpgrade controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
 }
