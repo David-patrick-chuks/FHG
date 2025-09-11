@@ -118,9 +118,10 @@ class ApiClient {
           }
           
           // Check for authentication-related errors that should trigger logout
-          // BUT NOT for the profile endpoint when checking auth status
+          // BUT NOT for the profile endpoint when checking auth status or logout endpoint
           const isProfileCheck = endpoint.includes('/auth/profile');
-          const isAuthError = !isProfileCheck && (response.status === 401 || 
+          const isLogoutEndpoint = endpoint.includes('/auth/logout');
+          const isAuthError = !isProfileCheck && !isLogoutEndpoint && (response.status === 401 || 
               (responseData.message && (
                 responseData.message.toLowerCase().includes('invalid token') ||
                 responseData.message.toLowerCase().includes('unauthorized') ||

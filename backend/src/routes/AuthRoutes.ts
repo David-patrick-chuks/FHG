@@ -73,9 +73,7 @@ export class AuthRoutes {
     );
 
     router.post('/logout', 
-      AuthMiddleware.authenticate,
-      AuthMiddleware.requireAuth,
-      AuthMiddleware.rateLimitByUser,
+      AuthMiddleware.optionalAuth,
       AuthController.logout
     );
 

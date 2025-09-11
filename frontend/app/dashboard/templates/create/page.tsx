@@ -10,9 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { TemplatesAPI } from '@/lib/api/templates';
-import { CreateTemplateRequest, Template, TemplateCategory } from '@/types';
+import { CreateTemplateRequest, TemplateCategory } from '@/types';
 import { ArrowLeft, FileText, Plus, Tag, X } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -35,7 +34,7 @@ export default function CreateTemplatePage() {
     title: '',
     content: '',
     useCase: '',
-    variables: []
+    variables: [] as Array<{ name: string; description: string; required: boolean; defaultValue: string }>
   });
   const [newVariable, setNewVariable] = useState({
     name: '',
@@ -393,7 +392,7 @@ export default function CreateTemplatePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                     <FileText className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -439,7 +438,7 @@ export default function CreateTemplatePage() {
                       onChange={(e) => setNewSample(prev => ({ ...prev, content: e.target.value }))}
                       placeholder="Write your email content here. Use {{variableName}} for dynamic content..."
                       rows={4}
-                      className="resize-none"
+                      className="resize-none border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
 
@@ -534,7 +533,7 @@ export default function CreateTemplatePage() {
                 <Button
                   onClick={() => setCurrentStep(3)}
                   disabled={!canProceedToStep3}
-                  className="h-12 px-8 bg-green-600 hover:bg-green-700"
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
                 >
                   Continue to Review
                   <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
@@ -548,7 +547,7 @@ export default function CreateTemplatePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                     <FileText className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -650,7 +649,7 @@ export default function CreateTemplatePage() {
                 <Button 
                   onClick={handleSubmit}
                   disabled={!canCreateTemplate || isLoading}
-                  className="h-12 px-8 bg-purple-600 hover:bg-purple-700"
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
                 >
                   {isLoading ? (
                     <>
