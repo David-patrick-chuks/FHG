@@ -370,6 +370,120 @@ Return a JSON object with an array of messages, each containing content, subject
   }
 
   /**
+   * Generate email variations based on a template sample
+   */
+  public static async generateEmailVariations(
+    templateSample: {
+      title: string;
+      content: string;
+      useCase: string;
+      variables: Array<{
+        name: string;
+        description: string;
+        required: boolean;
+        defaultValue?: string;
+      }>;
+    },
+    recipientContext?: {
+      email?: string;
+      name?: string;
+      company?: string;
+      industry?: string;
+    },
+    variationCount: number = 20
+  ): Promise<ApiResponse<Array<{ subject: string; content: string; variation: number }>>> {
+    return this.executeAIRequest(async (client) => {
+      const prompt = `
+You are an expert email marketer. Generate ${variationCount} unique variations of the following email template sample.
+
+TEMPLATE SAMPLE:
+Title: ${templateSample.title}
+Content: ${templateSample.content}
+Use Case: ${templateSample.useCase}
+
+VARIABLES AVAILABLE:
+${templateSample.variables.map(v => `- ${v.name}: ${v.description} (${v.required ? 'required' : 'optional'})`).join('\n')}
+
+RECIPIENT CONTEXT:
+${recipientContext ? `
+- Email: ${recipientContext.email || 'Not provided'}
+- Name: ${recipientContext.name || 'Not provided'}
+- Company: ${recipientContext.company || 'Not provided'}
+- Industry: ${recipientContext.industry || 'Not provided'}
+` : 'No recipient context provided'}
+
+REQUIREMENTS:
+1. Generate exactly ${variationCount} unique variations
+2. Each variation should maintain the core message and intent of the original template
+3. Vary the tone, structure, and wording while keeping the same purpose
+4. Use the available variables appropriately in each variation
+5. Make each variation feel natural and professional
+6. Ensure subject lines are compelling and varied
+7. Keep content length similar to the original template
+
+Return the response as a JSON array with this exact structure:
+[
+  {
+    "subject": "Variation 1 subject line",
+    "content": "Variation 1 email content with proper formatting",
+    "variation": 1
+  },
+  {
+    "subject": "Variation 2 subject line", 
+    "content": "Variation 2 email content with proper formatting",
+    "variation": 2
+  }
+  // ... continue for all ${variationCount} variations
+]
+
+IMPORTANT: Return ONLY the JSON array, no additional text or formatting.
+`;
+
+      const response = await client.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          thinkingConfig: {
+            thinkingBudget: 0
+          }
+        }
+      });
+
+      const text = response.text;
+      
+      if (!text) {
+        throw new Error('No content generated from AI model');
+      }
+
+      try {
+        const parsed = JSON.parse(text);
+        
+        // Validate the response structure
+        if (!Array.isArray(parsed) || parsed.length !== variationCount) {
+          throw new Error(`Expected array of ${variationCount} variations, got ${Array.isArray(parsed) ? parsed.length : 'non-array'}`);
+        }
+
+        // Validate each variation has required fields
+        for (let i = 0; i < parsed.length; i++) {
+          const variation = parsed[i];
+          if (!variation.subject || !variation.content || variation.variation !== i + 1) {
+            throw new Error(`Invalid variation structure at index ${i}`);
+          }
+        }
+
+        AIService.logger.info(`Generated ${variationCount} email variations successfully`, {
+          templateTitle: templateSample.title,
+          variationCount: parsed.length
+        });
+
+        return parsed;
+      } catch (parseError) {
+        throw new Error(`Failed to parse email variations response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
+    }, 'Email variations generation');
+  }
+
+  /**
    * Test AI service connectivity
    */
   public static async testConnection(): Promise<ApiResponse<{ connected: boolean; model: string; availableKeys: number }>> {

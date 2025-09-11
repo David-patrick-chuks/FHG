@@ -323,7 +323,7 @@ export class BotService {
       const hasActiveCampaigns = activeCampaigns.some(campaign => 
         campaign.status === CampaignStatus.RUNNING || 
         campaign.status === CampaignStatus.PAUSED ||
-        campaign.status === CampaignStatus.READY
+        campaign.status === CampaignStatus.SCHEDULED
       );
 
       if (hasActiveCampaigns) {

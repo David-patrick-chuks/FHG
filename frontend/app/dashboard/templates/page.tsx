@@ -1,19 +1,19 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { CommunityTemplatesTab } from '@/components/templates/CommunityTemplatesTab';
+import { MyTemplatesTab } from '@/components/templates/MyTemplatesTab';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Filter, Star, Users, FileText } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import { TemplatesAPI } from '@/lib/api/templates';
-import { Template, TemplateCategory } from '@/types';
-import { MyTemplatesTab } from '@/components/templates/MyTemplatesTab';
-import { CommunityTemplatesTab } from '@/components/templates/CommunityTemplatesTab';
-import { CreateTemplateDialog } from '@/components/templates/CreateTemplateDialog';
+import { Template } from '@/types';
+import { FileText, Plus, Star, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function TemplatesPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('my-templates');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [communityTemplates, setCommunityTemplates] = useState<Template[]>([]);
   const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
@@ -51,7 +51,6 @@ export default function TemplatesPage() {
 
   const handleTemplateCreated = (newTemplate: Template) => {
     setMyTemplates(prev => [newTemplate, ...prev]);
-    setIsCreateDialogOpen(false);
   };
 
   const handleTemplateUpdated = (updatedTemplate: Template) => {
@@ -76,7 +75,7 @@ export default function TemplatesPage() {
       description="Create, manage, and discover email templates for your campaigns"
       actions={
         <Button
-          onClick={() => setIsCreateDialogOpen(true)}
+          onClick={() => router.push('/dashboard/templates/create')}
           className="flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -163,12 +162,6 @@ export default function TemplatesPage() {
         </div>
       </div>
 
-      {/* Create Template Dialog */}
-      <CreateTemplateDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onTemplateCreated={handleTemplateCreated}
-      />
     </DashboardLayout>
   );
 }

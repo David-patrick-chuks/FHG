@@ -2,6 +2,7 @@
 
 import { CampaignScheduler } from '@/components/campaigns/CampaignScheduler';
 import { EmailIntervalSelector } from '@/components/campaigns/EmailIntervalSelector';
+import { TemplateSelector } from '@/components/campaigns/TemplateSelector';
 import { CampaignBasicsStep } from '@/components/dashboard/campaigns/CampaignBasicsStep';
 import { CampaignProgressSteps } from '@/components/dashboard/campaigns/CampaignProgressSteps';
 import { TargetAudienceStep } from '@/components/dashboard/campaigns/TargetAudienceStep';
@@ -23,6 +24,8 @@ export default function CreateCampaignPage() {
     isDragOver,
     bots,
     botsLoading,
+    templates,
+    templatesLoading,
     creating,
     error,
     isFormDisabled,
@@ -45,9 +48,10 @@ export default function CreateCampaignPage() {
 
   const steps = [
     { id: 1, title: 'Campaign Basics', description: 'Set up your campaign foundation' },
-    { id: 2, title: 'Target Audience', description: 'Define who will receive your emails' },
-    { id: 3, title: 'AI Configuration', description: 'Configure your AI email bot' },
-    { id: 4, title: 'Schedule & Timing', description: 'Set when and how often to send emails' }
+    { id: 2, title: 'Email Template', description: 'Choose your email template' },
+    { id: 3, title: 'Target Audience', description: 'Define who will receive your emails' },
+    { id: 4, title: 'AI Configuration', description: 'Configure your AI email bot' },
+    { id: 5, title: 'Schedule & Timing', description: 'Set when and how often to send emails' }
   ];
 
   return (
@@ -88,8 +92,37 @@ export default function CreateCampaignPage() {
             />
           )}
 
-          {/* Step 2: Target Audience */}
+          {/* Step 2: Email Template */}
           {currentStep === 2 && (
+            <div className="space-y-6">
+              <TemplateSelector
+                templates={templates}
+                selectedTemplateId={formData.templateId}
+                onTemplateSelect={(templateId) => updateFormData({ templateId })}
+                loading={templatesLoading}
+              />
+              
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(1)}
+                  disabled={isFormDisabled}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button
+                  onClick={() => setCurrentStep(3)}
+                  disabled={isFormDisabled}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Target Audience */}
+          {currentStep === 3 && (
             <TargetAudienceStep
               formData={{
                 emailList: formData.emailList,
@@ -108,13 +141,44 @@ export default function CreateCampaignPage() {
               onDrop={handleDrop}
               isFormDisabled={isFormDisabled}
               canProceed={canProceedToStep3}
-              onNext={() => setCurrentStep(3)}
-              onBack={() => setCurrentStep(1)}
+              onNext={() => setCurrentStep(4)}
+              onBack={() => setCurrentStep(2)}
             />
           )}
 
-          {/* Step 3: Schedule & Timing */}
-          {currentStep === 3 && (
+          {/* Step 4: AI Configuration */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  AI Configuration
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  AI configuration will be handled automatically based on your selected template.
+                </p>
+              </div>
+              
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(3)}
+                  disabled={isFormDisabled}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button
+                  onClick={() => setCurrentStep(5)}
+                  disabled={isFormDisabled}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Schedule & Timing */}
+          {currentStep === 5 && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CampaignScheduler
@@ -137,12 +201,12 @@ export default function CreateCampaignPage() {
               <div className="flex justify-between pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => setCurrentStep(4)}
                   disabled={isFormDisabled}
                   className="h-12 px-8"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Target Audience
+                  Back to AI Configuration
                 </Button>
                 
                 <Button

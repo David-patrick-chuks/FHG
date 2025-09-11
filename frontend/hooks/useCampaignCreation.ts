@@ -1,7 +1,8 @@
 'use client';
 
 import { BotsAPI, CampaignsAPI } from '@/lib/api';
-import { Bot } from '@/types';
+import { TemplatesAPI } from '@/lib/api/templates';
+import { Bot, Template } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -12,6 +13,7 @@ export function useCampaignCreation() {
     name: '',
     description: '',
     botId: '',
+    templateId: '',
     emailList: '',
     scheduledFor: undefined as Date | undefined,
     emailInterval: 0,
@@ -25,6 +27,8 @@ export function useCampaignCreation() {
   // State for API data
   const [bots, setBots] = useState<Bot[]>([]);
   const [botsLoading, setBotsLoading] = useState(true);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fetchInProgress = useRef(false);
@@ -53,9 +57,32 @@ export function useCampaignCreation() {
     }
   }, []);
 
+  // Fetch templates data
+  const fetchTemplates = useCallback(async () => {
+    try {
+      setTemplatesLoading(true);
+      setError(null);
+      const response = await TemplatesAPI.getCommunityTemplates();
+      if (response.success && response.data) {
+        // Filter templates that have at least 10 samples
+        const validTemplates = response.data.filter(template => 
+          template.samples && template.samples.length >= 10
+        );
+        setTemplates(validTemplates);
+      } else {
+        setError(response.error || 'Failed to fetch templates');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to fetch templates');
+    } finally {
+      setTemplatesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchBots();
-  }, [fetchBots]);
+    fetchTemplates();
+  }, [fetchBots, fetchTemplates]);
 
   // Redirect to bots page if no bots are available
   useEffect(() => {
@@ -191,6 +218,8 @@ export function useCampaignCreation() {
     isDragOver,
     bots,
     botsLoading,
+    templates,
+    templatesLoading,
     creating,
     error,
     isFormDisabled,

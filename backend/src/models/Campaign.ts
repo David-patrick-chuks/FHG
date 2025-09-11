@@ -1,5 +1,5 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
-import { ICampaign, CampaignStatus, ISentEmail } from '../types';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+import { CampaignStatus, ICampaign, ISentEmail } from '../types';
 
 export interface ICampaignDocument extends Omit<ICampaign, '_id'>, Document {
   prepareCampaign(): Promise<void>;
@@ -43,6 +43,11 @@ export class CampaignModel {
         type: String,
         required: true,
         ref: 'Bot'
+      },
+      templateId: {
+        type: String,
+        ref: 'Template',
+        required: false
       },
       name: {
         type: String,
@@ -132,13 +137,13 @@ export class CampaignModel {
         throw new Error('Campaign must be in DRAFT status to prepare');
       }
       
-      this['status'] = CampaignStatus.READY;
+      this['status'] = CampaignStatus.SCHEDULED;
       await this['save']();
     };
 
     campaignSchema.methods['startCampaign'] = async function(): Promise<void> {
-      if (this['status'] !== CampaignStatus.READY) {
-        throw new Error('Campaign must be in READY status to start');
+      if (this['status'] !== CampaignStatus.SCHEDULED) {
+        throw new Error('Campaign must be in SCHEDULED status to start');
       }
       
       this['status'] = CampaignStatus.RUNNING;
@@ -147,15 +152,15 @@ export class CampaignModel {
     };
 
     campaignSchema.methods['scheduleCampaign'] = async function(scheduledFor: Date): Promise<void> {
-      if (this['status'] !== CampaignStatus.DRAFT && this['status'] !== CampaignStatus.READY) {
-        throw new Error('Campaign must be in DRAFT or READY status to schedule');
+      if (this['status'] !== CampaignStatus.DRAFT && this['status'] !== CampaignStatus.SCHEDULED) {
+        throw new Error('Campaign must be in DRAFT or SCHEDULED status to schedule');
       }
       
       if (scheduledFor <= new Date()) {
         throw new Error('Scheduled time must be in the future');
       }
       
-      this['status'] = CampaignStatus.READY;
+      this['status'] = CampaignStatus.SCHEDULED;
       this['scheduledFor'] = scheduledFor;
       this['isScheduled'] = true;
       await this['save']();
@@ -199,10 +204,11 @@ export class CampaignModel {
     };
 
     campaignSchema.methods['addSentEmail'] = async function(emailData: Partial<ISentEmail>): Promise<void> {
-      // This will be implemented when we create the SentEmail model
-      // For now, we'll just track the count
-      this['sentEmails'].push(emailData._id || 'temp-id');
-      await this['save']();
+      // Add the sent email ID to the campaign's sentEmails array
+      if (emailData._id) {
+        this['sentEmails'].push(emailData._id);
+        await this['save']();
+      }
     };
 
     campaignSchema.methods['getProgress'] = function(): { sent: number; total: number; percentage: number } {

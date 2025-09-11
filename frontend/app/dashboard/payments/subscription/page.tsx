@@ -83,9 +83,7 @@ export default function SubscriptionPage() {
   const handleDownloadReceipt = async (reference: string) => {
     try {
       const response = await fetch(`/api/payments/receipt/${reference}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
-        }
+        credentials: 'include'
       });
 
       if (response.ok) {

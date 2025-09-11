@@ -7,20 +7,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { cn } from '@/lib/utils';
 import {
-    Activity,
-    BarChart3,
-    Bot,
-    CreditCard,
-    LayoutDashboard,
-    LogOut,
-    Mail,
-    Menu,
-    Search,
-    Shield,
-    Template,
-    User,
-    Users,
-    X
+  Activity,
+  BarChart3,
+  Bot,
+  CreditCard,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  Search,
+  Shield,
+  User,
+  Users,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -49,7 +49,7 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
     {
       label: 'Templates',
       href: '/dashboard/templates',
-      icon: Template,
+      icon: FileText,
     },
     {
       label: 'Bots',
@@ -180,7 +180,7 @@ export function DashboardLayout({
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {(() => {
             const sidebarItems = getSidebarItems(unreadCount, user?.isAdmin);
-            const regularItems = sidebarItems.slice(0, 10); // First 10 items are regular (added Templates)
+            const regularItems = sidebarItems.slice(0, 10); // First 10 items are regular
             const adminItems = sidebarItems.slice(10); // Rest are admin items
             
             return (

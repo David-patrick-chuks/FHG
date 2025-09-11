@@ -50,7 +50,7 @@ export class SchedulerService {
       
       // Find campaigns that are scheduled and ready to start
       const scheduledCampaigns = await CampaignModel.find({
-        status: CampaignStatus.READY,
+        status: CampaignStatus.SCHEDULED,
         isScheduled: true,
         scheduledFor: { $lte: now }
       });
@@ -88,7 +88,7 @@ export class SchedulerService {
       const now = new Date();
       
       return await CampaignModel.find({
-        status: CampaignStatus.READY,
+        status: CampaignStatus.SCHEDULED,
         isScheduled: true,
         scheduledFor: { $gt: now }
       }).sort({ scheduledFor: 1 });
@@ -105,7 +105,7 @@ export class SchedulerService {
         return false;
       }
 
-      if (campaign.isScheduled && campaign.status === CampaignStatus.READY) {
+      if (campaign.isScheduled && campaign.status === CampaignStatus.SCHEDULED) {
         campaign.isScheduled = false;
         campaign.scheduledFor = undefined;
         await campaign.save();

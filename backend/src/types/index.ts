@@ -3,11 +3,12 @@
 // Enums
 export enum CampaignStatus {
   DRAFT = 'draft',
-  READY = 'ready',
+  SCHEDULED = 'scheduled',
   RUNNING = 'running',
   PAUSED = 'paused',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
+  FAILED = 'failed'
 }
 
 export enum EmailStatus {
@@ -110,6 +111,15 @@ export enum PaymentMethod {
   BANK_TRANSFER = 'bank_transfer'
 }
 
+export enum PaymentStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  REFUNDED = 'refunded'
+}
+
+// Core Interfaces
 export interface IUser {
   _id: string;
   email: string;
@@ -149,6 +159,7 @@ export interface ICampaign {
   _id: string;
   userId: string;
   botId: string;
+  templateId?: string; // Optional template reference
   name: string;
   description: string;
   status: CampaignStatus;
@@ -156,13 +167,18 @@ export interface ICampaign {
   aiMessages: string[];
   selectedMessageIndex: number;
   sentEmails: ISentEmail[];
+  totalEmails: number;
+  sentCount: number;
+  failedCount: number;
   createdAt: Date;
   updatedAt: Date;
   startedAt?: Date;
   completedAt?: Date;
+  pausedAt?: Date;
+  cancelledAt?: Date;
   scheduledFor?: Date;
   isScheduled: boolean;
-  emailInterval: number; // 0 means no interval (send all at once)
+  emailInterval: number; // Interval between emails
   emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
 }
 
@@ -171,6 +187,7 @@ export interface ISentEmail {
   campaignId: string;
   botId: string;
   recipientEmail: string;
+  subject: string;
   message: string;
   status: EmailStatus;
   sentAt: Date;
@@ -178,6 +195,8 @@ export interface ISentEmail {
   openedAt?: Date;
   repliedAt?: Date;
   errorMessage?: string;
+  templateSampleId?: string; // Reference to the template sample used
+  aiVariation?: number; // Which AI variation was used (1-20)
 }
 
 export interface ITemplateSample {
@@ -299,15 +318,6 @@ export interface IAdminAction {
   createdAt: Date;
 }
 
-
-export enum PaymentStatus {
-  PENDING = 'pending',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
-  REFUNDED = 'refunded'
-}
-
 // API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -348,6 +358,17 @@ export interface ChangeBillingCycleRequest {
   billingCycle: BillingCycle;
 }
 
+export interface CreateCampaignRequest {
+  name: string;
+  description: string;
+  botId: string;
+  templateId?: string; // Optional template reference
+  emailList: string[];
+  scheduledFor?: Date;
+  emailInterval: number;
+  emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
+}
+
 export interface CreateBotRequest {
   name: string;
   description: string;
@@ -365,16 +386,6 @@ export interface UpdateBotRequest {
   prompt?: string;
   isActive?: boolean;
   profileImage?: string; // Optional custom profile image URL
-}
-
-export interface CreateCampaignRequest {
-  name: string;
-  description: string;
-  botId: string;
-  emailList: string[];
-  scheduledFor?: Date; // Optional: when to start the campaign
-  emailInterval?: number; // Optional: delay between emails (0 = send all at once)
-  emailIntervalUnit?: 'seconds' | 'minutes' | 'hours'; // Optional: unit for interval
 }
 
 export interface CreateTemplateRequest {

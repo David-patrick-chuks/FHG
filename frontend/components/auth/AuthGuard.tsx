@@ -22,10 +22,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     if (!isLoading) {
       if (requireAuth && !isAuthenticated) {
         // User is not authenticated, redirect to login
-        router.push(redirectTo);
+        router.replace(redirectTo);
       } else if (!requireAuth && isAuthenticated) {
         // User is authenticated but trying to access login/register, redirect to dashboard
-        router.push('/dashboard');
+        router.replace('/dashboard');
       }
     }
   }, [isAuthenticated, isLoading, requireAuth, redirectTo, router]);

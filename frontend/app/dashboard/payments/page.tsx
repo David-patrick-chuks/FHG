@@ -6,15 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PaymentAPI, PaymentHistory } from '@/lib/api/payment';
 import {
-  CheckCircle,
-  Clock,
-  CreditCard,
-  Crown,
-  Download,
-  Loader2,
-  Settings,
-  XCircle,
-  Zap
+    CheckCircle,
+    Clock,
+    CreditCard,
+    Crown,
+    Download,
+    Loader2,
+    Settings,
+    XCircle,
+    Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -64,9 +64,7 @@ export default function UserPaymentsPage() {
   const handleDownloadReceipt = async (reference: string) => {
     try {
       const response = await fetch(`/api/payments/receipt/${reference}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
-        }
+        credentials: 'include'
       });
 
       if (response.ok) {

@@ -381,3 +381,15 @@ export interface SelectOption {
   label: string;
   disabled?: boolean;
 }
+
+// Campaign Types
+export interface CreateCampaignRequest {
+  name: string;
+  description: string;
+  botId: string;
+  templateId?: string; // Optional template reference
+  emailList: string[];
+  scheduledFor?: Date;
+  emailInterval: number;
+  emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
+}

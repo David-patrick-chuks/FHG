@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .split(';')
         .some(cookie => {
           const [name] = cookie.trim().split('=');
-          return name === 'auth-token' || name === 'refresh-token' || name === 'access-token';
+          return name === 'accessToken' || name === 'refreshToken';
         });
       
       // If no indication of authentication, skip the API call
