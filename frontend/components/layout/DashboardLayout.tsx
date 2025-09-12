@@ -35,6 +35,7 @@ interface SidebarItem {
 }
 
 const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): SidebarItem[] => {
+  console.log('getSidebarItems called with unreadCount:', unreadCount, 'type:', typeof unreadCount);
   const regularItems: SidebarItem[] = [
     {
       label: 'Dashboard',
@@ -89,6 +90,11 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
     },
   ];
 
+  // Debug logging for Activity item
+  const activityItem = regularItems.find(item => item.label === 'Activity');
+  console.log('Activity item in getSidebarItems:', activityItem);
+  console.log('Activity item badge:', activityItem?.badge, 'unreadCount:', unreadCount);
+
   const adminItems: SidebarItem[] = [
     {
       label: 'Admin Dashboard',
@@ -134,7 +140,8 @@ export function DashboardLayout({
   const pathname = usePathname();
 
   // Debug logging
-  console.log('DashboardLayout unreadCount:', unreadCount);
+  console.log('DashboardLayout unreadCount:', unreadCount, 'type:', typeof unreadCount);
+  console.log('DashboardLayout component rendered with unreadCount:', unreadCount);
 
   const handleLogout = () => {
     logout();

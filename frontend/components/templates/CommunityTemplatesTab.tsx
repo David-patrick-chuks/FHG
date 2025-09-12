@@ -1,26 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Template, TemplateCategory } from '@/types';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplatesAPI } from '@/lib/api/templates';
-import { Star, Users, Calendar, Tag, Search, Filter, TrendingUp, Clock, ThumbsUp } from 'lucide-react';
+import { Template } from '@/types';
 import { format } from 'date-fns';
+import { Calendar, Search, Star, Tag, ThumbsUp, TrendingUp, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface CommunityTemplatesTabProps {
   popularTemplates: Template[];
   onTemplatesLoaded: (templates: Template[]) => void;
+  onTemplateAdded?: () => void;
 }
 
 export function CommunityTemplatesTab({
   popularTemplates,
-  onTemplatesLoaded
+  onTemplatesLoaded,
+  onTemplateAdded
 }: CommunityTemplatesTabProps) {
   const [activeTab, setActiveTab] = useState('popular');
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -73,6 +75,10 @@ export function CommunityTemplatesTab({
         toast.success('Template added to your collection!');
         // Refresh templates to update usage count
         loadTemplates();
+        // Notify parent component to refresh my templates count
+        if (onTemplateAdded) {
+          onTemplateAdded();
+        }
       } else {
         toast.error(response.message || 'Failed to use template');
       }
@@ -93,7 +99,7 @@ export function CommunityTemplatesTab({
         key={i}
         className={`w-4 h-4 ${
           i < Math.floor(rating) 
-            ? 'text-yellow-500 fill-current' 
+            ? 'text-blue-500 fill-current' 
             : 'text-gray-300'
         }`}
       />
@@ -111,7 +117,7 @@ export function CommunityTemplatesTab({
             </CardDescription>
           </div>
           {template.featured && (
-            <Badge className="bg-yellow-100 text-yellow-800">
+            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
               <Star className="w-3 h-3 mr-1" />
               Featured
             </Badge>
@@ -125,7 +131,7 @@ export function CommunityTemplatesTab({
               {getCategoryLabel(template.category)}
             </Badge>
             {template.industry && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400 text-xs">
                 {template.industry}
               </Badge>
             )}
@@ -162,12 +168,12 @@ export function CommunityTemplatesTab({
           {template.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {template.tags.slice(0, 3).map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge key={index} className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 text-xs">
                   {tag}
                 </Badge>
               ))}
               {template.tags.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 text-xs">
                   +{template.tags.length - 3} more
                 </Badge>
               )}
@@ -176,11 +182,11 @@ export function CommunityTemplatesTab({
 
           <Button 
             onClick={() => handleUseTemplate(template._id)}
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             size="sm"
           >
             <ThumbsUp className="w-4 h-4 mr-2" />
-            Use Template
+            Add to My Templates
           </Button>
         </div>
       </CardContent>

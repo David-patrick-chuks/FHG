@@ -3,7 +3,7 @@
 import { EmailListManager } from '@/components/dashboard/campaigns/EmailListManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot } from '@/types';
+import { Bot, SubscriptionTier } from '@/types';
 import { ArrowLeft, Users } from 'lucide-react';
 
 interface TargetAudienceStepProps {
@@ -26,6 +26,7 @@ interface TargetAudienceStepProps {
   canProceed: boolean;
   onNext: () => void;
   onBack: () => void;
+  userSubscription: SubscriptionTier;
 }
 
 export function TargetAudienceStep({
@@ -44,7 +45,8 @@ export function TargetAudienceStep({
   isFormDisabled,
   canProceed,
   onNext,
-  onBack
+  onBack,
+  userSubscription
 }: TargetAudienceStepProps) {
   return (
     <Card>
@@ -82,6 +84,7 @@ export function TargetAudienceStep({
               return Math.max(0, 500 - emailsSentToday);
             })()}
             disabled={isFormDisabled}
+            userSubscription={userSubscription}
           />
         </div>
 

@@ -1,16 +1,34 @@
-'use client';
+"use client";
 
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { AccountDetails, ApiKeyManagement, PlanFeatures, ProfileInformation } from '@/components/profile';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Icons } from '@/components/ui/icons';
-import { useAuth } from '@/contexts/AuthContext';
-import { apiClient } from '@/lib/api-client';
-import { User } from '@/types';
-import { AlertCircle, CheckCircle, CreditCard, Key, Shield, User as UserIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import {
+  AccountDetails,
+  ApiKeyManagement,
+  PlanFeatures,
+  ProfileInformation,
+} from "@/components/profile";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Icons } from "@/components/ui/icons";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiClient } from "@/lib/api-client";
+import { User } from "@/types";
+import {
+  AlertCircle,
+  CheckCircle,
+  CreditCard,
+  Key,
+  Shield,
+  User as UserIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ProfileFormData {
   username: string;
@@ -41,8 +59,11 @@ interface ApiUsage {
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
   const [apiKeyInfo, setApiKeyInfo] = useState<ApiKeyInfo | null>(null);
   const [apiUsage, setApiUsage] = useState<ApiUsage | null>(null);
   const [isGeneratingKey, setIsGeneratingKey] = useState(false);
@@ -59,23 +80,25 @@ export default function ProfilePage() {
             hasApiKey: true,
             apiKey: userWithApiKey.apiKey, // Show full API key, not masked
             createdAt: userWithApiKey.apiKeyCreatedAt?.toString() || null,
-            lastUsed: userWithApiKey.apiKeyLastUsed?.toString() || null
+            lastUsed: userWithApiKey.apiKeyLastUsed?.toString() || null,
           });
         } else {
           // Fallback to API call if user data doesn't have API key info
-          const keyResponse = await apiClient.get<ApiKeyInfo>('/api-keys/info');
+          const keyResponse = await apiClient.get<ApiKeyInfo>("/api-keys/info");
           if (keyResponse.success && keyResponse.data) {
             setApiKeyInfo((keyResponse.data as any).data);
           }
         }
 
         // Fetch usage info
-        const usageResponse = await apiClient.get<ApiUsage>('/email-extractor/subscription-info');
+        const usageResponse = await apiClient.get<ApiUsage>(
+          "/email-extractor/subscription-info"
+        );
         if (usageResponse.success && usageResponse.data) {
           setApiUsage((usageResponse.data as any).data);
         }
       } catch (error) {
-        console.error('Failed to fetch API info:', error);
+        console.error("Failed to fetch API info:", error);
       }
     };
 
@@ -96,17 +119,21 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
-      const response = await apiClient.put<User>('/auth/profile', data);
-      
+      const response = await apiClient.put<User>("/auth/profile", data);
+
       if (response.success && response.data) {
         updateUser(response.data);
-        setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        setMessage({ type: "success", text: "Profile updated successfully!" });
       } else {
-        setMessage({ type: 'error', text: response.message || 'Failed to update profile' });
+        setMessage({
+          type: "error",
+          text: response.message || "Failed to update profile",
+        });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
-      setMessage({ type: 'error', text: errorMessage });
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update profile";
+      setMessage({ type: "error", text: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -117,28 +144,39 @@ export default function ProfilePage() {
     setMessage(null);
 
     try {
-      const response = await apiClient.post<{ apiKey: string; createdAt: string; lastUsed: string | null }>('/api-keys/generate');
-      
+      const response = await apiClient.post<{
+        apiKey: string;
+        createdAt: string;
+        lastUsed: string | null;
+      }>("/api-keys/generate");
+
       if (response.success && response.data) {
         setGeneratedApiKey(response.data.apiKey);
         setApiKeyInfo({
           hasApiKey: true,
           apiKey: response.data.apiKey,
           createdAt: response.data.createdAt,
-          lastUsed: response.data.lastUsed
+          lastUsed: response.data.lastUsed,
         });
-        setMessage({ type: 'success', text: 'API key generated successfully! Copy it now - you won\'t be able to see it again.' });
-        
+        setMessage({
+          type: "success",
+          text: "API key generated successfully! Copy it now - you won't be able to see it again.",
+        });
+
         // Clear the generated API key display after 30 seconds
         setTimeout(() => {
           setGeneratedApiKey(null);
         }, 30000);
       } else {
-        setMessage({ type: 'error', text: response.message || 'Failed to generate API key' });
+        setMessage({
+          type: "error",
+          text: response.message || "Failed to generate API key",
+        });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate API key';
-      setMessage({ type: 'error', text: errorMessage });
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to generate API key";
+      setMessage({ type: "error", text: errorMessage });
     } finally {
       setIsGeneratingKey(false);
     }
@@ -147,9 +185,9 @@ export default function ProfilePage() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setMessage({ type: 'success', text: 'API key copied to clipboard!' });
+      setMessage({ type: "success", text: "API key copied to clipboard!" });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to copy to clipboard' });
+      setMessage({ type: "error", text: "Failed to copy to clipboard" });
     }
   };
 
@@ -170,8 +208,10 @@ export default function ProfilePage() {
     >
       <div className="space-y-6">
         {message && (
-          <Alert variant={message.type === 'success' ? 'default' : 'destructive'}>
-            {message.type === 'success' ? (
+          <Alert
+            variant={message.type === "success" ? "default" : "destructive"}
+          >
+            {message.type === "success" ? (
               <CheckCircle className="h-4 w-4" />
             ) : (
               <AlertCircle className="h-4 w-4" />
@@ -226,7 +266,8 @@ export default function ProfilePage() {
               API Key Management
             </CardTitle>
             <CardDescription>
-              Generate and manage your API key for programmatic access to email extraction
+              Generate and manage your API key for programmatic access to email
+              extraction
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -254,13 +295,16 @@ export default function ProfilePage() {
                   Your current plan limits and capabilities
                 </CardDescription>
               </div>
-              <Button 
-                onClick={() => window.location.href = '/pricing'}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                Upgrade Plan
-              </Button>
+              {user.subscription &&
+                user.subscription.toUpperCase() === "FREE" && (
+                  <Button
+                    onClick={() => (window.location.href = "/pricing")}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Upgrade Plan
+                  </Button>
+                )}
             </div>
           </CardHeader>
           <CardContent>

@@ -41,27 +41,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check authentication status
   const checkAuthStatus = useCallback(async () => {
     try {
-      // First check if we have any indication of authentication (cookies, localStorage, etc.)
-      // Only make the profile request if we have some indication of being logged in
-      const hasRememberMe = localStorage.getItem('remember_me') === 'true';
-      
-      // Check for authentication cookies more thoroughly
-      const hasAuthCookie = document.cookie
-        .split(';')
-        .some(cookie => {
-          const [name] = cookie.trim().split('=');
-          return name === 'accessToken' || name === 'refreshToken';
-        });
-      
-      // If no indication of authentication, skip the API call
-      if (!hasRememberMe && !hasAuthCookie) {
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Only make the profile request if we have some indication of being logged in
+      // Always try to get the profile to determine authentication status
+      // This is more reliable than checking cookies
       const response = await apiClient.get<User>('/auth/profile');
       
       if (response.success && response.data) {

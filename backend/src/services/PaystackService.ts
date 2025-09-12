@@ -450,9 +450,12 @@ export class PaystackService {
     reference: string
   ): Promise<ApiResponse<Buffer>> {
     try {
+      PaystackService.logger.info('Generating receipt', { userId, reference });
+      
       // Find payment record
       const payment = await PaymentModel.findByReference(reference);
       if (!payment) {
+        PaystackService.logger.warn('Payment not found', { reference });
         return {
           success: false,
           message: 'Payment not found',
@@ -479,14 +482,13 @@ export class PaystackService {
         };
       }
 
-      // Generate PDF receipt using a simple HTML template
-      const receiptHtml = PaystackService.generateReceiptHTML(payment, user);
-      const pdfBuffer = await PaystackService.generatePDF(receiptHtml);
+      // Generate image receipt
+      const imageBuffer = await PaystackService.generateReceiptImage(payment, user);
 
       return {
         success: true,
         message: 'Receipt generated successfully',
-        data: pdfBuffer,
+        data: imageBuffer,
         timestamp: new Date()
       };
     } catch (error) {
@@ -832,13 +834,80 @@ export class PaystackService {
   }
 
   /**
-   * Generate PDF from HTML
+   * Generate receipt as SVG image
    */
-  private static async generatePDF(html: string): Promise<Buffer> {
-    // For now, return a simple text representation
-    // In production, you would use a library like puppeteer or html-pdf
-    const textContent = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    return Buffer.from(textContent, 'utf-8');
+  private static async generateReceiptImage(payment: any, user: any): Promise<Buffer> {
+    const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`;
+    const formatDate = (date: Date) => date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Create SVG receipt
+    const svg = `
+      <svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        
+        <!-- Background -->
+        <rect width="400" height="600" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="2"/>
+        
+        <!-- Header -->
+        <rect x="0" y="0" width="400" height="80" fill="url(#headerGradient)"/>
+        <text x="200" y="30" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">MailQuill</text>
+        <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14">Payment Receipt</text>
+        
+        <!-- Receipt Content -->
+        <text x="20" y="120" fill="#374151" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Payment Details</text>
+        
+        <!-- Payment Info -->
+        <text x="20" y="150" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Reference:</text>
+        <text x="120" y="150" fill="#111827" font-family="Arial, sans-serif" font-size="12">${payment.reference}</text>
+        
+        <text x="20" y="170" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Amount:</text>
+        <text x="120" y="170" fill="#111827" font-family="Arial, sans-serif" font-size="12" font-weight="bold">${formatCurrency(payment.amount)}</text>
+        
+        <text x="20" y="190" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Plan:</text>
+        <text x="120" y="190" fill="#111827" font-family="Arial, sans-serif" font-size="12">${payment.subscriptionTier} - ${payment.billingCycle}</text>
+        
+        <text x="20" y="210" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Date:</text>
+        <text x="120" y="210" fill="#111827" font-family="Arial, sans-serif" font-size="12">${formatDate(payment.paidAt || payment.createdAt)}</text>
+        
+        <text x="20" y="230" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Status:</text>
+        <text x="120" y="230" fill="#10B981" font-family="Arial, sans-serif" font-size="12" font-weight="bold">${payment.status.toUpperCase()}</text>
+        
+        <!-- User Info -->
+        <text x="20" y="270" fill="#374151" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Customer Information</text>
+        
+        <text x="20" y="300" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Name:</text>
+        <text x="120" y="300" fill="#111827" font-family="Arial, sans-serif" font-size="12">${user.username}</text>
+        
+        <text x="20" y="320" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Email:</text>
+        <text x="120" y="320" fill="#111827" font-family="Arial, sans-serif" font-size="12">${user.email}</text>
+        
+        <!-- Divider Line -->
+        <line x1="20" y1="360" x2="380" y2="360" stroke="#E5E7EB" stroke-width="1"/>
+        
+        <!-- Footer -->
+        <text x="200" y="400" text-anchor="middle" fill="#6B7280" font-family="Arial, sans-serif" font-size="12">Thank you for choosing MailQuill!</text>
+        <text x="200" y="420" text-anchor="middle" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="10">This is your official payment receipt</text>
+        <text x="200" y="440" text-anchor="middle" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="10">Keep this receipt for your records</text>
+        
+        <!-- QR Code Placeholder -->
+        <rect x="150" y="480" width="100" height="100" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1"/>
+        <text x="200" y="540" text-anchor="middle" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="10">Receipt QR</text>
+        <text x="200" y="555" text-anchor="middle" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="8">${payment.reference}</text>
+      </svg>
+    `;
+
+    return Buffer.from(svg, 'utf-8');
   }
 
   /**

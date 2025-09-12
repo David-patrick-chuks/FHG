@@ -25,9 +25,31 @@ export class BotController {
              const result = await BotService.createBot(userId, req.body);
 
        if (result.success && result.data) {
-         // Remove sensitive data from response
+         // Remove sensitive data from response and properly serialize MongoDB objects
          const botData = { ...result.data.toObject() };
          delete botData.password;
+
+         // Get daily email limit from user subscription
+         const UserModel = await import('../models/User');
+         const user = await UserModel.default.findById(botData.userId);
+         const dailyEmailLimit = user ? user.getDailyEmailLimit() : 500;
+
+         // Properly serialize MongoDB objects to JSON
+         const serializedBotData = {
+           _id: botData._id.toString(),
+           userId: botData.userId.toString(),
+           name: botData.name,
+           description: botData.description,
+           email: botData.email,
+           isActive: botData.isActive,
+           dailyEmailCount: botData.dailyEmailCount,
+           dailyEmailLimit: dailyEmailLimit,
+           emailsSentToday: botData.dailyEmailCount,
+           profileImage: botData.profileImage,
+           createdAt: botData.createdAt?.toISOString(),
+           updatedAt: botData.updatedAt?.toISOString(),
+           __v: botData.__v
+         };
 
          // Log bot creation activity
          await ActivityService.logBotActivity(
@@ -40,7 +62,7 @@ export class BotController {
         res.status(201).json({
           success: true,
           message: 'Bot created successfully',
-          data: botData,
+          data: serializedBotData,
           timestamp: new Date()
         });
       } else {
@@ -82,12 +104,33 @@ export class BotController {
       const result = await BotService.getBotsByUserIdWithPagination(userId, paginationParams, includeInactive);
 
       if (result.success && result.data) {
-        // Remove sensitive data from response
-        const botsData = result.data.data.map(bot => {
+        // Remove sensitive data from response and properly serialize MongoDB objects
+        const botsData = await Promise.all(result.data.data.map(async (bot) => {
           const botData = { ...bot.toObject() };
           delete botData.password;
-          return botData;
-        });
+          
+          // Get daily email limit from user subscription
+          const UserModel = await import('../models/User');
+          const user = await UserModel.default.findById(botData.userId);
+          const dailyEmailLimit = user ? user.getDailyEmailLimit() : 500;
+          
+          // Properly serialize MongoDB objects to JSON
+          return {
+            _id: botData._id.toString(),
+            userId: botData.userId.toString(),
+            name: botData.name,
+            description: botData.description,
+            email: botData.email,
+            isActive: botData.isActive,
+            dailyEmailCount: botData.dailyEmailCount,
+            dailyEmailLimit: dailyEmailLimit,
+            emailsSentToday: botData.dailyEmailCount,
+            profileImage: botData.profileImage,
+            createdAt: botData.createdAt?.toISOString(),
+            updatedAt: botData.updatedAt?.toISOString(),
+            __v: botData.__v
+          };
+        }));
 
         res.status(200).json({
           success: true,

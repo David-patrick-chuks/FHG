@@ -1,81 +1,52 @@
 import { DashboardAPI } from '@/lib/api/dashboard';
-import { useEffect, useRef, useState } from 'react';
-
-// Global state to prevent duplicate requests
-let globalUnreadCount = 0;
-let isFetching = false;
-let fetchPromise: Promise<number> | null = null;
+import { useEffect, useState } from 'react';
 
 export function useUnreadCount() {
-  const [unreadCount, setUnreadCount] = useState(globalUnreadCount);
-  const mountedRef = useRef(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUnreadCount = async (): Promise<number> => {
-      // If already fetching, return the existing promise
-      if (fetchPromise) {
-        return fetchPromise;
-      }
-
-      // If already have data and not stale, return cached value
-      if (globalUnreadCount >= 0 && !isFetching) {
-        return globalUnreadCount;
-      }
-
-      isFetching = true;
-      fetchPromise = (async () => {
-        try {
-          const response = await DashboardAPI.getUnreadCount();
-          if (response.success && response.data) {
-            globalUnreadCount = response.data.unreadCount;
-            console.log('Unread count fetched:', globalUnreadCount);
-            return globalUnreadCount;
-          }
-          return 0;
-        } catch (error) {
-          console.error('Failed to fetch unread count:', error);
-          return 0;
-        } finally {
-          isFetching = false;
-          fetchPromise = null;
+    const fetchUnreadCount = async () => {
+      try {
+        console.log('Fetching unread count...');
+        setIsLoading(true);
+        const response = await DashboardAPI.getUnreadCount();
+        console.log('Unread count response:', response);
+        
+        if (response.success && response.data) {
+          const count = response.data.unreadCount;
+          console.log('Unread count fetched:', count);
+          console.log('Setting unread count to:', count);
+          setUnreadCount(count);
+        } else {
+          console.error('Failed to fetch unread count:', response.message);
+          setUnreadCount(0);
         }
-      })();
-
-      return fetchPromise;
-    };
-
-    // Fetch unread count
-    fetchUnreadCount().then((count) => {
-      if (mountedRef.current) {
-        console.log('Setting unread count state:', count);
-        setUnreadCount(count);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+        setUnreadCount(0);
+      } finally {
+        setIsLoading(false);
       }
-    });
-
-    // Cleanup
-    return () => {
-      mountedRef.current = false;
     };
+
+    fetchUnreadCount();
   }, []);
 
   // Function to refresh the unread count (useful after marking activities as read)
   const refreshUnreadCount = async () => {
-    globalUnreadCount = 0; // Reset cache
-    isFetching = false;
-    fetchPromise = null;
-    
     try {
+      console.log('Refreshing unread count...');
       const response = await DashboardAPI.getUnreadCount();
       if (response.success && response.data) {
-        globalUnreadCount = response.data.unreadCount;
-        if (mountedRef.current) {
-          setUnreadCount(globalUnreadCount);
-        }
+        const count = response.data.unreadCount;
+        console.log('Unread count refreshed:', count);
+        setUnreadCount(count);
       }
     } catch (error) {
       console.error('Failed to refresh unread count:', error);
     }
   };
 
-  return { unreadCount, refreshUnreadCount };
+  return { unreadCount, refreshUnreadCount, isLoading };
 }

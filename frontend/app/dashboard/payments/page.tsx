@@ -63,7 +63,7 @@ export default function UserPaymentsPage() {
 
   const handleDownloadReceipt = async (reference: string) => {
     try {
-      const response = await fetch(`/api/payments/receipt/${reference}`, {
+      const response = await fetch(`/api/payments/receipt/${encodeURIComponent(reference)}`, {
         credentials: 'include'
       });
 
@@ -72,7 +72,7 @@ export default function UserPaymentsPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `receipt-${reference}.pdf`;
+        a.download = `receipt-${reference}.svg`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

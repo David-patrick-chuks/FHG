@@ -56,12 +56,12 @@ export function AccountDetails({ user }: AccountDetailsProps) {
         </div>
       </div>
 
-      {user.subscription?.toUpperCase() !== 'FREE' && (
+      {user.subscription?.toUpperCase() !== 'FREE' && user.subscriptionExpiresAt && (
         <div className="space-y-2">
           <Label>Plan Expires</Label>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-gray-400" />
-            <span className="text-sm">Contact support for expiry details</span>
+            <span className="text-sm">{formatDate(user.subscriptionExpiresAt)}</span>
           </div>
         </div>
       )}

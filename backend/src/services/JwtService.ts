@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import { Logger } from '../utils/Logger';
 
 export interface JwtPayload {
@@ -24,6 +24,7 @@ export class JwtService {
   // Token expiration times
   private static readonly ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
   private static readonly REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
+  private static readonly REFRESH_TOKEN_EXPIRY_REMEMBER_ME = '30d'; // 30 days for remember me
   
   // Minimum secret strength requirements
   private static readonly MIN_SECRET_LENGTH = 32;
@@ -79,7 +80,7 @@ export class JwtService {
   /**
    * Generate secure token pair
    */
-  public static generateTokenPair(payload: Omit<JwtPayload, 'iat' | 'exp'>): TokenPair {
+  public static generateTokenPair(payload: Omit<JwtPayload, 'iat' | 'exp'>, rememberMe: boolean = false): TokenPair {
     try {
       const secret = this.getSecret();
       
@@ -91,15 +92,17 @@ export class JwtService {
         audience: 'email-outreach-bot-api'
       });
 
-      // Generate refresh token with different payload
+      // Generate refresh token with different payload and expiration based on rememberMe
       const refreshPayload = {
         userId: payload.userId,
         type: 'refresh',
         tokenId: crypto.randomUUID()
       };
 
+      const refreshExpiry = rememberMe ? this.REFRESH_TOKEN_EXPIRY_REMEMBER_ME : this.REFRESH_TOKEN_EXPIRY;
+      
       const refreshToken = jwt.sign(refreshPayload, secret, {
-        expiresIn: this.REFRESH_TOKEN_EXPIRY,
+        expiresIn: refreshExpiry,
         algorithm: 'HS256',
         issuer: 'email-outreach-bot',
         audience: 'email-outreach-bot-api'
@@ -111,7 +114,9 @@ export class JwtService {
 
       this.logger.info('Token pair generated', {
         userId: payload.userId,
-        expiresIn: this.ACCESS_TOKEN_EXPIRY
+        expiresIn: this.ACCESS_TOKEN_EXPIRY,
+        refreshExpiry,
+        rememberMe
       });
 
       return {

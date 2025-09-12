@@ -247,6 +247,7 @@ export interface ITemplate {
   reviews: ITemplateReview[];
   featured: boolean;
   featuredAt?: Date;
+  originalTemplateId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

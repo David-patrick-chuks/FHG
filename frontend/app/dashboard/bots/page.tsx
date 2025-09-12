@@ -79,11 +79,13 @@ export default function BotsPage() {
   // Check active campaigns for bots
   const checkBotActiveCampaigns = async (botId: string) => {
     try {
-      const response = await BotsAPI.checkActiveCampaigns(botId);
+      // Ensure botId is a string
+      const stringBotId = String(botId);
+      const response = await BotsAPI.checkActiveCampaigns(stringBotId);
       if (response.success && response.data) {
         setBotActiveCampaigns(prev => ({
           ...prev,
-          [botId]: response.data.hasActiveCampaigns
+          [stringBotId]: response.data.hasActiveCampaigns
         }));
       }
     } catch (error) {
@@ -94,7 +96,7 @@ export default function BotsPage() {
   // Check active campaigns for all bots
   const checkAllBotsActiveCampaigns = async () => {
     if (bots.length > 0) {
-      await Promise.all(bots.map(bot => checkBotActiveCampaigns(bot._id)));
+      await Promise.all(bots.map(bot => checkBotActiveCampaigns(String(bot._id))));
     }
   };
 

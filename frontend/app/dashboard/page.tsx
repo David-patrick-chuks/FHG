@@ -334,7 +334,7 @@ export default function DashboardPage() {
   if (loading) {
   return (
       <DashboardLayout
-        title={`Welcome back, ${user?.username || 'User'}! 👋`}
+        title={`Welcome back, ${user?.username.toUpperCase() || 'User'}! 👋`}
         description={
           <div className="flex items-center gap-2">
             <span>Here's what's happening with your email campaigns today.</span>
@@ -492,7 +492,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout
-      title={`Welcome back, ${user?.username || 'User'}! 👋`}
+      title={`Welcome back, ${user?.username || 'User'}! `}
       description={
         <div className="flex items-center gap-2">
           <span>Here's what's happening with your email campaigns today.</span>
@@ -512,7 +512,7 @@ export default function DashboardPage() {
               {user?.subscription || 'Free'}
             </p>
           </div>
-          {user?.subscription.toUpperCase() === 'FREE' && (
+          {user?.subscription && user.subscription.toUpperCase() === 'FREE' && (
             <Button
               onClick={() => router.push('/pricing')}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"

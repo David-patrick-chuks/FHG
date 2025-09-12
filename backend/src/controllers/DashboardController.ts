@@ -55,8 +55,9 @@ export class DashboardController {
         return;
       }
       
-      // Get user's subscription details
-      const subscription = await SubscriptionModel.getInstance().findOne({ userId: user.id });
+      // Get user's subscription details from the user object (from middleware)
+      const userSubscription = user.subscriptionTier || 'FREE';
+      const userSubscriptionStatus = user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt) ? 'expired' : 'active';
       
       // Get user's bots
       const bots = await BotModel.getInstance().find({ userId: user.id });
@@ -110,9 +111,9 @@ export class DashboardController {
         totalBots: bots.length,
         activeBots: activeBots.length,
         subscription: {
-          tier: subscription?.tier || 'FREE',
-          status: subscription?.status || 'active',
-          expiresAt: subscription?.endDate
+          tier: userSubscription,
+          status: userSubscriptionStatus,
+          expiresAt: user.subscriptionExpiresAt
         }
       };
       
@@ -207,16 +208,17 @@ export class DashboardController {
       const campaignCount = await CampaignModel.getInstance().countDocuments({ userId: user.id });
       const emailCount = await SentEmailModel.getInstance().countDocuments({ userId: user.id });
       
-      // Get subscription info
-      const subscription = await SubscriptionModel.getInstance().findOne({ userId: user.id });
+      // Get subscription info from user object
+      const userSubscription = user.subscriptionTier || 'FREE';
+      const userSubscriptionStatus = user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt) ? 'expired' : 'active';
       
       const overview = {
         botCount,
         campaignCount,
         emailCount,
         subscription: {
-          tier: subscription?.tier || 'FREE',
-          status: subscription?.status || 'active'
+          tier: userSubscription,
+          status: userSubscriptionStatus
         }
       };
       

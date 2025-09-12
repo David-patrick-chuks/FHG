@@ -97,16 +97,6 @@ export default function CreateBotPage() {
       return;
     }
 
-    // Validate AI prompt if provided
-    if (formData.prompt.trim() && formData.prompt.trim().length < 10) {
-      setVerificationMessage('AI prompt must be at least 10 characters long if provided.');
-      return;
-    }
-
-    if (formData.prompt.trim() && formData.prompt.trim().length > 1000) {
-      setVerificationMessage('AI prompt must be no more than 1000 characters long.');
-      return;
-    }
 
     // Check if credentials are verified (don't reset verification status)
     if (verificationStatus !== 'success') {
@@ -149,8 +139,7 @@ export default function CreateBotPage() {
                      formData.description.length <= 200 &&
                      formData.email.trim() &&
                      formData.password.trim() &&
-                     verificationStatus === 'success' &&
-                     (!formData.prompt.trim() || (formData.prompt.trim().length >= 10 && formData.prompt.trim().length <= 1000));
+                     verificationStatus === 'success';
 
   return (
     <DashboardLayout
@@ -332,7 +321,7 @@ export default function CreateBotPage() {
             <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                   <Mail className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -469,16 +458,16 @@ export default function CreateBotPage() {
             <div className="flex justify-between p-6 pt-0">
               <Button
                 variant="outline"
-                onClick={() => setCurrentStep(2)}
+                onClick={() => setCurrentStep(1)}
                 className="h-12 px-6"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to AI Configuration
+                Back to Basic Info
               </Button>
               <Button 
                 onClick={handleSubmit}
                 disabled={!canCreateBot || isLoading}
-                className="h-12 px-8 bg-green-600 hover:bg-green-700"
+                className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
                   <>

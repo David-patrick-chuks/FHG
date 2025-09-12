@@ -19,7 +19,7 @@ export class AuthController {
       isAdmin: user.isAdmin || false
     };
     
-    const tokenPair = JwtService.generateTokenPair(payload);
+    const tokenPair = JwtService.generateTokenPair(payload, rememberMe);
     return tokenPair;
   }
 

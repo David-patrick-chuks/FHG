@@ -5,11 +5,17 @@ export interface BaseEntity {
   updatedAt: Date;
 }
 
+// Subscription types - Updated to match backend enum
+export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE';
+export type BillingCycle = 'monthly' | 'yearly';
+
 // User types - Updated to match backend User model exactly
 export interface User extends BaseEntity {
   email: string;
   username: string; // Backend expects username, not firstName/lastName
   subscription: SubscriptionTier;
+  billingCycle?: BillingCycle;
+  subscriptionExpiresAt?: Date;
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: Date;
@@ -49,9 +55,6 @@ export interface PasswordReset {
   newPassword: string;
   confirmPassword: string;
 }
-
-// Subscription types - Updated to match backend enum
-export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE';
 
 export interface Subscription extends BaseEntity {
   tier: SubscriptionTier;
@@ -127,15 +130,6 @@ export interface Campaign extends BaseEntity {
   emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
 }
 
-export interface CreateCampaignRequest {
-  name: string;
-  description: string;
-  botId: string;
-  emailList: string[];
-  scheduledFor?: Date; // Optional: when to start the campaign
-  emailInterval?: number; // Optional: delay between emails (0 = send all at once)
-  emailIntervalUnit?: 'seconds' | 'minutes' | 'hours'; // Optional: unit for interval
-}
 
 // Template types
 export type TemplateStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'published' | 'archived';
@@ -205,6 +199,7 @@ export interface Template extends BaseEntity {
   reviews: TemplateReview[];
   featured: boolean;
   featuredAt?: Date;
+  originalTemplateId?: string;
 }
 
 export interface CreateTemplateRequest {

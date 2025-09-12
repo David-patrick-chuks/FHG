@@ -17,6 +17,7 @@ export default function TemplatesPage() {
   const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [communityTemplates, setCommunityTemplates] = useState<Template[]>([]);
   const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
+  const [communityTemplatesCount, setCommunityTemplatesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +35,12 @@ export default function TemplatesPage() {
       const myTemplatesResponse = await TemplatesAPI.getMyTemplates();
       if (myTemplatesResponse.success && myTemplatesResponse.data) {
         setMyTemplates(myTemplatesResponse.data);
+      }
+
+      // Load community templates count
+      const communityResponse = await TemplatesAPI.getCommunityTemplates();
+      if (communityResponse.success && communityResponse.data) {
+        setCommunityTemplatesCount(communityResponse.data.length);
       }
 
       // Load popular templates for community tab
@@ -67,6 +74,19 @@ export default function TemplatesPage() {
 
   const handleCommunityTemplatesLoaded = (templates: Template[]) => {
     setCommunityTemplates(templates);
+    setCommunityTemplatesCount(templates.length);
+  };
+
+  const handleTemplateAdded = async () => {
+    // Refresh my templates count when a template is added from community
+    try {
+      const myTemplatesResponse = await TemplatesAPI.getMyTemplates();
+      if (myTemplatesResponse.success && myTemplatesResponse.data) {
+        setMyTemplates(myTemplatesResponse.data);
+      }
+    } catch (err) {
+      console.error('Failed to refresh my templates:', err);
+    }
   };
 
   return (
@@ -102,10 +122,10 @@ export default function TemplatesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Community Templates</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{communityTemplates.length}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{communityTemplatesCount}</p>
               </div>
-              <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
@@ -118,8 +138,8 @@ export default function TemplatesPage() {
                   {myTemplates.reduce((sum, template) => sum + template.usageCount, 0)}
                 </p>
               </div>
-              <div className="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
-                <Star className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <Star className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
@@ -156,6 +176,7 @@ export default function TemplatesPage() {
               <CommunityTemplatesTab
                 popularTemplates={popularTemplates}
                 onTemplatesLoaded={handleCommunityTemplatesLoaded}
+                onTemplateAdded={handleTemplateAdded}
               />
             </TabsContent>
           </Tabs>

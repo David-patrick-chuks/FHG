@@ -1,5 +1,5 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
-import { ITemplate, TemplateStatus, TemplateCategory } from '../types';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+import { ITemplate, TemplateCategory, TemplateStatus } from '../types';
 
 export interface ITemplateDocument extends Omit<ITemplate, '_id'>, Document {
   approveTemplate(): Promise<void>;
@@ -185,6 +185,10 @@ export class TemplateModel {
       },
       featuredAt: {
         type: Date
+      },
+      originalTemplateId: {
+        type: String,
+        ref: 'Template'
       }
     }, {
       timestamps: true

@@ -8,12 +8,14 @@ import { CampaignProgressSteps } from '@/components/dashboard/campaigns/Campaign
 import { TargetAudienceStep } from '@/components/dashboard/campaigns/TargetAudienceStep';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCampaignCreation } from '@/hooks/useCampaignCreation';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CreateCampaignPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const {
     // State
     currentStep,
@@ -143,6 +145,7 @@ export default function CreateCampaignPage() {
               canProceed={canProceedToStep3}
               onNext={() => setCurrentStep(4)}
               onBack={() => setCurrentStep(2)}
+              userSubscription={user?.subscription || 'FREE'}
             />
           )}
 

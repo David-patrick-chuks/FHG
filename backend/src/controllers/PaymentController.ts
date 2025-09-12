@@ -435,6 +435,8 @@ export class PaymentController {
       const userId = (req as any).user['id'];
       const { reference } = req.params;
 
+      PaymentController.logger.info('Receipt generation request', { userId, reference });
+
       if (!reference) {
         res.status(400).json({
           success: false,
@@ -447,9 +449,9 @@ export class PaymentController {
       const result = await PaystackService.generateReceipt(userId, reference);
 
       if (result.success) {
-        // Set headers for PDF download
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.pdf"`);
+        // Set headers for SVG image download
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.svg"`);
         res.status(200).send(result.data);
       } else {
         res.status(404).json(result);

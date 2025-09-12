@@ -1,11 +1,11 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Template } from '@/types';
-import { FileText, Star, Users, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Template } from '@/types';
+import { Check, FileText, Star, Users } from 'lucide-react';
 
 interface TemplateSelectorProps {
   templates: Template[];
@@ -38,9 +38,24 @@ export function TemplateSelector({
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
           No Templates Available
         </h3>
-        <p className="text-gray-500 dark:text-gray-400">
-          No templates with at least 10 samples are available. Please create a template first.
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
+          You don't have any templates with at least 10 samples. Create your own template or add community templates to your collection first.
         </p>
+        <div className="space-x-3">
+          <Button 
+            onClick={() => window.open('/dashboard/templates/create', '_blank')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Create Template
+          </Button>
+          <Button 
+            onClick={() => window.open('/dashboard/templates?tab=community', '_blank')}
+            variant="outline"
+          >
+            Browse Community
+          </Button>
+        </div>
       </div>
     );
   }

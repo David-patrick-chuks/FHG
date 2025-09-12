@@ -465,20 +465,53 @@ export class TemplateService {
         };
       }
 
-      // Increment usage count
+      // Check if user already has this template
+      const existingTemplate = await TemplateModel.findOne({
+        userId,
+        originalTemplateId: templateId
+      });
+
+      if (existingTemplate) {
+        return {
+          success: false,
+          message: 'You already have this template in your collection',
+          timestamp: new Date()
+        };
+      }
+
+      // Create a copy of the template for the user
+      const userTemplate = new TemplateModel({
+        userId,
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        industry: template.industry,
+        targetAudience: template.targetAudience,
+        isPublic: false, // User's copy is private by default
+        isApproved: true, // User's copy is auto-approved
+        status: TemplateStatus.APPROVED,
+        samples: template.samples,
+        tags: template.tags,
+        originalTemplateId: templateId, // Reference to the original template
+        usageCount: 0 // Reset usage count for user's copy
+      });
+
+      await userTemplate.save();
+
+      // Increment usage count of the original template
       await template.incrementUsageCount();
 
-      TemplateService.logger.info('Template used', {
-        templateId: template._id,
+      TemplateService.logger.info('Template added to user collection', {
+        originalTemplateId: template._id,
+        userTemplateId: userTemplate._id,
         userId,
-        templateName: template.name,
-        newUsageCount: template.usageCount + 1
+        templateName: template.name
       });
 
       return {
         success: true,
-        message: 'Template used successfully',
-        data: TemplateService.serializeTemplate(template),
+        message: 'Template added to your collection successfully',
+        data: TemplateService.serializeTemplate(userTemplate),
         timestamp: new Date()
       };
     } catch (error) {

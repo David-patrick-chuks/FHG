@@ -62,7 +62,7 @@ export function useCampaignCreation() {
     try {
       setTemplatesLoading(true);
       setError(null);
-      const response = await TemplatesAPI.getCommunityTemplates();
+      const response = await TemplatesAPI.getMyTemplates();
       if (response.success && response.data) {
         // Filter templates that have at least 10 samples
         const validTemplates = response.data.filter(template => 

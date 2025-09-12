@@ -6,6 +6,7 @@ export interface SubscriptionLimits {
   canUseCsvUpload: boolean;
   planName: string;
   isUnlimited: boolean;
+  expiresAt: Date;
 }
 
 export interface UsageStats {
@@ -27,30 +28,31 @@ export class SubscriptionLimitsService {
       
       if (!userResult.success || !userResult.data) {
         // Default to free plan if user not found
-        return this.getFreePlanLimits();
+        return this.getFreePlanLimits(new Date());
       }
 
       const user = userResult.data;
       const subscription = user.subscription;
+      const expiresAt = user.subscriptionExpiresAt;
 
       // Check if user has an active subscription
       if (!user.hasActiveSubscription()) {
-        return this.getFreePlanLimits();
+        return this.getFreePlanLimits(expiresAt);
       }
 
       switch (subscription) {
         case 'free':
-          return this.getFreePlanLimits();
+          return this.getFreePlanLimits(expiresAt);
         case 'pro':
-          return this.getProPlanLimits();
+          return this.getProPlanLimits(expiresAt);
         case 'enterprise':
-          return this.getEnterprisePlanLimits();
+          return this.getEnterprisePlanLimits(expiresAt);
         default:
-          return this.getFreePlanLimits();
+          return this.getFreePlanLimits(expiresAt);
       }
     } catch (error) {
       SubscriptionLimitsService.logger.error('Error getting subscription limits:', error);
-      return this.getFreePlanLimits();
+      return this.getFreePlanLimits(new Date());
     }
   }
 
@@ -96,7 +98,7 @@ export class SubscriptionLimitsService {
       return {
         canExtract: false,
         reason: 'Error checking extraction limits',
-        limits: this.getFreePlanLimits(),
+        limits: this.getFreePlanLimits(new Date()),
         usage: { used: 0, remaining: 0, resetTime: new Date(), limit: 0 }
       };
     }
@@ -265,36 +267,39 @@ export class SubscriptionLimitsService {
   /**
    * Free plan limits
    */
-  private static getFreePlanLimits(): SubscriptionLimits {
+  private static getFreePlanLimits(expiresAt: Date): SubscriptionLimits {
     return {
       dailyExtractionLimit: 100, // Increased for API usage
       canUseCsvUpload: false,
       planName: 'free',
-      isUnlimited: false
+      isUnlimited: false,
+      expiresAt
     };
   }
 
   /**
    * Pro plan limits
    */
-  private static getProPlanLimits(): SubscriptionLimits {
+  private static getProPlanLimits(expiresAt: Date): SubscriptionLimits {
     return {
       dailyExtractionLimit: 1000, // Increased for API usage
       canUseCsvUpload: true,
       planName: 'pro',
-      isUnlimited: false
+      isUnlimited: false,
+      expiresAt
     };
   }
 
   /**
    * Enterprise plan limits
    */
-  private static getEnterprisePlanLimits(): SubscriptionLimits {
+  private static getEnterprisePlanLimits(expiresAt: Date): SubscriptionLimits {
     return {
       dailyExtractionLimit: 10000, // High limit for enterprise
       canUseCsvUpload: true,
       planName: 'enterprise',
-      isUnlimited: true
+      isUnlimited: true,
+      expiresAt
     };
   }
 }

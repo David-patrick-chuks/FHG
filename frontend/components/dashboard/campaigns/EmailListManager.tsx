@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle, Upload, X, Users, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Upload, X, Users, AlertTriangle, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { SubscriptionTier } from '@/types';
 
 interface EmailListManagerProps {
   emailList: string;
@@ -19,6 +20,7 @@ interface EmailListManagerProps {
   onDrop: (e: React.DragEvent) => void;
   selectedBotEmailsRemaining: number;
   disabled?: boolean;
+  userSubscription: SubscriptionTier;
 }
 
 export function EmailListManager({
@@ -34,7 +36,8 @@ export function EmailListManager({
   onDragLeave,
   onDrop,
   selectedBotEmailsRemaining,
-  disabled
+  disabled,
+  userSubscription
 }: EmailListManagerProps) {
   const [showEmailCount, setShowEmailCount] = useState(false);
   
@@ -45,6 +48,9 @@ export function EmailListManager({
   // Check if email count exceeds bot's remaining capacity
   const exceedsLimit = totalEmails > selectedBotEmailsRemaining;
   const isNearLimit = totalEmails > selectedBotEmailsRemaining * 0.8;
+  
+  // Check if user can upload CSV files (Pro and Enterprise only)
+  const canUploadCsv = userSubscription === 'PRO' || userSubscription === 'ENTERPRISE';
 
   return (
     <div className="space-y-6">
@@ -90,17 +96,39 @@ export function EmailListManager({
           <p className="text-gray-600 dark:text-gray-400 text-lg">Choose your preferred method to add recipients</p>
         </div>
         
+        {/* Subscription Restriction Notice */}
+        {!canUploadCsv && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700">
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-800 dark:to-orange-800 rounded-xl flex items-center justify-center">
+                <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="text-center">
+                <h5 className="text-lg font-bold text-amber-900 dark:text-amber-100">
+                  CSV Upload Not Available
+                </h5>
+                <p className="text-amber-700 dark:text-amber-300">
+                  CSV file upload is available for <span className="font-semibold">Pro</span> and <span className="font-semibold">Enterprise</span> plans only.
+                </p>
+                <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                  You can still add emails manually below.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div 
           className={`border-2 border-dashed transition-all duration-300 rounded-2xl p-12 text-center ${
-            disabled
+            disabled || !canUploadCsv
               ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
               : isDragOver 
               ? 'border-green-500 bg-green-50/80 dark:bg-green-900/20 scale-105 shadow-lg' 
               : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 bg-white dark:bg-gray-800 hover:bg-green-50/50 dark:hover:bg-green-900/10 hover:shadow-md'
           }`}
-          onDragOver={disabled ? undefined : onDragOver}
-          onDragLeave={disabled ? undefined : onDragLeave}
-          onDrop={disabled ? undefined : onDrop}
+          onDragOver={disabled || !canUploadCsv ? undefined : onDragOver}
+          onDragLeave={disabled || !canUploadCsv ? undefined : onDragLeave}
+          onDrop={disabled || !canUploadCsv ? undefined : onDrop}
         >
           <input
             type="file"
@@ -108,9 +136,9 @@ export function EmailListManager({
             accept=".csv,.txt"
             onChange={onFileUpload}
             className="hidden"
-            disabled={isUploading || disabled}
+            disabled={isUploading || disabled || !canUploadCsv}
           />
-          <label htmlFor="fileUpload" className={`block ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+          <label htmlFor="fileUpload" className={`block ${disabled || !canUploadCsv ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
             {isUploading ? (
               <div className="space-y-6">
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
@@ -134,12 +162,19 @@ export function EmailListManager({
                   <p className={`text-2xl font-bold transition-colors duration-300 ${
                     isDragOver 
                       ? 'text-green-600 dark:text-green-400' 
+                      : !canUploadCsv
+                      ? 'text-gray-500 dark:text-gray-400'
                       : 'text-gray-900 dark:text-white'
                   }`}>
-                    {isDragOver ? 'Drop your file here!' : 'Upload Email List'}
+                    {!canUploadCsv ? 'CSV Upload Restricted' : isDragOver ? 'Drop your file here!' : 'Upload Email List'}
                   </p>
                   <p className="text-base text-gray-600 dark:text-gray-400 mt-3">
-                    {isDragOver ? 'Release to upload' : 'Drag and drop your file here, or click to browse'}
+                    {!canUploadCsv 
+                      ? 'Available for Pro and Enterprise plans only' 
+                      : isDragOver 
+                      ? 'Release to upload' 
+                      : 'Drag and drop your file here, or click to browse'
+                    }
                   </p>
                   <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center space-x-1">
