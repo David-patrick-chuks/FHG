@@ -53,6 +53,11 @@ export class EmailExtractorController {
       });
 
       if (!urlValidationResult.isValid) {
+        EmailExtractorController.logger.error('URL validation failed', {
+          userId,
+          urls,
+          errors: urlValidationResult.errors
+        });
         res.status(400).json({
           success: false,
           message: `URL validation failed: ${urlValidationResult.errors.join(', ')}`,

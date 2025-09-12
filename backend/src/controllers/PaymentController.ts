@@ -60,11 +60,11 @@ export class PaymentController {
         return;
       }
 
-      const result = await PaystackService.initializePayment(userId, {
+      const result = await PaystackService.initializePayment({
         subscriptionTier: subscriptionTierResult.sanitizedValue,
         billingCycle: billingCycleResult.sanitizedValue,
         email: emailResult.sanitizedValue
-      });
+      }, userId);
 
       if (result.success) {
         res.status(200).json(result);
@@ -449,9 +449,9 @@ export class PaymentController {
       const result = await PaystackService.generateReceipt(userId, reference);
 
       if (result.success) {
-        // Set headers for SVG image download
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.svg"`);
+        // Set headers for PNG image download
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.png"`);
         res.status(200).send(result.data);
       } else {
         res.status(404).json(result);
@@ -506,7 +506,7 @@ export class PaymentController {
       const userId = (req as any).user['id'];
       const { reason } = req.body;
 
-      const result = await PaystackService.cancelSubscription(userId, reason);
+      const result = await PaystackService.cancelSubscription(userId);
 
       if (result.success) {
         res.status(200).json(result);

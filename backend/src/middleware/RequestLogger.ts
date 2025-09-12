@@ -15,10 +15,32 @@ export class RequestLogger {
       return originalSend.call(this, data);
     };
 
-    // Log request start
-    RequestLogger.logRequestStart(req);
+    // Only log request start for important endpoints
+    if (RequestLogger.shouldLogRequest(req)) {
+      RequestLogger.logRequestStart(req);
+    }
 
     next();
+  }
+
+  private static shouldLogRequest(req: Request): boolean {
+    const url = req.originalUrl || req.url;
+    
+    // Only log important endpoints
+    const importantEndpoints = [
+      '/api/auth/login',
+      '/api/auth/register',
+      '/api/auth/logout',
+      '/api/payments/initialize',
+      '/api/payments/verify',
+      '/api/payments/webhook',
+      '/api/bots',
+      '/api/campaigns',
+      '/api/admin'
+    ];
+    
+    // Log if it's an important endpoint or if it's an error
+    return importantEndpoints.some(endpoint => url.startsWith(endpoint));
   }
 
   private static logRequestStart(req: Request): void {
@@ -26,62 +48,49 @@ export class RequestLogger {
       method: req.method,
       url: req.originalUrl || req.url,
       ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.get('User-Agent'),
-      userId: (req as any).user?.id || 'anonymous',
-      timestamp: new Date().toISOString()
+      userId: (req as any).user?.id || 'anonymous'
     };
 
     RequestLogger.logger.info('Request started', logData);
   }
 
   private static logRequest(req: Request, res: Response, responseTime: number, responseData?: any): void {
+    const url = req.originalUrl || req.url;
+    
+    // Only log important requests or errors
+    if (!RequestLogger.shouldLogRequest(req) && res.statusCode < 400) {
+      return;
+    }
+
     const logData: any = {
       method: req.method,
-      url: req.originalUrl || req.url,
+      url,
       statusCode: res.statusCode,
       responseTime: `${responseTime}ms`,
-      ip: req.ip || req.connection.remoteAddress,
-      userAgent: req.get('User-Agent'),
-      userId: (req as any).user?.id || 'anonymous',
-      contentLength: res.get('Content-Length'),
-      timestamp: new Date().toISOString()
+      userId: (req as any).user?.id || 'anonymous'
     };
-
-    // Add response data for debugging (only in development)
-    if (process.env['NODE_ENV'] === 'development' && responseData) {
-      try {
-        const parsedData = typeof responseData === 'string' ? JSON.parse(responseData) : responseData;
-        logData.responseData = parsedData;
-      } catch (error) {
-        logData.responseData = responseData;
-      }
-    }
 
     // Log based on status code
     if (res.statusCode >= 500) {
-      RequestLogger.logger.error('Request completed with server error', logData);
+      RequestLogger.logger.error('Server error', logData);
     } else if (res.statusCode >= 400) {
-      RequestLogger.logger.warn('Request completed with client error', logData);
-    } else if (res.statusCode >= 300) {
-      RequestLogger.logger.info('Request completed with redirect', logData);
-    } else {
-      RequestLogger.logger.info('Request completed successfully', logData);
+      RequestLogger.logger.warn('Client error', logData);
+    } else if (RequestLogger.shouldLogRequest(req)) {
+      RequestLogger.logger.info('Request completed', logData);
     }
 
-    // Log slow requests
-    if (responseTime > 1000) {
-      RequestLogger.logger.warn('Slow request detected', {
+    // Log slow requests (only for important endpoints)
+    if (responseTime > 2000 && RequestLogger.shouldLogRequest(req)) {
+      RequestLogger.logger.warn('Slow request', {
         ...logData,
-        responseTime: `${responseTime}ms`,
-        threshold: '1000ms'
+        threshold: '2000ms'
       });
     }
 
     // Log very slow requests
     if (responseTime > 5000) {
-      RequestLogger.logger.error('Very slow request detected', {
+      RequestLogger.logger.error('Very slow request', {
         ...logData,
-        responseTime: `${responseTime}ms`,
         threshold: '5000ms'
       });
     }

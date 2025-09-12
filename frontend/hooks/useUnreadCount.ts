@@ -1,12 +1,21 @@
 import { DashboardAPI } from '@/lib/api/dashboard';
+import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 
 export function useUnreadCount() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
+      // Don't fetch if user is not authenticated or auth is still loading
+      if (!isAuthenticated || authLoading) {
+        setUnreadCount(0);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         console.log('Fetching unread count...');
         setIsLoading(true);
@@ -31,10 +40,16 @@ export function useUnreadCount() {
     };
 
     fetchUnreadCount();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // Function to refresh the unread count (useful after marking activities as read)
   const refreshUnreadCount = async () => {
+    // Don't refresh if user is not authenticated
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+
     try {
       console.log('Refreshing unread count...');
       const response = await DashboardAPI.getUnreadCount();

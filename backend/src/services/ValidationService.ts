@@ -179,15 +179,12 @@ export class ValidationService {
       }
     }
 
-    // Additional URL validation
-    if (!validator.isURL(urlStr, { protocols: allowedProtocols })) {
-      errors.push('Invalid URL format');
-    }
+    // URL validation is handled by the native URL constructor above
 
     return {
       isValid: errors.length === 0,
       errors,
-      sanitizedValue: parsedUrl.toString()
+      sanitizedValue: errors.length === 0 ? parsedUrl.toString() : undefined
     };
   }
 

@@ -53,27 +53,32 @@ export class SecurityMiddleware {
   public static logSecurityEvent(req: Request, res: Response, next: NextFunction): void {
     const startTime = Date.now();
     
-    // Log request details
-    SecurityMiddleware.logger.info('API Request', {
-      requestId: res.locals.requestId,
-      method: req.method,
-      url: req.originalUrl,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-      timestamp: new Date().toISOString()
-    });
+    // Only log important security events
+    const url = req.originalUrl || req.url;
+    const importantEndpoints = ['/api/auth/', '/api/payments/', '/api/admin/'];
+    
+    if (importantEndpoints.some(endpoint => url.startsWith(endpoint))) {
+      SecurityMiddleware.logger.info('API Request', {
+        requestId: res.locals.requestId,
+        method: req.method,
+        url: req.originalUrl,
+        ip: req.ip
+      });
+    }
 
-    // Override res.end to log response
+    // Override res.end to log response (only for important endpoints or errors)
     const originalEnd = res.end.bind(res);
     res.end = function(chunk?: any, encoding?: any, cb?: any) {
       const responseTime = Date.now() - startTime;
       
-      SecurityMiddleware.logger.info('API Response', {
-        requestId: res.locals.requestId,
-        statusCode: res.statusCode,
-        responseTime: `${responseTime}ms`,
-        contentLength: res.get('Content-Length') || 0
-      });
+      // Only log responses for important endpoints or errors
+      if (importantEndpoints.some(endpoint => url.startsWith(endpoint)) || res.statusCode >= 400) {
+        SecurityMiddleware.logger.info('API Response', {
+          requestId: res.locals.requestId,
+          statusCode: res.statusCode,
+          responseTime: `${responseTime}ms`
+        });
+      }
 
       return originalEnd(chunk, encoding, cb);
     };
@@ -209,13 +214,53 @@ export class SecurityMiddleware {
     next();
   }
 
-  private static removeSensitiveData(obj: any, isAuthResponse: boolean = false, allowApiKey: boolean = false): any {
+  private static removeSensitiveData(obj: any, isAuthResponse: boolean = false, allowApiKey: boolean = false, depth: number = 0, visited: WeakSet<any> = new WeakSet()): any {
+    // Prevent infinite recursion
+    if (depth > 10) {
+      return '[Circular Reference]';
+    }
+
     if (Array.isArray(obj)) {
-      return obj.map(item => SecurityMiddleware.removeSensitiveData(item, isAuthResponse, allowApiKey));
+      return obj.map(item => SecurityMiddleware.removeSensitiveData(item, isAuthResponse, allowApiKey, depth + 1, visited));
     }
 
     if (obj && typeof obj === 'object') {
-      const sanitized = { ...obj };
+      // Check for circular references
+      if (visited.has(obj)) {
+        return '[Circular Reference]';
+      }
+      visited.add(obj);
+
+      // Handle Date objects - preserve them as ISO strings
+      if (obj instanceof Date) {
+        return obj.toISOString();
+      }
+
+      // Handle Mongoose documents by converting to plain object
+      let plainObj = obj;
+      if (obj.toObject && typeof obj.toObject === 'function') {
+        plainObj = obj.toObject();
+      } else if (obj.toJSON && typeof obj.toJSON === 'function') {
+        plainObj = obj.toJSON();
+      }
+
+      const sanitized = { ...plainObj };
+      
+      // Fix any date objects that might have been corrupted during conversion
+      Object.keys(sanitized).forEach(key => {
+        const value = sanitized[key];
+        if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+          // Check if this looks like a corrupted date object (has numeric keys)
+          const keys = Object.keys(value);
+          if (keys.length > 0 && keys.every(k => /^\d+$/.test(k))) {
+            // Try to reconstruct the date string
+            const dateString = keys.map(k => value[k]).join('');
+            if (dateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)) {
+              sanitized[key] = dateString;
+            }
+          }
+        }
+      });
       
       // Remove sensitive fields
       const sensitiveFields = [
@@ -242,7 +287,7 @@ export class SecurityMiddleware {
       // Recursively sanitize nested objects
       Object.keys(sanitized).forEach(key => {
         if (sanitized[key] && typeof sanitized[key] === 'object') {
-          sanitized[key] = SecurityMiddleware.removeSensitiveData(sanitized[key], isAuthResponse, allowApiKey);
+          sanitized[key] = SecurityMiddleware.removeSensitiveData(sanitized[key], isAuthResponse, allowApiKey, depth + 1, visited);
         }
       });
 

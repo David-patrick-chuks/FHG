@@ -63,26 +63,9 @@ export default function UserPaymentsPage() {
 
   const handleDownloadReceipt = async (reference: string) => {
     try {
-      const response = await fetch(`/api/payments/receipt/${encodeURIComponent(reference)}`, {
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `receipt-${reference}.svg`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success('Receipt downloaded successfully');
-      } else {
-        toast.error('Failed to download receipt');
-      }
+      await PaymentAPI.downloadReceipt(reference);
+      toast.success('Receipt downloaded successfully');
     } catch (error) {
-      console.error('Error downloading receipt:', error);
       toast.error('Failed to download receipt');
     }
   };
@@ -260,37 +243,7 @@ export default function UserPaymentsPage() {
           </CardContent>
         </Card>
 
-        {/* Current Subscription Info */}
-        {payments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Subscription</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      Active Subscription
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Your subscription is active and up to date
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/dashboard/payments/subscription')}
-                >
-                  Manage Subscription
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      
       </div>
     </DashboardLayout>
   );

@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api-client";
+import { config } from "@/lib/config";
 import { ApiResponse } from "@/types";
 
 export interface PaymentPricing {
@@ -97,5 +98,37 @@ export class PaymentAPI {
    */
   static async canUpgrade(): Promise<ApiResponse<{ canUpgrade: boolean }>> {
     return apiClient.get<{ canUpgrade: boolean }>(`${this.baseUrl}/can-upgrade`);
+  }
+
+  /**
+   * Download payment receipt
+   */
+  static async downloadReceipt(reference: string): Promise<void> {
+    try {
+      // Use apiClient's base URL and credentials, but handle blob response manually
+      const response = await fetch(`${config.api.baseUrl}${this.baseUrl}/receipt/${encodeURIComponent(reference)}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${reference}.png`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error('Failed to download receipt');
+      }
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      throw error;
+    }
   }
 }

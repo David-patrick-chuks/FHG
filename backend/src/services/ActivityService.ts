@@ -24,12 +24,16 @@ export class ActivityService {
         metadata
       );
 
-      ActivityService.logger.info('Activity created', {
-        userId,
-        type,
-        title,
-        activityId: activity._id
-      });
+      // Only log important activities
+      const importantTypes = ['user_registered', 'subscription_created', 'payment_initialized', 'bot_created'];
+      if (importantTypes.includes(type)) {
+        ActivityService.logger.info('Activity created', {
+          userId,
+          type,
+          title,
+          activityId: activity._id
+        });
+      }
 
       return {
         success: true,

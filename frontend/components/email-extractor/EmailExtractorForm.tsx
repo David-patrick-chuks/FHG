@@ -102,7 +102,12 @@ export function EmailExtractorForm({
       return;
     }
 
-    onExtractionStart([singleUrl.trim()], 'single');
+    // Add protocol if not present
+    const urlWithProtocol = singleUrl.trim().startsWith('http') 
+      ? singleUrl.trim() 
+      : `https://${singleUrl.trim()}`;
+
+    onExtractionStart([urlWithProtocol], 'single');
     clearFormFields();
   };
 
@@ -140,7 +145,12 @@ export function EmailExtractorForm({
       return;
     }
 
-    onExtractionStart(urls, 'multiple');
+    // Add protocol if not present for each URL
+    const urlsWithProtocol = urls.map(url => 
+      url.startsWith('http') ? url : `https://${url}`
+    );
+
+    onExtractionStart(urlsWithProtocol, 'multiple');
     clearFormFields();
   };
 
@@ -206,7 +216,12 @@ export function EmailExtractorForm({
       return;
     }
 
-    onExtractionStart(parsedUrls, 'csv');
+    // Add protocol if not present for each URL
+    const urlsWithProtocol = parsedUrls.map(url => 
+      url.startsWith('http') ? url : `https://${url}`
+    );
+
+    onExtractionStart(urlsWithProtocol, 'csv');
     clearFormFields();
   };
 

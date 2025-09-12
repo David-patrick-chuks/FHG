@@ -55,11 +55,16 @@ export class AuthMiddleware {
         isAdmin: user.isAdmin
       };
 
-      AuthMiddleware.logger.info('User authenticated successfully', {
-        userId: user._id,
-        email: user.email,
-        ip: req.ip
-      });
+      // Only log authentication for important endpoints or first-time access
+      const url = req.originalUrl || req.url;
+      const importantEndpoints = ['/api/auth/', '/api/payments/', '/api/admin/'];
+      
+      if (importantEndpoints.some(endpoint => url.startsWith(endpoint))) {
+        AuthMiddleware.logger.info('User authenticated', {
+          userId: user._id,
+          email: user.email
+        });
+      }
 
       next();
     } catch (error: any) {
