@@ -34,6 +34,13 @@ export interface ITemplateVariable {
   required: boolean;
 }
 
+export interface ITemplateSample {
+  _id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+}
+
 export interface ITemplateReview {
   _id: string;
   userId: string;
