@@ -23,7 +23,7 @@ export function CampaignProgress({ campaign, getProgressPercentage }: CampaignPr
         <div className="space-y-4">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">
-              {campaign.sentEmails.length} of {campaign.emailList.length} emails sent
+              {campaign.sentEmails?.length || 0} of {campaign.emailList?.length || 0} emails sent
             </span>
             <span className="text-gray-600 dark:text-gray-400">
               {getProgressPercentage()}% complete

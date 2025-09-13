@@ -11,6 +11,7 @@ export interface IUserDocument extends Omit<IUser, '_id'>, Document {
   getDailyEmailLimit(): number;
   getMaxBots(): number;
   getMaxCampaigns(): number;
+  getMaxTemplates(): number;
   getMaxAIMessageVariations(): number;
   calculateSubscriptionExpiration(billingCycle: BillingCycle): Date;
   updateSubscription(subscription: SubscriptionTier, billingCycle: BillingCycle): Promise<void>;
@@ -196,6 +197,18 @@ export class UserModel {
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxCampaigns[subscription] || 5;
+    };
+
+    userSchema.methods['getMaxTemplates'] = function(): number {
+      const maxTemplates: Record<SubscriptionTier, number> = {
+        [SubscriptionTier.FREE]: 5,
+        [SubscriptionTier.BASIC]: 15,
+        [SubscriptionTier.PREMIUM]: 30,
+        [SubscriptionTier.PRO]: 50,
+        [SubscriptionTier.ENTERPRISE]: -1 // Unlimited
+      };
+      const subscription = this['subscription'] as SubscriptionTier;
+      return maxTemplates[subscription] || 5;
     };
 
     userSchema.methods['getMaxAIMessageVariations'] = function(): number {

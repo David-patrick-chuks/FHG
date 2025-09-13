@@ -1,24 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
-
-export interface IIncident {
-  _id?: string;
-  title: string;
-  description: string;
-  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-  impact: 'minor' | 'major' | 'critical';
-  affectedServices: string[];
-  updates: IIncidentUpdate[];
-  createdAt: Date;
-  updatedAt: Date;
-  resolvedAt?: Date;
-}
-
-export interface IIncidentUpdate {
-  timestamp: Date;
-  message: string;
-  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-  author?: string;
-}
+import { IIncident, IIncidentUpdate } from '../types';
 
 export interface IIncidentDocument extends Omit<IIncident, '_id'>, Document {
   addUpdate(message: string, status: 'investigating' | 'identified' | 'monitoring' | 'resolved', author?: string): Promise<void>;

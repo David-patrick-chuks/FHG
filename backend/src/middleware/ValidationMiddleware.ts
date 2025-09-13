@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Logger } from '../utils/Logger';
-
-// Extend Request interface to include file property for multer
-interface FileUploadRequest extends Request {
-  file?: any; // Using any for now to avoid type conflicts
-}
+import { FileUploadRequest } from '../types';
 
 export class ValidationMiddleware {
   private static logger: Logger = new Logger();

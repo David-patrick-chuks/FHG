@@ -1,15 +1,15 @@
 'use client';
 
 import {
-  ActivityEmptyState,
-  ActivityErrorState,
-  ActivityList,
-  ActivityLoadingSkeleton,
-  ActivityPagination
+    ActivityEmptyState,
+    ActivityErrorState,
+    ActivityList,
+    ActivityLoadingSkeleton,
+    ActivityPagination
 } from '@/components/activity';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUnreadCount } from '@/hooks/useUnreadCount';
+import { useUnreadCount } from '@/contexts/UnreadCountContext';
 import { DashboardAPI } from '@/lib/api';
 import { RecentActivity } from '@/types';
 import { useCallback, useEffect, useRef, useState } from 'react';

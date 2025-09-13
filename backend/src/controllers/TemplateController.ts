@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ActivityType } from '../models/Activity';
+import { ActivityType } from '../types';
 import { ActivityService } from '../services/ActivityService';
 import { TemplateService } from '../services/TemplateService';
 import { Logger } from '../utils/Logger';
@@ -15,7 +15,7 @@ export class TemplateController {
         userId,
         templateName: req.body.name,
         category: req.body.category,
-        sampleCount: req.body.samples?.length || 0,
+        variableCount: req.body.variables?.length || 0,
         isPublic: req.body.isPublic,
         ip: req.ip
       });
@@ -27,7 +27,7 @@ export class TemplateController {
         await ActivityService.logUserActivity(
           userId,
           ActivityType.TEMPLATE_CREATED,
-          `Created template "${result.data.name}" with ${req.body.samples?.length || 0} samples`
+          `Created template "${result.data.name}" with ${req.body.variables?.length || 0} variables`
         );
 
         res.status(201).json({

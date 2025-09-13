@@ -1,26 +1,6 @@
+import mongoose, { Model, Schema } from 'mongoose';
+import { IAuditLog } from '../types';
 import { Logger } from '../utils/Logger';
-import mongoose, { Schema, Document, Model } from 'mongoose';
-
-export interface IAuditLog extends Document {
-  _id: string;
-  userId?: string;
-  userEmail?: string;
-  action: string;
-  resource: string;
-  resourceId?: string;
-  details: any;
-  ipAddress: string;
-  userAgent: string;
-  requestId: string;
-  timestamp: Date;
-  success: boolean;
-  errorMessage?: string;
-  metadata: {
-    subscriptionTier?: string;
-    isAdmin?: boolean;
-    sessionId?: string;
-  };
-}
 
 const auditLogSchema = new Schema<IAuditLog>({
   userId: { type: String, index: true },

@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Campaign, Bot } from '@/types';
+import { Bot, Campaign } from '@/types';
 import { Bot as BotIcon, Calendar } from 'lucide-react';
 
 interface CampaignInfoProps {
@@ -79,16 +79,16 @@ export function CampaignInfo({
                 <span className="font-medium">{bot.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Bot Type:</span>
-                <span className="font-medium">{bot.type}</span>
+                <span className="text-gray-600 dark:text-gray-400">Bot Email:</span>
+                <span className="font-medium">{bot.email}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Status:</span>
                 <Badge 
-                  variant={getStatusBadgeVariant(bot.status)}
-                  className={getStatusColor(bot.status)}
+                  variant={getStatusBadgeVariant(bot.isActive ? 'active' : 'inactive')}
+                  className={getStatusColor(bot.isActive ? 'active' : 'inactive')}
                 >
-                  {bot.status.charAt(0).toUpperCase() + bot.status.slice(1)}
+                  {bot.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </div>
               <div className="flex justify-between">

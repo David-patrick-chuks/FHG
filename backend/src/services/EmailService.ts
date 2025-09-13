@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import BotModel from '../models/Bot';
+import CampaignModel from '../models/Campaign';
 import SentEmailModel from '../models/SentEmail';
 import { ApiResponse, EmailStatus } from '../types';
 import { Logger } from '../utils/Logger';
@@ -579,7 +580,8 @@ Thank you for using Email Outreach Bot!
     recipientEmail: string,
     subject: string,
     message: string,
-    campaignId: string
+    campaignId: string,
+    generatedMessageId?: string
   ): Promise<ApiResponse<{ messageId: string; sentAt: Date }>> {
     try {
       // Get bot details
@@ -645,12 +647,35 @@ Thank you for using Email Outreach Bot!
       // Increment bot's daily email count
       await bot.incrementDailyEmailCount();
 
+      // Mark generated message as sent if generatedMessageId is provided
+      if (generatedMessageId) {
+        try {
+          const campaign = await CampaignModel.findById(campaignId);
+          if (campaign) {
+            await campaign.markMessageAsSent(recipientEmail);
+            EmailService.logger.info('Generated message marked as sent', {
+              campaignId,
+              recipientEmail,
+              generatedMessageId
+            });
+          }
+        } catch (error) {
+          EmailService.logger.warn('Failed to mark generated message as sent', {
+            campaignId,
+            recipientEmail,
+            generatedMessageId,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+
       EmailService.logger.info('Email sent successfully', {
         messageId: info.messageId,
         botId,
         recipientEmail,
         campaignId,
-        emailId: (sentEmail._id as any)
+        emailId: (sentEmail._id as any),
+        generatedMessageId
       });
 
       return {

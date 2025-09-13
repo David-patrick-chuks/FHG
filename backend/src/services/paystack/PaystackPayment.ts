@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ActivityType } from '../../models/Activity';
+import { ActivityType } from '../../types';
 import PaymentModel from '../../models/Payment';
 import UserModel from '../../models/User';
 import { ApiResponse, BillingCycle, InitializePaymentRequest, PaymentStatus, SubscriptionTier } from '../../types';

@@ -1,25 +1,11 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { BotModel } from '../models/Bot';
 import { CampaignModel } from '../models/Campaign';
 import { SentEmailModel } from '../models/SentEmail';
 import { SubscriptionModel } from '../models/Subscription';
 import { ActivityService } from '../services/ActivityService';
 import { Logger } from '../utils/Logger';
-
-// Interface for the authenticated user object from middleware
-interface AuthenticatedUser {
-  id: string;
-  email: string;
-  username: string;
-  subscriptionTier: string;
-  subscriptionExpiresAt?: Date;
-  isAdmin: boolean;
-}
-
-// Extend Request interface to include user property
-interface AuthenticatedRequest extends Request {
-  user?: AuthenticatedUser;
-}
+import { AuthenticatedRequest } from '../types';
 
 export class DashboardController {
   private static logger: Logger = new Logger();

@@ -2,20 +2,20 @@
 
 import { CampaignScheduler } from '@/components/campaigns/CampaignScheduler';
 import {
-    AIMessages,
-    CampaignDialogs,
-    CampaignHeader,
-    CampaignInfo,
-    CampaignProgress,
-    CampaignStats,
-    EmailRecipients
+  AIMessages,
+  CampaignDialogs,
+  CampaignHeader,
+  CampaignInfo,
+  CampaignProgress,
+  CampaignStats,
+  EmailRecipients
 } from '@/components/dashboard/campaigns';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BotsAPI, CampaignsAPI } from '@/lib/api';
 import { Bot, Campaign } from '@/types';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, Edit, X } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -70,9 +70,7 @@ export default function CampaignDetailsPage() {
     
     try {
       setIsUpdating(true);
-      const response = await CampaignsAPI.updateCampaign(campaign._id, {
-        status: 'paused'
-      });
+      const response = await CampaignsAPI.pauseCampaign(campaign._id);
       
       if (response.success) {
         setCampaign(prev => prev ? { ...prev, status: 'paused' } : null);
@@ -92,9 +90,7 @@ export default function CampaignDetailsPage() {
     
     try {
       setIsUpdating(true);
-      const response = await CampaignsAPI.updateCampaign(campaign._id, {
-        status: 'running'
-      });
+      const response = await CampaignsAPI.resumeCampaign(campaign._id);
       
       if (response.success) {
         setCampaign(prev => prev ? { ...prev, status: 'running' } : null);
@@ -187,6 +183,10 @@ export default function CampaignDetailsPage() {
         return 'outline';
       case 'stopped':
         return 'destructive';
+      case 'active':
+        return 'default';
+      case 'inactive':
+        return 'secondary';
       default:
         return 'outline';
     }
@@ -195,22 +195,28 @@ export default function CampaignDetailsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'running':
-        return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
+        return 'text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700';
       case 'paused':
-        return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
+        return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700';
       case 'completed':
-        return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20';
+        return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700';
       case 'stopped':
-        return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
+        return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20 border-red-200 dark:border-red-700';
+      case 'active':
+        return 'text-cyan-600 bg-cyan-100 dark:text-cyan-400 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700';
+      case 'inactive':
+        return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
+      case 'generating_messages':
+        return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700';
       default:
-        return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
+        return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
     }
   };
 
   const getProgressPercentage = () => {
     if (!campaign) return 0;
-    const total = campaign.emailList.length;
-    const sent = campaign.sentEmails.length;
+    const total = campaign.emailList?.length || 0;
+    const sent = campaign.sentEmails?.length || 0;
     return total > 0 ? Math.round((sent / total) * 100) : 0;
   };
 
@@ -231,10 +237,15 @@ export default function CampaignDetailsPage() {
       <DashboardLayout>
         <div className="space-y-6">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            <div className="h-8 bg-gradient-to-r from-blue-200 to-cyan-200 dark:from-blue-800 dark:to-cyan-800 rounded w-1/4 mb-4"></div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-800"></div>
+              ))}
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-64 bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg border border-blue-200 dark:border-blue-800"></div>
               ))}
             </div>
           </div>

@@ -1,20 +1,7 @@
 import { Response } from 'express';
 import { CookieMiddleware } from '../middleware/CookieMiddleware';
-import { ApiResponse } from '../types';
+import { ApiResponse, CookiePreferences, CookieConsentData } from '../types';
 import { Logger } from '../utils/Logger';
-
-export interface CookiePreferences {
-  essential: boolean;
-  functional: boolean;
-  analytics: boolean;
-  marketing: boolean;
-}
-
-export interface CookieConsentData {
-  hasConsent: boolean;
-  timestamp: number | null;
-  preferences: CookiePreferences;
-}
 
 export class CookieService {
   private static logger: Logger = new Logger();

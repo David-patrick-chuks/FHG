@@ -441,7 +441,7 @@ export class AuthMiddleware {
     };
   }
 
-  public static validateSubscriptionLimits(limitType: 'bots' | 'campaigns' | 'emails' | 'aiVariations'): (req: Request, res: Response, next: NextFunction) => void {
+  public static validateSubscriptionLimits(limitType: 'bots' | 'campaigns' | 'templates' | 'emails' | 'aiVariations'): (req: Request, res: Response, next: NextFunction) => void {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         if (!(req as any).user) {
@@ -483,6 +483,13 @@ export class AuthMiddleware {
             const maxCampaigns = user.getMaxCampaigns();
             canProceed = campaignCount < maxCampaigns;
             message = `Maximum campaign limit (${maxCampaigns}) reached for your subscription tier`;
+            break;
+          case 'templates':
+            const TemplateModel = await import('../models/Template');
+            const templateCount = await TemplateModel.default.countDocuments({ userId });
+            const maxTemplates = user.getMaxTemplates();
+            canProceed = maxTemplates === -1 || templateCount < maxTemplates; // -1 means unlimited
+            message = `Maximum template limit (${maxTemplates === -1 ? 'unlimited' : maxTemplates}) reached for your subscription tier`;
             break;
           case 'emails':
             const dailyEmailLimit = user.getDailyEmailLimit();

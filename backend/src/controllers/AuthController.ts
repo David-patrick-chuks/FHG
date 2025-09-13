@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
-import { ActivityType } from '../models/Activity';
+import { ActivityType } from '../types';
 import { ActivityService } from '../services/ActivityService';
 import { JwtService } from '../services/JwtService';
 import { UserService } from '../services/UserService';

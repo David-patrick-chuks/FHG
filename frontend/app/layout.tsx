@@ -1,10 +1,11 @@
-import { Navbar } from "@/components/navbar"
+import { ConditionalAnalytics } from "@/components/analytics/ConditionalAnalytics"
 import { CookieConsentBanner } from "@/components/cookies/CookieConsentBanner"
 import { CookieInitializer } from "@/components/cookies/CookieInitializer"
+import { Navbar } from "@/components/navbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
-import { ConditionalAnalytics } from "@/components/analytics/ConditionalAnalytics"
+import { UnreadCountProvider } from "@/contexts/UnreadCountContext"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
 import type React from "react"
@@ -52,12 +53,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <CookieInitializer />
-            <Navbar />
-            {children}
-            <CookieConsentBanner />
-            <Toaster />
-            <ConditionalAnalytics />
+            <UnreadCountProvider>
+              <CookieInitializer />
+              <Navbar />
+              {children}
+              <CookieConsentBanner />
+              <Toaster />
+              <ConditionalAnalytics />
+            </UnreadCountProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

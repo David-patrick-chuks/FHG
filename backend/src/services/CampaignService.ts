@@ -23,9 +23,12 @@ export class CampaignService {
       description: campaignObj.description,
       emailList: campaignObj.emailList,
       botId: campaignObj.botId.toString(),
+      templateId: campaignObj.templateId?.toString(),
       aiMessages: campaignObj.aiMessages,
+      generatedMessages: campaignObj.generatedMessages || [],
       status: campaignObj.status,
       selectedMessageIndex: campaignObj.selectedMessageIndex,
+      sentEmails: campaignObj.sentEmails || [], // Include sentEmails array, default to empty array
       scheduledFor: campaignObj.scheduledFor?.toISOString(),
       isScheduled: campaignObj.isScheduled,
       emailInterval: campaignObj.emailInterval,
@@ -161,12 +164,44 @@ export class CampaignService {
 
       await campaign.save();
 
+      // Generate AI messages for each recipient if template is provided
+      if (template) {
+        try {
+          this.logger.info('Generating AI messages for campaign', {
+            campaignId: campaign._id,
+            userId,
+            recipientCount: campaign.emailList.length
+          });
+
+          await QueueService.addAIMessageGenerationJob(
+            (campaign._id as any).toString(),
+            userId,
+            template._id.toString(),
+            campaign.emailList
+          );
+
+          this.logger.info('AI message generation job added to queue', {
+            campaignId: campaign._id,
+            userId,
+            recipientCount: campaign.emailList.length
+          });
+        } catch (error) {
+          this.logger.error('Failed to add AI message generation job to queue', {
+            campaignId: campaign._id,
+            userId,
+            error
+          });
+          // Continue with campaign creation even if job addition fails
+        }
+      }
+
       CampaignService.logger.info('Campaign created successfully', {
         campaignId: campaign._id,
         userId,
         campaignName: campaign.name,
         emailCount: campaign.emailList.length,
-        aiMessageCount: campaign.aiMessages.length
+        aiMessageCount: campaign.aiMessages.length,
+        generatedMessagesCount: campaign.generatedMessages?.length || 0
       });
 
       return {
@@ -197,6 +232,52 @@ export class CampaignService {
     } catch (error) {
       CampaignService.logger.error('Error retrieving campaigns:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Clean up sent messages from completed campaigns
+   */
+  public static async cleanupSentMessages(): Promise<void> {
+    try {
+      // Find completed campaigns that have sent messages
+      const completedCampaigns = await CampaignModel.find({
+        status: CampaignStatus.COMPLETED,
+        'generatedMessages.isSent': true
+      });
+
+      this.logger.info('Starting cleanup of sent messages', {
+        completedCampaignsCount: completedCampaigns.length
+      });
+
+      let totalCleaned = 0;
+      for (const campaign of completedCampaigns) {
+        try {
+          const beforeCount = campaign.generatedMessages?.length || 0;
+          await campaign.deleteSentMessages();
+          const afterCount = campaign.generatedMessages?.length || 0;
+          const cleaned = beforeCount - afterCount;
+          totalCleaned += cleaned;
+
+          this.logger.info('Cleaned sent messages from campaign', {
+            campaignId: campaign._id,
+            campaignName: campaign.name,
+            messagesCleaned: cleaned
+          });
+        } catch (error) {
+          this.logger.error('Failed to clean sent messages from campaign', {
+            campaignId: campaign._id,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+
+      this.logger.info('Completed cleanup of sent messages', {
+        totalCleaned,
+        campaignsProcessed: completedCampaigns.length
+      });
+    } catch (error) {
+      this.logger.error('Error during sent messages cleanup', error);
     }
   }
 
@@ -546,20 +627,42 @@ export class CampaignService {
       // Start campaign
       await campaign.startCampaign();
 
-      // Add email jobs to queue
-      const selectedMessage = campaign.aiMessages[campaign.selectedMessageIndex];
-      if (!selectedMessage) {
+      // Check if campaign has generated messages
+      if (!campaign.generatedMessages || campaign.generatedMessages.length === 0) {
         return {
           success: false,
-          message: 'No AI message selected for campaign',
+          message: 'No generated messages found for campaign. Please generate messages first.',
           timestamp: new Date()
         };
       }
 
-      const emailJobs = campaign.emailList.map((email) => ({
-        email,
-        message: selectedMessage
-      }));
+      // Verify all recipients have generated messages
+      const missingMessages = campaign.emailList.filter(email => 
+        !campaign.generatedMessages?.find(msg => msg.recipientEmail === email)
+      );
+
+      if (missingMessages.length > 0) {
+        return {
+          success: false,
+          message: `Missing generated messages for ${missingMessages.length} recipients. Please regenerate messages.`,
+          timestamp: new Date()
+        };
+      }
+
+      // Create email jobs using generated messages
+      const emailJobs = campaign.emailList.map((email) => {
+        const generatedMessage = campaign.generatedMessages?.find(msg => msg.recipientEmail === email);
+        if (!generatedMessage) {
+          throw new Error(`No generated message found for ${email}`);
+        }
+        
+        return {
+          email,
+          subject: generatedMessage.subject,
+          message: generatedMessage.body,
+          generatedMessageId: email // Use email as identifier
+        };
+      });
 
       // Use scheduled time if campaign is scheduled, otherwise start immediately
       const startTime = campaign.isScheduled && campaign.scheduledFor ? campaign.scheduledFor : new Date();
@@ -812,99 +915,6 @@ export class CampaignService {
     }
   }
 
-  public static async regenerateAIMessages(campaignId: string, userId: string): Promise<ApiResponse<ICampaignDocument>> {
-    try {
-      const campaign = await CampaignModel.findById(campaignId);
-      if (!campaign) {
-        return {
-          success: false,
-          message: 'Campaign not found',
-          timestamp: new Date()
-        };
-      }
-
-      // Check if campaign belongs to user
-      if (campaign.userId !== userId) {
-        return {
-          success: false,
-          message: 'Access denied',
-          timestamp: new Date()
-        };
-      }
-
-      // Check if campaign can be updated
-      if (campaign.status === CampaignStatus.RUNNING) {
-        return {
-          success: false,
-          message: 'Cannot regenerate messages for running campaign',
-          timestamp: new Date()
-        };
-      }
-
-      // Get bot for prompt
-      const bot = await BotModel.findById(campaign.botId);
-      if (!bot) {
-        return {
-          success: false,
-          message: 'Bot not found',
-          timestamp: new Date()
-        };
-      }
-
-      // Generate new AI messages
-      const user = await UserModel.findById(userId);
-      if (!user) {
-        return {
-          success: false,
-          message: 'User not found',
-          timestamp: new Date()
-        };
-      }
-
-      const aiResult = await AIService.generateEmailMessages(
-        'Generate professional email content for this campaign',
-        user.getMaxAIMessageVariations()
-      );
-
-      if (!aiResult.success) {
-        return {
-          success: false,
-          message: 'Failed to generate AI messages',
-          timestamp: new Date()
-        };
-      }
-
-      // Update campaign with new messages
-      if (!aiResult.data) {
-        return {
-          success: false,
-          message: 'Failed to generate AI messages',
-          timestamp: new Date()
-        };
-      }
-
-      campaign.aiMessages = aiResult.data;
-      campaign.selectedMessageIndex = 0;
-      await campaign.save();
-
-      CampaignService.logger.info('AI messages regenerated successfully', {
-        campaignId: campaign._id,
-        userId,
-        campaignName: campaign.name,
-        newMessageCount: campaign.aiMessages.length
-      });
-
-      return {
-        success: true,
-        message: 'AI messages regenerated successfully',
-        data: CampaignService.serializeCampaign(campaign),
-        timestamp: new Date()
-      };
-    } catch (error) {
-      CampaignService.logger.error('Error regenerating AI messages:', error);
-      throw error;
-    }
-  }
 
   public static async getCampaignStats(campaignId: string, userId: string): Promise<ApiResponse<{
     progress: { sent: number; total: number; percentage: number };

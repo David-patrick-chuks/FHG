@@ -4,23 +4,23 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { MailQuillIcon } from '@/components/ui/MailQuillIcon';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUnreadCount } from '@/hooks/useUnreadCount';
+import { useUnreadCount } from '@/contexts/UnreadCountContext';
 import { cn } from '@/lib/utils';
 import {
-  Activity,
-  BarChart3,
-  Bot,
-  CreditCard,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  Mail,
-  Menu,
-  Search,
-  Shield,
-  User,
-  Users,
-  X
+    Activity,
+    BarChart3,
+    Bot,
+    CreditCard,
+    FileText,
+    LayoutDashboard,
+    LogOut,
+    Mail,
+    Menu,
+    Search,
+    Shield,
+    User,
+    Users,
+    X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

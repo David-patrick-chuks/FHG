@@ -1,18 +1,8 @@
 import mongoose from 'mongoose';
 import { DatabaseConnection } from '../database/DatabaseConnection';
 import { UserModel } from '../models/User';
-import { SubscriptionTier, BillingCycle } from '../types';
+import { SubscriptionTier, BillingCycle, AdminUserData } from '../types';
 import { Logger } from '../utils/Logger';
-
-interface AdminUserData {
-  email: string;
-  username: string;
-  password: string;
-  subscription: SubscriptionTier;
-  billingCycle: BillingCycle;
-  isAdmin: boolean;
-  isActive: boolean;
-}
 
 export class AdminSeeder {
   private logger: Logger;

@@ -1,5 +1,5 @@
-import { EmailExtractionModel, ExtractionStatus, IEmailExtractionDocument } from '../../models/EmailExtractor';
-import { ApiResponse } from '../../types';
+import { EmailExtractionModel, IEmailExtractionDocument } from '../../models/EmailExtractor';
+import { ApiResponse, ExtractionStatus } from '../../types';
 import { Logger } from '../../utils/Logger';
 import { EmailExtractorActivityService } from '../EmailExtractorActivityService';
 import { QueueService } from '../QueueService';

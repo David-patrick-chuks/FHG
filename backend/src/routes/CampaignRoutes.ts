@@ -102,11 +102,6 @@ export class CampaignRoutes {
       CampaignController.cancelCampaign
     );
 
-    // Campaign content management
-    router.post('/:id/regenerate-messages', 
-      AuthMiddleware.validateOwnership('campaign', 'id'),
-      CampaignController.regenerateAIMessages
-    );
 
     // Campaign statistics
     router.get('/:id/stats', 

@@ -20,32 +20,32 @@ export function HeroSection() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
-        <div className="flex flex-col items-center">
-          {/* Hero Text Content - Centered */}
-          <div className="text-center mb-8">
+        <div className="flex flex-col items-center justify-center min-h-[80vh]">
+          {/* Hero Text Content - Perfectly Centered */}
+          <div className="text-center mb-8 w-full max-w-4xl mx-auto">
             <AnimatedSection delay={0}>
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6">
+              <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 mx-auto">
                 <span className="text-white/90 text-sm font-medium">Finally, emails that don't suck</span>
               </div>
             </AnimatedSection>
 
             <AnimatedSection delay={200}>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight text-center">
                 Stop sending emails that
-                <span className="block mt-2">
+                <span className="block mt-2 text-center">
                   <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">nobody wants to read</span>
                 </span>
               </h1>
             </AnimatedSection>
 
             <AnimatedSection delay={400}>
-              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl leading-relaxed">
+              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed text-center">
                 MailQuill helps you write emails that actually get opened, clicked, and replied to. No more spam folders or ignored messages.
               </p>
             </AnimatedSection>
 
             <AnimatedSection delay={600}>
-              <div className="flex justify-center mb-6">
+              <div className="flex justify-center items-center mb-6">
                 {isAuthenticated ? (
                   <Link href="/dashboard">
                     <Button

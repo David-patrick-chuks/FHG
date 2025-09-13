@@ -3,18 +3,8 @@ import { DatabaseConnection } from '../database/DatabaseConnection';
 import { UserModel } from '../models/User';
 import { BotModel } from '../models/Bot';
 import { CampaignModel } from '../models/Campaign';
-import { SubscriptionTier, BillingCycle, CampaignStatus } from '../types';
+import { SubscriptionTier, BillingCycle, CampaignStatus, SeedUserData } from '../types';
 import { Logger } from '../utils/Logger';
-
-interface SeedUserData {
-  email: string;
-  username: string;
-  password: string;
-  subscription: SubscriptionTier;
-  billingCycle: BillingCycle;
-  isAdmin: boolean;
-  isActive: boolean;
-}
 
 export class DataSeeder {
   private logger: Logger;

@@ -17,7 +17,6 @@ export interface UpdateCampaignRequest {
   botId?: string;
   emailList?: string[];
   status?: string;
-  selectedMessageIndex?: number;
 }
 
 export interface CampaignStats {
@@ -149,26 +148,6 @@ export class CampaignsAPI {
     return apiClient.post<Campaign>(`/campaigns/${id}/cancel`);
   }
 
-  // Campaign content management
-  static async regenerateAIMessages(id: string): Promise<ApiResponse<{
-    messages: string[];
-    selectedMessageIndex: number;
-  }>> {
-    return apiClient.post<{
-      messages: string[];
-      selectedMessageIndex: number;
-    }>(`/campaigns/${id}/regenerate-messages`, {});
-  }
-
-  static async selectMessage(id: string, messageIndex: number): Promise<ApiResponse<{
-    selectedMessageIndex: number;
-    selectedMessage: string;
-  }>> {
-    return apiClient.post<{
-      selectedMessageIndex: number;
-      selectedMessage: string;
-    }>(`/campaigns/${id}/select-message`, { messageIndex });
-  }
 
   // Campaign statistics
   static async getCampaignStats(id: string): Promise<ApiResponse<CampaignStats>> {

@@ -92,48 +92,44 @@ export class TemplateModel {
         trim: true,
         maxlength: 500
       },
-      samples: [{
-        title: {
+      subject: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 5,
+        maxlength: 200
+      },
+      body: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 50,
+        maxlength: 5000
+      },
+      useCase: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 10,
+        maxlength: 500
+      },
+      variables: [{
+        key: {
           type: String,
           required: true,
           trim: true,
-          maxlength: 100
+          minlength: 1,
+          maxlength: 50
         },
-        content: {
+        value: {
           type: String,
           required: true,
-          trim: true,
-          minlength: 50,
-          maxlength: 2000
-        },
-        useCase: {
-          type: String,
           trim: true,
           maxlength: 200
         },
-        variables: [{
-          name: {
-            type: String,
-            required: true,
-            trim: true
-          },
-          description: {
-            type: String,
-            trim: true,
-            maxlength: 100
-          },
-          required: {
-            type: Boolean,
-            default: false
-          },
-          defaultValue: {
-            type: String,
-            trim: true
-          }
-        }],
-        createdAt: {
-          type: Date,
-          default: Date.now
+        required: {
+          type: Boolean,
+          default: false
         }
       }],
       tags: [{
@@ -189,7 +185,25 @@ export class TemplateModel {
       originalTemplateId: {
         type: String,
         ref: 'Template'
-      }
+      },
+      samples: [{
+        title: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: 100
+        },
+        content: {
+          type: String,
+          required: true,
+          trim: true,
+          maxlength: 1000
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }]
     }, {
       timestamps: true
     });

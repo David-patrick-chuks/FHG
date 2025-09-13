@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Campaign } from '@/types';
-import { Pause, Play, SquareStop } from 'lucide-react';
+import { Pause, Play, SquarePi } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface CampaignCardProps {
@@ -52,8 +52,8 @@ export function CampaignCard({
               </p>
               <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                 <span>Bot: {botName}</span>
-                <span>Recipients: {campaign.emailList.length}</span>
-                <span>Sent: {campaign.sentEmails.length}</span>
+                <span>Recipients: {campaign.emailList?.length || 0}</span>
+                <span>Sent: {campaign.sentEmails?.length || 0}</span>
                 <span>Created: {campaign.createdAt instanceof Date ? campaign.createdAt.toLocaleDateString() : new Date(campaign.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
@@ -74,7 +74,7 @@ export function CampaignCard({
                     onClick={() => onStop(campaign)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <SquareStop className="w-4 h-4 mr-1" />
+                    <SquarePi className="w-4 h-4 mr-1" />
                     Stop
                   </Button>
                 </>
@@ -95,7 +95,7 @@ export function CampaignCard({
                     onClick={() => onStop(campaign)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <SquareStop className="w-4 h-4 mr-1" />
+                    <SquarePi className="w-4 h-4 mr-1" />
                     Stop
                   </Button>
                 </>
@@ -146,7 +146,7 @@ export function CampaignCard({
             </div>
             <div className="flex justify-between">
               <span>Sent:</span>
-              <span className="font-medium">{campaign.sentEmails.length}</span>
+              <span className="font-medium">{campaign.sentEmails?.length || 0}</span>
             </div>
             <div className="flex justify-between">
               <span>Created:</span>

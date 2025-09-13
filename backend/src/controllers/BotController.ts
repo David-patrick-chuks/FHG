@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
-import { ActivityType } from '../models/Activity';
+import { ActivityType } from '../types';
 import BotModel from '../models/Bot';
 import { ActivityService } from '../services/ActivityService';
 import { BotService } from '../services/BotService';
@@ -26,7 +26,7 @@ export class BotController {
 
        if (result.success && result.data) {
          // Remove sensitive data from response and properly serialize MongoDB objects
-         const botData = { ...result.data.toObject() };
+         const botData = { ...result.data } as any;
          delete botData.password;
 
          // Get daily email limit from user subscription
@@ -104,31 +104,18 @@ export class BotController {
       const result = await BotService.getBotsByUserIdWithPagination(userId, paginationParams, includeInactive);
 
       if (result.success && result.data) {
-        // Remove sensitive data from response and properly serialize MongoDB objects
+        // Add daily email limit to each bot (bots are already serialized by BotService)
         const botsData = await Promise.all(result.data.data.map(async (bot) => {
-          const botData = { ...bot.toObject() };
-          delete botData.password;
-          
           // Get daily email limit from user subscription
           const UserModel = await import('../models/User');
-          const user = await UserModel.default.findById(botData.userId);
+          const user = await UserModel.default.findById(bot.userId);
           const dailyEmailLimit = user ? user.getDailyEmailLimit() : 500;
           
-          // Properly serialize MongoDB objects to JSON
+          // Return bot data with additional daily email limit
           return {
-            _id: botData._id.toString(),
-            userId: botData.userId.toString(),
-            name: botData.name,
-            description: botData.description,
-            email: botData.email,
-            isActive: botData.isActive,
-            dailyEmailCount: botData.dailyEmailCount,
+            ...bot,
             dailyEmailLimit: dailyEmailLimit,
-            emailsSentToday: botData.dailyEmailCount,
-            profileImage: botData.profileImage,
-            createdAt: botData.createdAt?.toISOString(),
-            updatedAt: botData.updatedAt?.toISOString(),
-            __v: botData.__v
+            emailsSentToday: bot.dailyEmailCount
           };
         }));
 
@@ -173,7 +160,7 @@ export class BotController {
 
        if (result.success && result.data) {
          // Remove sensitive data from response
-         const botData = { ...result.data.toObject() };
+         const botData = { ...result.data } as any;
          delete botData.password;
 
         res.status(200).json({
@@ -223,7 +210,7 @@ export class BotController {
 
        if (result.success && result.data) {
          // Remove sensitive data from response
-         const botData = { ...result.data.toObject() };
+         const botData = { ...result.data } as any;
          delete botData.password;
 
         res.status(200).json({
@@ -302,7 +289,7 @@ export class BotController {
 
        if (result.success && result.data) {
          // Remove sensitive data from response
-         const botData = { ...result.data.toObject() };
+         const botData = { ...result.data } as any;
          delete botData.password;
 
          // Log bot status change activity

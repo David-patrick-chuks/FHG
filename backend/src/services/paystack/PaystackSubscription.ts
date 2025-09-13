@@ -1,4 +1,4 @@
-import { ActivityType } from '../../models/Activity';
+import { ActivityType } from '../../types';
 import UserModel from '../../models/User';
 import { ApiResponse, SubscriptionTier } from '../../types';
 import { ActivityService } from '../ActivityService';

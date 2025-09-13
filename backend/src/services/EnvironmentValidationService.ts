@@ -1,22 +1,5 @@
 import { Logger } from '../utils/Logger';
-
-export interface EnvironmentConfig {
-  NODE_ENV: string;
-  PORT: number;
-  JWT_SECRET: string;
-  MONGODB_URI: string;
-  FRONTEND_URL: string;
-  PAYSTACK_SECRET_KEY: string;
-  PAYSTACK_PUBLIC_KEY: string;
-  RATE_LIMIT_WINDOW_MS?: number;
-  RATE_LIMIT_MAX_REQUESTS?: number;
-}
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  config: Partial<EnvironmentConfig>;
-}
+import { EnvironmentConfig, EnvironmentValidationResult } from '../types';
 
 export class EnvironmentValidationService {
   private static logger: Logger = new Logger();
@@ -24,7 +7,7 @@ export class EnvironmentValidationService {
   /**
    * Validate all required environment variables
    */
-  public static validateEnvironment(): ValidationResult {
+  public static validateEnvironment(): EnvironmentValidationResult {
     const errors: string[] = [];
     const config: Partial<EnvironmentConfig> = {};
 

@@ -1,4 +1,4 @@
-import { ActivityType } from '../models/Activity';
+import { ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 import { ActivityService } from './ActivityService';
 

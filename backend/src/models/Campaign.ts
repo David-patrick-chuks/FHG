@@ -10,6 +10,8 @@ export interface ICampaignDocument extends Omit<ICampaign, '_id'>, Document {
   completeCampaign(): Promise<void>;
   cancelCampaign(): Promise<void>;
   addSentEmail(emailData: Partial<ISentEmail>): Promise<void>;
+  markMessageAsSent(recipientEmail: string): Promise<void>;
+  deleteSentMessages(): Promise<void>;
   getProgress(): { sent: number; total: number; percentage: number };
   scheduledFor?: Date;
   isScheduled: boolean;
@@ -81,6 +83,51 @@ export class CampaignModel {
         type: String,
         trim: true,
         minlength: 10
+      }],
+      generatedMessages: [{
+        recipientEmail: {
+          type: String,
+          required: true,
+          validate: {
+            validator: (email: string) => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              return emailRegex.test(email);
+            },
+            message: 'Please provide valid email address'
+          }
+        },
+        recipientName: {
+          type: String,
+          trim: true
+        },
+        subject: {
+          type: String,
+          required: true,
+          trim: true,
+          minlength: 5,
+          maxlength: 200
+        },
+        body: {
+          type: String,
+          required: true,
+          trim: true,
+          minlength: 10
+        },
+        personalizationData: {
+          type: Schema.Types.Mixed,
+          default: {}
+        },
+        isSent: {
+          type: Boolean,
+          default: false
+        },
+        sentAt: {
+          type: Date
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
       }],
       selectedMessageIndex: {
         type: Number,
@@ -219,6 +266,37 @@ export class CampaignModel {
       return { sent, total, percentage };
     };
 
+    campaignSchema.methods['addGeneratedMessages'] = async function(messages: any[]): Promise<void> {
+      this['generatedMessages'] = messages;
+      await this['save']();
+    };
+
+    campaignSchema.methods['markMessageAsSent'] = async function(recipientEmail: string): Promise<void> {
+      const message = this['generatedMessages'].find((msg: any) => msg.recipientEmail === recipientEmail);
+      if (message) {
+        message.isSent = true;
+        message.sentAt = new Date();
+        await this['save']();
+      }
+    };
+
+    campaignSchema.methods['getUnsentMessages'] = function(): any[] {
+      return this['generatedMessages'].filter((msg: any) => !msg.isSent);
+    };
+
+    campaignSchema.methods['getSentMessages'] = function(): any[] {
+      return this['generatedMessages'].filter((msg: any) => msg.isSent);
+    };
+
+    campaignSchema.methods['getMessageForRecipient'] = function(recipientEmail: string): any {
+      return this['generatedMessages'].find((msg: any) => msg.recipientEmail === recipientEmail);
+    };
+
+    campaignSchema.methods['deleteSentMessages'] = async function(): Promise<void> {
+      this['generatedMessages'] = this['generatedMessages'].filter((msg: any) => !msg.isSent);
+      await this['save']();
+    };
+
     // Static methods
     campaignSchema.statics['findByUserId'] = function(userId: string): Promise<ICampaignDocument[]> {
       return this.find({ userId }).sort({ createdAt: -1 });
@@ -244,12 +322,18 @@ export class CampaignModel {
         next(new Error('Campaign must have at least one email address'));
       }
       
-      if (this['aiMessages'].length === 0) {
-        next(new Error('Campaign must have AI-generated messages'));
+      // Only validate aiMessages if they exist (for backward compatibility)
+      if (this['aiMessages'] && this['aiMessages'].length > 0) {
+        if (this['selectedMessageIndex'] >= this['aiMessages'].length) {
+          next(new Error('Selected message index is out of range'));
+        }
       }
       
-      if (this['selectedMessageIndex'] >= this['aiMessages'].length) {
-        next(new Error('Selected message index is out of range'));
+      // Validate generatedMessages if they exist
+      if (this['generatedMessages'] && this['generatedMessages'].length > 0) {
+        if (this['generatedMessages'].length !== this['emailList'].length) {
+          next(new Error('Generated messages count must match email list count'));
+        }
       }
       
       next();

@@ -1,20 +1,6 @@
-import IncidentModel, { IIncident } from '../models/Incident';
-import { ApiResponse } from '../types';
+import IncidentModel from '../models/Incident';
+import { ApiResponse, CreateIncidentData, IIncident, UpdateIncidentData } from '../types';
 import { Logger } from '../utils/Logger';
-
-export interface CreateIncidentData {
-  title: string;
-  description: string;
-  impact: 'minor' | 'major' | 'critical';
-  affectedServices: string[];
-  initialMessage?: string;
-}
-
-export interface UpdateIncidentData {
-  message: string;
-  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-  author?: string;
-}
 
 export class IncidentService {
   private static logger: Logger = new Logger();

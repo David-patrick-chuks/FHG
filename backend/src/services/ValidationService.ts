@@ -1,19 +1,7 @@
 import { Logger } from '../utils/Logger';
 import validator from 'validator';
 import { URL } from 'url';
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  sanitizedValue?: any;
-}
-
-export interface UrlValidationOptions {
-  allowedProtocols?: string[];
-  maxLength?: number;
-  allowLocalhost?: boolean;
-  allowPrivateIPs?: boolean;
-}
+import { ValidationResult, UrlValidationOptions } from '../types';
 
 export class ValidationService {
   private static logger: Logger = new Logger();

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { CreateIncidentData, IncidentService, UpdateIncidentData } from '../services/IncidentService';
+import { IncidentService } from '../services/IncidentService';
+import { CreateIncidentData, UpdateIncidentData } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class IncidentController {

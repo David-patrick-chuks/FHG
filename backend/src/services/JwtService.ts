@@ -1,21 +1,7 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Logger } from '../utils/Logger';
-
-export interface JwtPayload {
-  userId: string;
-  email: string;
-  username: string;
-  isAdmin: boolean;
-  iat?: number;
-  exp?: number;
-}
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
+import { JwtPayload, TokenPair } from '../types';
 
 export class JwtService {
   private static logger: Logger = new Logger();

@@ -38,8 +38,15 @@ export function CampaignHeader({
                 variant={getStatusBadgeVariant(campaign.status)}
                 className={getStatusColor(campaign.status)}
               >
-                {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                {campaign.status === 'generating_messages' ? 'Building Messages...' : 
+                 campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
               </Badge>
+              {campaign.status === 'generating_messages' && (
+                <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs">AI is generating unique messages for each recipient</span>
+                </div>
+              )}
             </div>
             <CardDescription className="text-base">
               {campaign.description || 'No description provided'}

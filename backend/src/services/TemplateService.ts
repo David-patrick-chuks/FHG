@@ -1,18 +1,70 @@
 import TemplateModel from '../models/Template';
 import UserModel from '../models/User';
 import {
-  ApiResponse,
-  ApproveTemplateRequest,
-  CreateTemplateRequest,
-  ReviewTemplateRequest,
-  TemplateCategory,
-  TemplateStatus,
-  UpdateTemplateRequest
+    ApiResponse,
+    ApproveTemplateRequest,
+    CreateTemplateRequest,
+    ReviewTemplateRequest,
+    TemplateCategory,
+    TemplateStatus,
+    UpdateTemplateRequest
 } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class TemplateService {
   private static logger: Logger = new Logger();
+
+  /**
+   * Process template variables and generate final email content
+   */
+  public static processTemplateVariables(
+    template: any,
+    variableValues: Record<string, string>
+  ): { subject: string; body: string } {
+    try {
+      let processedSubject = template.subject;
+      let processedBody = template.body;
+
+      // Replace variables in subject and body
+      template.variables.forEach((variable: any) => {
+        const placeholder = `{{${variable.key}}}`;
+        const value = variableValues[variable.key] || variable.value;
+        
+        // Replace all occurrences of the placeholder
+        processedSubject = processedSubject.replace(new RegExp(placeholder, 'g'), value);
+        processedBody = processedBody.replace(new RegExp(placeholder, 'g'), value);
+      });
+
+      return {
+        subject: processedSubject,
+        body: processedBody
+      };
+    } catch (error) {
+      this.logger.error('Error processing template variables:', error);
+      throw new Error('Failed to process template variables');
+    }
+  }
+
+  /**
+   * Validate that all required variables are provided
+   */
+  public static validateRequiredVariables(
+    template: any,
+    variableValues: Record<string, string>
+  ): { isValid: boolean; missingVariables: string[] } {
+    const missingVariables: string[] = [];
+    
+    template.variables.forEach((variable: any) => {
+      if (variable.required && !variableValues[variable.key]) {
+        missingVariables.push(variable.key);
+      }
+    });
+
+    return {
+      isValid: missingVariables.length === 0,
+      missingVariables
+    };
+  }
 
   /**
    * Helper function to serialize template document to JSON
@@ -33,14 +85,10 @@ export class TemplateService {
       approvedBy: templateObj.approvedBy?.toString(),
       approvedAt: templateObj.approvedAt?.toISOString(),
       rejectionReason: templateObj.rejectionReason,
-      samples: templateObj.samples.map((sample: any) => ({
-        _id: sample._id.toString(),
-        title: sample.title,
-        content: sample.content,
-        useCase: sample.useCase,
-        variables: sample.variables,
-        createdAt: sample.createdAt?.toISOString()
-      })),
+      subject: templateObj.subject,
+      body: templateObj.body,
+      useCase: templateObj.useCase,
+      variables: templateObj.variables,
       tags: templateObj.tags,
       usageCount: templateObj.usageCount,
       rating: templateObj.rating,

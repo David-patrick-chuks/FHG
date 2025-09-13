@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ActivityType } from '../models/Activity';
+import { ActivityType } from '../types';
 import UserModel from '../models/User';
 import { ActivityService } from '../services/ActivityService';
 import { Logger } from '../utils/Logger';

@@ -112,14 +112,27 @@ export interface BotPerformance {
 }
 
 // Campaign types
+export interface GeneratedMessage {
+  recipientEmail: string;
+  recipientName?: string;
+  subject: string;
+  body: string;
+  personalizationData?: Record<string, any>;
+  isSent: boolean;
+  sentAt?: Date;
+  createdAt: Date;
+}
+
 export interface Campaign extends BaseEntity {
   userId: string;
   name: string;
   description?: string;
   status: 'draft' | 'ready' | 'running' | 'paused' | 'completed' | 'cancelled';
   botId: string;
+  templateId?: string;
   emailList: string[];
   aiMessages: string[];
+  generatedMessages?: GeneratedMessage[];
   selectedMessageIndex: number;
   sentEmails: string[];
   startedAt?: Date;
@@ -153,19 +166,9 @@ export type TemplateCategory =
   | 'other';
 
 export interface TemplateVariable {
-  name: string;
-  description: string;
+  key: string;
+  value: string;
   required: boolean;
-  defaultValue?: string;
-}
-
-export interface TemplateSample {
-  _id: string;
-  title: string;
-  content: string;
-  useCase: string;
-  variables: TemplateVariable[];
-  createdAt: Date;
 }
 
 export interface TemplateReview {
@@ -189,7 +192,10 @@ export interface Template extends BaseEntity {
   approvedBy?: string;
   approvedAt?: Date;
   rejectionReason?: string;
-  samples: TemplateSample[];
+  subject: string;
+  body: string;
+  useCase: string;
+  variables: TemplateVariable[];
   tags: string[];
   usageCount: number;
   rating: {
@@ -209,7 +215,10 @@ export interface CreateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic: boolean;
-  samples: Omit<TemplateSample, '_id' | 'createdAt'>[];
+  subject: string;
+  body: string;
+  useCase: string;
+  variables: TemplateVariable[];
   tags: string[];
 }
 
@@ -220,7 +229,10 @@ export interface UpdateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic?: boolean;
-  samples?: Omit<TemplateSample, '_id' | 'createdAt'>[];
+  subject?: string;
+  body?: string;
+  useCase?: string;
+  variables?: TemplateVariable[];
   tags?: string[];
 }
 

@@ -8,16 +8,13 @@ export interface CreateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic: boolean;
-  samples: Array<{
-    title: string;
-    content: string;
-    useCase: string;
-    variables: Array<{
-      name: string;
-      description: string;
-      required: boolean;
-      defaultValue?: string;
-    }>;
+  subject: string;
+  body: string;
+  useCase: string;
+  variables: Array<{
+    key: string;
+    value: string;
+    required: boolean;
   }>;
   tags: string[];
 }
@@ -29,16 +26,13 @@ export interface UpdateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic?: boolean;
-  samples?: Array<{
-    title: string;
-    content: string;
-    useCase: string;
-    variables: Array<{
-      name: string;
-      description: string;
-      required: boolean;
-      defaultValue?: string;
-    }>;
+  subject?: string;
+  body?: string;
+  useCase?: string;
+  variables?: Array<{
+    key: string;
+    value: string;
+    required: boolean;
   }>;
   tags?: string[];
 }

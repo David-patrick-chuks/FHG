@@ -331,18 +331,30 @@ export class PaystackReceipt extends PaystackCore {
   private static async generateReceiptPNG(payment: any, user: any): Promise<Buffer> {
     const html = PaystackReceipt.generateReceiptHTML(payment, user);
 
-    // Use Puppeteer to convert HTML to PNG
+    // Use Puppeteer to convert HTML to PNG with proper configuration
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      executablePath: process.env.NODE_ENV === "production" 
+        ? process.env.PUPPETEER_EXECUTABLE_PATH 
+        : undefined,
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
+      ]
     });
     
     try {
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      
-      // Set viewport to match receipt size
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
       await page.setViewport({ width: 450, height: 600, deviceScaleFactor: 2 });
+      await page.setContent(html, { waitUntil: 'networkidle0' });
       
       // Take screenshot as PNG
       const screenshot = await page.screenshot({

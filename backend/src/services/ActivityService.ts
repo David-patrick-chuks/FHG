@@ -1,4 +1,5 @@
-import { ActivityModel, ActivityType, IActivityDocument } from '../models/Activity';
+import { ActivityModel, IActivityDocument } from '../models/Activity';
+import { ActivityType } from '../types';
 import { ApiResponse } from '../types';
 import { Logger } from '../utils/Logger';
 

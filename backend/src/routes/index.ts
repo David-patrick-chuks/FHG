@@ -118,6 +118,7 @@ export class Routes {
           '/version',
           '/system-status',
           '/api/auth',
+          '/api/ai-messages',
           '/api/dashboard',
           '/api/bots',
           '/api/campaigns',

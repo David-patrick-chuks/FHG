@@ -10,6 +10,26 @@ import { EmailService } from './EmailService';
 export class BotService {
   private static logger: Logger = new Logger();
 
+  /**
+   * Helper function to serialize bot document to JSON
+   */
+  private static serializeBot(bot: IBotDocument): any {
+    const botObj = bot.toObject();
+    return {
+      _id: botObj._id.toString(),
+      userId: botObj.userId.toString(),
+      name: botObj.name,
+      description: botObj.description,
+      email: botObj.email,
+      isActive: botObj.isActive,
+      dailyEmailCount: botObj.dailyEmailCount,
+      profileImage: botObj.profileImage,
+      createdAt: botObj.createdAt?.toISOString(),
+      updatedAt: botObj.updatedAt?.toISOString(),
+      __v: botObj.__v
+    };
+  }
+
   public static async createBot(userId: string, botData: CreateBotRequest): Promise<ApiResponse<IBotDocument>> {
     try {
       // Check if user exists and has active subscription
@@ -103,7 +123,7 @@ export class BotService {
       return {
         success: true,
         message: 'Bot created successfully',
-        data: bot,
+        data: BotService.serializeBot(bot),
         timestamp: new Date()
       };
     } catch (error) {
@@ -124,7 +144,7 @@ export class BotService {
       return {
         success: true,
         message: 'Bots retrieved successfully',
-        data: bots,
+        data: bots.map(bot => BotService.serializeBot(bot)),
         timestamp: new Date()
       };
     } catch (error) {
@@ -178,7 +198,7 @@ export class BotService {
 
       // Create pagination result
       const paginationResult = PaginationUtils.createPaginationResult(
-        bots,
+        bots.map(bot => BotService.serializeBot(bot)),
         total,
         paginationParams.page,
         paginationParams.limit
@@ -219,7 +239,7 @@ export class BotService {
       return {
         success: true,
         message: 'Bot retrieved successfully',
-        data: bot,
+        data: BotService.serializeBot(bot),
         timestamp: new Date()
       };
     } catch (error) {
@@ -289,7 +309,7 @@ export class BotService {
       return {
         success: true,
         message: 'Bot updated successfully',
-        data: bot,
+        data: BotService.serializeBot(bot),
         timestamp: new Date()
       };
     } catch (error) {
@@ -387,7 +407,7 @@ export class BotService {
       return {
         success: true,
         message: `Bot ${bot.isActive ? 'activated' : 'deactivated'} successfully`,
-        data: bot,
+        data: BotService.serializeBot(bot),
         timestamp: new Date()
       };
     } catch (error) {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { TemplateController } from '../controllers/TemplateController';
-import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { AdminMiddleware } from '../middleware/AdminMiddleware';
+import { AuthMiddleware } from '../middleware/AuthMiddleware';
 
 export class TemplateRoutes {
   public static getRouter(): Router {
@@ -11,7 +11,7 @@ export class TemplateRoutes {
     router.use(AuthMiddleware.authenticate);
 
     // Template CRUD operations
-    router.post('/', TemplateController.createTemplate);
+    router.post('/', AuthMiddleware.validateSubscriptionLimits('templates'), TemplateController.createTemplate);
     router.get('/my', TemplateController.getMyTemplates);
     router.get('/community', TemplateController.getCommunityTemplates);
     router.get('/popular', TemplateController.getPopularTemplates);

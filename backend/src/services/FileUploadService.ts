@@ -2,19 +2,7 @@ import { Request } from 'express';
 import multer from 'multer';
 import { Logger } from '../utils/Logger';
 import { ValidationService } from './ValidationService';
-
-export interface FileValidationOptions {
-  maxSize?: number;
-  allowedMimeTypes?: string[];
-  allowedExtensions?: string[];
-  maxFiles?: number;
-}
-
-export interface FileValidationResult {
-  isValid: boolean;
-  errors: string[];
-  sanitizedContent?: string;
-}
+import { FileValidationOptions, FileValidationResult } from '../types';
 
 export class FileUploadService {
   private static logger: Logger = new Logger();

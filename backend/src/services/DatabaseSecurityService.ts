@@ -1,12 +1,7 @@
 import { Types } from 'mongoose';
 import { Logger } from '../utils/Logger';
 import { ValidationService } from './ValidationService';
-
-export interface QuerySanitizationOptions {
-  allowRegex?: boolean;
-  maxDepth?: number;
-  allowedOperators?: string[];
-}
+import { QuerySanitizationOptions } from '../types';
 
 export class DatabaseSecurityService {
   private static logger: Logger = new Logger();

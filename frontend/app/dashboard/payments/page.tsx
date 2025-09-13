@@ -133,16 +133,16 @@ export default function UserPaymentsPage() {
     <DashboardLayout
       title="Payment History"
       description="View your payment transactions and subscription history"
-      actions={
-        <Button
-          variant="outline"
-          onClick={() => router.push('/dashboard/payments/subscription')}
-          className="flex items-center gap-2"
-        >
-          <Settings className="h-4 w-4" />
-          Manage Subscription
-        </Button>
-      }
+      // actions={
+      //   <Button
+      //     variant="outline"
+      //     onClick={() => router.push('/dashboard/payments/subscription')}
+      //     className="flex items-center gap-2"
+      //   >
+      //     <Settings className="h-4 w-4" />
+      //     Manage Subscription
+      //   </Button>
+      // }
     >
       <div className="space-y-6">
         {/* Upgrade Section - Only show if user can upgrade */}

@@ -20,6 +20,10 @@ export class SchedulerService {
     this.intervalId = setInterval(async () => {
       try {
         await this.processScheduledCampaigns();
+        // Clean up sent messages every hour (60 minutes)
+        if (Date.now() % (60 * 60 * 1000) < 60000) {
+          await CampaignService.cleanupSentMessages();
+        }
       } catch (error) {
         this.logger.error('Error processing scheduled campaigns:', error);
       }

@@ -1,20 +1,6 @@
+import { SubscriptionLimits, UsageStats } from '../types';
 import { Logger } from '../utils/Logger';
 import { UserService } from './UserService';
-
-export interface SubscriptionLimits {
-  dailyExtractionLimit: number;
-  canUseCsvUpload: boolean;
-  planName: string;
-  isUnlimited: boolean;
-  expiresAt: Date;
-}
-
-export interface UsageStats {
-  used: number;
-  remaining: number;
-  resetTime: Date;
-  limit: number;
-}
 
 export class SubscriptionLimitsService {
   private static logger = new Logger();
@@ -117,7 +103,7 @@ export class SubscriptionLimitsService {
 
       // Count extraction activities from today
       const { ActivityService } = await import('./ActivityService');
-      const { ActivityType } = await import('../models/Activity');
+      const { ActivityType } = await import('../types');
       
       const activitiesResponse = await ActivityService.getUserActivities(
         userId,
