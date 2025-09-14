@@ -162,7 +162,7 @@ export class CampaignService {
         await QueueService.addAIMessageGenerationJob(
           (campaign._id as any).toString(),
           userId,
-          template._id.toString(),
+          (template._id as any).toString(),
           campaign.emailList
         );
 

@@ -15,52 +15,52 @@ export function RecentActivity({ activities }: RecentActivityProps) {
   const router = useRouter();
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <div className="group relative">
+      <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+      <div className="relative p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates from your campaigns</CardDescription>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Recent Activity</h2>
+            <p className="text-slate-600 dark:text-slate-300">Latest updates from your campaigns</p>
           </div>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => router.push('/dashboard/activity')}
-            className="text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700"
+            className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 text-cyan-600 hover:text-cyan-700 hover:bg-white/60 dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-slate-800/60 transition-all duration-300"
           >
             View All
           </Button>
         </div>
-      </CardHeader>
-      <CardContent>
+        
         <div className="space-y-4">
           {activities.length > 0 ? (
             activities.slice(0, 5).map((activity) => {
               const IconComponent = getActivityIcon(activity.type);
               const iconColor = getActivityIconColor(activity.type);
               return (
-                <div key={activity.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                  <div className={`p-2 rounded-full bg-gray-100 dark:bg-gray-700`}>
+                <div key={activity.id} className="group/item flex items-center space-x-3 p-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 rounded-xl hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300">
+                  <div className={`p-2 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 dark:border-blue-500/30`}>
                     <IconComponent className={`w-5 h-5 ${iconColor}`} />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="font-medium text-slate-900 dark:text-white">{activity.title}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
                       {activity.description}
                     </p>
                   </div>
-                  <span className="text-sm text-gray-500">{activity.time}</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{activity.time}</span>
                 </div>
               );
             })
           ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
               <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No recent activity to show</p>
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

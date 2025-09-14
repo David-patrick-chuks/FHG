@@ -149,34 +149,34 @@ export function DashboardLayout({
 
   return (
     <AuthGuard requireAuth={true}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Header */}
-        <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="flex h-16 items-center justify-between px-6 border-b border-white/20 dark:border-slate-700/50 flex-shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg">
+            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
               <MailQuillIcon variant="gradient" size="sm" />
             </div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
               MailQuill
           </h1>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="lg:hidden hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+            className="lg:hidden hover:bg-cyan-50 hover:text-cyan-600 dark:hover:bg-cyan-900/20 dark:hover:text-cyan-400"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-5 w-5" />
@@ -212,20 +212,20 @@ export function DashboardLayout({
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300",
                         isActive
-                          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
-                          : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                          ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400 shadow-sm"
+                          : "text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 hover:shadow-sm"
                       )}
                       onClick={() => setSidebarOpen(false)}
                     >
                       <item.icon className={cn(
                         "mr-3 h-5 w-5",
-                        isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
+                        isActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400"
                       )} />
                       {item.label}
                       {item.badge && (
-                        <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
                           {item.badge}
                         </span>
                       )}
@@ -236,9 +236,9 @@ export function DashboardLayout({
                 {/* Admin section separator */}
                 {adminItems.length > 0 && (
                   <>
-                    <div className="my-4 border-t border-gray-200 dark:border-gray-700"></div>
+                    <div className="my-4 border-t border-white/20 dark:border-slate-700/50"></div>
                     <div className="px-3 py-2">
-                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                         Admin
                       </h3>
                     </div>
@@ -256,20 +256,20 @@ export function DashboardLayout({
                           key={item.href}
                           href={item.href}
                           className={cn(
-                            "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                            "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300",
                             isActive
-                              ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
-                              : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                              ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400 shadow-sm"
+                              : "text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 hover:shadow-sm"
                           )}
                           onClick={() => setSidebarOpen(false)}
                         >
                           <item.icon className={cn(
                             "mr-3 h-5 w-5",
-                            isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400"
+                            isActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400"
                           )} />
                           {item.label}
                           {item.badge && (
-                            <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
                               {item.badge}
                             </span>
                           )}

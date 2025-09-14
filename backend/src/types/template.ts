@@ -25,7 +25,9 @@ export enum TemplateCategory {
   INTRODUCTION = 'introduction',
   PROPOSAL = 'proposal',
   FEEDBACK_REQUEST = 'feedback_request',
-  OTHER = 'other'
+  OTHER = 'other',
+  WELCOME = 'welcome',
+
 }
 
 export interface ITemplateVariable {
