@@ -90,62 +90,49 @@ export class CampaignService {
         };
       }
 
-      // Validate template if provided
-      let template: any = null;
-      if (campaignData.templateId) {
-        template = await TemplateModel.findById(campaignData.templateId);
-        if (!template) {
-          return {
-            success: false,
-            message: 'Template not found',
-            timestamp: new Date()
-          };
-        }
-
-        // Check if template has at least 10 samples
-        if (!template.samples || template.samples.length < 10) {
-          return {
-            success: false,
-            message: 'Template must have at least 10 samples',
-            timestamp: new Date()
-          };
-        }
-
-        // Check if template is approved and published
-        if (!template.isApproved || !template.isPublic) {
-          return {
-            success: false,
-            message: 'Template must be approved and published',
-            timestamp: new Date()
-          };
-        }
+      // Validate template (now required)
+      if (!campaignData.templateId) {
+        return {
+          success: false,
+          message: 'Template is required for campaigns',
+          timestamp: new Date()
+        };
       }
 
-      // Generate AI messages based on template or fallback to generic generation
-      let aiMessages: string[] = [];
-      if (template) {
-        // For template-based campaigns, we'll generate messages during campaign execution
-        // using the template samples. For now, we'll create placeholder messages.
-        aiMessages = template.samples.map((sample, index) => 
-          `Template Sample ${index + 1}: ${sample.title}`
-        );
-      } else {
-        // Fallback to generic AI message generation
-        const aiResult = await AIService.generateEmailMessages(
-          'Generate professional email content for this campaign',
-          user.getMaxAIMessageVariations()
-        );
-
-        if (!aiResult.success) {
-          return {
-            success: false,
-            message: 'Failed to generate AI messages',
-            timestamp: new Date()
-          };
-        }
-
-        aiMessages = aiResult.data || [];
+      const template = await TemplateModel.findById(campaignData.templateId);
+      if (!template) {
+        return {
+          success: false,
+          message: 'Template not found',
+          timestamp: new Date()
+        };
       }
+
+      // Check if template has at least 10 samples
+      if (!template.samples || template.samples.length < 10) {
+        return {
+          success: false,
+          message: 'Template must have at least 10 samples',
+          timestamp: new Date()
+        };
+      }
+
+      // Check if template is approved and published
+      if (!template.isApproved || !template.isPublic) {
+        return {
+          success: false,
+          message: 'Template must be approved and published',
+          timestamp: new Date()
+        };
+      }
+
+      // Create placeholder AI messages from template samples
+      // The real AI generation happens in QueueService using generateVariationsFromTemplate
+      const aiMessages: Array<{ subject: string; body: string; tone: string }> = template.samples.map((sample, index) => ({
+        subject: sample.subject,
+        body: sample.body,
+        tone: 'professional'
+      }));
 
       // Create campaign with optional scheduling and interval settings
       const campaign = new CampaignModel({
@@ -164,35 +151,33 @@ export class CampaignService {
 
       await campaign.save();
 
-      // Generate AI messages for each recipient if template is provided
-      if (template) {
-        try {
-          this.logger.info('Generating AI messages for campaign', {
-            campaignId: campaign._id,
-            userId,
-            recipientCount: campaign.emailList.length
-          });
+      // Generate AI messages for each recipient using template
+      try {
+        this.logger.info('Generating AI messages for campaign', {
+          campaignId: campaign._id,
+          userId,
+          recipientCount: campaign.emailList.length
+        });
 
-          await QueueService.addAIMessageGenerationJob(
-            (campaign._id as any).toString(),
-            userId,
-            template._id.toString(),
-            campaign.emailList
-          );
+        await QueueService.addAIMessageGenerationJob(
+          (campaign._id as any).toString(),
+          userId,
+          template._id.toString(),
+          campaign.emailList
+        );
 
-          this.logger.info('AI message generation job added to queue', {
-            campaignId: campaign._id,
-            userId,
-            recipientCount: campaign.emailList.length
-          });
-        } catch (error) {
-          this.logger.error('Failed to add AI message generation job to queue', {
-            campaignId: campaign._id,
-            userId,
-            error
-          });
-          // Continue with campaign creation even if job addition fails
-        }
+        this.logger.info('AI message generation job added to queue', {
+          campaignId: campaign._id,
+          userId,
+          recipientCount: campaign.emailList.length
+        });
+      } catch (error) {
+        this.logger.error('Failed to add AI message generation job to queue', {
+          campaignId: campaign._id,
+          userId,
+          error
+        });
+        // Continue with campaign creation even if job addition fails
       }
 
       CampaignService.logger.info('Campaign created successfully', {

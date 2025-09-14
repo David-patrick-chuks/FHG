@@ -15,20 +15,20 @@ export class TemplateService {
   private static logger: Logger = new Logger();
 
   /**
-   * Process template variables and generate final email content
+   * Process template variables in a sample and generate final email content
    */
   public static processTemplateVariables(
-    template: any,
+    sample: any,
     variableValues: Record<string, string>
   ): { subject: string; body: string } {
     try {
-      let processedSubject = template.subject;
-      let processedBody = template.body;
+      let processedSubject = sample.subject;
+      let processedBody = sample.body;
 
       // Replace variables in subject and body
-      template.variables.forEach((variable: any) => {
-        const placeholder = `{{${variable.key}}}`;
-        const value = variableValues[variable.key] || variable.value;
+      Object.keys(variableValues).forEach((key) => {
+        const placeholder = `{{${key}}}`;
+        const value = variableValues[key];
         
         // Replace all occurrences of the placeholder
         processedSubject = processedSubject.replace(new RegExp(placeholder, 'g'), value);
@@ -49,12 +49,12 @@ export class TemplateService {
    * Validate that all required variables are provided
    */
   public static validateRequiredVariables(
-    template: any,
+    variables: any[],
     variableValues: Record<string, string>
   ): { isValid: boolean; missingVariables: string[] } {
     const missingVariables: string[] = [];
     
-    template.variables.forEach((variable: any) => {
+    variables.forEach((variable: any) => {
       if (variable.required && !variableValues[variable.key]) {
         missingVariables.push(variable.key);
       }
@@ -85,8 +85,6 @@ export class TemplateService {
       approvedBy: templateObj.approvedBy?.toString(),
       approvedAt: templateObj.approvedAt?.toISOString(),
       rejectionReason: templateObj.rejectionReason,
-      subject: templateObj.subject,
-      body: templateObj.body,
       useCase: templateObj.useCase,
       variables: templateObj.variables,
       tags: templateObj.tags,

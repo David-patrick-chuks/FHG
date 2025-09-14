@@ -179,6 +179,13 @@ export interface TemplateReview {
   createdAt: Date;
 }
 
+export interface TemplateSample {
+  _id: string;
+  subject: string;
+  body: string;
+  createdAt: Date;
+}
+
 export interface Template extends BaseEntity {
   userId: string;
   name: string;
@@ -192,8 +199,6 @@ export interface Template extends BaseEntity {
   approvedBy?: string;
   approvedAt?: Date;
   rejectionReason?: string;
-  subject: string;
-  body: string;
   useCase: string;
   variables: TemplateVariable[];
   tags: string[];
@@ -203,6 +208,7 @@ export interface Template extends BaseEntity {
     count: number;
   };
   reviews: TemplateReview[];
+  samples: TemplateSample[];
   featured: boolean;
   featuredAt?: Date;
   originalTemplateId?: string;
@@ -215,11 +221,10 @@ export interface CreateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic: boolean;
-  subject: string;
-  body: string;
   useCase: string;
   variables: TemplateVariable[];
   tags: string[];
+  samples: TemplateSample[];
 }
 
 export interface UpdateTemplateRequest {
@@ -229,11 +234,10 @@ export interface UpdateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic?: boolean;
-  subject?: string;
-  body?: string;
   useCase?: string;
   variables?: TemplateVariable[];
   tags?: string[];
+  samples?: TemplateSample[];
 }
 
 export interface ReviewTemplateRequest {

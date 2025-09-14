@@ -92,20 +92,6 @@ export class TemplateModel {
         trim: true,
         maxlength: 500
       },
-      subject: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 5,
-        maxlength: 200
-      },
-      body: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 50,
-        maxlength: 5000
-      },
       useCase: {
         type: String,
         required: true,
@@ -187,17 +173,17 @@ export class TemplateModel {
         ref: 'Template'
       },
       samples: [{
-        title: {
+        subject: {
           type: String,
           required: true,
           trim: true,
-          maxlength: 100
+          maxlength: 200
         },
-        content: {
+        body: {
           type: String,
           required: true,
           trim: true,
-          maxlength: 1000
+          maxlength: 5000
         },
         createdAt: {
           type: Date,

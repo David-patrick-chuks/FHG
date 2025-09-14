@@ -32,7 +32,7 @@ export interface ICampaign {
   _id: string;
   userId: string;
   botId: string;
-  templateId?: string; // Optional template reference
+  templateId: string; // Required template reference
   name: string;
   description: string;
   status: CampaignStatus;
@@ -78,7 +78,7 @@ export interface CreateCampaignRequest {
   name: string;
   description: string;
   botId: string;
-  templateId?: string; // Optional template reference
+  templateId: string; // Required template reference
   emailList: string[];
   scheduledFor?: Date;
   emailInterval: number;

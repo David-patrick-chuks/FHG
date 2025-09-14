@@ -454,8 +454,10 @@ export class QueueService {
           
           // Create prompt based on template samples
           const samplePrompts = template.samples.map((sample: any, index: number) => 
-            `Sample ${index + 1}: ${sample.title} - ${sample.content}`
-          ).join('\n');
+            `Sample ${index + 1}:
+Subject: ${sample.subject}
+Body: ${sample.body}`
+          ).join('\n\n');
 
           const prompt = `
 Generate a unique, personalized email message based on these template samples:
@@ -477,16 +479,31 @@ Requirements:
 Generate exactly 1 message with subject and body.
 `;
 
-          // Generate AI message
-          const aiResult = await AIService.generateEmailMessages(prompt, 1);
+          // Generate AI message using template
+          const aiResult = await AIService.generateVariationsFromTemplate(
+            {
+              name: template.name,
+              description: template.description,
+              useCase: template.useCase,
+              variables: template.variables,
+              samples: template.samples
+            },
+            {
+              email: email,
+              name: name,
+              company: email.split('@')[1]?.split('.')[0] || 'Unknown',
+              industry: template.industry || 'Unknown'
+            },
+            1
+          );
           
           if (aiResult.success && aiResult.data && aiResult.data.length > 0) {
             const message = aiResult.data[0];
             generatedMessages.push({
               recipientEmail: email,
               recipientName: name,
-              subject: `Re: ${campaign.name}`,
-              body: message,
+              subject: message.subject,
+              body: message.body,
               personalizationData: {
                 name: name,
                 email: email,
@@ -501,7 +518,7 @@ Generate exactly 1 message with subject and body.
               recipientEmail: email,
               recipientName: name,
               subject: `Re: ${campaign.name}`,
-              body: `Hello ${name},\n\n${template.samples[0]?.content || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`,
+              body: `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`,
               personalizationData: {
                 name: name,
                 email: email,
@@ -523,7 +540,7 @@ Generate exactly 1 message with subject and body.
             recipientEmail: email,
             recipientName: name,
             subject: `Re: ${campaign.name}`,
-            body: `Hello ${name},\n\n${template.samples[0]?.content || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`,
+            body: `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`,
             personalizationData: {
               name: name,
               email: email,

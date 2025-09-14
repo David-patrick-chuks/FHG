@@ -5,7 +5,6 @@ import SentEmailModel from '../models/SentEmail';
 import { ApiResponse, EmailStatus } from '../types';
 import { Logger } from '../utils/Logger';
 import { TrackingUtils } from '../utils/TrackingUtils';
-import { AIService } from './AIService';
 
 export class EmailService {
   private static logger: Logger = new Logger();
@@ -951,53 +950,6 @@ Thank you for using Email Outreach Bot!
     }
   }
 
-  /**
-   * Generate AI-powered email messages using AIService
-   */
-  public static async generateAIMessages(
-    prompt: string,
-    count: number = 3
-  ): Promise<ApiResponse<string[]>> {
-    try {
-      const result = await AIService.generateEmailMessages(prompt, count);
-      
-      if (result.success && result.data) {
-        EmailService.logger.info('AI messages generated successfully', {
-          prompt,
-          count,
-          generatedCount: result.data.length
-        });
-        
-        return {
-          success: true,
-          message: 'AI messages generated successfully',
-          data: result.data,
-          timestamp: new Date()
-        };
-      } else {
-        EmailService.logger.error('Failed to generate AI messages', {
-          prompt,
-          count,
-          error: result.message
-        });
-        
-        return {
-          success: false,
-          message: result.message || 'Failed to generate AI messages',
-          timestamp: new Date()
-        };
-      }
-    } catch (error) {
-      EmailService.logger.error('Error generating AI messages:', error);
-      
-      return {
-        success: false,
-        message: 'Failed to generate AI messages',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date()
-      };
-    }
-  }
 
 
   /**

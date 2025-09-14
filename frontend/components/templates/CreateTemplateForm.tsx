@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { TemplateBasicInfo } from './TemplateBasicInfo';
-import { TemplateEmailContent } from './TemplateEmailContent';
+import { TemplateSamples } from './TemplateSamples';
 import { TemplateTags } from './TemplateTags';
 import { TemplateVariables } from './TemplateVariables';
 
@@ -25,11 +25,10 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
     industry: '',
     targetAudience: '',
     isPublic: false,
-    subject: '',
-    body: '',
     useCase: '',
     variables: [],
     tags: [],
+    samples: [],
     ...initialData
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +36,9 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
   // Validation
   const canCreateTemplate = formData.name.trim() && 
                            formData.description.trim() && 
-                           formData.subject.trim() && 
-                           formData.body.trim() && 
                            formData.useCase.trim() && 
-                           formData.category;
+                           formData.category &&
+                           formData.samples.length >= 10;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +70,7 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <TemplateBasicInfo formData={formData} setFormData={setFormData} />
       
-      <TemplateEmailContent formData={formData} setFormData={setFormData} />
+      <TemplateSamples formData={formData} setFormData={setFormData} />
       
       <TemplateVariables formData={formData} setFormData={setFormData} />
       

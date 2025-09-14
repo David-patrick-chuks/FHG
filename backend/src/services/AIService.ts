@@ -176,53 +176,98 @@ export class AIService {
     };
   }
 
+
   /**
-   * Generate AI-powered email outreach messages with structured output
+   * Generate email variations from template samples
    */
-  public static async generateEmailMessages(prompt: string, count: number = 20): Promise<ApiResponse<string[]>> {
+  public static async generateVariationsFromTemplate(
+    template: {
+      name: string;
+      description: string;
+      useCase: string;
+      variables: Array<{
+        key: string;
+        value: string;
+        required: boolean;
+      }>;
+      samples: Array<{
+        subject: string;
+        body: string;
+      }>;
+    },
+    recipientContext?: {
+      email?: string;
+      name?: string;
+      company?: string;
+      industry?: string;
+    },
+    variationCount: number = 20
+  ): Promise<ApiResponse<Array<{ subject: string; body: string; variation: number }>>> {
     const schema = {
       type: Type.OBJECT,
       properties: {
-        messages: {
+        variations: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
-              content: {
+              subject: {
+                type: Type.STRING,
+                description: "The email subject line"
+              },
+              body: {
                 type: Type.STRING,
                 description: "The email message content"
               },
-              subject: {
-                type: Type.STRING,
-                description: "A suggested subject line for the email"
-              },
-              tone: {
-                type: Type.STRING,
-                enum: ["professional", "friendly", "formal", "casual"],
-                description: "The tone of the message"
+              variation: {
+                type: Type.NUMBER,
+                description: "The variation number (1-based index)"
               }
             },
-            required: ["content", "subject", "tone"]
+            required: ["subject", "body", "variation"]
           }
         }
       },
-      required: ["messages"]
+      required: ["variations"]
     };
 
-    const systemInstruction = `
-You are an expert email outreach specialist. Generate ${count} unique, professional email outreach messages.
+    const prompt = `
+You are an expert email marketer. Generate ${variationCount} unique variations based on the following email template and its samples.
 
-Requirements:
-- Each message should be different and unique
-- Keep messages professional and engaging
-- Length: 100-200 words per message
-- Include a clear call-to-action
-- Avoid spam-like language
-- Make each message feel personal and authentic
-- Provide a relevant subject line for each message
-- Vary the tone between professional, friendly, formal, and casual
+TEMPLATE INFORMATION:
+Name: ${template.name}
+Description: ${template.description}
+Use Case: ${template.useCase}
 
-Return a JSON object with an array of messages, each containing content, subject, and tone.
+VARIABLES AVAILABLE:
+${template.variables.map(v => `- {{${v.key}}}: ${v.value} (${v.required ? 'required' : 'optional'})`).join('\n')}
+
+TEMPLATE SAMPLES (learn from these patterns):
+${template.samples.map((sample, index) => `
+Sample ${index + 1}:
+Subject: ${sample.subject}
+Body: ${sample.body}
+`).join('\n')}
+
+RECIPIENT CONTEXT:
+${recipientContext ? `
+- Email: ${recipientContext.email || 'Not provided'}
+- Name: ${recipientContext.name || 'Not provided'}
+- Company: ${recipientContext.company || 'Not provided'}
+- Industry: ${recipientContext.industry || 'Not provided'}
+` : 'No recipient context provided'}
+
+REQUIREMENTS:
+1. Generate exactly ${variationCount} unique variations
+2. Each variation should follow the patterns and style of the template samples
+3. Use the available variables ({{variable_name}}) appropriately in each variation
+4. Vary the tone, structure, and wording while maintaining the core message
+5. Make each variation feel natural and professional
+6. Ensure subject lines are compelling and varied
+7. Keep content length similar to the template samples
+8. Maintain the same purpose and intent as the original template
+
+Return a JSON object with a "variations" array containing the email variations.
 `;
 
     return this.executeAIRequest(async (client) => {
@@ -236,213 +281,6 @@ Return a JSON object with an array of messages, each containing content, subject
           responseSchema: schema,
           temperature: 0.7,
           maxOutputTokens: 4000,
-          thinkingConfig: {
-            thinkingBudget: 0 // Disable thinking for faster response
-          }
-        }
-      });
-
-      const text = response.text;
-      
-      if (!text) {
-        throw new Error('No text generated from AI model');
-      }
-
-      try {
-        const parsed = JSON.parse(text);
-        if (!parsed.messages || !Array.isArray(parsed.messages)) {
-          throw new Error('Invalid response structure from AI model');
-        }
-
-        // Extract just the message content for backward compatibility
-        const messages = parsed.messages
-          .map((msg: any) => msg.content)
-          .filter((content: string) => content && content.length > 50)
-          .slice(0, count);
-
-        if (messages.length === 0) {
-          throw new Error('Failed to generate valid AI messages');
-        }
-
-        AIService.logger.info('AI email messages generated successfully', { 
-          count: messages.length, 
-          promptLength: prompt.length 
-        });
-
-        return messages;
-      } catch (parseError) {
-        throw new Error(`Failed to parse AI response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
-      }
-    }, 'AI email message generation');
-  }
-
-  /**
-   * Generate content for any purpose with custom prompt and schema
-   */
-  public static async generateContent(
-    prompt: string, 
-    schema?: any, 
-    systemInstruction?: string,
-    model: string = "gemini-2.5-flash"
-  ): Promise<ApiResponse<string>> {
-    return this.executeAIRequest(async (client) => {
-      const config: any = {
-        temperature: 0.3,
-        maxOutputTokens: 1000,
-        thinkingConfig: {
-          thinkingBudget: 0
-        }
-      };
-
-      // Add schema if provided
-      if (schema) {
-        config.responseMimeType = "application/json";
-        config.responseSchema = schema;
-      }
-
-      const response = await client.models.generateContent({
-        model,
-        contents: [
-          { role: "user", parts: [{ text: prompt }] }
-        ],
-        config
-      });
-
-      const text = response.text;
-      
-      if (!text) {
-        throw new Error('No content generated from AI model');
-      }
-
-      AIService.logger.info('AI content generated successfully', { 
-        model,
-        promptLength: prompt.length,
-        hasSchema: !!schema
-      });
-
-      return text;
-    }, 'AI content generation');
-  }
-
-  /**
-   * Generate structured JSON response with custom schema
-   */
-  public static async generateStructuredResponse<T>(
-    prompt: string,
-    schema: any,
-    systemInstruction?: string,
-    model: string = "gemini-2.5-flash"
-  ): Promise<ApiResponse<T>> {
-    return this.executeAIRequest(async (client) => {
-      const response = await client.models.generateContent({
-        model,
-        contents: [
-          { role: "user", parts: [{ text: prompt }] }
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: schema,
-          temperature: 0.1,
-          maxOutputTokens: 1000,
-          thinkingConfig: {
-            thinkingBudget: 0
-          }
-        }
-      });
-
-      const text = response.text;
-      
-      if (!text) {
-        throw new Error('No content generated from AI model');
-      }
-
-      try {
-        const parsed = JSON.parse(text);
-        AIService.logger.info('AI structured response generated successfully', { 
-          model,
-          promptLength: prompt.length
-        });
-        return parsed;
-      } catch (parseError) {
-        throw new Error(`Failed to parse structured response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
-      }
-    }, 'AI structured response generation');
-  }
-
-  /**
-   * Generate email variations based on a template sample
-   */
-  public static async generateEmailVariations(
-    templateSample: {
-      title: string;
-      content: string;
-      useCase: string;
-      variables: Array<{
-        name: string;
-        description: string;
-        required: boolean;
-        defaultValue?: string;
-      }>;
-    },
-    recipientContext?: {
-      email?: string;
-      name?: string;
-      company?: string;
-      industry?: string;
-    },
-    variationCount: number = 20
-  ): Promise<ApiResponse<Array<{ subject: string; content: string; variation: number }>>> {
-    return this.executeAIRequest(async (client) => {
-      const prompt = `
-You are an expert email marketer. Generate ${variationCount} unique variations of the following email template sample.
-
-TEMPLATE SAMPLE:
-Title: ${templateSample.title}
-Content: ${templateSample.content}
-Use Case: ${templateSample.useCase}
-
-VARIABLES AVAILABLE:
-${templateSample.variables.map(v => `- ${v.name}: ${v.description} (${v.required ? 'required' : 'optional'})`).join('\n')}
-
-RECIPIENT CONTEXT:
-${recipientContext ? `
-- Email: ${recipientContext.email || 'Not provided'}
-- Name: ${recipientContext.name || 'Not provided'}
-- Company: ${recipientContext.company || 'Not provided'}
-- Industry: ${recipientContext.industry || 'Not provided'}
-` : 'No recipient context provided'}
-
-REQUIREMENTS:
-1. Generate exactly ${variationCount} unique variations
-2. Each variation should maintain the core message and intent of the original template
-3. Vary the tone, structure, and wording while keeping the same purpose
-4. Use the available variables appropriately in each variation
-5. Make each variation feel natural and professional
-6. Ensure subject lines are compelling and varied
-7. Keep content length similar to the original template
-
-Return the response as a JSON array with this exact structure:
-[
-  {
-    "subject": "Variation 1 subject line",
-    "content": "Variation 1 email content with proper formatting",
-    "variation": 1
-  },
-  {
-    "subject": "Variation 2 subject line", 
-    "content": "Variation 2 email content with proper formatting",
-    "variation": 2
-  }
-  // ... continue for all ${variationCount} variations
-]
-
-IMPORTANT: Return ONLY the JSON array, no additional text or formatting.
-`;
-
-      const response = await client.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
           thinkingConfig: {
             thinkingBudget: 0
           }
@@ -459,28 +297,29 @@ IMPORTANT: Return ONLY the JSON array, no additional text or formatting.
         const parsed = JSON.parse(text);
         
         // Validate the response structure
-        if (!Array.isArray(parsed) || parsed.length !== variationCount) {
-          throw new Error(`Expected array of ${variationCount} variations, got ${Array.isArray(parsed) ? parsed.length : 'non-array'}`);
+        if (!parsed.variations || !Array.isArray(parsed.variations) || parsed.variations.length !== variationCount) {
+          throw new Error(`Expected variations array with ${variationCount} items, got ${Array.isArray(parsed.variations) ? parsed.variations.length : 'non-array'}`);
         }
 
         // Validate each variation has required fields
-        for (let i = 0; i < parsed.length; i++) {
-          const variation = parsed[i];
-          if (!variation.subject || !variation.content || variation.variation !== i + 1) {
+        for (let i = 0; i < parsed.variations.length; i++) {
+          const variation = parsed.variations[i];
+          if (!variation.subject || !variation.body || variation.variation !== i + 1) {
             throw new Error(`Invalid variation structure at index ${i}`);
           }
         }
 
-        AIService.logger.info(`Generated ${variationCount} email variations successfully`, {
-          templateTitle: templateSample.title,
-          variationCount: parsed.length
+        AIService.logger.info(`Generated ${variationCount} email variations from template successfully`, {
+          templateName: template.name,
+          sampleCount: template.samples.length,
+          variationCount: parsed.variations.length
         });
 
-        return parsed;
+        return parsed.variations;
       } catch (parseError) {
         throw new Error(`Failed to parse email variations response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
-    }, 'Email variations generation');
+    }, 'Email variations generation from template');
   }
 
   /**
