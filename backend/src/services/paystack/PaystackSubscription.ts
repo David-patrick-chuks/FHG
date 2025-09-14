@@ -118,7 +118,7 @@ export class PaystackSubscription extends PaystackCore {
       const currentTier = user.subscription || SubscriptionTier.FREE;
       const tiers = Object.values(SubscriptionTier);
       const currentIndex = tiers.indexOf(currentTier);
-      const highestTier = SubscriptionTier.ENTERPRISE;
+      const highestTier = SubscriptionTier.PREMIUM;
 
       const canUpgrade = currentTier !== highestTier;
 
@@ -156,7 +156,7 @@ export class PaystackSubscription extends PaystackCore {
         'Standard support',
         'Up to 1,000 contacts'
       ],
-      [SubscriptionTier.PRO]: [
+      [SubscriptionTier.BASIC]: [
         'Unlimited email campaigns',
         'Premium email templates',
         'Advanced analytics',
@@ -165,8 +165,8 @@ export class PaystackSubscription extends PaystackCore {
         'A/B testing',
         'Email automation'
       ],
-      [SubscriptionTier.ENTERPRISE]: [
-        'Everything in Pro',
+      [SubscriptionTier.PREMIUM]: [
+        'Everything in Basic',
         'Unlimited contacts',
         'Custom integrations',
         'Dedicated account manager',

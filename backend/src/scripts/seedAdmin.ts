@@ -15,7 +15,7 @@ export class AdminSeeder {
         email: 'admin@mailquil.com',
         username: 'admin',
         password: 'Admin123456',
-        subscription: SubscriptionTier.ENTERPRISE,
+        subscription: SubscriptionTier.PREMIUM,
         billingCycle: BillingCycle.YEARLY,
         isAdmin: true,
         isActive: true
@@ -24,7 +24,7 @@ export class AdminSeeder {
       //   email: 'superadmin@emailoutreachbot.com',
       //   username: 'superadmin',
       //   password: 'SuperAdmin123!@#',
-      //   subscription: SubscriptionTier.ENTERPRISE,
+      //   subscription: SubscriptionTier.PREMIUM,
       //   billingCycle: BillingCycle.YEARLY,
       //   isAdmin: true,
       //   isActive: true
@@ -33,7 +33,7 @@ export class AdminSeeder {
       //   email: 'support@emailoutreachbot.com',
       //   username: 'support',
       //   password: 'Support123!@#',
-      //   subscription: SubscriptionTier.ENTERPRISE,
+      //   subscription: SubscriptionTier.PREMIUM,
       //   billingCycle: BillingCycle.YEARLY,
       //   isAdmin: true,
       //   isActive: true
