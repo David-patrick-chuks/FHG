@@ -361,7 +361,7 @@ export class ValidationMiddleware {
       const errors: string[] = [];
 
       // Validate tier
-      const validTiers = ['FREE', 'PRO', 'ENTERPRISE'];
+      const validTiers = ['FREE', 'BASIC', 'PREMIUM'];
       if (!tier || !validTiers.includes(tier)) {
         errors.push('Valid subscription tier is required');
       }
