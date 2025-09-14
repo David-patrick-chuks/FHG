@@ -3,18 +3,18 @@ import { config } from "@/lib/config";
 import { ApiResponse } from "@/types";
 
 export interface PaymentPricing {
-  pro: {
+  basic: {
     monthly: number;
     yearly: number;
   };
-  enterprise: {
+  premium: {
     monthly: number;
     yearly: number;
   };
 }
 
 export interface InitializePaymentRequest {
-  subscriptionTier: 'pro' | 'enterprise';
+  subscriptionTier: 'basic' | 'premium';
   billingCycle: 'monthly' | 'yearly';
   email: string;
 }
@@ -28,7 +28,7 @@ export interface InitializePaymentResponse {
 export interface PaymentHistory {
   _id: string;
   userId: string;
-  subscriptionTier: 'free' | 'pro' | 'enterprise';
+  subscriptionTier: 'free' | 'basic' | 'premium';
   billingCycle: 'monthly' | 'yearly';
   amount: number;
   currency: string;

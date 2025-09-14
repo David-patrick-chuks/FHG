@@ -29,10 +29,10 @@ export class SubscriptionLimitsService {
       switch (subscription) {
         case 'free':
           return this.getFreePlanLimits(expiresAt);
-        case 'pro':
-          return this.getProPlanLimits(expiresAt);
-        case 'enterprise':
-          return this.getEnterprisePlanLimits(expiresAt);
+        case 'basic':
+          return this.getBasicPlanLimits(expiresAt);
+        case 'premium':
+          return this.getPremiumPlanLimits(expiresAt);
         default:
           return this.getFreePlanLimits(expiresAt);
       }
@@ -219,16 +219,16 @@ export class SubscriptionLimitsService {
         return {
           needsUpgrade: true,
           reason: `You've used ${usage.used}/${limits.dailyExtractionLimit} URLs today (${Math.round(usagePercentage)}%). Upgrade to Pro for 50 URLs per day.`,
-          recommendedPlan: 'pro',
+          recommendedPlan: 'basic',
           currentPlan: limits.planName
         };
       }
 
-      if (limits.planName === 'pro' && usagePercentage > 80) {
+      if (limits.planName === 'basic' && usagePercentage > 80) {
         return {
           needsUpgrade: true,
-          reason: `You've used ${usage.used}/${limits.dailyExtractionLimit} URLs today (${Math.round(usagePercentage)}%). Upgrade to Enterprise for unlimited extractions.`,
-          recommendedPlan: 'enterprise',
+          reason: `You've used ${usage.used}/${limits.dailyExtractionLimit} URLs today (${Math.round(usagePercentage)}%). Upgrade to Premium for unlimited extractions.`,
+          recommendedPlan: 'premium',
           currentPlan: limits.planName
         };
       }
@@ -264,26 +264,26 @@ export class SubscriptionLimitsService {
   }
 
   /**
-   * Pro plan limits
+   * Basic plan limits
    */
-  private static getProPlanLimits(expiresAt: Date): SubscriptionLimits {
+  private static getBasicPlanLimits(expiresAt: Date): SubscriptionLimits {
     return {
       dailyExtractionLimit: 1000, // Increased for API usage
       canUseCsvUpload: true,
-      planName: 'pro',
+      planName: 'basic',
       isUnlimited: false,
       expiresAt
     };
   }
 
   /**
-   * Enterprise plan limits
+   * Premium plan limits
    */
-  private static getEnterprisePlanLimits(expiresAt: Date): SubscriptionLimits {
+  private static getPremiumPlanLimits(expiresAt: Date): SubscriptionLimits {
     return {
-      dailyExtractionLimit: 10000, // High limit for enterprise
+      dailyExtractionLimit: 10000, // High limit for premium
       canUseCsvUpload: true,
-      planName: 'enterprise',
+      planName: 'premium',
       isUnlimited: true,
       expiresAt
     };

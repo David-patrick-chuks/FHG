@@ -43,7 +43,7 @@ export class PaymentModel {
       },
       subscriptionTier: {
         type: String,
-        enum: ['free', 'pro', 'enterprise'],
+        enum: ['free', 'basic', 'premium'],
         required: true
       },
       billingCycle: {

@@ -8,11 +8,8 @@ export class PaystackCore {
   protected static config: PaystackConfig;
 
   protected static readonly SUBSCRIPTION_PRICES = {
-    FREE: { monthly: 0, yearly: 0 },
-    BASIC: { monthly: 1999, yearly: 19990 },
-    PREMIUM: { monthly: 4999, yearly: 49990 },
-    PRO: { monthly: 2999, yearly: 29990 },
-    ENTERPRISE: { monthly: 9999, yearly: 99990 }
+    basic: { monthly: 2999, yearly: 28790 }, // 20% off: 2999 * 12 * 0.8 = 28790
+    premium: { monthly: 9999, yearly: 95990 } // 20% off: 9999 * 12 * 0.8 = 95990
   };
 
   public static initialize(config: PaystackConfig): void {

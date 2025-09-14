@@ -6,7 +6,7 @@ export interface AdminUser {
   _id: string;
   email: string;
   username: string;
-  subscription: 'free' | 'pro' | 'enterprise';
+  subscription: 'free' | 'basic' | 'premium';
   billingCycle: 'monthly' | 'yearly';
   subscriptionExpiresAt: string;
   isActive: boolean;
@@ -79,7 +79,7 @@ export interface SystemActivityStats {
 }
 
 export interface UpdateSubscriptionRequest {
-  tier: 'free' | 'pro' | 'enterprise';
+  tier: 'free' | 'basic' | 'premium';
   duration: number;
   amount: number;
   paymentMethod: 'CASH' | 'BANK_TRANSFER' | 'CHECK' | 'OTHER';

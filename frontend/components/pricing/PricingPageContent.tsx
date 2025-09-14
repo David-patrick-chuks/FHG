@@ -14,7 +14,7 @@ export function PricingPageContent() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [selectedPlan, setSelectedPlan] = useState<'pro' | 'enterprise'>('pro');
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [pricing, setPricing] = useState<PaymentPricing | null>(null);
   const [processing, setProcessing] = useState(false);
 
@@ -35,7 +35,7 @@ export function PricingPageContent() {
     }
   };
 
-  const handlePayment = async (plan: 'pro' | 'enterprise') => {
+  const handlePayment = async (plan: 'basic' | 'premium') => {
     if (!isAuthenticated) {
       toast.error('Please sign in to continue with payment');
       router.push('/login?redirect=/pricing');
@@ -104,7 +104,7 @@ export function PricingPageContent() {
       shadowClassName: 'shadow-slate-900/5'
     },
     {
-      name: 'PRO',
+      name: 'BASIC',
       description: 'For growing businesses',
       icon: Crown,
       features: [
@@ -117,16 +117,16 @@ export function PricingPageContent() {
         'Analytics',
         'Priority Support'
       ],
-      price: pricing ? formatPrice(pricing.pro[billingCycle]) : '₦2,999 / $1.99',
+      price: pricing ? formatPrice(pricing.basic[billingCycle]) : '₦2,999 / $1.99',
       isPopular: true,
-      buttonText: isAuthenticated ? 'Upgrade to PRO' : 'Sign in to Upgrade',
+      buttonText: isAuthenticated ? 'Upgrade to BASIC' : 'Sign in to Upgrade',
       buttonClassName: 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200',
       iconClassName: 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20',
       borderClassName: 'border-2 border-cyan-500/30 dark:border-cyan-400/30',
       shadowClassName: 'shadow-cyan-500/10'
     },
     {
-      name: 'ENTERPRISE',
+      name: 'PREMIUM',
       description: 'For large organizations',
       icon: Building,
       features: [
@@ -141,8 +141,8 @@ export function PricingPageContent() {
         'Analytics',
         'Dedicated Support'
       ],
-      price: pricing ? formatPrice(pricing.enterprise[billingCycle]) : '₦14,999 / $9.95',
-      buttonText: isAuthenticated ? 'Upgrade to ENTERPRISE' : 'Sign in to Upgrade',
+      price: pricing ? formatPrice(pricing.premium[billingCycle]) : '₦14,999 / $9.95',
+      buttonText: isAuthenticated ? 'Upgrade to PREMIUM' : 'Sign in to Upgrade',
       buttonClassName: 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200',
       iconClassName: 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20',
       borderClassName: 'border-white/20 dark:border-slate-700/50',
@@ -174,7 +174,7 @@ export function PricingPageContent() {
               key={index}
               plan={plan}
               billingCycle={billingCycle}
-              onButtonClick={plan.name === 'FREE' ? undefined : () => handlePayment(plan.name.toLowerCase() as 'pro' | 'enterprise')}
+              onButtonClick={plan.name === 'FREE' ? undefined : () => handlePayment(plan.name.toLowerCase() as 'basic' | 'premium')}
               isProcessing={processing && selectedPlan === plan.name.toLowerCase()}
               isDisabled={plan.name === 'FREE' || !pricing}
             />

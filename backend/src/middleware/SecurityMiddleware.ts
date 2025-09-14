@@ -198,7 +198,7 @@ export class SecurityMiddleware {
       // Remove sensitive data from responses
       if (obj && typeof obj === 'object') {
         // Check if this is an API key related endpoint that needs to preserve apiKey
-        const isApiKeyEndpoint = req.path.includes('/api-keys/') || 
+        const isApiKeyEndpoint = req.path.includes('/api-keys') || 
                                 req.path.includes('/profile') ||
                                 req.path.includes('/auth/profile') ||
                                 req.path.includes('/auth/stats') ||

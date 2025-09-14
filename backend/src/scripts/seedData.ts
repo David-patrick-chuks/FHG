@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import { DatabaseConnection } from '../database/DatabaseConnection';
-import { UserModel } from '../models/User';
 import { BotModel } from '../models/Bot';
 import { CampaignModel } from '../models/Campaign';
-import { SubscriptionTier, BillingCycle, CampaignStatus, SeedUserData } from '../types';
+import { UserModel } from '../models/User';
+import { BillingCycle, CampaignStatus, SeedUserData, SubscriptionTier } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class DataSeeder {
@@ -18,7 +18,7 @@ export class DataSeeder {
     email: 'admin@emailoutreachbot.com',
     username: 'admin',
     password: 'Admin123!@#',
-    subscription: SubscriptionTier.ENTERPRISE,
+    subscription: SubscriptionTier.PREMIUM,
     billingCycle: BillingCycle.YEARLY,
     isAdmin: true,
     isActive: true
@@ -27,7 +27,7 @@ export class DataSeeder {
     email: 'superadmin@emailoutreachbot.com',
     username: 'superadmin',
     password: 'SuperAdmin123!@#',
-    subscription: SubscriptionTier.ENTERPRISE,
+    subscription: SubscriptionTier.PREMIUM,
     billingCycle: BillingCycle.YEARLY,
     isAdmin: true,
     isActive: true
@@ -36,7 +36,7 @@ export class DataSeeder {
     email: 'support@emailoutreachbot.com',
     username: 'support',
     password: 'Support123!@#',
-    subscription: SubscriptionTier.ENTERPRISE,
+    subscription: SubscriptionTier.PREMIUM,
     billingCycle: BillingCycle.YEARLY,
     isAdmin: true,
     isActive: true
@@ -46,7 +46,7 @@ export class DataSeeder {
     email: 'demo@emailoutreachbot.com',
     username: 'demo',
     password: 'Demo123!@#',
-    subscription: SubscriptionTier.PREMIUM,
+    subscription: SubscriptionTier.BASIC,
     billingCycle: BillingCycle.MONTHLY,
     isAdmin: false,
     isActive: true

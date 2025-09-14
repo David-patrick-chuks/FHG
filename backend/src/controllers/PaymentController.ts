@@ -19,7 +19,7 @@ export class PaymentController {
       // Validate subscription tier
       const subscriptionTierResult = ValidationService.validateEnum(
         subscriptionTier,
-        ['pro', 'enterprise'],
+        ['basic', 'premium'],
         { required: true }
       );
 

@@ -167,9 +167,7 @@ export class UserModel {
       const limits: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 500,
         [SubscriptionTier.BASIC]: 500,
-        [SubscriptionTier.PREMIUM]: 500,
-        [SubscriptionTier.PRO]: 500,
-        [SubscriptionTier.ENTERPRISE]: 500
+        [SubscriptionTier.PREMIUM]: 500
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return limits[subscription] || 500;
@@ -178,10 +176,8 @@ export class UserModel {
     userSchema.methods['getMaxBots'] = function(): number {
       const maxBots: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 2,
-        [SubscriptionTier.BASIC]: 5,
-        [SubscriptionTier.PREMIUM]: 10,
-        [SubscriptionTier.PRO]: 10,
-        [SubscriptionTier.ENTERPRISE]: 50
+        [SubscriptionTier.BASIC]: 10,
+        [SubscriptionTier.PREMIUM]: 50
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxBots[subscription] || 1;
@@ -190,10 +186,8 @@ export class UserModel {
     userSchema.methods['getMaxCampaigns'] = function(): number {
       const maxCampaigns: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 2,
-        [SubscriptionTier.BASIC]: 5,
-        [SubscriptionTier.PREMIUM]: 10,
-        [SubscriptionTier.PRO]: 10,
-        [SubscriptionTier.ENTERPRISE]: 50
+        [SubscriptionTier.BASIC]: 10,
+        [SubscriptionTier.PREMIUM]: 50
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxCampaigns[subscription] || 5;
@@ -202,10 +196,8 @@ export class UserModel {
     userSchema.methods['getMaxTemplates'] = function(): number {
       const maxTemplates: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 5,
-        [SubscriptionTier.BASIC]: 15,
-        [SubscriptionTier.PREMIUM]: 30,
-        [SubscriptionTier.PRO]: 50,
-        [SubscriptionTier.ENTERPRISE]: -1 // Unlimited
+        [SubscriptionTier.BASIC]: 50,
+        [SubscriptionTier.PREMIUM]: -1 // Unlimited
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxTemplates[subscription] || 5;
@@ -214,10 +206,8 @@ export class UserModel {
     userSchema.methods['getMaxAIMessageVariations'] = function(): number {
       const maxVariations: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 10,
-        [SubscriptionTier.BASIC]: 15,
-        [SubscriptionTier.PREMIUM]: 20,
-        [SubscriptionTier.PRO]: 20,
-        [SubscriptionTier.ENTERPRISE]: 50
+        [SubscriptionTier.BASIC]: 20,
+        [SubscriptionTier.PREMIUM]: 50
       };
       const subscription = this['subscription'] as SubscriptionTier;
       return maxVariations[subscription] || 10;

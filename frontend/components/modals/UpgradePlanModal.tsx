@@ -1,21 +1,21 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Zap, Star } from 'lucide-react';
+import { Check, Crown, Star, Zap } from 'lucide-react';
 
 interface UpgradePlanModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpgrade: (plan: 'pro' | 'enterprise') => void;
+  onUpgrade: (plan: 'basic' | 'premium') => void;
   currentPlan: string;
   feature: string;
   reason?: string;
@@ -128,7 +128,7 @@ export function UpgradePlanModal({
                 </ul>
 
                 <Button
-                  onClick={() => onUpgrade(plan.id as 'pro' | 'enterprise')}
+                  onClick={() => onUpgrade(plan.id as 'basic' | 'premium')}
                   className={`w-full py-3 text-lg font-semibold ${
                     plan.popular
                       ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600'

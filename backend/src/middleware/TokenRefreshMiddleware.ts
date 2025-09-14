@@ -63,19 +63,29 @@ export class TokenRefreshMiddleware {
         res.cookie('accessToken', tokenPair.accessToken, {
           httpOnly: true,
           secure: isProduction,
-          sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
+          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
           maxAge: tokenPair.expiresIn * 1000,
           path: '/',
-          domain: isProduction ? '.agentworld.online' : undefined
+          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
         });
 
         res.cookie('refreshToken', tokenPair.refreshToken, {
           httpOnly: true,
           secure: isProduction,
-          sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
+          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
           path: '/',
-          domain: isProduction ? '.agentworld.online' : undefined
+          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+        });
+
+        // Set isAuthenticated cookie for frontend
+        res.cookie('isAuthenticated', 'true', {
+          httpOnly: false, // Frontend can read this
+          secure: isProduction,
+          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          path: '/',
+          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
         });
 
         // Add user to request object
@@ -105,7 +115,7 @@ export class TokenRefreshMiddleware {
         const isProduction = process.env.NODE_ENV === 'production';
         const cookieOptions = {
           path: '/',
-          domain: isProduction ? '.agentworld.online' : undefined
+          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
         };
         
         res.clearCookie('accessToken', cookieOptions);

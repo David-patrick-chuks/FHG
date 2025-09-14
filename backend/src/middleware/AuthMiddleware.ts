@@ -9,6 +9,12 @@ export class AuthMiddleware {
 
   public static async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Check if user is already authenticated by refresh middleware
+      if ((req as any).user) {
+        next();
+        return;
+      }
+
       const token = JwtService.extractToken(req);
       
       if (!token) {

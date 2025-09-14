@@ -226,7 +226,7 @@ export function EmailExtractorForm({
   };
 
   const isLimitReached = subscriptionInfo && subscriptionInfo.usage.used >= subscriptionInfo.usage.limit && !subscriptionInfo.limits.isUnlimited;
-  const canUseMultipleUrls = subscriptionInfo && (subscriptionInfo.limits.planName === 'pro' || subscriptionInfo.limits.planName === 'enterprise');
+  const canUseMultipleUrls = subscriptionInfo && (subscriptionInfo.limits.planName === 'basic' || subscriptionInfo.limits.planName === 'premium');
 
   return (
     <Tabs defaultValue="single" className="w-full">

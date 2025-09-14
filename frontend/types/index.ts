@@ -6,7 +6,7 @@ export interface BaseEntity {
 }
 
 // Subscription types - Updated to match backend enum
-export type SubscriptionTier = 'FREE' | 'PRO' | 'ENTERPRISE';
+export type SubscriptionTier = 'FREE' | 'BASIC' | 'PREMIUM';
 export type BillingCycle = 'monthly' | 'yearly';
 
 // User types - Updated to match backend User model exactly

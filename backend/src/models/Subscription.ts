@@ -224,9 +224,7 @@ export class SubscriptionModel {
       const revenueByTier: Record<SubscriptionTier, number> = {
         [SubscriptionTier.FREE]: 0,
         [SubscriptionTier.BASIC]: 0,
-        [SubscriptionTier.PREMIUM]: 0,
-        [SubscriptionTier.PRO]: 0,
-        [SubscriptionTier.ENTERPRISE]: 0
+        [SubscriptionTier.PREMIUM]: 0
       };
 
       result.revenueByTier.forEach((item: any) => {

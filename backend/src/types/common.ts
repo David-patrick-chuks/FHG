@@ -34,9 +34,7 @@ export enum QueueJobStatus {
 export enum SubscriptionTier {
   FREE = 'free',
   BASIC = 'basic',
-  PREMIUM = 'premium',
-  PRO = 'pro',
-  ENTERPRISE = 'enterprise'
+  PREMIUM = 'premium'
 }
 
 export enum SubscriptionStatus {
