@@ -210,8 +210,8 @@ export class AuthMiddleware {
     const user = (req as any).user;
     const tierHierarchy = {
       'FREE': 0,
-      'PRO': 1,
-      'ENTERPRISE': 2
+      'BASIC': 1,
+      'PREMIUM': 2
     };
 
     const userTierLevel = tierHierarchy[user.subscriptionTier as keyof typeof tierHierarchy] || 0;
