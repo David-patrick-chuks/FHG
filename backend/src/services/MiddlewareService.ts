@@ -6,6 +6,7 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import helmet from 'helmet';
 import { RequestLogger } from '../middleware/RequestLogger';
 import { SecurityMiddleware } from '../middleware/SecurityMiddleware';
+import { TokenRefreshMiddleware } from '../middleware/TokenRefreshMiddleware';
 import { WebhookBodyParser } from '../middleware/WebhookBodyParser';
 
 export class MiddlewareService {
@@ -95,6 +96,9 @@ export class MiddlewareService {
     
     // Cookie parsing
     app.use(cookieParser());
+    
+    // Automatic token refresh middleware (must be before auth middleware)
+    app.use(TokenRefreshMiddleware.autoRefreshToken);
     
     // Enhanced security middleware
     app.use(SecurityMiddleware.generateRequestId);

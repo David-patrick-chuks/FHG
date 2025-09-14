@@ -1,0 +1,45 @@
+'use client';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { LogOut } from 'lucide-react';
+
+interface SidebarUserSectionProps {
+  user: {
+    username?: string;
+    email?: string;
+  } | null;
+  onLogout: () => void;
+}
+
+export function SidebarUserSection({ user, onLogout }: SidebarUserSectionProps) {
+  return (
+    <div className="border-t border-white/20 dark:border-slate-700/50 p-4 flex-shrink-0">
+      <div className="flex items-center space-x-3 mb-3">
+        <Avatar className="h-8 w-8">
+          <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium">
+            {user?.username?.charAt(0).toUpperCase() || 'U'}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+            {user?.username
+              ? user.username.charAt(0).toUpperCase() + user.username.slice(1).toLowerCase()
+              : 'User'}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            {user?.email || 'user@example.com'}
+          </p>
+        </div>
+      </div>
+      <div className="space-y-1">
+        <button
+          onClick={onLogout}
+          className="flex w-full items-center px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 rounded-lg transition-all duration-300"
+        >
+          <LogOut className="mr-3 h-4 w-4" />
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}

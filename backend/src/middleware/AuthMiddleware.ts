@@ -14,7 +14,7 @@ export class AuthMiddleware {
       if (!token) {
         res.status(401).json({
           success: false,
-          message: 'Access token required',
+          message: 'Authentication required. Please log in.',
           timestamp: new Date()
         });
         return;

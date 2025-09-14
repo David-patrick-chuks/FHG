@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
-import { ActivityType } from '../types';
 import { ActivityService } from '../services/ActivityService';
 import { JwtService } from '../services/JwtService';
 import { UserService } from '../services/UserService';
 import { WelcomeEmailService } from '../services/WelcomeEmailService';
+import { ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class AuthController {
@@ -33,7 +33,7 @@ export class AuthController {
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction, // HTTPS only in production
-      sameSite: 'strict',
+      sameSite: isProduction ? 'strict' : 'lax', // More permissive in development
       maxAge: tokens.expiresIn * 1000, // 15 minutes
       path: '/'
     });
@@ -43,7 +43,7 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: isProduction ? 'strict' : 'lax', // More permissive in development
       maxAge: refreshMaxAge,
       path: '/'
     });
@@ -52,7 +52,7 @@ export class AuthController {
     res.cookie('isAuthenticated', 'true', {
       httpOnly: false, // Frontend can read this
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: isProduction ? 'strict' : 'lax', // More permissive in development
       maxAge: refreshMaxAge,
       path: '/'
     });

@@ -1,11 +1,7 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { MailQuillIcon } from '@/components/ui/MailQuillIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUnreadCount } from '@/contexts/UnreadCountContext';
-import { cn } from '@/lib/utils';
 import {
     Activity,
     BarChart3,
@@ -13,19 +9,15 @@ import {
     CreditCard,
     FileText,
     LayoutDashboard,
-    LogOut,
     Mail,
-    Menu,
     Search,
     Shield,
-    User,
-    Users,
-    X
+    Users
 } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 import { AuthGuard } from '../auth/AuthGuard';
+import { DashboardHeader } from './header';
+import { Sidebar } from './sidebar';
 
 interface SidebarItem {
   label: string;
@@ -150,221 +142,40 @@ export function DashboardLayout({
   return (
     <AuthGuard requireAuth={true}>
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        {/* Header */}
-        <div className="flex h-16 items-center justify-between px-6 border-b border-white/20 dark:border-slate-700/50 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
-              <MailQuillIcon variant="gradient" size="sm" />
-            </div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              MailQuill
-          </h1>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden hover:bg-cyan-50 hover:text-cyan-600 dark:hover:bg-cyan-900/20 dark:hover:text-cyan-400"
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+          />
+        )}
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {(() => {
-            const sidebarItems = getSidebarItems(unreadCount, user?.isAdmin);
-            const regularItems = sidebarItems.slice(0, 10); // First 10 items are regular
-            const adminItems = sidebarItems.slice(10); // Rest are admin items
-            
-            return (
-              <>
-                {/* Regular navigation items */}
-                {regularItems.map((item) => {
-                  // Debug logging for activity item
-                  if (item.label === 'Activity') {
-                    console.log('Activity item badge:', item.badge, 'unreadCount:', unreadCount);
-                  }
-                  
-                  // Simplified active state logic
-                  let isActive = false;
-                  if (item.href === '/dashboard') {
-                    isActive = pathname === '/dashboard';
-                  } else {
-                    isActive = pathname.startsWith(item.href);
-                  }
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300",
-                        isActive
-                          ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400 shadow-sm"
-                          : "text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 hover:shadow-sm"
-                      )}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <item.icon className={cn(
-                        "mr-3 h-5 w-5",
-                        isActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400"
-                      )} />
-                      {item.label}
-                      {item.badge && (
-                        <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-                
-                {/* Admin section separator */}
-                {adminItems.length > 0 && (
-                  <>
-                    <div className="my-4 border-t border-white/20 dark:border-slate-700/50"></div>
-                    <div className="px-3 py-2">
-                      <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        Admin
-                      </h3>
-                    </div>
-                    {adminItems.map((item) => {
-                      // Simplified active state logic
-                      let isActive = false;
-                      if (item.href === '/dashboard') {
-                        isActive = pathname === '/dashboard';
-                      } else {
-                        isActive = pathname.startsWith(item.href);
-                      }
-                      
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className={cn(
-                            "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300",
-                            isActive
-                              ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400 shadow-sm"
-                              : "text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 hover:shadow-sm"
-                          )}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          <item.icon className={cn(
-                            "mr-3 h-5 w-5",
-                            isActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400"
-                          )} />
-                          {item.label}
-                          {item.badge && (
-                            <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </>
-                )}
-              </>
-            );
-          })()}
-        </nav>
+        {/* Sidebar */}
+        <Sidebar
+          sidebarOpen={sidebarOpen}
+          sidebarItems={getSidebarItems(unreadCount, user?.isAdmin)}
+          user={user}
+          onClose={() => setSidebarOpen(false)}
+          onLogout={handleLogout}
+        />
 
-        {/* User section - Fixed at bottom */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex-shrink-0">
-          <div className="flex items-center space-x-3 mb-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-blue-600 text-white text-sm font-medium">
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {user?.username
-                  ? user.username.charAt(0).toUpperCase() + user.username.slice(1).toLowerCase()
-                  : 'User'}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {user?.email || 'user@example.com'}
-              </p>
-            </div>
-          </div>
-          <div className="space-y-1">
-            {/* <Link
-              href="/dashboard/profile"
-              className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <User className="mr-3 h-4 w-4" />
-              Profile
-            </Link> */}
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <LogOut className="mr-3 h-4 w-4" />
-              Logout
-            </button>
+        {/* Main content */}
+        <div className="flex-1 lg:ml-64">
+          <div className="min-h-screen">
+            <DashboardHeader
+              title={title}
+              description={description}
+              actions={actions}
+              onMenuClick={() => setSidebarOpen(true)}
+            />
+
+            {/* Page content */}
+            <main className="p-6">
+              {children}
+            </main>
           </div>
         </div>
       </div>
-
-      {/* Main content */}
-      <div className="flex-1 lg:ml-64">
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          {/* Header */}
-          <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="lg:hidden hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
-                  onClick={() => setSidebarOpen(true)}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-                <div>
-                  {title && (
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {title}
-                    </h1>
-                  )}
-                  {description && (
-                    <div className="text-gray-600 dark:text-gray-400 mt-1">
-                      {description}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {actions && (
-                <div className="flex items-center space-x-3">
-                  {actions}
-                </div>
-              )}
-            </div>
-          </header>
-
-          {/* Page content */}
-          <main className="p-6">
-            {children}
-          </main>
-        </div>
-      </div>
-    </div>
-      </AuthGuard>
+    </AuthGuard>
   );
 }

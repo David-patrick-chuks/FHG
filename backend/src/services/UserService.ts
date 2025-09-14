@@ -55,7 +55,7 @@ export class UserService {
       if (!user) {
         return {
           success: false,
-          message: 'Invalid email or password.',
+          message: 'No account found with this email address.',
           timestamp: new Date()
         };
       }
@@ -64,7 +64,7 @@ export class UserService {
       if (!user.isActive) {
         return {
           success: false,
-          message: 'Account is deactivated',
+          message: 'Your account has been deactivated. Please contact support.',
           timestamp: new Date()
         };
       }
@@ -74,7 +74,7 @@ export class UserService {
       if (!isPasswordValid) {
         return {
           success: false,
-          message: 'Invalid email or password',
+          message: 'Incorrect password. Please try again.',
           timestamp: new Date()
         };
       }
