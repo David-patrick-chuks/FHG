@@ -116,7 +116,7 @@ export class MiddlewareService {
    */
   private static getCorsOrigins(): string[] {
     return process.env['NODE_ENV'] === 'production' 
-      ? ['https://www.agentworld.online'] 
+      ? ['https://agentworld.online', 'https://www.agentworld.online'] 
       : ['http://localhost:3000', 'http://localhost:3001'];
   }
   /**

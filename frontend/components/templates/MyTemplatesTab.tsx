@@ -241,20 +241,35 @@ export function MyTemplatesTab({
                       {template.samples?.length || 0} samples
                     </div>
                     <div className="flex items-center gap-1">
+                      <Tag className="w-4 h-4" />
+                      {template.variables?.length || 0} variables
+                    </div>
+                    <div className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
                       {template.usageCount} uses
                     </div>
                   </div>
-
-                  {template.rating.count > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                  
+                  {/* Preview Snippet */}
+                  {template.samples && template.samples.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                        "{template.samples[0].subject}"
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Rating */}
+                  {template.rating && template.rating.count > 0 && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
                       <span className="text-sm font-medium">{template.rating.average.toFixed(1)}</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         ({template.rating.count} reviews)
                       </span>
                     </div>
                   )}
+
 
                   <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                     <Calendar className="w-4 h-4" />

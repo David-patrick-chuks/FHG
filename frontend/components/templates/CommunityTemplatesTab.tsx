@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
 import { format } from 'date-fns';
-import { Calendar, Search, Star, Tag, ThumbsUp, TrendingUp, Users } from 'lucide-react';
+import { Calendar, Eye, FileText, Search, Star, Tag, ThumbsUp, TrendingUp, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ export function CommunityTemplatesTab({
   onTemplatesLoaded,
   onTemplateAdded
 }: CommunityTemplatesTabProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('popular');
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
@@ -137,16 +139,40 @@ export function CommunityTemplatesTab({
             )}
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-1">
-              <Tag className="w-4 h-4" />
-              {template.samples?.length || 0} samples
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-1">
+                <Tag className="w-4 h-4" />
+                {template.samples?.length || 0} samples
+              </div>
+              <div className="flex items-center gap-1">
+                <FileText className="w-4 h-4" />
+                {template.variables?.length || 0} variables
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                {template.usageCount} uses
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Users className="w-4 h-4" />
-              {template.usageCount} uses
-            </div>
-          </div>
+            
+            {/* Preview Snippet */}
+            {template.samples && template.samples.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                  "{template.samples[0].subject}"
+                </p>
+              </div>
+            )}
+            
+            {/* Rating */}
+            {template.rating && template.rating.count > 0 && (
+              <div className="flex items-center gap-1 mt-2">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                <span className="text-sm font-medium">{template.rating.average.toFixed(1)}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  ({template.rating.count} reviews)
+                </span>
+              </div>
+            )}
 
           {template.rating.count > 0 && (
             <div className="flex items-center gap-2">
@@ -180,14 +206,25 @@ export function CommunityTemplatesTab({
             </div>
           )}
 
-          <Button 
-            onClick={() => handleUseTemplate(template._id)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            size="sm"
-          >
-            <ThumbsUp className="w-4 h-4 mr-2" />
-            Add to My Templates
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => router.push(`/dashboard/templates/preview/${template._id}`)}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview
+            </Button>
+            <Button 
+              onClick={() => handleUseTemplate(template._id)}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              size="sm"
+            >
+              <ThumbsUp className="w-4 h-4 mr-2" />
+              Add
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

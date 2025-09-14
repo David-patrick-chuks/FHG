@@ -33,10 +33,10 @@ export class AuthController {
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction, // HTTPS only in production
-      sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
+      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
       maxAge: tokens.expiresIn * 1000, // 15 minutes
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Set domain for production
+      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
     });
 
     // Refresh token cookie (7 days or 30 days if remember me)
@@ -44,20 +44,20 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
+      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
       maxAge: refreshMaxAge,
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Set domain for production
+      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
     });
 
     // User session cookie (for frontend to know if user is logged in)
     res.cookie('isAuthenticated', 'true', {
       httpOnly: false, // Frontend can read this
       secure: isProduction,
-      sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
+      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
       maxAge: refreshMaxAge,
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Set domain for production
+      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
     });
   }
 
@@ -68,7 +68,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions = {
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined
+      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
     };
     
     res.clearCookie('accessToken', cookieOptions);
