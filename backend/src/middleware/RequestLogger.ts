@@ -3,6 +3,15 @@ import { Logger } from '../utils/Logger';
 
 export class RequestLogger {
   private static logger: Logger = new Logger();
+  
+  // Request statistics tracking
+  private static requestStats = {
+    totalRequests: 0,
+    totalResponseTime: 0,
+    errorCount: 0,
+    slowRequestCount: 0,
+    startTime: Date.now()
+  };
 
   public static log(req: Request, res: Response, next: NextFunction): void {
     const startTime = Date.now();
@@ -11,6 +20,10 @@ export class RequestLogger {
     // Override res.send to capture response data
     res.send = function(data: any): Response {
       const responseTime = Date.now() - startTime;
+      
+      // Update request statistics
+      RequestLogger.updateStats(res.statusCode, responseTime);
+      
       RequestLogger.logRequest(req, res, responseTime, data);
       return originalSend.call(this, data);
     };
@@ -178,20 +191,44 @@ export class RequestLogger {
     }
   }
 
+  // Update request statistics
+  private static updateStats(statusCode: number, responseTime: number): void {
+    RequestLogger.requestStats.totalRequests++;
+    RequestLogger.requestStats.totalResponseTime += responseTime;
+    
+    // Count errors (4xx and 5xx status codes)
+    if (statusCode >= 400) {
+      RequestLogger.requestStats.errorCount++;
+    }
+    
+    // Count slow requests (over 1 second)
+    if (responseTime > 1000) {
+      RequestLogger.requestStats.slowRequestCount++;
+    }
+  }
+
   // Method to get request statistics
   public static getRequestStats(): {
     totalRequests: number;
     averageResponseTime: number;
     errorRate: number;
     slowRequestCount: number;
+    uptime: number;
   } {
-    // This would typically integrate with a metrics collection system
-    // For now, we'll return placeholder data
+    const uptime = Date.now() - RequestLogger.requestStats.startTime;
+    const averageResponseTime = RequestLogger.requestStats.totalRequests > 0 
+      ? Math.round(RequestLogger.requestStats.totalResponseTime / RequestLogger.requestStats.totalRequests)
+      : 0;
+    const errorRate = RequestLogger.requestStats.totalRequests > 0
+      ? Math.round((RequestLogger.requestStats.errorCount / RequestLogger.requestStats.totalRequests) * 100)
+      : 0;
+    
     return {
-      totalRequests: 0,
-      averageResponseTime: 0,
-      errorRate: 0,
-      slowRequestCount: 0
+      totalRequests: RequestLogger.requestStats.totalRequests,
+      averageResponseTime,
+      errorRate,
+      slowRequestCount: RequestLogger.requestStats.slowRequestCount,
+      uptime: Math.round(uptime / 1000) // Convert to seconds
     };
   }
 }

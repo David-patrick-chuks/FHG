@@ -136,20 +136,107 @@ export class EmailVerification {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const stats = await SentEmailModel.getDeliveryStats(botId); // TODO: Fix this to use proper campaignId
+      // Import Campaign model to get campaigns for this bot
+      const CampaignModel = await import('../../models/Campaign');
+      
+      // Get all campaigns that use this bot
+      const campaigns = await CampaignModel.default.find({ botId });
+      const campaignIds = campaigns.map(campaign => (campaign._id as any).toString());
+
+      if (campaignIds.length === 0) {
+        return {
+          success: true,
+          message: 'Email stats retrieved successfully',
+          data: {
+            totalSent: 0,
+            totalDelivered: 0,
+            totalOpened: 0,
+            totalReplied: 0,
+            totalFailed: 0,
+            deliveryRate: 0,
+            openRate: 0,
+            replyRate: 0
+          },
+          timestamp: new Date()
+        };
+      }
+
+      // Get aggregated stats for all campaigns using this bot
+      const aggregateStats = await SentEmailModel.aggregate([
+        {
+          $match: {
+            campaignId: { $in: campaignIds },
+            sentAt: { $gte: startDate }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalSent: { $sum: 1 },
+            totalDelivered: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', ['delivered', 'opened', 'replied']] },
+                  1,
+                  0
+                ]
+              }
+            },
+            totalOpened: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', ['opened', 'replied']] },
+                  1,
+                  0
+                ]
+              }
+            },
+            totalReplied: {
+              $sum: {
+                $cond: [
+                  { $eq: ['$status', 'replied'] },
+                  1,
+                  0
+                ]
+              }
+            },
+            totalFailed: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', ['failed', 'bounced']] },
+                  1,
+                  0
+                ]
+              }
+            }
+          }
+        }
+      ]);
+
+      const stats = aggregateStats[0] || { 
+        totalSent: 0, 
+        totalDelivered: 0, 
+        totalOpened: 0, 
+        totalReplied: 0, 
+        totalFailed: 0 
+      };
+
+      const deliveryRate = stats.totalSent > 0 ? Math.round((stats.totalDelivered / stats.totalSent) * 100) : 0;
+      const openRate = stats.totalDelivered > 0 ? Math.round((stats.totalOpened / stats.totalDelivered) * 100) : 0;
+      const replyRate = stats.totalDelivered > 0 ? Math.round((stats.totalReplied / stats.totalDelivered) * 100) : 0;
 
       return {
         success: true,
         message: 'Email stats retrieved successfully',
         data: {
-          totalSent: stats.total,
-          totalDelivered: stats.delivered,
-          totalOpened: stats.opened,
-          totalReplied: stats.replied,
-          totalFailed: stats.failed,
-          deliveryRate: stats.deliveryRate,
-          openRate: stats.openRate,
-          replyRate: stats.replyRate
+          totalSent: stats.totalSent,
+          totalDelivered: stats.totalDelivered,
+          totalOpened: stats.totalOpened,
+          totalReplied: stats.totalReplied,
+          totalFailed: stats.totalFailed,
+          deliveryRate,
+          openRate,
+          replyRate
         },
         timestamp: new Date()
       };

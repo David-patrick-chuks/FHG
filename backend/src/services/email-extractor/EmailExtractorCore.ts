@@ -260,9 +260,18 @@ export class EmailExtractorCore {
     try {
       const extractions = await EmailExtractionModel.getUserExtractions(userId, limit, skip);
       
+      // Properly serialize the documents to fix _id serialization issues
+      const serializedExtractions = extractions.map(extraction => {
+        const obj = extraction.toObject();
+        return {
+          ...obj,
+          _id: (obj._id as any).toString() // Convert ObjectId to string
+        };
+      });
+      
       return {
         success: true,
-        data: extractions,
+        data: serializedExtractions as any,
         message: 'Extractions retrieved successfully',
         timestamp: new Date()
       };
@@ -285,9 +294,19 @@ export class EmailExtractorCore {
     try {
       const extraction = await EmailExtractionModel.getExtractionByJobId(jobId);
       
+      // Properly serialize the document to fix _id serialization issues
+      let serializedExtraction = null;
+      if (extraction) {
+        const obj = extraction.toObject();
+        serializedExtraction = {
+          ...obj,
+          _id: (obj._id as any).toString() // Convert ObjectId to string
+        };
+      }
+      
       return {
         success: true,
-        data: extraction,
+        data: serializedExtraction as any,
         message: extraction ? 'Extraction found' : 'Extraction not found',
         timestamp: new Date()
       };

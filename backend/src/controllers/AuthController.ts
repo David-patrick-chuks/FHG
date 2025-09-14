@@ -33,9 +33,10 @@ export class AuthController {
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction, // HTTPS only in production
-      sameSite: isProduction ? 'strict' : 'lax', // More permissive in development
+      sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
       maxAge: tokens.expiresIn * 1000, // 15 minutes
-      path: '/'
+      path: '/',
+      domain: isProduction ? '.agentworld.online' : undefined // Set domain for production
     });
 
     // Refresh token cookie (7 days or 30 days if remember me)
@@ -43,18 +44,20 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax', // More permissive in development
+      sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
       maxAge: refreshMaxAge,
-      path: '/'
+      path: '/',
+      domain: isProduction ? '.agentworld.online' : undefined // Set domain for production
     });
 
     // User session cookie (for frontend to know if user is logged in)
     res.cookie('isAuthenticated', 'true', {
       httpOnly: false, // Frontend can read this
       secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax', // More permissive in development
+      sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
       maxAge: refreshMaxAge,
-      path: '/'
+      path: '/',
+      domain: isProduction ? '.agentworld.online' : undefined // Set domain for production
     });
   }
 
@@ -62,9 +65,15 @@ export class AuthController {
    * Clear authentication cookies
    */
   private static clearAuthCookies(res: Response): void {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
-    res.clearCookie('isAuthenticated', { path: '/' });
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      path: '/',
+      domain: isProduction ? '.agentworld.online' : undefined
+    };
+    
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+    res.clearCookie('isAuthenticated', cookieOptions);
   }
 
   public static async register(req: Request, res: Response): Promise<void> {

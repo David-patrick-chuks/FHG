@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RecentActivity as RecentActivityType } from '@/types';
 import { getActivityIcon, getActivityIconColor } from '@/utils/activityUtils';
 import { Activity } from 'lucide-react';
@@ -23,14 +22,16 @@ export function RecentActivity({ activities }: RecentActivityProps) {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Recent Activity</h2>
             <p className="text-slate-600 dark:text-slate-300">Latest updates from your campaigns</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => router.push('/dashboard/activity')}
-            className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 text-cyan-600 hover:text-cyan-700 hover:bg-white/60 dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-slate-800/60 transition-all duration-300"
-          >
-            View All
-          </Button>
+          {activities.length > 5 && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => router.push('/dashboard/activity')}
+              className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 text-cyan-600 hover:text-cyan-700 hover:bg-white/60 dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-slate-800/60 transition-all duration-300"
+            >
+              View All
+            </Button>
+          )}
         </div>
         
         <div className="space-y-4">

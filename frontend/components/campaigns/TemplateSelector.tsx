@@ -109,7 +109,7 @@ export function TemplateSelector({
                     <div className="flex items-center space-x-1">
                       <FileText className="h-4 w-4 text-gray-400" />
                       <span className="text-gray-600 dark:text-gray-400">
-                        {template.samples.length} samples
+                        {template.samples?.length || 0} samples
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
@@ -152,7 +152,7 @@ export function TemplateSelector({
                 {/* AI Generation Info */}
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    <strong>AI Generation:</strong> {template.samples.length} samples × 20 variations = {template.samples.length * 20} unique emails
+                    <strong>AI Generation:</strong> {template.samples?.length || 0} samples × 20 variations = {(template.samples?.length || 0) * 20} unique emails
                   </p>
                 </div>
               </div>

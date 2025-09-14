@@ -238,7 +238,7 @@ export function MyTemplatesTab({
                   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-1">
                       <FileText className="w-4 h-4" />
-                      {template.samples.length} samples
+                      {template.samples?.length || 0} samples
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="w-4 h-4" />

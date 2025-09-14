@@ -14,55 +14,55 @@ export function DashboardStats({ stats, loading = false }: DashboardStatsProps) 
     return (
       <div className="grid gap-6 md:grid-cols-3">
         {/* Total Bots Card Skeleton */}
-        <Card className="relative overflow-hidden animate-pulse">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-20"></div>
-          <CardContent className="relative p-6">
+        <div className="group relative animate-pulse">
+          <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5"></div>
+          <div className="relative p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <div className="h-8 w-12 bg-white/30 rounded"></div>
-                <div className="h-4 w-20 bg-white/20 rounded"></div>
-                <div className="h-3 w-16 bg-white/20 rounded"></div>
+                <div className="h-8 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
               </div>
-              <div className="p-3 bg-white/20 rounded-lg">
+              <div className="p-3 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-lg">
                 <div className="w-6 h-6 bg-white/30 rounded"></div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Total Campaigns Card Skeleton */}
-        <Card className="relative overflow-hidden animate-pulse">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-20"></div>
-          <CardContent className="relative p-6">
+        <div className="group relative animate-pulse">
+          <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5"></div>
+          <div className="relative p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <div className="h-8 w-12 bg-white/30 rounded"></div>
-                <div className="h-4 w-24 bg-white/20 rounded"></div>
-                <div className="h-3 w-16 bg-white/20 rounded"></div>
+                <div className="h-8 w-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
               </div>
-              <div className="p-3 bg-white/20 rounded-lg">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
                 <div className="w-6 h-6 bg-white/30 rounded"></div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Emails Sent Card Skeleton */}
-        <Card className="relative overflow-hidden animate-pulse">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-20"></div>
-          <CardContent className="relative p-6">
+        <div className="group relative animate-pulse">
+          <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5"></div>
+          <div className="relative p-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <div className="h-8 w-12 bg-white/30 rounded"></div>
-                <div className="h-4 w-20 bg-white/20 rounded"></div>
-                <div className="h-3 w-16 bg-white/20 rounded"></div>
+                <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
               </div>
-              <div className="p-3 bg-white/20 rounded-lg">
+              <div className="p-3 bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl shadow-lg">
                 <div className="w-6 h-6 bg-white/30 rounded"></div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }

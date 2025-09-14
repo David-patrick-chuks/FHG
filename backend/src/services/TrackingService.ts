@@ -226,18 +226,98 @@ export class TrackingService {
         };
       }
 
-      // This would need to be implemented based on your campaign model
-      // For now, returning a placeholder structure
+      // Import Campaign model dynamically to avoid circular dependencies
+      const CampaignModel = await import('../models/Campaign');
+      
+      // Get all campaigns for the user
+      const campaigns = await CampaignModel.default.find({ userId });
+      const campaignIds = campaigns.map(campaign => (campaign._id as any).toString());
+
+      if (campaignIds.length === 0) {
+        return {
+          success: true,
+          message: 'User tracking summary retrieved successfully',
+          data: {
+            totalCampaigns: 0,
+            totalEmails: 0,
+            totalOpened: 0,
+            averageOpenRate: 0,
+            topPerformingCampaigns: []
+          }
+        };
+      }
+
+      // Get aggregated stats for all user's campaigns
+      const aggregateStats = await SentEmailModel.aggregate([
+        {
+          $match: {
+            campaignId: { $in: campaignIds }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalEmails: { $sum: 1 },
+            totalOpened: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', [EmailStatus.OPENED, EmailStatus.REPLIED]] },
+                  1,
+                  0
+                ]
+              }
+            },
+            totalDelivered: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', [EmailStatus.DELIVERED, EmailStatus.OPENED, EmailStatus.REPLIED]] },
+                  1,
+                  0
+                ]
+              }
+            }
+          }
+        }
+      ]);
+
+      const stats = aggregateStats[0] || { totalEmails: 0, totalOpened: 0, totalDelivered: 0 };
+      const averageOpenRate = stats.totalDelivered > 0 ? Math.round((stats.totalOpened / stats.totalDelivered) * 100) : 0;
+
+      // Get top performing campaigns (by open rate)
+      const campaignStats = await Promise.all(
+        campaignIds.map(async (campaignId) => {
+          const campaignStats = await SentEmailModel.getDeliveryStats(campaignId);
+          const campaign = campaigns.find(c => (c._id as any).toString() === campaignId);
+          const openRate = campaignStats.delivered > 0 ? Math.round((campaignStats.opened / campaignStats.delivered) * 100) : 0;
+          
+          return {
+            campaignId,
+            campaignName: campaign?.name || 'Unknown Campaign',
+            totalEmails: campaignStats.total,
+            opened: campaignStats.opened,
+            openRate
+          };
+        })
+      );
+
+      // Sort by open rate and take top 5
+      const topPerformingCampaigns = campaignStats
+        .filter(campaign => campaign.totalEmails > 0)
+        .sort((a, b) => b.openRate - a.openRate)
+        .slice(0, 5);
+
+      const summary: UserTrackingSummary = {
+        totalCampaigns: campaigns.length,
+        totalEmails: stats.totalEmails,
+        totalOpened: stats.totalOpened,
+        averageOpenRate,
+        topPerformingCampaigns
+      };
+
       return {
         success: true,
         message: 'User tracking summary retrieved successfully',
-        data: {
-          totalCampaigns: 0,
-          totalEmails: 0,
-          totalOpened: 0,
-          averageOpenRate: 0,
-          topPerformingCampaigns: []
-        }
+        data: summary
       };
     } catch (error) {
       TrackingService.logger.error('Error getting user tracking summary:', error);

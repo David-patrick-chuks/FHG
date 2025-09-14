@@ -120,7 +120,13 @@ const emailExtractionSchema = new Schema<IEmailExtractionDocument>({
   }
 }, {
   timestamps: true,
-  collection: 'email_extractions'
+  collection: 'email_extractions',
+  toJSON: {
+    transform: function(doc, ret) {
+      ret._id = ret._id.toString();
+      return ret;
+    }
+  }
 });
 
 // Indexes for better query performance
@@ -283,7 +289,8 @@ emailExtractionSchema.statics.updateExtractionProgress = async function(
 emailExtractionSchema.methods.toJSON = function() {
   const obj = this.toObject();
   return {
-    id: obj._id,
+    _id: (obj._id as any).toString(), // Ensure _id is converted to string
+    userId: obj.userId,
     jobId: obj.jobId,
     status: obj.status,
     urls: obj.urls,

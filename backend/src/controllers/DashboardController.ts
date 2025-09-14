@@ -2,10 +2,9 @@ import { Response } from 'express';
 import { BotModel } from '../models/Bot';
 import { CampaignModel } from '../models/Campaign';
 import { SentEmailModel } from '../models/SentEmail';
-import { SubscriptionModel } from '../models/Subscription';
 import { ActivityService } from '../services/ActivityService';
-import { Logger } from '../utils/Logger';
 import { AuthenticatedRequest } from '../types';
+import { Logger } from '../utils/Logger';
 
 export class DashboardController {
   private static logger: Logger = new Logger();
@@ -63,28 +62,64 @@ export class DashboardController {
         sentAt: { $gte: startOfMonth }
       });
       
-      // Calculate average open and click rates from user's campaigns
+      // Calculate real open and reply rates from sent emails
       let totalOpenRate = 0;
-      let totalClickRate = 0;
       let totalReplyRate = 0;
       let campaignCount = 0;
       
-      // Since campaigns don't have stats property, we'll calculate from sent emails
-      campaigns.forEach(campaign => {
-        // Count emails for this campaign
-        const campaignEmails = campaign.sentEmails || [];
-        if (campaignEmails.length > 0) {
-          // For now, use placeholder values since we don't have tracking data
-          totalOpenRate += 20; // Placeholder 20% open rate
-          totalClickRate += 3; // Placeholder 3% click rate
-          totalReplyRate += 1; // Placeholder 1% reply rate
-          campaignCount++;
-        }
-      });
+      // Get campaign IDs for this user
+      const campaignIds = campaigns.map(campaign => (campaign._id as any).toString());
+      
+      if (campaignIds.length > 0) {
+        // Get aggregated email stats for all user's campaigns
+        const emailStats = await SentEmailModel.getInstance().aggregate([
+          {
+            $match: {
+              campaignId: { $in: campaignIds }
+            }
+          },
+          {
+            $group: {
+              _id: '$campaignId',
+              totalSent: { $sum: 1 },
+              totalOpened: {
+                $sum: {
+                  $cond: [
+                    { $in: ['$status', ['opened', 'replied']] },
+                    1,
+                    0
+                  ]
+                }
+              },
+              totalReplied: {
+                $sum: {
+                  $cond: [
+                    { $eq: ['$status', 'replied'] },
+                    1,
+                    0
+                  ]
+                }
+              }
+            }
+          }
+        ]);
+        
+        // Calculate rates for each campaign
+        emailStats.forEach(stat => {
+          if (stat.totalSent > 0) {
+            const openRate = (stat.totalOpened / stat.totalSent) * 100;
+            const replyRate = (stat.totalReplied / stat.totalSent) * 100;
+            
+            totalOpenRate += openRate;
+            totalReplyRate += replyRate;
+            campaignCount++;
+          }
+        });
+      }
       
       const averageOpenRate = campaignCount > 0 ? totalOpenRate / campaignCount : 0;
-      const averageClickRate = campaignCount > 0 ? totalClickRate / campaignCount : 0;
       const averageReplyRate = campaignCount > 0 ? totalReplyRate / campaignCount : 0;
+      const averageClickRate = 0; // Click tracking not implemented yet
       
       const stats = {
         totalCampaigns: campaigns.length,

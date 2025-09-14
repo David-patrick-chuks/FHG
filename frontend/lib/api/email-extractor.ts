@@ -145,6 +145,13 @@ export class EmailExtractorAPI {
   }
 
   /**
+   * Get detailed extraction information by job ID (alias for getExtraction)
+   */
+  static async getExtractionDetails(jobId: string): Promise<GetExtractionResponse> {
+    return this.getExtraction(jobId);
+  }
+
+  /**
    * Download extraction results as CSV
    */
   static async downloadResults(jobId: string): Promise<Blob> {

@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
-import { ActivityType } from '../types';
 import BotModel from '../models/Bot';
 import { ActivityService } from '../services/ActivityService';
 import { BotService } from '../services/BotService';
 import { EmailService } from '../services/EmailService';
+import { ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 import { PaginationUtils } from '../utils/PaginationUtils';
 
@@ -46,8 +46,8 @@ export class BotController {
            dailyEmailLimit: dailyEmailLimit,
            emailsSentToday: botData.dailyEmailCount,
            profileImage: botData.profileImage,
-           createdAt: botData.createdAt?.toISOString(),
-           updatedAt: botData.updatedAt?.toISOString(),
+           createdAt: botData.createdAt, // Already serialized by BotService.serializeBot()
+           updatedAt: botData.updatedAt, // Already serialized by BotService.serializeBot()
            __v: botData.__v
          };
 

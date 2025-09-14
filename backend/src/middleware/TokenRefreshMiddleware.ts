@@ -58,21 +58,24 @@ export class TokenRefreshMiddleware {
         // Blacklist old refresh token
         JwtService.blacklistToken(refreshToken);
 
-        // Set new cookies
+        // Set new cookies with consistent settings
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie('accessToken', tokenPair.accessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          secure: isProduction,
+          sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
           maxAge: tokenPair.expiresIn * 1000,
-          path: '/'
+          path: '/',
+          domain: isProduction ? '.agentworld.online' : undefined
         });
 
         res.cookie('refreshToken', tokenPair.refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          secure: isProduction,
+          sameSite: 'lax', // Use 'lax' for better cross-origin compatibility
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          path: '/'
+          path: '/',
+          domain: isProduction ? '.agentworld.online' : undefined
         });
 
         // Add user to request object
@@ -99,9 +102,15 @@ export class TokenRefreshMiddleware {
           ip: req.ip
         });
 
-        res.clearCookie('accessToken', { path: '/' });
-        res.clearCookie('refreshToken', { path: '/' });
-        res.clearCookie('isAuthenticated', { path: '/' });
+        const isProduction = process.env.NODE_ENV === 'production';
+        const cookieOptions = {
+          path: '/',
+          domain: isProduction ? '.agentworld.online' : undefined
+        };
+        
+        res.clearCookie('accessToken', cookieOptions);
+        res.clearCookie('refreshToken', cookieOptions);
+        res.clearCookie('isAuthenticated', cookieOptions);
 
         next();
       }

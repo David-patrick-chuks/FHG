@@ -86,7 +86,10 @@ export class TemplateService {
       approvedAt: templateObj.approvedAt?.toISOString(),
       rejectionReason: templateObj.rejectionReason,
       useCase: templateObj.useCase,
-      variables: templateObj.variables,
+      variables: templateObj.variables.map((variable: any) => ({
+        ...variable,
+        _id: variable._id?.toString()
+      })),
       tags: templateObj.tags,
       usageCount: templateObj.usageCount,
       rating: templateObj.rating,
@@ -97,6 +100,10 @@ export class TemplateService {
         comment: review.comment,
         createdAt: review.createdAt?.toISOString()
       })),
+      samples: (templateObj.samples || []).map((sample: any) => ({
+        ...sample,
+        _id: sample._id?.toString()
+      })), // Include samples array with proper _id serialization
       featured: templateObj.featured,
       featuredAt: templateObj.featuredAt?.toISOString(),
       createdAt: templateObj.createdAt?.toISOString(),
