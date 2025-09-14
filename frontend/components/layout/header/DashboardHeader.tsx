@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
 interface DashboardHeaderProps {
-  title?: string;
+  title?: string | React.ReactNode;
   description?: string | React.ReactNode;
   actions?: React.ReactNode;
   onMenuClick: () => void;

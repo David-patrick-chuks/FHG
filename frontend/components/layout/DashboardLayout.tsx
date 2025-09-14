@@ -117,7 +117,7 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  title?: string;
+  title?: string | React.ReactNode;
   description?: string | React.ReactNode;
   actions?: React.ReactNode;
 }
