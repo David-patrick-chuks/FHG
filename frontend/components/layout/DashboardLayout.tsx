@@ -12,8 +12,10 @@ import {
     Mail,
     Search,
     Shield,
+    User,
     Users
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
 import { AuthGuard } from '../auth/AuthGuard';
 import { DashboardHeader } from './header';

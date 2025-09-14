@@ -86,7 +86,7 @@ export class TokenRefreshMiddleware {
         };
 
         TokenRefreshMiddleware.logger.info('Token refreshed successfully', {
-          userId: userResult.data._id,
+          userId: (userResult.data._id as any).toString(),
           email: userResult.data.email,
           ip: req.ip
         });

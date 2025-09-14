@@ -1,12 +1,10 @@
 'use client';
 
-import {
-    CampaignEmptyState,
-    CampaignFilters,
-    CampaignList,
-    CampaignModals,
-    CampaignPagination
-} from '@/components/campaigns';
+import { CampaignEmptyState } from '@/components/campaigns/CampaignEmptyState';
+import { CampaignFilters } from '@/components/campaigns/CampaignFilters';
+import { CampaignList } from '@/components/campaigns/CampaignList';
+import { CampaignModals } from '@/components/campaigns/CampaignModals';
+import { CampaignPagination } from '@/components/campaigns/CampaignPagination';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { CampaignLimitModal } from '@/components/modals/CampaignLimitModal';
 import { Button } from '@/components/ui/button';
@@ -101,8 +99,7 @@ export default function CampaignsPage() {
         setTotalPages(response.data.pagination.totalPages);
         setTotalCampaigns(response.data.pagination.total);
         
-        // Set user plan from auth context
-        setUserPlan((user?.subscription?.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE') || 'FREE');
+        // User plan is set in separate useEffect
       } else {
         setCampaignsError(response.error || 'Failed to fetch campaigns');
       }
@@ -135,7 +132,12 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     fetchBots();
-  }, [fetchBots]);
+  }, []);
+
+  // Set user plan when user changes
+  useEffect(() => {
+    setUserPlan((user?.subscription?.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE') || 'FREE');
+  }, [user?.subscription]);
 
   // Helper function to get bot name by ID
   const getBotName = (botId: string) => {

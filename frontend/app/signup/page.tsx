@@ -15,8 +15,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const signupSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().trim().email('Please enter a valid email address'),
   username: z.string()
+    .trim()
     .min(3, 'Username must be at least 3 characters')
     .max(20, 'Username must be no more than 20 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
