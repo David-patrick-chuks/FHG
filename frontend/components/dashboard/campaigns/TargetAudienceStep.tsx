@@ -63,8 +63,8 @@ export function TargetAudienceStep({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border">
+      <CardContent className="space-y-4 sm:space-y-6">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 sm:p-6 border">
           <EmailListManager
             emailList={formData.emailList}
             onEmailListChange={(emails) => onFormDataChange({ emailList: emails })}
@@ -88,22 +88,24 @@ export function TargetAudienceStep({
           />
         </div>
 
-        <div className="flex justify-between pt-4">
+        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-4">
           <Button
             variant="outline"
             onClick={onBack}
             disabled={isFormDisabled}
-            className="h-12 px-6"
+            className="h-11 sm:h-12 px-4 sm:px-6 order-2 sm:order-1 text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Basics
+            <span className="hidden sm:inline">Back to Email Template</span>
+            <span className="sm:hidden">Back</span>
           </Button>
           <Button
             onClick={onNext}
             disabled={!canProceed || isFormDisabled}
-            className="h-12 px-8 bg-green-600 hover:bg-green-700"
+            className="h-11 sm:h-12 px-4 sm:px-8 order-1 sm:order-2 text-sm sm:text-base bg-green-600 hover:bg-green-700"
           >
-            Continue to AI Configuration
+            <span className="hidden sm:inline">Continue to Schedule & Timing</span>
+            <span className="sm:hidden">Next</span>
             <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
           </Button>
         </div>

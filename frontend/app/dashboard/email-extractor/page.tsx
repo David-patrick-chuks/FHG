@@ -302,20 +302,22 @@ export default function EmailExtractorPage() {
         title="Email Extractor"
         description="Extract email addresses from websites using our powerful AI-powered tool"
       >
-        <div className="relative space-y-6">
-          {/* Subscription Limits */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-            <div className="relative p-6">
-              <SubscriptionLimitsDisplay subscriptionInfo={subscriptionInfo} />
+        <div className="relative space-y-4 sm:space-y-6">
+          {/* Subscription Limits - Hidden on mobile if not needed */}
+          {subscriptionInfo && (
+            <div className="group relative hidden sm:block">
+              <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+              <div className="relative p-4 sm:p-6">
+                <SubscriptionLimitsDisplay subscriptionInfo={subscriptionInfo} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Email Extraction Form */}
           <div className="group relative">
             <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-            <div className="relative p-6">
-              <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">Extract Emails</h2>
+            <div className="relative p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-slate-900 dark:text-white">Extract Emails</h2>
               <EmailExtractorForm
                 subscriptionInfo={subscriptionInfo}
                 onExtractionStart={startExtraction}
@@ -325,30 +327,34 @@ export default function EmailExtractorPage() {
             </div>
           </div>
 
-          {/* Current Job Status */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-            <div className="relative p-6">
-              <CurrentJobStatus
-                currentJob={currentJob}
-                onDownloadResults={downloadResults}
-                onShareExtraction={shareExtraction}
-              />
+          {/* Current Job Status - Only show if there's an active job */}
+          {currentJob && (
+            <div className="group relative">
+              <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+              <div className="relative p-4 sm:p-6">
+                <CurrentJobStatus
+                  currentJob={currentJob}
+                  onDownloadResults={downloadResults}
+                  onShareExtraction={shareExtraction}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Recent Extractions */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-            <div className="relative p-6">
-              <RecentExtractions
-                extractionHistory={extractionHistory}
-                onDownloadResults={downloadResults}
-                onShareExtraction={shareExtraction}
-                onViewAll={handleViewAll}
-              />
+          {/* Recent Extractions - Only show if there are extractions */}
+          {extractionHistory.length > 0 && (
+            <div className="group relative">
+              <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+              <div className="relative p-4 sm:p-6">
+                <RecentExtractions
+                  extractionHistory={extractionHistory}
+                  onDownloadResults={downloadResults}
+                  onShareExtraction={shareExtraction}
+                  onViewAll={handleViewAll}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DashboardLayout>
     </div>

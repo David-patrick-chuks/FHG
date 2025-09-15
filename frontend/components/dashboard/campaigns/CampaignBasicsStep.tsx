@@ -47,8 +47,8 @@ export function CampaignBasicsStep({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <CardContent className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Campaign Name <span className="text-red-500">*</span>
@@ -59,7 +59,7 @@ export function CampaignBasicsStep({
               onChange={(e) => onFormDataChange({ name: e.target.value })}
               placeholder="e.g., Q1 Sales Outreach"
               disabled={isFormDisabled}
-              className="h-12"
+              className="h-11 sm:h-12 text-sm sm:text-base"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Choose a descriptive name that reflects your campaign's purpose
@@ -97,9 +97,10 @@ export function CampaignBasicsStep({
           <Button
             onClick={onNext}
             disabled={!canProceed || isFormDisabled}
-            className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
+            className="h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base bg-blue-600 hover:bg-blue-700"
           >
-            Continue to Target Audience
+            <span className="hidden sm:inline">Continue to Email Template</span>
+            <span className="sm:hidden">Next</span>
             <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
           </Button>
         </div>

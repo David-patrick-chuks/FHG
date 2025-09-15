@@ -65,8 +65,11 @@ export interface ITemplate {
   approvedBy?: string;
   approvedAt?: Date;
   rejectionReason?: string;
+  subject: string;
+  body: string;
   useCase: string;
   variables: ITemplateVariable[];
+  samples: ITemplateSample[];
   tags: string[];
   usageCount: number;
   rating: {
@@ -74,7 +77,6 @@ export interface ITemplate {
     count: number;
   };
   reviews: ITemplateReview[];
-  samples: ITemplateSample[];
   featured: boolean;
   featuredAt?: Date;
   originalTemplateId?: string;
@@ -90,10 +92,12 @@ export interface CreateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic: boolean;
+  subject: string;
+  body: string;
   useCase: string;
   variables: ITemplateVariable[];
-  tags: string[];
   samples: ITemplateSample[];
+  tags: string[];
 }
 
 export interface UpdateTemplateRequest {
@@ -103,10 +107,12 @@ export interface UpdateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic?: boolean;
+  subject?: string;
+  body?: string;
   useCase?: string;
   variables?: ITemplateVariable[];
-  tags?: string[];
   samples?: ITemplateSample[];
+  tags?: string[];
 }
 
 export interface ApproveTemplateRequest {

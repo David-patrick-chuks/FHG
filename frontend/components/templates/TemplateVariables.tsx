@@ -39,35 +39,41 @@ export function TemplateVariables({ formData, setFormData }: TemplateVariablesPr
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">Variables</h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        Define variables that can be replaced in your email content
-      </p>
+    <div className="space-y-4 sm:space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          Variables
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Define variables that can be replaced in your email content
+        </p>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="variableKey">Variable Key</Label>
+          <Label htmlFor="variableKey" className="text-sm font-medium">Variable Key</Label>
           <Input
             id="variableKey"
             value={newVariable.key}
             onChange={(e) => setNewVariable(prev => ({ ...prev, key: e.target.value }))}
             placeholder="e.g., name, product"
+            className="h-10 sm:h-11 text-sm sm:text-base"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="variableValue">Default Value</Label>
+          <Label htmlFor="variableValue" className="text-sm font-medium">Default Value</Label>
           <Input
             id="variableValue"
             value={newVariable.value}
             onChange={(e) => setNewVariable(prev => ({ ...prev, value: e.target.value }))}
             placeholder="e.g., there, our solution"
+            className="h-10 sm:h-11 text-sm sm:text-base"
           />
         </div>
 
         <div className="space-y-2">
-          <Label>Required</Label>
+          <Label className="text-sm font-medium">Required</Label>
           <div className="flex items-center space-x-2">
             <Switch
               checked={newVariable.required}
@@ -82,27 +88,27 @@ export function TemplateVariables({ formData, setFormData }: TemplateVariablesPr
         type="button"
         onClick={addVariable}
         disabled={!newVariable.key.trim() || !newVariable.value.trim()}
-        className="bg-cyan-600 hover:bg-cyan-700 text-white"
+        className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white h-10 sm:h-11 text-sm sm:text-base"
       >
         <Plus className="w-4 h-4 mr-2" />
         Add Variable
       </Button>
 
       {formData.variables.length > 0 && (
-        <div className="space-y-2">
-          <Label>Added Variables</Label>
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Added Variables</Label>
           <div className="space-y-2">
             {formData.variables.map((variable, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <span className="font-medium text-cyan-600 dark:text-cyan-400">
+              <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-white/50 dark:bg-gray-800/50 border border-blue-200 dark:border-blue-800 rounded-lg backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <span className="font-medium text-blue-600 dark:text-blue-400 text-sm sm:text-base">
                     {`{{${variable.key}}}`}
                   </span>
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
                     = "{variable.value}"
                   </span>
                   {variable.required && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 text-xs w-fit">
                       Required
                     </Badge>
                   )}
@@ -112,7 +118,7 @@ export function TemplateVariables({ formData, setFormData }: TemplateVariablesPr
                   variant="ghost"
                   size="sm"
                   onClick={() => removeVariable(index)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 w-fit self-end sm:self-auto"
                 >
                   <X className="w-4 h-4" />
                 </Button>

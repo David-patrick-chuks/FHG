@@ -36,7 +36,7 @@ export function BotSelector({ bots, selectedBotId, onBotSelect, isLoading, disab
       </Label>
       
       <Select value={selectedBotId} onValueChange={onBotSelect} disabled={isLoading || disabled}>
-        <SelectTrigger className="h-12 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200">
+        <SelectTrigger className="h-11 sm:h-12 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-xl transition-all duration-200">
           {selectedBot ? (
             <div className="flex items-center space-x-3">
               <div className="relative flex-shrink-0">

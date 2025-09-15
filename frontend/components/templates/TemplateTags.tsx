@@ -33,20 +33,29 @@ export function TemplateTags({ formData, setFormData }: TemplateTagsProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400">Tags</h3>
-      <div className="flex gap-2">
+    <div className="space-y-4 sm:space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          Tags
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Add tags to help categorize and find your template
+        </p>
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <Input
           value={newTag}
           onChange={(e) => setNewTag(e.target.value)}
           placeholder="Add a tag..."
           onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+          className="h-10 sm:h-11 text-sm sm:text-base flex-1"
         />
         <Button
           type="button"
           onClick={addTag}
           disabled={!newTag.trim()}
-          className="bg-orange-600 hover:bg-orange-700 text-white"
+          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white h-10 sm:h-11 text-sm sm:text-base w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Tag
@@ -56,12 +65,12 @@ export function TemplateTags({ formData, setFormData }: TemplateTagsProps) {
       {formData.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {formData.tags.map((tag, index) => (
-            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+            <Badge key={index} className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 flex items-center gap-1 text-xs sm:text-sm">
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(tag)}
-                className="ml-1 hover:text-red-600"
+                className="ml-1 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                 title={`Remove ${tag} tag`}
                 aria-label={`Remove ${tag} tag`}
               >

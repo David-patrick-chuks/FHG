@@ -100,10 +100,7 @@ export class TemplateService {
         comment: review.comment,
         createdAt: review.createdAt?.toISOString()
       })),
-      samples: (templateObj.samples || []).map((sample: any) => ({
-        ...sample,
-        _id: sample._id?.toString()
-      })), // Include samples array with proper _id serialization
+      // Note: samples field removed in new template structure
       featured: templateObj.featured,
       featuredAt: templateObj.featuredAt?.toISOString(),
       createdAt: templateObj.createdAt?.toISOString(),
@@ -123,22 +120,25 @@ export class TemplateService {
         };
       }
 
-      // Validate minimum samples requirement
-      if (templateData.samples.length < 10) {
+      // Validate required fields
+      if (!templateData.subject || !templateData.body) {
         return {
           success: false,
-          message: 'Template must have at least 10 samples',
+          message: 'Template subject and body are required',
           timestamp: new Date()
         };
       }
 
-      // Validate maximum samples limit
-      if (templateData.samples.length > 20) {
-        return {
-          success: false,
-          message: 'Template cannot have more than 20 samples',
-          timestamp: new Date()
-        };
+      // Validate variables if provided
+      if (templateData.variables && templateData.variables.length > 0) {
+        const requiredVariables = templateData.variables.filter(v => v.required);
+        if (requiredVariables.length > 10) {
+          return {
+            success: false,
+            message: 'Template cannot have more than 10 required variables',
+            timestamp: new Date()
+          };
+        }
       }
 
       // Create template
@@ -154,7 +154,7 @@ export class TemplateService {
         templateId: template._id,
         userId,
         templateName: template.name,
-        sampleCount: template.samples.length,
+        variableCount: template.variables?.length || 0,
         isPublic: template.isPublic
       });
 
@@ -294,19 +294,13 @@ export class TemplateService {
         };
       }
 
-      // Validate samples if provided
-      if (updateData.samples) {
-        if (updateData.samples.length < 10) {
+      // Validate variables if provided
+      if (updateData.variables && updateData.variables.length > 0) {
+        const requiredVariables = updateData.variables.filter(v => v.required);
+        if (requiredVariables.length > 10) {
           return {
             success: false,
-            message: 'Template must have at least 10 samples',
-            timestamp: new Date()
-          };
-        }
-        if (updateData.samples.length > 20) {
-          return {
-            success: false,
-            message: 'Template cannot have more than 20 samples',
+            message: 'Template cannot have more than 10 required variables',
             timestamp: new Date()
           };
         }
@@ -690,7 +684,7 @@ export class TemplateService {
         templateId, 
         userId, 
         templateName: template.name,
-        sampleCount: template.samples?.length || 0,
+        // sampleCount removed in new template structure
         variableCount: template.variables?.length || 0
       });
 
@@ -707,7 +701,8 @@ export class TemplateService {
           isPublic: false, // User's copy is private by default
           isApproved: true, // User's copy is auto-approved
           status: TemplateStatus.APPROVED,
-          samples: template.samples || [],
+          subject: template.subject,
+          body: template.body,
           variables: template.variables || [],
           tags: template.tags || [],
           originalTemplateId: templateId, // Reference to the original template

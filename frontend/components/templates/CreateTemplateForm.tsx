@@ -18,13 +18,15 @@ interface CreateTemplateFormProps {
   onTemplateCreated?: (template: any) => void;
   isEditMode?: boolean;
   templateId?: string;
+  isCloned?: boolean;
 }
 
 export function CreateTemplateForm({ 
   initialData, 
   onTemplateCreated,
   isEditMode = false,
-  templateId 
+  templateId,
+  isCloned = false
 }: CreateTemplateFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<CreateTemplateRequest>({
@@ -92,43 +94,47 @@ export function CreateTemplateForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       <TemplateBasicInfo formData={formData} setFormData={setFormData} />
       
       <TemplateEmailContent formData={formData} setFormData={setFormData} />
+      
+      <TemplateSamples formData={formData} setFormData={setFormData} />
       
       <TemplateVariables formData={formData} setFormData={setFormData} />
       
       <TemplateTags formData={formData} setFormData={setFormData} />
 
-      {/* Public Template Option */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/10 dark:to-blue-900/10 border border-cyan-200 dark:border-cyan-800 rounded-lg">
-        <div>
-          <h4 className="font-medium text-cyan-700 dark:text-cyan-300">Make this template public</h4>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Public templates are available to all users after admin approval
-          </p>
+      {/* Public Template Option - Only show if not cloned */}
+      {!isCloned && (
+        <div className="flex items-center justify-between p-4 bg-gradient-to-br from-blue-50/50 to-cyan-50/50 dark:from-blue-900/10 dark:to-cyan-900/10 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div>
+            <h4 className="font-medium text-blue-700 dark:text-blue-300">Make this template public</h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Public templates are available to all users after admin approval
+            </p>
+          </div>
+          <Switch
+            checked={formData.isPublic}
+            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: checked }))}
+          />
         </div>
-        <Switch
-          checked={formData.isPublic}
-          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: checked }))}
-        />
-      </div>
+      )}
 
       {/* Submit Button */}
-      <div className="flex justify-end gap-4 pt-4">
+      <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push('/dashboard/templates')}
-          className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
+          className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base order-2 sm:order-1"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={!canCreateTemplate || isLoading}
-          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base order-1 sm:order-2"
         >
           {isLoading 
             ? (isEditMode ? 'Updating...' : 'Creating...') 

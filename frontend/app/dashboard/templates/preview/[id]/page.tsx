@@ -204,59 +204,61 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
       title="Template Preview"
       description="Preview template details, samples, and add to your collection"
       actions={
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={() => router.push('/dashboard/templates')}
-            className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
+            className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base order-2 sm:order-1"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            <span className="hidden sm:inline">Back</span>
+            <span className="sm:hidden">← Back</span>
           </Button>
           <Button
             onClick={handleAddToMyTemplates}
             disabled={adding}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base order-1 sm:order-2"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {adding ? 'Adding...' : 'Add to My Templates'}
+            <span className="hidden sm:inline">{adding ? 'Adding...' : 'Add to My Templates'}</span>
+            <span className="sm:hidden">{adding ? 'Adding...' : '+ Add'}</span>
           </Button>
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Template Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+        <div className="text-center space-y-2 px-2 sm:px-0">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
             {template.name}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             {template.description}
           </p>
         </div>
 
         {/* Template Overview */}
         <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0">
+          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 text-xs">
                     {template.category}
                   </Badge>
                   {template.industry && (
-                    <Badge variant="outline" className="border-cyan-200 text-cyan-700 dark:border-cyan-800 dark:text-cyan-300">
+                    <Badge variant="outline" className="border-cyan-200 text-cyan-700 dark:border-cyan-800 dark:text-cyan-300 text-xs">
                       {template.industry}
                     </Badge>
                   )}
                   {template.featured && (
-                    <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0">
+                    <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 text-xs">
                       <Star className="w-3 h-3 mr-1" />
                       Featured
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <div className="p-1 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg">
                       <FileText className="w-3 h-3 text-white" />
@@ -283,39 +285,39 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="flex items-center gap-1 mb-1">
+              <div className="text-center sm:text-right">
+                <div className="flex items-center justify-center sm:justify-end gap-1 mb-1">
                   <Star className="w-4 h-4 text-cyan-500 fill-current" />
                   <span className="font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                     {template.rating?.average?.toFixed(1) || '0.0'}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   {template.rating?.count || 0} reviews
                 </p>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold mb-2">Use Case</h3>
-                <p className="text-gray-600 dark:text-gray-400">{template.useCase}</p>
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">Use Case</h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{template.useCase}</p>
               </div>
               
               {template.targetAudience && (
                 <div>
-                  <h3 className="font-semibold mb-2">Target Audience</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{template.targetAudience}</p>
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Target Audience</h3>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{template.targetAudience}</p>
                 </div>
               )}
 
               {template.tags && template.tags.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">Tags</h3>
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {template.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline">{tag}</Badge>
+                      <Badge key={index} variant="outline" className="text-xs">{tag}</Badge>
                     ))}
                   </div>
                 </div>
@@ -324,70 +326,64 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Variables */}
-          <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
-            <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg">
-              <h3 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
-                Variables
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Fill in these variables to customize your email
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {template.variables?.map((variable, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={variable.key} className="text-sm font-medium">
-                        <code className="text-sm font-mono bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 px-2 py-1 rounded">
-                          {`{{${variable.key}}}`}
-                        </code>
-                      </Label>
-                      {variable.required && (
-                        <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs border-0">
-                          Required
-                        </Badge>
-                      )}
-                    </div>
-                    <Input
-                      id={variable.key}
-                      value={variableValues[variable.key] || ''}
-                      onChange={(e) => handleVariableChange(variable.key, e.target.value)}
-                      placeholder={variable.value}
-                      className={`transition-all duration-200 ${
-                        validationErrors[variable.key] 
-                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
-                          : 'border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400'
-                      }`}
-                    />
-                    {validationErrors[variable.key] && (
-                      <div className="flex items-center gap-1 text-red-500 text-sm">
-                        <AlertCircle className="w-4 h-4" />
-                        {validationErrors[variable.key]}
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+          {/* Variables - Only show if template has variables */}
+          {template.variables && template.variables.length > 0 && (
+            <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg p-4 sm:p-6">
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                  Variables
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Fill in these variables to customize your email
+                </p>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-4">
+                  {template.variables.map((variable, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <Label htmlFor={variable.key} className="text-sm font-medium">
+                          <code className="text-xs sm:text-sm font-mono bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 px-2 py-1 rounded">
+                            {`{{${variable.key}}}`}
+                          </code>
+                        </Label>
+                        {variable.required && (
+                          <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs border-0 w-fit">
+                            Required
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {variable.value}
-                    </p>
-                  </div>
-                )) || (
-                  <div className="text-center py-8">
-                    <div className="p-4 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-lg">
-                      <Tag className="w-8 h-8 text-cyan-500 mx-auto mb-2" />
-                      <p className="text-gray-500 dark:text-gray-400">No variables defined</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">This template is static</p>
+                      <Input
+                        id={variable.key}
+                        value={variableValues[variable.key] || ''}
+                        onChange={(e) => handleVariableChange(variable.key, e.target.value)}
+                        placeholder={variable.value}
+                        className={`h-10 sm:h-11 text-sm sm:text-base transition-all duration-200 ${
+                          validationErrors[variable.key] 
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                            : 'border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400'
+                        }`}
+                      />
+                      {validationErrors[variable.key] && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          {validationErrors[variable.key]}
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {variable.value}
+                      </p>
                     </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Rating & Reviews */}
           <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
-            <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg p-4 sm:p-6">
               <h3 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                 Reviews & Ratings
               </h3>
@@ -395,21 +391,21 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                 Share your experience with this template
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-4">
                 {/* User Review Form */}
-                <div className="p-4 border border-cyan-200 dark:border-cyan-800 rounded-lg bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/10 dark:to-blue-900/10">
-                  <h4 className="font-medium mb-3 text-cyan-700 dark:text-cyan-300">Rate this template</h4>
-                  <div className="flex items-center gap-1 mb-3">
+                <div className="p-3 sm:p-4 border border-cyan-200 dark:border-cyan-800 rounded-lg bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/10 dark:to-blue-900/10">
+                  <h4 className="font-medium mb-3 text-cyan-700 dark:text-cyan-300 text-sm sm:text-base">Rate this template</h4>
+                  <div className="flex items-center justify-center sm:justify-start gap-1 mb-3">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         onClick={() => setUserRating(star)}
-                        className="text-2xl hover:scale-110 transition-transform"
+                        className="text-xl sm:text-2xl hover:scale-110 transition-transform"
                         title={`Rate ${star} star${star > 1 ? 's' : ''}`}
                       >
                         <Star
-                          className={`w-6 h-6 ${
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${
                             star <= userRating
                               ? 'text-cyan-500 fill-current'
                               : 'text-gray-300 dark:text-gray-600'
@@ -422,13 +418,13 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                     value={userReview}
                     onChange={(e) => setUserReview(e.target.value)}
                     placeholder="Share your thoughts about this template..."
-                    className="w-full p-3 border border-cyan-200 dark:border-cyan-800 rounded-lg resize-none bg-white/50 dark:bg-gray-800/50 focus:border-cyan-500 focus:ring-cyan-500 dark:focus:border-cyan-400"
+                    className="w-full p-3 border border-cyan-200 dark:border-cyan-800 rounded-lg resize-none bg-white/50 dark:bg-gray-800/50 focus:border-cyan-500 focus:ring-cyan-500 dark:focus:border-cyan-400 text-sm sm:text-base"
                     rows={3}
                   />
                   <Button
                     onClick={handleSubmitReview}
                     disabled={submittingReview || !userRating || !userReview.trim()}
-                    className="mt-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white border-0"
+                    className="mt-3 w-full sm:w-auto bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white border-0 h-10 sm:h-9 text-sm sm:text-base"
                     size="sm"
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
@@ -439,11 +435,11 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                 {/* Recent Reviews */}
                 {template.reviews && template.reviews.length > 0 && (
                   <div>
-                    <h4 className="font-medium mb-3 text-cyan-700 dark:text-cyan-300">Recent Reviews</h4>
+                    <h4 className="font-medium mb-3 text-cyan-700 dark:text-cyan-300 text-sm sm:text-base">Recent Reviews</h4>
                     <div className="space-y-3">
                       {template.reviews.slice(0, 3).map((review, index) => (
                         <div key={index} className="p-3 border border-cyan-200 dark:border-cyan-800 rounded-lg bg-white/30 dark:bg-gray-800/30">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                             <div className="flex items-center gap-1">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <Star
@@ -456,11 +452,11 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                                 />
                               ))}
                             </div>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                               {new Date(review.createdAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-sm">{review.comment}</p>
+                          <p className="text-sm sm:text-base">{review.comment}</p>
                         </div>
                       ))}
                     </div>
@@ -473,7 +469,7 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
 
         {/* Sample Emails */}
         <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg p-4 sm:p-6">
             <h3 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
               Sample Emails
             </h3>
@@ -481,17 +477,17 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
               Preview the actual email content and copy samples to your clipboard
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <div className="space-y-4">
               {template.samples?.map((sample, index) => (
-                <div key={index} className="border border-cyan-200 dark:border-cyan-800 rounded-lg p-4 bg-gradient-to-br from-cyan-50/30 to-blue-50/30 dark:from-cyan-900/10 dark:to-blue-900/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-cyan-700 dark:text-cyan-300">Sample {index + 1}</h4>
+                <div key={index} className="border border-cyan-200 dark:border-cyan-800 rounded-lg p-3 sm:p-4 bg-gradient-to-br from-cyan-50/30 to-blue-50/30 dark:from-cyan-900/10 dark:to-blue-900/10">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <h4 className="font-medium text-cyan-700 dark:text-cyan-300 text-sm sm:text-base">Sample {index + 1}</h4>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => copySampleToClipboard(sample, index)}
-                      className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
+                      className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20 h-9 sm:h-8 text-xs sm:text-sm w-full sm:w-auto"
                     >
                       {copiedSample === index ? (
                         <>
@@ -512,7 +508,7 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                       <label className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
                         Subject:
                       </label>
-                      <p className="mt-1 p-3 bg-white/50 dark:bg-gray-800/50 rounded border border-cyan-200 dark:border-cyan-800">
+                      <p className="mt-1 p-3 bg-white/50 dark:bg-gray-800/50 rounded border border-cyan-200 dark:border-cyan-800 text-sm sm:text-base">
                         {sample.subject}
                       </p>
                     </div>
@@ -521,7 +517,7 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
                       <label className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
                         Body:
                       </label>
-                      <div className="mt-1 p-3 bg-white/50 dark:bg-gray-800/50 rounded border border-cyan-200 dark:border-cyan-800 whitespace-pre-wrap">
+                      <div className="mt-1 p-3 bg-white/50 dark:bg-gray-800/50 rounded border border-cyan-200 dark:border-cyan-800 whitespace-pre-wrap text-sm sm:text-base max-h-40 overflow-y-auto">
                         {sample.body}
                       </div>
                     </div>

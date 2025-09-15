@@ -64,21 +64,22 @@ export default function CreateCampaignPage() {
         <Button
           variant="outline"
           onClick={() => router.push('/dashboard/campaigns')}
-          className="flex items-center gap-2 border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
+          className="flex items-center gap-2 border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Campaigns
+          <span className="hidden sm:inline">Back to Campaigns</span>
+          <span className="sm:hidden">Back</span>
         </Button>
       }
     >
-      <div className="space-y-4 lg:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Progress Steps */}
-        <div className="px-2 lg:px-0">
+        <div className="px-2 sm:px-0">
           <CampaignProgressSteps steps={steps} currentStep={currentStep} />
         </div>
 
         {/* Step Content */}
-        <div className="space-y-4 lg:space-y-6 px-2 lg:px-0">
+        <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
           {/* Step 1: Campaign Basics */}
           {currentStep === 1 && (
             <CampaignBasicsStep

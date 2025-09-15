@@ -32,11 +32,20 @@ const categoryOptions: { value: TemplateCategory; label: string }[] = [
 
 export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          Template Information
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Basic details about your email template
+        </p>
+      </div>
+
       {/* Basic Information */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-cyan-700 dark:text-cyan-300 font-medium">
+          <Label htmlFor="name" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
             Template Name *
           </Label>
           <Input
@@ -45,19 +54,19 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             placeholder="e.g., Sales Follow-up Template"
             required
-            className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
+            className="h-10 sm:h-11 text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400 transition-all duration-200"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category" className="text-cyan-700 dark:text-cyan-300 font-medium">
+          <Label htmlFor="category" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
             Category *
           </Label>
           <Select
             value={formData.category}
             onValueChange={(value: TemplateCategory) => setFormData(prev => ({ ...prev, category: value }))}
           >
-            <SelectTrigger className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400">
+            <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -72,7 +81,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description" className="text-cyan-700 dark:text-cyan-300 font-medium">
+        <Label htmlFor="description" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
           Description *
         </Label>
         <Textarea
@@ -82,13 +91,13 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
           placeholder="Describe what this template is used for..."
           rows={3}
           required
-          className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
+          className="text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400 transition-all duration-200"
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="industry" className="text-cyan-700 dark:text-cyan-300 font-medium">
+          <Label htmlFor="industry" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
             Industry (Optional)
           </Label>
           <Input
@@ -96,12 +105,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             value={formData.industry}
             onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
             placeholder="e.g., Technology, Healthcare"
-            className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
+            className="h-10 sm:h-11 text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400 transition-all duration-200"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="targetAudience" className="text-cyan-700 dark:text-cyan-300 font-medium">
+          <Label htmlFor="targetAudience" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
             Target Audience (Optional)
           </Label>
           <Input
@@ -109,7 +118,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             value={formData.targetAudience}
             onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value }))}
             placeholder="e.g., B2B Sales Teams"
-            className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
+            className="h-10 sm:h-11 text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400 transition-all duration-200"
           />
         </div>
       </div>

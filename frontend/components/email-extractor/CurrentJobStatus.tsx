@@ -46,11 +46,11 @@ function formatDuration(milliseconds: number): string {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'completed':
-      return <CheckCircle className="h-5 w-5 text-green-600" />;
+      return <CheckCircle className="h-5 w-5 text-cyan-600" />;
     case 'failed':
       return <XCircle className="h-5 w-5 text-red-600" />;
     case 'processing':
-      return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
+      return <Loader2 className="h-5 w-5 text-cyan-600 animate-spin" />;
     default:
       return <Clock className="h-5 w-5 text-gray-600" />;
   }
@@ -59,13 +59,13 @@ function getStatusIcon(status: string) {
 function getStatusColor(status: string) {
   switch (status) {
     case 'completed':
-      return 'bg-green-100 text-green-800 hover:bg-green-200';
+      return 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400 dark:hover:bg-cyan-900/30';
     case 'failed':
-      return 'bg-red-100 text-red-800 hover:bg-red-200';
+      return 'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30';
     case 'processing':
-      return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      return 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-400 dark:hover:bg-cyan-900/30';
     default:
-      return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      return 'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:hover:bg-gray-900/30';
   }
 }
 
