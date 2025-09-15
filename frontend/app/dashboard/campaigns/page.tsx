@@ -26,7 +26,7 @@ export default function CampaignsPage() {
   const [isPausing, setIsPausing] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [showCampaignLimitModal, setShowCampaignLimitModal] = useState(false);
-  const [userPlan, setUserPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE');
+  const [userPlan, setUserPlan] = useState<'free' | 'basic' | 'premium'>('free');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -45,9 +45,9 @@ export default function CampaignsPage() {
   // Helper function to get max campaigns for a plan
   const getMaxCampaigns = (plan: string) => {
     switch (plan) {
-      case 'FREE': return 2;
-      case 'PRO': return 10;
-      case 'ENTERPRISE': return 50;
+      case 'free': return 2;
+      case 'basic': return 10;
+      case 'premium': return 50;
       default: return 2;
     }
   };
@@ -136,7 +136,7 @@ export default function CampaignsPage() {
 
   // Set user plan when user changes
   useEffect(() => {
-    setUserPlan((user?.subscription?.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE') || 'FREE');
+    setUserPlan((user?.subscription as 'free' | 'basic' | 'premium') || 'free');
   }, [user?.subscription]);
 
   // Helper function to get bot name by ID

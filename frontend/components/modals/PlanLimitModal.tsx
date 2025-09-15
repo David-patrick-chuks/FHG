@@ -9,7 +9,7 @@ import Link from 'next/link';
 interface PlanLimitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentPlan: 'FREE' | 'PRO' | 'ENTERPRISE';
+  currentPlan: 'free' | 'basic' | 'premium';
   currentBots: number;
   maxBots: number;
 }
@@ -22,21 +22,21 @@ export function PlanLimitModal({
   maxBots 
 }: PlanLimitModalProps) {
   const planFeatures = {
-    FREE: {
+    free: {
       bots: 2,
       dailyEmails: 1000,
       campaigns: 2,
       icon: Zap,
       color: 'gray'
     },
-    PRO: {
+    basic: {
       bots: 10,
       dailyEmails: 10000,
       campaigns: 10,
       icon: Crown,
       color: 'blue'
     },
-    ENTERPRISE: {
+    premium: {
       bots: 50,
       dailyEmails: 50000,
       campaigns: 50,
@@ -146,16 +146,16 @@ export function PlanLimitModal({
           </div>
 
           {/* Quick Comparison */}
-          {currentPlan === 'FREE' && (
+          {currentPlan === 'free' && (
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-3">
                 <Crown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <h5 className="font-semibold text-blue-900 dark:text-blue-100">
-                    PRO Plan Benefits
+                    Basic Plan Benefits
                   </h5>
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    Get 10 bots, 10,000 daily emails, and 10 campaigns for just ₦2,999/$1.99/month
+                    Get 10 bots, 10,000 daily emails, and 10 campaigns for just ₦2,999/month
                   </p>
                 </div>
               </div>

@@ -145,7 +145,7 @@ export default function CreateCampaignPage() {
               canProceed={canProceedToStep3}
               onNext={() => setCurrentStep(4)}
               onBack={() => setCurrentStep(2)}
-              userSubscription={user?.subscription || 'FREE'}
+              userSubscription={user?.subscription || 'free'}
             />
           )}
 

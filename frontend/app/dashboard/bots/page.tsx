@@ -41,16 +41,16 @@ export default function BotsPage() {
   const [showCreateBotMessage, setShowCreateBotMessage] = useState(false);
   const [showInactiveBots, setShowInactiveBots] = useState(false);
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
-  const [userPlan, setUserPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE');
+  const [userPlan, setUserPlan] = useState<'free' | 'basic' | 'premium'>('free');
   const [botActiveCampaigns, setBotActiveCampaigns] = useState<Record<string, boolean>>({});
   const fetchInProgress = useRef(false);
 
   // Helper function to get max bots for a plan
   const getMaxBots = (plan: string) => {
     switch (plan) {
-      case 'FREE': return 2;
-      case 'PRO': return 10;
-      case 'ENTERPRISE': return 50;
+      case 'free': return 2;
+      case 'basic': return 10;
+      case 'premium': return 50;
       default: return 2;
     }
   };
@@ -134,7 +134,7 @@ export default function BotsPage() {
         setTotalItems(response.data.pagination.total);
         
         // Set user plan from auth context
-        setUserPlan((user?.subscription?.toUpperCase() as 'FREE' | 'PRO' | 'ENTERPRISE') || 'FREE');
+        setUserPlan((user?.subscription as 'free' | 'basic' | 'premium') || 'free');
       } else {
         setError(response.error || 'Failed to fetch bots');
       }

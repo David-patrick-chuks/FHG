@@ -64,32 +64,34 @@ export class TokenRefreshMiddleware {
 
         // Set new cookies with consistent settings
         const isProduction = process.env.NODE_ENV === 'production';
+        // Ensure maxAge doesn't exceed 32-bit integer limit
+        const maxAge = Math.min(tokenPair.expiresIn * 1000, 2147483647); // 32-bit signed integer max
         res.cookie('accessToken', tokenPair.accessToken, {
           httpOnly: true,
           secure: isProduction,
-          sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
-          maxAge: tokenPair.expiresIn * 1000,
+          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+          maxAge: maxAge,
           path: '/',
-          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+          domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
         });
 
         res.cookie('refreshToken', tokenPair.refreshToken, {
           httpOnly: true,
           secure: isProduction,
-          sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
+          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
           path: '/',
-          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+          domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
         });
 
         // Set isAuthenticated cookie for frontend
         res.cookie('isAuthenticated', 'true', {
           httpOnly: false, // Frontend can read this
           secure: isProduction,
-          sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
+          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
           path: '/',
-          // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+          domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
         });
 
         // Add user to request object

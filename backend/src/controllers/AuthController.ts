@@ -30,13 +30,15 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Access token cookie (15 minutes)
+    // Ensure maxAge doesn't exceed 32-bit integer limit
+    const maxAge = Math.min(tokens.expiresIn * 1000, 2147483647); // 32-bit signed integer max
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction, // HTTPS only in production
-      sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
-      maxAge: tokens.expiresIn * 1000, // 15 minutes
+      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+      maxAge: maxAge, // 15 minutes (capped at 32-bit limit)
       path: '/',
-      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
     });
 
     // Refresh token cookie (7 days or 30 days if remember me)
@@ -44,20 +46,20 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
+      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
       maxAge: refreshMaxAge,
       path: '/',
-      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
     });
 
     // User session cookie (for frontend to know if user is logged in)
     res.cookie('isAuthenticated', 'true', {
       httpOnly: false, // Frontend can read this
       secure: isProduction,
-      sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
+      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
       maxAge: refreshMaxAge,
       path: '/',
-      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
     });
   }
 
@@ -68,7 +70,7 @@ export class AuthController {
     const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions = {
       path: '/',
-      // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
+      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
     };
     
     res.clearCookie('accessToken', cookieOptions);

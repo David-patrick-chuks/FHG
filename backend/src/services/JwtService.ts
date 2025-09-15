@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { Logger } from '../utils/Logger';
 import { JwtPayload, TokenPair } from '../types';
+import { Logger } from '../utils/Logger';
 
 export class JwtService {
   private static logger: Logger = new Logger();
@@ -96,7 +96,7 @@ export class JwtService {
 
       // Calculate expiration time
       const decoded = jwt.decode(accessToken) as any;
-      const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
+      const expiresIn = Math.max(0, decoded.exp - Math.floor(Date.now() / 1000));
 
       this.logger.info('Token pair generated', {
         userId: payload.userId,

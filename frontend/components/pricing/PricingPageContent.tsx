@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PaymentAPI, PaymentPricing } from "@/lib/api/payment";
 import { Building, Crown, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PricingCard } from "./PricingCard";
 import { PricingFAQ } from "./PricingFAQ";
@@ -16,6 +16,7 @@ export function PricingPageContent() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "monthly"
   );
+
   const [selectedPlan, setSelectedPlan] = useState<"basic" | "premium">(
     "basic"
   );
@@ -27,12 +28,20 @@ export function PricingPageContent() {
     try {
       setLoadingPricing(true);
       const response = await PaymentAPI.getPricing();
+      
       if (response.success && response.data) {
-        setPricing(response.data);
+        // Validate the pricing data structure
+        if (response.data.basic && response.data.premium) {
+          setPricing(response.data);
+        } else {
+          console.warn('Invalid pricing data structure:', response.data);
+          toast.error("Invalid pricing data received");
+        }
       } else {
         toast.error("Failed to load pricing information");
       }
     } catch (error) {
+      console.error('Error fetching pricing:', error);
       toast.error("Failed to load pricing information");
     } finally {
       setLoadingPricing(false);
@@ -42,6 +51,7 @@ export function PricingPageContent() {
   useEffect(() => {
     fetchPricing();
   }, [fetchPricing]);
+
 
   const handlePayment = async (plan: "basic" | "premium") => {
     if (!isAuthenticated) {
@@ -92,86 +102,83 @@ export function PricingPageContent() {
     }).format(amount);
   }, []);
 
-  const plans = useMemo(
-    () => [
-      {
-        name: "FREE",
-        description: "Perfect for getting started",
-        icon: Zap,
-        features: [
-          "2 Bots",
-          "1,000 Daily Emails",
-          "2 Campaigns",
-          "10 Email Extractions/day",
-          "Analytics",
-          "Customer Support",
-        ],
-        price: "₦0 / $0",
-        isCurrent: true,
-        buttonText: "Current Plan",
-        buttonVariant: "outline" as const,
-        buttonClassName:
-          "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400",
-        iconClassName: "bg-gradient-to-br from-slate-500/20 to-slate-600/20",
-        borderClassName: "border-white/20 dark:border-slate-700/50",
-        shadowClassName: "shadow-slate-900/5",
-      },
-      {
-        name: "BASIC",
-        description: "For growing businesses",
-        icon: Crown,
-        features: [
-          "10 Bots",
-          "10,000 Daily Emails",
-          "10 Campaigns",
-          "50 Email Extractions/day",
-          "CSV Upload Support",
-          "Advanced Email Extraction",
-          "Analytics",
-          "Priority Support",
-        ],
-        price: pricing && pricing.basic
+  const plans = [
+    {
+      name: "FREE",
+      description: "Perfect for getting started",
+      icon: Zap,
+      features: [
+        "2 Bots",
+        "1,000 Daily Emails",
+        "2 Campaigns",
+        "10 Email Extractions/day",
+        "Analytics",
+        "Customer Support",
+      ],
+      price: "₦0 / $0",
+      isCurrent: true,
+      buttonText: "Current Plan",
+      buttonVariant: "outline" as const,
+      buttonClassName:
+        "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400",
+      iconClassName: "bg-gradient-to-br from-slate-500/20 to-slate-600/20",
+      borderClassName: "border-white/20 dark:border-slate-700/50",
+      shadowClassName: "shadow-slate-900/5",
+    },
+    {
+      name: "BASIC",
+      description: "For growing businesses",
+      icon: Crown,
+      features: [
+        "10 Bots",
+        "10,000 Daily Emails",
+        "10 Campaigns",
+        "50 Email Extractions/day",
+        "CSV Upload Support",
+        "Advanced Email Extraction",
+        "Analytics",
+        "Priority Support",
+      ],
+        price: pricing
           ? formatPrice(pricing.basic[billingCycle])
-          : "₦2,999 / $1.99",
-        isPopular: true,
-        buttonText: isAuthenticated ? "Upgrade to BASIC" : "Sign in to Upgrade",
-        buttonClassName:
-          "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200",
-        iconClassName: "bg-gradient-to-br from-cyan-500/20 to-blue-500/20",
-        borderClassName: "border-2 border-cyan-500/30 dark:border-cyan-400/30",
-        shadowClassName: "shadow-cyan-500/10",
-      },
-      {
-        name: "PREMIUM",
-        description: "For large organizations",
-        icon: Building,
-        features: [
-          "50 Bots",
-          "50,000 Daily Emails",
-          "50 Campaigns",
-          "Unlimited Email Extractions",
-          "CSV Upload Support",
-          "Advanced Email Extraction",
-          "API Access",
-          "Custom Integrations",
-          "Analytics",
-          "Dedicated Support",
-        ],
-        price: pricing && pricing.premium
+          : "₦2,999",
+      isPopular: true,
+      buttonText: isAuthenticated ? "Upgrade to BASIC" : "Sign in to Upgrade",
+      buttonClassName:
+        "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200",
+      iconClassName: "bg-gradient-to-br from-cyan-500/20 to-blue-500/20",
+      borderClassName: "border-2 border-cyan-500/30 dark:border-cyan-400/30",
+      shadowClassName: "shadow-cyan-500/10",
+    },
+    {
+      name: "PREMIUM",
+      description: "For large organizations",
+      icon: Building,
+      features: [
+        "50 Bots",
+        "50,000 Daily Emails",
+        "50 Campaigns",
+        "Unlimited Email Extractions",
+        "CSV Upload Support",
+        "Advanced Email Extraction",
+        "API Access",
+        "Custom Integrations",
+        "Analytics",
+        "Dedicated Support",
+      ],
+        price: pricing
           ? formatPrice(pricing.premium[billingCycle])
-          : "₦14,999 / $9.95",
-        buttonText: isAuthenticated
-          ? "Upgrade to PREMIUM"
-          : "Sign in to Upgrade",
-        buttonClassName:
-          "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200",
-        iconClassName: "bg-gradient-to-br from-blue-500/20 to-cyan-500/20",
-        borderClassName: "border-white/20 dark:border-slate-700/50",
-        shadowClassName: "shadow-slate-900/5",
-      },
-    ],
-    [pricing, billingCycle, isAuthenticated, formatPrice]
-  );
+          : "₦9,999",
+      buttonText: isAuthenticated
+        ? "Upgrade to PREMIUM"
+        : "Sign in to Upgrade",
+      buttonClassName:
+        "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200",
+      iconClassName: "bg-gradient-to-br from-blue-500/20 to-cyan-500/20",
+      borderClassName: "border-white/20 dark:border-slate-700/50",
+      shadowClassName: "shadow-slate-900/5",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">

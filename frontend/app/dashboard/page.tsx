@@ -1,10 +1,10 @@
 'use client';
 
 import {
-  DashboardLoadingSkeleton,
-  DashboardStatsCards,
-  QuickActions,
-  RecentActivity
+    DashboardLoadingSkeleton,
+    DashboardStatsCards,
+    QuickActions,
+    RecentActivity
 } from '@/components/dashboard';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -173,7 +173,7 @@ export default function DashboardPage() {
                 {user?.subscription || 'Free'}
               </p>
             </div>
-            {user?.subscription && user.subscription.toUpperCase() === 'FREE' && (
+            {user?.subscription && user.subscription === 'free' && (
               <Button
                 onClick={() => router.push('/pricing')}
                 className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"

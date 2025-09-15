@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { User } from '@/types';
-import { Calendar, Shield } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 interface AccountDetailsProps {
   user: User;
@@ -56,7 +56,7 @@ export function AccountDetails({ user }: AccountDetailsProps) {
         </div>
       </div>
 
-      {user.subscription?.toUpperCase() !== 'FREE' && user.subscriptionExpiresAt && (
+      {user.subscription !== 'free' && user.subscriptionExpiresAt && (
         <div className="space-y-2">
           <Label>Plan Expires</Label>
           <div className="flex items-center gap-2">

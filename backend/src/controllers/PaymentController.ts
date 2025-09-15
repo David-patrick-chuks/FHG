@@ -374,8 +374,13 @@ export class PaymentController {
    */
   public static async getSubscriptionPricing(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = PaystackService.getSubscriptionPricing();
-      res.status(200).json(result);
+      const pricing = PaystackService.getSubscriptionPricing();
+      res.status(200).json({
+        success: true,
+        message: 'Pricing retrieved successfully',
+        data: pricing,
+        timestamp: new Date()
+      });
     } catch (error: any) {
       PaymentController.logger.error('Error in getSubscriptionPricing controller:', {
         message: error?.message || 'Unknown error',

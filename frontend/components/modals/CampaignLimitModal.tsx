@@ -3,13 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Building, Crown, ExternalLink, Mail, Zap } from 'lucide-react';
+import { Building, Crown, ExternalLink, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 interface CampaignLimitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentPlan: 'FREE' | 'PRO' | 'ENTERPRISE';
+  currentPlan: 'free' | 'basic' | 'premium';
   currentCampaigns: number;
   maxCampaigns: number;
 }
@@ -22,21 +22,21 @@ export function CampaignLimitModal({
   maxCampaigns 
 }: CampaignLimitModalProps) {
   const planFeatures = {
-    FREE: {
+    free: {
       campaigns: 2,
       dailyEmails: 1000,
       bots: 2,
       icon: Zap,
       color: 'gray'
     },
-    PRO: {
+    basic: {
       campaigns: 10,
       dailyEmails: 10000,
       bots: 10,
       icon: Crown,
       color: 'blue'
     },
-    ENTERPRISE: {
+    premium: {
       campaigns: 50,
       dailyEmails: 50000,
       bots: 50,
@@ -146,16 +146,16 @@ export function CampaignLimitModal({
           </div>
 
           {/* Quick Comparison */}
-          {currentPlan === 'FREE' && (
+          {currentPlan === 'free' && (
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-3">
                 <Crown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <h5 className="font-semibold text-blue-900 dark:text-blue-100">
-                    PRO Plan Benefits
+                    Basic Plan Benefits
                   </h5>
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    Get 10 campaigns, 10,000 daily emails, and 10 bots for just ₦2,999/$1.99/month
+                    Get 10 campaigns, 10,000 daily emails, and 10 bots for just ₦2,999/month
                   </p>
                 </div>
               </div>
