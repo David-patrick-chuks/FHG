@@ -233,22 +233,37 @@ export default function EmailExtractorPage() {
         url: window.location.href
       };
 
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        // Fallback to clipboard
-        await navigator.clipboard.writeText(
-          `Email Extraction Results: Found ${job.totalEmails} emails from ${job.urls.length} websites`
-        );
-        toast({
-          title: 'Success',
-          description: 'Results copied to clipboard'
-        });
+      // Check if Web Share API is available and supported
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          toast({
+            title: 'Success',
+            description: 'Extraction shared successfully'
+          });
+          return;
+        } catch (shareError) {
+          // If user cancels the share dialog, don't show error
+          if (shareError.name === 'AbortError') {
+            return;
+          }
+          // For other share errors, fall back to clipboard
+          console.warn('Web Share API failed, falling back to clipboard:', shareError);
+        }
       }
+
+      // Fallback to clipboard
+      const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+      await navigator.clipboard.writeText(shareText);
+      toast({
+        title: 'Success',
+        description: 'Extraction details copied to clipboard'
+      });
     } catch (error) {
+      console.error('Share extraction error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to share results',
+        description: 'Failed to share extraction. Please try copying the URL manually.',
         variant: 'destructive'
       });
     }
@@ -270,40 +285,72 @@ export default function EmailExtractorPage() {
   }
 
   return (
-    <DashboardLayout
-      title="Email Extractor"
-      description="Extract email addresses from websites using our powerful AI-powered tool"
-    >
-      <div className="space-y-6">
-        {/* Subscription Limits */}
-        <SubscriptionLimitsDisplay subscriptionInfo={subscriptionInfo} />
-
-        {/* Email Extraction Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold mb-4">Extract Emails</h2>
-          <EmailExtractorForm
-            subscriptionInfo={subscriptionInfo}
-            onExtractionStart={startExtraction}
-            isLoading={isLoading}
-            onExtractionComplete={refreshSubscriptionInfo}
-          />
-        </div>
-
-        {/* Current Job Status */}
-        <CurrentJobStatus
-          currentJob={currentJob}
-          onDownloadResults={downloadResults}
-          onShareExtraction={shareExtraction}
-        />
-
-        {/* Recent Extractions */}
-        <RecentExtractions
-          extractionHistory={extractionHistory}
-          onDownloadResults={downloadResults}
-          onShareExtraction={shareExtraction}
-          onViewAll={handleViewAll}
-        />
+    <div className="relative min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.15)_1px,transparent_0)] bg-[length:24px_24px]"></div>
       </div>
-    </DashboardLayout>
+      
+      {/* Floating glass elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500/10 rounded-full blur-xl"></div>
+        <div className="absolute top-40 right-32 w-24 h-24 bg-cyan-500/10 rounded-full blur-lg"></div>
+        <div className="absolute bottom-32 left-1/3 w-40 h-40 bg-blue-500/10 rounded-full blur-2xl"></div>
+      </div>
+
+      <DashboardLayout
+        title="Email Extractor"
+        description="Extract email addresses from websites using our powerful AI-powered tool"
+      >
+        <div className="relative space-y-6">
+          {/* Subscription Limits */}
+          <div className="group relative">
+            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+            <div className="relative p-6">
+              <SubscriptionLimitsDisplay subscriptionInfo={subscriptionInfo} />
+            </div>
+          </div>
+
+          {/* Email Extraction Form */}
+          <div className="group relative">
+            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+            <div className="relative p-6">
+              <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">Extract Emails</h2>
+              <EmailExtractorForm
+                subscriptionInfo={subscriptionInfo}
+                onExtractionStart={startExtraction}
+                isLoading={isLoading}
+                onExtractionComplete={refreshSubscriptionInfo}
+              />
+            </div>
+          </div>
+
+          {/* Current Job Status */}
+          <div className="group relative">
+            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+            <div className="relative p-6">
+              <CurrentJobStatus
+                currentJob={currentJob}
+                onDownloadResults={downloadResults}
+                onShareExtraction={shareExtraction}
+              />
+            </div>
+          </div>
+
+          {/* Recent Extractions */}
+          <div className="group relative">
+            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+            <div className="relative p-6">
+              <RecentExtractions
+                extractionHistory={extractionHistory}
+                onDownloadResults={downloadResults}
+                onShareExtraction={shareExtraction}
+                onViewAll={handleViewAll}
+              />
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    </div>
   );
 }

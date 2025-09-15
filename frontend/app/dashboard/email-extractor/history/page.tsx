@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { EmailExtractionJob, EmailExtractorAPI } from '@/lib/api/email-extractor';
 import {
+  ArrowLeft,
   CheckCircle,
   Clock,
   Copy,
@@ -142,21 +143,37 @@ export default function EmailExtractorHistoryPage() {
         url: window.location.href
       };
       
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        // Fallback: copy to clipboard
-        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast({
-          title: 'Success',
-          description: 'Extraction details copied to clipboard'
-        });
+      // Check if Web Share API is available and supported
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          toast({
+            title: 'Success',
+            description: 'Extraction shared successfully'
+          });
+          return;
+        } catch (shareError) {
+          // If user cancels the share dialog, don't show error
+          if (shareError.name === 'AbortError') {
+            return;
+          }
+          // For other share errors, fall back to clipboard
+          console.warn('Web Share API failed, falling back to clipboard:', shareError);
+        }
       }
+      
+      // Fallback: copy to clipboard
+      const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+      await navigator.clipboard.writeText(shareText);
+      toast({
+        title: 'Success',
+        description: 'Extraction details copied to clipboard'
+      });
     } catch (error) {
+      console.error('Share extraction error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to share extraction',
+        description: 'Failed to share extraction. Please try copying the URL manually.',
         variant: 'destructive'
       });
     }
@@ -247,6 +264,28 @@ export default function EmailExtractorHistoryPage() {
         description="View all your email extraction jobs and results"
       >
         <div className="relative space-y-6">
+          {/* Breadcrumb Navigation */}
+          <div className="group relative">
+            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+            <div className="relative p-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/dashboard/email-extractor')}
+                  className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Email Extractor
+                </Button>
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <span>Email Extractor</span>
+                  <span>/</span>
+                  <span className="text-slate-900 dark:text-white font-medium">History</span>
+                </div>
+              </div>
+            </div>
+          </div>
           {/* Search and Stats */}
           <div className="group relative">
             <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>

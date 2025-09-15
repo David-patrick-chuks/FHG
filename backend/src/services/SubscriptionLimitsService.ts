@@ -135,17 +135,36 @@ export class SubscriptionLimitsService {
         return activityDate >= today && activityDate < tomorrow;
       });
 
+      SubscriptionLimitsService.logger.info('Daily usage calculation', {
+        userId,
+        totalActivities: activities.length,
+        todayActivities: todayActivities.length,
+        activityTypes: todayActivities.map(a => a.type)
+      });
+
       let totalUrlsUsed = 0;
       todayActivities.forEach(activity => {
         // Use totalUrls if available (more accurate), otherwise use urlCount, otherwise assume 1
+        let urlCount = 0;
         if (activity.metadata?.totalUrls) {
-          totalUrlsUsed += activity.metadata.totalUrls;
+          urlCount = activity.metadata.totalUrls;
         } else if (activity.metadata?.urlCount) {
-          totalUrlsUsed += activity.metadata.urlCount;
+          urlCount = activity.metadata.urlCount;
         } else {
           // If no URL count in metadata, assume 1 URL per activity
-          totalUrlsUsed += 1;
+          urlCount = 1;
         }
+        
+        totalUrlsUsed += urlCount;
+        
+        SubscriptionLimitsService.logger.info('Activity counted for usage', {
+          userId,
+          activityType: activity.type,
+          activityId: activity._id,
+          urlCount,
+          totalUrlsUsed,
+          metadata: activity.metadata
+        });
       });
 
       const limits = await this.getSubscriptionLimits(userId);

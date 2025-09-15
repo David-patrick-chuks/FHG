@@ -398,31 +398,15 @@ export class EmailExtractorActivityService {
    * Get the appropriate activity type for extraction completed
    */
   private static getExtractionCompletedType(extractionType: 'single' | 'multiple' | 'csv'): ActivityType {
-    switch (extractionType) {
-      case 'single':
-        return ActivityType.EMAIL_EXTRACTION_SINGLE_URL;
-      case 'multiple':
-        return ActivityType.EMAIL_EXTRACTION_MULTIPLE_URLS;
-      case 'csv':
-        return ActivityType.EMAIL_EXTRACTION_CSV_UPLOAD;
-      default:
-        return ActivityType.EMAIL_EXTRACTION_COMPLETED;
-    }
+    // Always use EMAIL_EXTRACTION_COMPLETED to avoid double counting in daily usage
+    return ActivityType.EMAIL_EXTRACTION_COMPLETED;
   }
 
   /**
    * Get the appropriate activity type for extraction failed
    */
   private static getExtractionFailedType(extractionType: 'single' | 'multiple' | 'csv'): ActivityType {
-    switch (extractionType) {
-      case 'single':
-        return ActivityType.EMAIL_EXTRACTION_SINGLE_URL;
-      case 'multiple':
-        return ActivityType.EMAIL_EXTRACTION_MULTIPLE_URLS;
-      case 'csv':
-        return ActivityType.EMAIL_EXTRACTION_CSV_UPLOAD;
-      default:
-        return ActivityType.EMAIL_EXTRACTION_FAILED;
-    }
+    // Always use EMAIL_EXTRACTION_FAILED to avoid double counting in daily usage
+    return ActivityType.EMAIL_EXTRACTION_FAILED;
   }
 }

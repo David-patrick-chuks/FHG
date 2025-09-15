@@ -39,7 +39,7 @@ function formatDuration(milliseconds: number): string {
 // Progress step interface
 interface ProgressStep {
   name: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'processing' | 'skipped';
   duration?: number;
   details?: string;
 }
@@ -150,7 +150,7 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
         });
       } else {
         // If no progress data, determine status based on job status
-        let status: 'pending' | 'running' | 'completed' | 'failed' = 'pending';
+        let status: 'pending' | 'running' | 'completed' | 'failed' | 'processing' | 'skipped' = 'pending';
         
         if (jobData.status === 'completed') {
           status = 'completed';
@@ -221,20 +221,37 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
         url: window.location.href
       };
       
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-        await navigator.clipboard.writeText(shareText);
-        toast({
-          title: 'Success',
-          description: 'Extraction details copied to clipboard'
-        });
+      // Check if Web Share API is available and supported
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          toast({
+            title: 'Success',
+            description: 'Extraction shared successfully'
+          });
+          return;
+        } catch (shareError) {
+          // If user cancels the share dialog, don't show error
+          if (shareError instanceof Error && shareError.name === 'AbortError') {
+            return;
+          }
+          // For other share errors, fall back to clipboard
+          console.warn('Web Share API failed, falling back to clipboard:', shareError);
+        }
       }
+      
+      // Fallback to clipboard copy
+      const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
+      await navigator.clipboard.writeText(shareText);
+      toast({
+        title: 'Success',
+        description: 'Extraction details copied to clipboard'
+      });
     } catch (error) {
+      console.error('Share extraction error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to share extraction',
+        description: 'Failed to share extraction. Please try copying the URL manually.',
         variant: 'destructive'
       });
     }
@@ -273,7 +290,10 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
       case 'failed':
         return <XCircle className="h-5 w-5 text-red-500" />;
       case 'running':
+      case 'processing':
         return <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />;
+      case 'skipped':
+        return <Clock className="h-5 w-5 text-gray-400" />;
       default:
         return <Clock className="h-5 w-5 text-slate-400" />;
     }

@@ -267,6 +267,56 @@ export class TemplateController {
       const { id } = req.params;
       const userId = (req as any).user['id'];
 
+      // Validate template ID parameter
+      if (!id || typeof id !== 'string' || id.trim().length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Template ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Validate user ID
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        res.status(401).json({
+          success: false,
+          message: 'User ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Validate request body
+      const { rating, comment } = req.body;
+      
+      if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+        res.status(400).json({
+          success: false,
+          message: 'Rating is required and must be a number between 1 and 5',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (comment && typeof comment !== 'string') {
+        res.status(400).json({
+          success: false,
+          message: 'Comment must be a string',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (comment && comment.length > 500) {
+        res.status(400).json({
+          success: false,
+          message: 'Comment must be no more than 500 characters',
+          timestamp: new Date()
+        });
+        return;
+      }
+
       TemplateController.logger.info('Template review request', {
         templateId: id,
         userId,
@@ -290,11 +340,28 @@ export class TemplateController {
           timestamp: new Date()
         });
       }
-    } catch (error) {
-      TemplateController.logger.error('Error in reviewTemplate controller:', error);
+    } catch (error: any) {
+      TemplateController.logger.error('Error in reviewTemplate controller:', {
+        error: error?.message || 'Unknown error',
+        stack: error?.stack,
+        templateId: req.params.id,
+        userId: (req as any).user?.id,
+        requestBody: req.body
+      });
+      
+      // Provide more specific error messages based on error type
+      let message = 'Internal server error';
+      if (error?.name === 'ValidationError') {
+        message = 'Validation error: ' + error.message;
+      } else if (error?.name === 'CastError') {
+        message = 'Invalid data format';
+      } else if (error?.code === 11000) {
+        message = 'Duplicate entry error';
+      }
+      
       res.status(500).json({
         success: false,
-        message: 'Internal server error',
+        message,
         timestamp: new Date()
       });
     }
@@ -327,11 +394,32 @@ export class TemplateController {
           timestamp: new Date()
         });
       }
-    } catch (error) {
-      TemplateController.logger.error('Error in useTemplate controller:', error);
+    } catch (error: any) {
+      TemplateController.logger.error('Error in useTemplate controller:', {
+        error: error?.message || 'Unknown error',
+        stack: error?.stack,
+        templateId: req.params.id,
+        userId: (req as any).user?.id,
+        requestBody: req.body
+      });
+      
+      // Provide more specific error messages based on error type
+      let message = 'Internal server error';
+      if (error?.name === 'ValidationError') {
+        message = 'Validation error: ' + error.message;
+      } else if (error?.name === 'CastError') {
+        message = 'Invalid data format';
+      } else if (error?.code === 11000) {
+        message = 'Template already exists in your collection';
+      } else if (error?.message?.includes('Template not found')) {
+        message = 'Template not found';
+      } else if (error?.message?.includes('not available for use')) {
+        message = 'Template is not available for use';
+      }
+      
       res.status(500).json({
         success: false,
-        message: 'Internal server error',
+        message,
         timestamp: new Date()
       });
     }

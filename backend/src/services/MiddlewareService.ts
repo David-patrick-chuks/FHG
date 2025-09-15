@@ -76,9 +76,11 @@ export class MiddlewareService {
         'Accept',
         'Origin',
         'Cache-Control',
-        'Pragma'
+        'Pragma',
+        'Cookie',
+        'Set-Cookie'
       ],
-      exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+      exposedHeaders: ['X-Total-Count', 'X-Page-Count', 'Set-Cookie'],
       maxAge: 86400, // 24 hours
       preflightContinue: false,
       optionsSuccessStatus: 204

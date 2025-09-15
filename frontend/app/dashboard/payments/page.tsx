@@ -1,6 +1,7 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { PaymentsLoadingSkeleton } from '@/components/payments';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,6 @@ import {
     CreditCard,
     Crown,
     Download,
-    Loader2,
     Settings,
     XCircle,
     Zap
@@ -122,9 +122,7 @@ export default function UserPaymentsPage() {
         title="Payment History"
         description="View your payment transactions and subscription history"
       >
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin" />
-        </div>
+        <PaymentsLoadingSkeleton />
       </DashboardLayout>
     );
   }

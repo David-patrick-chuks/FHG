@@ -437,8 +437,77 @@ export class TemplateService {
 
   public static async reviewTemplate(templateId: string, userId: string, reviewData: ReviewTemplateRequest): Promise<ApiResponse<any>> {
     try {
-      const template = await TemplateModel.findById(templateId);
+      // Validate templateId format
+      if (!templateId || typeof templateId !== 'string' || templateId.trim().length === 0) {
+        TemplateService.logger.error('Invalid template ID provided', { templateId, userId });
+        return {
+          success: false,
+          message: 'Invalid template ID',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate userId format
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        TemplateService.logger.error('Invalid user ID provided', { templateId, userId });
+        return {
+          success: false,
+          message: 'Invalid user ID',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate review data
+      if (!reviewData || typeof reviewData !== 'object') {
+        TemplateService.logger.error('Invalid review data provided', { templateId, userId, reviewData });
+        return {
+          success: false,
+          message: 'Invalid review data',
+          timestamp: new Date()
+        };
+      }
+
+      if (!reviewData.rating || typeof reviewData.rating !== 'number' || reviewData.rating < 1 || reviewData.rating > 5) {
+        TemplateService.logger.error('Invalid rating provided', { templateId, userId, rating: reviewData.rating });
+        return {
+          success: false,
+          message: 'Rating must be a number between 1 and 5',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!/^[0-9a-fA-F]{24}$/.test(templateId)) {
+        TemplateService.logger.error('Invalid MongoDB ObjectId format', { templateId, userId });
+        return {
+          success: false,
+          message: 'Invalid template ID format',
+          timestamp: new Date()
+        };
+      }
+
+      TemplateService.logger.info('Attempting to find template', { templateId, userId });
+      
+      // Try to find the template with additional error handling
+      let template;
+      try {
+        template = await TemplateModel.findById(templateId);
+      } catch (dbError: any) {
+        TemplateService.logger.error('Database error while finding template', { 
+          templateId, 
+          userId, 
+          error: dbError?.message,
+          code: dbError?.code 
+        });
+        return {
+          success: false,
+          message: 'Database error while finding template',
+          timestamp: new Date()
+        };
+      }
+      
       if (!template) {
+        TemplateService.logger.error('Template not found', { templateId, userId });
         return {
           success: false,
           message: 'Template not found',
@@ -465,20 +534,36 @@ export class TemplateService {
       }
 
       // Add review
-      template.reviews.push({
-        _id: new Date().getTime().toString(), // Generate a temporary ID
-        userId,
-        rating: reviewData.rating,
-        comment: reviewData.comment || '',
-        createdAt: new Date()
-      });
+      try {
+        template.reviews.push({
+          _id: new Date().getTime().toString(), // Generate a temporary ID
+          userId,
+          rating: reviewData.rating,
+          comment: reviewData.comment || '',
+          createdAt: new Date()
+        });
 
-      // Update rating average
-      const totalRating = template.reviews.reduce((sum, review) => sum + review.rating, 0);
-      template.rating.average = totalRating / template.reviews.length;
-      template.rating.count = template.reviews.length;
+        // Update rating average
+        const totalRating = template.reviews.reduce((sum, review) => sum + review.rating, 0);
+        template.rating.average = totalRating / template.reviews.length;
+        template.rating.count = template.reviews.length;
 
-      await template.save();
+        TemplateService.logger.info('Saving template with new review', { 
+          templateId: template._id, 
+          userId, 
+          reviewCount: template.reviews.length,
+          newRating: reviewData.rating 
+        });
+
+        await template.save();
+      } catch (saveError) {
+        TemplateService.logger.error('Error saving template with review', { 
+          templateId: template._id, 
+          userId, 
+          error: saveError 
+        });
+        throw saveError;
+      }
 
       TemplateService.logger.info('Template review added', {
         templateId: template._id,
@@ -493,16 +578,58 @@ export class TemplateService {
         data: TemplateService.serializeTemplate(template),
         timestamp: new Date()
       };
-    } catch (error) {
-      TemplateService.logger.error('Error adding template review:', error);
-      throw error;
+    } catch (error: any) {
+      TemplateService.logger.error('Error adding template review:', {
+        error: error?.message || 'Unknown error',
+        stack: error?.stack,
+        templateId,
+        userId,
+        reviewData
+      });
+      
+      // Re-throw with more context
+      const enhancedError = new Error(`Failed to add template review: ${error?.message || 'Unknown error'}`);
+      enhancedError.stack = error?.stack;
+      throw enhancedError;
     }
   }
 
   public static async useTemplate(templateId: string, userId: string): Promise<ApiResponse<any>> {
     try {
+      // Validate templateId format
+      if (!templateId || typeof templateId !== 'string' || templateId.trim().length === 0) {
+        TemplateService.logger.error('Invalid template ID provided', { templateId, userId });
+        return {
+          success: false,
+          message: 'Invalid template ID',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate userId format
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        TemplateService.logger.error('Invalid user ID provided', { templateId, userId });
+        return {
+          success: false,
+          message: 'Invalid user ID',
+          timestamp: new Date()
+        };
+      }
+
+      // Validate MongoDB ObjectId format
+      if (!/^[0-9a-fA-F]{24}$/.test(templateId)) {
+        TemplateService.logger.error('Invalid MongoDB ObjectId format', { templateId, userId });
+        return {
+          success: false,
+          message: 'Invalid template ID format',
+          timestamp: new Date()
+        };
+      }
+
+      TemplateService.logger.info('Attempting to find template', { templateId, userId });
       const template = await TemplateModel.findById(templateId);
       if (!template) {
+        TemplateService.logger.error('Template not found', { templateId, userId });
         return {
           success: false,
           message: 'Template not found',
@@ -511,6 +638,12 @@ export class TemplateService {
       }
 
       if (!template.isPublic || !template.isApproved) {
+        TemplateService.logger.warn('Template not available for use', { 
+          templateId, 
+          userId, 
+          isPublic: template.isPublic, 
+          isApproved: template.isApproved 
+        });
         return {
           success: false,
           message: 'Template is not available for use',
@@ -519,12 +652,18 @@ export class TemplateService {
       }
 
       // Check if user already has this template
+      TemplateService.logger.info('Checking for existing user template', { templateId, userId });
       const existingTemplate = await TemplateModel.findOne({
         userId,
         originalTemplateId: templateId
       });
 
       if (existingTemplate) {
+        TemplateService.logger.info('User already has this template', { 
+          templateId, 
+          userId, 
+          existingTemplateId: existingTemplate._id 
+        });
         return {
           success: false,
           message: 'You already have this template in your collection',
@@ -533,26 +672,66 @@ export class TemplateService {
       }
 
       // Create a copy of the template for the user
-      const userTemplate = new TemplateModel({
-        userId,
-        name: template.name,
-        description: template.description,
-        category: template.category,
-        industry: template.industry,
-        targetAudience: template.targetAudience,
-        isPublic: false, // User's copy is private by default
-        isApproved: true, // User's copy is auto-approved
-        status: TemplateStatus.APPROVED,
-        samples: template.samples,
-        tags: template.tags,
-        originalTemplateId: templateId, // Reference to the original template
-        usageCount: 0 // Reset usage count for user's copy
+      TemplateService.logger.info('Creating user template copy', { 
+        templateId, 
+        userId, 
+        templateName: template.name,
+        sampleCount: template.samples?.length || 0,
+        variableCount: template.variables?.length || 0
       });
 
-      await userTemplate.save();
+      let userTemplate;
+      try {
+        userTemplate = new TemplateModel({
+          userId,
+          name: template.name,
+          description: template.description,
+          category: template.category,
+          industry: template.industry,
+          targetAudience: template.targetAudience,
+          useCase: template.useCase, // Required field
+          isPublic: false, // User's copy is private by default
+          isApproved: true, // User's copy is auto-approved
+          status: TemplateStatus.APPROVED,
+          samples: template.samples || [],
+          variables: template.variables || [],
+          tags: template.tags || [],
+          originalTemplateId: templateId, // Reference to the original template
+          usageCount: 0 // Reset usage count for user's copy
+        });
 
-      // Increment usage count of the original template
-      await template.incrementUsageCount();
+        await userTemplate.save();
+        TemplateService.logger.info('User template saved successfully', { 
+          templateId, 
+          userId, 
+          userTemplateId: userTemplate._id 
+        });
+
+        // Increment usage count of the original template
+        try {
+          await template.incrementUsageCount();
+          TemplateService.logger.info('Original template usage count incremented', { 
+            templateId, 
+            userId, 
+            newUsageCount: template.usageCount 
+          });
+        } catch (usageError: any) {
+          TemplateService.logger.error('Error incrementing usage count', { 
+            templateId, 
+            userId, 
+            error: usageError?.message 
+          });
+          // Don't fail the entire operation if usage count increment fails
+        }
+      } catch (saveError: any) {
+        TemplateService.logger.error('Error saving user template', { 
+          templateId, 
+          userId, 
+          error: saveError?.message,
+          stack: saveError?.stack
+        });
+        throw saveError;
+      }
 
       TemplateService.logger.info('Template added to user collection', {
         originalTemplateId: template._id,

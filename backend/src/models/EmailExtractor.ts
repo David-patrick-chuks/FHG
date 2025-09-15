@@ -205,6 +205,8 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
   const resultIndex = extraction.results.findIndex(r => r.url === url);
   if (resultIndex === -1) return false;
   
+  // Preserve existing progress and currentStep when updating result
+  const existingResult = extraction.results[resultIndex];
   extraction.results[resultIndex] = {
     url,
     emails,
@@ -212,7 +214,10 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
     error,
     extractedAt: new Date(),
     startedAt: startedAt || new Date(),
-    duration: duration || null
+    duration: duration || null,
+    // Preserve existing progress and currentStep
+    progress: existingResult.progress || [],
+    currentStep: existingResult.currentStep || null
   };
   
   // Update total emails count
@@ -220,7 +225,19 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
     total + (result.emails ? result.emails.length : 0), 0
   );
   
+  // Mark the results array as modified to ensure it gets saved
+  extraction.markModified('results');
+  
   await extraction.save();
+  
+  // Log result update for debugging
+  console.log(`Result updated for job ${jobId}, URL ${url}:`, {
+    status,
+    emailCount: emails.length,
+    progressCount: existingResult.progress?.length || 0,
+    currentStep: existingResult.currentStep
+  });
+  
   return true;
 };
 
@@ -281,7 +298,19 @@ emailExtractionSchema.statics.updateExtractionProgress = async function(
   // Update current step
   result.currentStep = step;
   
+  // Mark the progress array as modified to ensure it gets saved
+  extraction.markModified('results');
+  
   await extraction.save();
+  
+  // Log progress update for debugging
+  console.log(`Progress updated for job ${jobId}, URL ${url}, step ${step}:`, {
+    status,
+    message,
+    progressCount: result.progress.length,
+    currentStep: result.currentStep
+  });
+  
   return true;
 };
 

@@ -33,7 +33,7 @@ export class AuthController {
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
       secure: isProduction, // HTTPS only in production
-      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+      sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
       maxAge: tokens.expiresIn * 1000, // 15 minutes
       path: '/',
       // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
@@ -44,7 +44,7 @@ export class AuthController {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+      sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
       maxAge: refreshMaxAge,
       path: '/',
       // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
@@ -54,7 +54,7 @@ export class AuthController {
     res.cookie('isAuthenticated', 'true', {
       httpOnly: false, // Frontend can read this
       secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+      sameSite: isProduction ? 'lax' : 'lax', // Use 'lax' for better mobile compatibility
       maxAge: refreshMaxAge,
       path: '/',
       // domain: isProduction ? 'agentworld.online' : undefined // Commented out to allow default domain behavior
@@ -149,10 +149,16 @@ export class AuthController {
     try {
       const { rememberMe = false } = req.body;
       
+      // Detect mobile device
+      const userAgent = req.get('User-Agent') || '';
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+
       AuthController.logger.info('User login attempt', {
         email: req.body.email,
         rememberMe,
-        ip: req.ip
+        ip: req.ip,
+        userAgent: userAgent,
+        isMobile: isMobile
       });
 
       const result = await UserService.loginUser(req.body);
@@ -187,6 +193,16 @@ export class AuthController {
 
         // Set HTTP-only cookies
         AuthController.setAuthCookies(res, tokens, rememberMe);
+
+        // Log successful login with mobile detection
+        AuthController.logger.info('User logged in successfully', {
+          userId: result.data.user._id,
+          email: result.data.user.email,
+          ip: req.ip,
+          userAgent: userAgent,
+          isMobile: isMobile,
+          rememberMe: rememberMe
+        });
 
         res.status(200).json({
           success: true,

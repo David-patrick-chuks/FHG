@@ -1,10 +1,10 @@
 'use client';
 
 import {
-    DashboardLoadingSkeleton,
-    DashboardStatsCards,
-    QuickActions,
-    RecentActivity
+  DashboardLoadingSkeleton,
+  DashboardStatsCards,
+  QuickActions,
+  RecentActivity
 } from '@/components/dashboard';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -48,12 +48,17 @@ export default function DashboardPage() {
 
       if (statsResponse.success && statsResponse.data) {
         setDashboardStats(statsResponse.data);
+      } else {
+        console.warn('Failed to load dashboard stats:', statsResponse.message);
       }
 
       if (activityResponse.success && activityResponse.data) {
         setRecentActivity(activityResponse.data);
+      } else {
+        console.warn('Failed to load recent activity:', activityResponse.message);
       }
     } catch (err) {
+      console.error('Dashboard data loading error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -62,14 +67,30 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
+    if (user) {
+      loadDashboardData();
+    }
+  }, [loadDashboardData, user]);
 
+  if (!user) {
+    return (
+      <DashboardLayout
+        title="Loading..."
+        description="Loading your dashboard"
+      >
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-slate-600 dark:text-slate-300">Loading user data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (loading) {
     return (
       <DashboardLayout
-        title={`Welcome back, ${user?.username?.toUpperCase() || 'User'}! 👋`}
+        title={`Welcome back, ${user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1).toLowerCase() : 'User'}!`}
         description={
           <div className="flex items-center gap-2">
             <span>Here's what's happening with your email campaigns today.</span>
@@ -132,7 +153,7 @@ export default function DashboardPage() {
       </div>
       
       <DashboardLayout
-        title={`Welcome back, ${user?.username || 'User'}! `}
+        title={`Welcome back, ${user.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1).toLowerCase() : 'User'}!`}
         description={
           <div className="flex items-center gap-2">
             <span>Here's what's happening with your email campaigns today.</span>

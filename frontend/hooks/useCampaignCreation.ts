@@ -45,7 +45,13 @@ export function useCampaignCreation() {
       setError(null);
       const response = await BotsAPI.getBots();
       if (response.success && response.data) {
-        setBots(response.data.data || []);
+        const botsData = response.data.data || [];
+        setBots(botsData);
+        
+        // Auto-select the first bot if no bot is selected
+        if (botsData.length > 0 && !formData.botId) {
+          setFormData(prev => ({ ...prev, botId: botsData[0]._id }));
+        }
       } else {
         setError(response.error || 'Failed to fetch bots');
       }
@@ -55,7 +61,7 @@ export function useCampaignCreation() {
       setBotsLoading(false);
       fetchInProgress.current = false;
     }
-  }, []);
+  }, [formData.botId]);
 
   // Fetch templates data
   const fetchTemplates = useCallback(async () => {

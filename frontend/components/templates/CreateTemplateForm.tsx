@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { TemplateBasicInfo } from './TemplateBasicInfo';
+import { TemplateEmailContent } from './TemplateEmailContent';
 import { TemplateSamples } from './TemplateSamples';
 import { TemplateTags } from './TemplateTags';
 import { TemplateVariables } from './TemplateVariables';
@@ -38,7 +39,8 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
                            formData.description.trim() && 
                            formData.useCase.trim() && 
                            formData.category &&
-                           formData.samples.length >= 10;
+                           formData.subject.trim() &&
+                           formData.body.trim();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,19 +69,19 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-8">
       <TemplateBasicInfo formData={formData} setFormData={setFormData} />
       
-      <TemplateSamples formData={formData} setFormData={setFormData} />
+      <TemplateEmailContent formData={formData} setFormData={setFormData} />
       
       <TemplateVariables formData={formData} setFormData={setFormData} />
       
       <TemplateTags formData={formData} setFormData={setFormData} />
 
       {/* Public Template Option */}
-      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+      <div className="flex items-center justify-between p-4 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/10 dark:to-blue-900/10 border border-cyan-200 dark:border-cyan-800 rounded-lg">
         <div>
-          <h4 className="font-medium">Make this template public</h4>
+          <h4 className="font-medium text-cyan-700 dark:text-cyan-300">Make this template public</h4>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Public templates are available to all users after admin approval
           </p>
@@ -91,18 +93,19 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-end gap-4">
+      <div className="flex justify-end gap-4 pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push('/dashboard/templates')}
+          className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={!canCreateTemplate || isLoading}
-          className="bg-gradient-to-r from-cyan-600 to-orange-600 hover:from-cyan-700 hover:to-orange-700 text-white"
+          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
         >
           {isLoading ? 'Creating...' : 'Create Template'}
         </Button>

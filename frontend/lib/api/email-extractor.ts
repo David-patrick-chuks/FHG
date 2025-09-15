@@ -155,7 +155,7 @@ export class EmailExtractorAPI {
    * Download extraction results as CSV
    */
   static async downloadResults(jobId: string): Promise<Blob> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/email-extractor/download/${jobId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'}/email-extractor/download/${jobId}`, {
       credentials: 'include', // Include cookies automatically
     });
     

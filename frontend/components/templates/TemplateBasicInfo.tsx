@@ -36,23 +36,28 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
       {/* Basic Information */}
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="name">Template Name *</Label>
+          <Label htmlFor="name" className="text-cyan-700 dark:text-cyan-300 font-medium">
+            Template Name *
+          </Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             placeholder="e.g., Sales Follow-up Template"
             required
+            className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category">Category *</Label>
+          <Label htmlFor="category" className="text-cyan-700 dark:text-cyan-300 font-medium">
+            Category *
+          </Label>
           <Select
             value={formData.category}
             onValueChange={(value: TemplateCategory) => setFormData(prev => ({ ...prev, category: value }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -67,7 +72,9 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description *</Label>
+        <Label htmlFor="description" className="text-cyan-700 dark:text-cyan-300 font-medium">
+          Description *
+        </Label>
         <Textarea
           id="description"
           value={formData.description}
@@ -75,27 +82,34 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
           placeholder="Describe what this template is used for..."
           rows={3}
           required
+          className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
         />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="industry">Industry (Optional)</Label>
+          <Label htmlFor="industry" className="text-cyan-700 dark:text-cyan-300 font-medium">
+            Industry (Optional)
+          </Label>
           <Input
             id="industry"
             value={formData.industry}
             onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
             placeholder="e.g., Technology, Healthcare"
+            className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="targetAudience">Target Audience (Optional)</Label>
+          <Label htmlFor="targetAudience" className="text-cyan-700 dark:text-cyan-300 font-medium">
+            Target Audience (Optional)
+          </Label>
           <Input
             id="targetAudience"
             value={formData.targetAudience}
             onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value }))}
             placeholder="e.g., B2B Sales Teams"
+            className="border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400 transition-all duration-200"
           />
         </div>
       </div>

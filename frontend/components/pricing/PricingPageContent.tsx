@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PaymentAPI, PaymentPricing } from '@/lib/api/payment';
 import { Building, Crown, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { PricingCard } from './PricingCard';
 import { PricingFAQ } from './PricingFAQ';
@@ -17,6 +17,7 @@ export function PricingPageContent() {
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium'>('basic');
   const [pricing, setPricing] = useState<PaymentPricing | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [loadingPricing, setLoadingPricing] = useState(true);
 
   useEffect(() => {
     fetchPricing();
@@ -24,6 +25,7 @@ export function PricingPageContent() {
 
   const fetchPricing = async () => {
     try {
+      setLoadingPricing(true);
       const response = await PaymentAPI.getPricing();
       if (response.success && response.data) {
         setPricing(response.data);
@@ -32,6 +34,8 @@ export function PricingPageContent() {
       }
     } catch (error) {
       toast.error('Failed to load pricing information');
+    } finally {
+      setLoadingPricing(false);
     }
   };
 
@@ -73,15 +77,15 @@ export function PricingPageContent() {
     }
   };
 
-  const formatPrice = (amount: number) => {
+  const formatPrice = useCallback((amount: number) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN',
       minimumFractionDigits: 0,
     }).format(amount);
-  };
+  }, []);
 
-  const plans = [
+  const plans = useMemo(() => [
     {
       name: 'FREE',
       description: 'Perfect for getting started',
@@ -148,7 +152,8 @@ export function PricingPageContent() {
       borderClassName: 'border-white/20 dark:border-slate-700/50',
       shadowClassName: 'shadow-slate-900/5'
     }
-  ];
+    ];
+  }, [pricing, billingCycle, isAuthenticated, formatPrice]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -168,6 +173,13 @@ export function PricingPageContent() {
 
         <PricingHero billingCycle={billingCycle} setBillingCycle={setBillingCycle} />
 
+        {loadingPricing && (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
+            <span className="ml-3 text-slate-600 dark:text-slate-400">Loading pricing...</span>
+          </div>
+        )}
+
         <div className="relative grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
             <PricingCard
@@ -176,7 +188,7 @@ export function PricingPageContent() {
               billingCycle={billingCycle}
               onButtonClick={plan.name === 'FREE' ? undefined : () => handlePayment(plan.name.toLowerCase() as 'basic' | 'premium')}
               isProcessing={processing && selectedPlan === plan.name.toLowerCase()}
-              isDisabled={plan.name === 'FREE' || !pricing}
+              isDisabled={plan.name === 'FREE'}
             />
           ))}
         </div>

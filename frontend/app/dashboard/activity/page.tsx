@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUnreadCount } from '@/contexts/UnreadCountContext';
 import { DashboardAPI } from '@/lib/api';
 import { RecentActivity } from '@/types';
+import { Activity } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function ActivityPage() {
@@ -125,19 +126,51 @@ export default function ActivityPage() {
 
   return (
     <DashboardLayout
-      title="Activity"
-      description="Recent activity and events across your campaigns and bots"
+      title={
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg">
+            <Activity className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+              Activity
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Recent activity and events across your campaigns and bots
+            </p>
+          </div>
+        </div>
+      }
+      description=""
     >
       <div className="space-y-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+        </div>
+
         {activities.length === 0 ? (
           <ActivityEmptyState />
         ) : (
           <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+            <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg">
+                <CardTitle className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg">
+                    <Activity className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                      Recent Activity
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Latest updates from your campaigns and bots
+                    </p>
+                  </div>
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <ActivityList 
                   activities={activities}
                   currentPage={currentPage}

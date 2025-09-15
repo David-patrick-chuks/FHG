@@ -73,8 +73,15 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchApiInfo = async () => {
       try {
+        // First, refresh the user profile to get the latest data including API key
+        const profileResponse = await apiClient.get<User>('/auth/profile');
+        if (profileResponse.success && profileResponse.data) {
+          updateUser(profileResponse.data);
+        }
+        
         // Use user data directly if available, otherwise fetch from API
         const userWithApiKey = user as any;
+        
         if (userWithApiKey?.apiKey) {
           setApiKeyInfo({
             hasApiKey: true,
@@ -105,7 +112,7 @@ export default function ProfilePage() {
     if (user) {
       fetchApiInfo();
     }
-  }, [user]);
+  }, [user, updateUser]);
 
   // Cleanup effect to clear generated API key when component unmounts
   useEffect(() => {
@@ -158,6 +165,14 @@ export default function ProfilePage() {
           createdAt: response.data.createdAt,
           lastUsed: response.data.lastUsed,
         });
+        
+        // Update the user data in the auth context to include the new API key
+        updateUser({
+          apiKey: response.data.apiKey,
+          apiKeyCreatedAt: new Date(response.data.createdAt),
+          apiKeyLastUsed: response.data.lastUsed ? new Date(response.data.lastUsed) : undefined,
+        });
+        
         setMessage({
           type: "success",
           text: "API key generated successfully! Copy it now - you won't be able to see it again.",
