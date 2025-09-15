@@ -71,7 +71,7 @@ export class JwtService {
       const secret = this.getSecret();
       
       // Generate access token
-      const accessToken = jwt.sign(payload as object, secret, {
+    const accessToken = jwt.sign(payload as object, secret, {
         expiresIn: this.ACCESS_TOKEN_EXPIRY,
         algorithm: 'HS256',
         issuer: 'email-outreach-bot',
@@ -89,7 +89,7 @@ export class JwtService {
         this.REFRESH_TOKEN_EXPIRY_REMEMBER_ME : 
         this.REFRESH_TOKEN_EXPIRY;
       
-      const refreshToken = jwt.sign(
+        const refreshToken = jwt.sign(
         refreshPayload,
         secret,
         {
@@ -99,12 +99,11 @@ export class JwtService {
           audience: 'email-outreach-bot-api'
         } as jwt.SignOptions
       );
-
       // Calculate expiration time
       const decoded = jwt.decode(accessToken) as any;
       const expiresIn = Math.max(0, decoded.exp - Math.floor(Date.now() / 1000));
 
-      JwtService.logger.info('Token pair generated', {
+      this.logger.info('Token pair generated', {
         userId: payload.userId,
         expiresIn: this.ACCESS_TOKEN_EXPIRY,
         refreshExpiry,
@@ -117,7 +116,7 @@ export class JwtService {
         expiresIn
       };
     } catch (error: any) {
-      JwtService.logger.error('Error generating token pair:', {
+      this.logger.error('Error generating token pair:', {
         message: error?.message,
         stack: error?.stack
       });
@@ -218,14 +217,14 @@ export class JwtService {
             this.blacklistedTokens.delete(token);
           }, expirationTime - now);
           
-          JwtService.logger.info('Token blacklisted', {
+          this.logger.info('Token blacklisted', {
             tokenId: decoded.jti || 'unknown',
             expiresAt: new Date(expirationTime)
           });
         }
       }
     } catch (error: any) {
-      JwtService.logger.error('Error blacklisting token:', {
+      this.logger.error('Error blacklisting token:', {
         message: error?.message
       });
     }
@@ -236,7 +235,7 @@ export class JwtService {
    */
   public static clearBlacklist(): void {
     this.blacklistedTokens.clear();
-    JwtService.logger.info('Token blacklist cleared');
+    this.logger.info('Token blacklist cleared');
   }
 
   /**
