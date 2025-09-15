@@ -118,7 +118,7 @@ export function RecentExtractions({
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {job.status === 'completed' && (
+                  {job.status === 'completed' && job.totalEmails > 0 && (
                     <>
                       <Button
                         variant="outline"

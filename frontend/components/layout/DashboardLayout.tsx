@@ -120,13 +120,15 @@ interface DashboardLayoutProps {
   title?: string | React.ReactNode;
   description?: string | React.ReactNode;
   actions?: React.ReactNode;
+  navigation?: React.ReactNode;
 }
 
 export function DashboardLayout({ 
   children, 
   title, 
   description, 
-  actions 
+  actions,
+  navigation
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
@@ -147,7 +149,7 @@ export function DashboardLayout({
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <div 
-            className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/20 lg:hidden backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -168,11 +170,12 @@ export function DashboardLayout({
               title={title}
               description={description}
               actions={actions}
+              navigation={navigation}
               onMenuClick={() => setSidebarOpen(true)}
             />
 
             {/* Page content */}
-            <main className="p-6">
+            <main className="p-4 sm:p-6 lg:p-8 relative">
               {children}
             </main>
           </div>

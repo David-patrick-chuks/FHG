@@ -32,7 +32,7 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <div className={cn(
-      "fixed inset-y-0 left-0 z-50 w-64 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
+      "fixed inset-y-0 left-0 z-50 w-64 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
       sidebarOpen ? "translate-x-0" : "-translate-x-full"
     )}>
       <SidebarHeader onClose={onClose} />

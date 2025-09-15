@@ -35,6 +35,7 @@ export default function CreateCampaignPage() {
     // Computed values
     canProceedToStep2,
     canProceedToStep3,
+    canProceedToStep4,
     canCreateCampaign,
     
     // Actions
@@ -52,8 +53,7 @@ export default function CreateCampaignPage() {
     { id: 1, title: 'Campaign Basics', description: 'Set up your campaign foundation' },
     { id: 2, title: 'Email Template', description: 'Choose your email template' },
     { id: 3, title: 'Target Audience', description: 'Define who will receive your emails' },
-    { id: 4, title: 'AI Configuration', description: 'Configure your AI email bot' },
-    { id: 5, title: 'Schedule & Timing', description: 'Set when and how often to send emails' }
+    { id: 4, title: 'Schedule & Timing', description: 'Set when and how often to send emails' }
   ];
 
   return (
@@ -64,19 +64,21 @@ export default function CreateCampaignPage() {
         <Button
           variant="outline"
           onClick={() => router.push('/dashboard/campaigns')}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Campaigns
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 lg:space-y-6">
         {/* Progress Steps */}
-        <CampaignProgressSteps steps={steps} currentStep={currentStep} />
+        <div className="px-2 lg:px-0">
+          <CampaignProgressSteps steps={steps} currentStep={currentStep} />
+        </div>
 
         {/* Step Content */}
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6 px-2 lg:px-0">
           {/* Step 1: Campaign Basics */}
           {currentStep === 1 && (
             <CampaignBasicsStep
@@ -104,18 +106,20 @@ export default function CreateCampaignPage() {
                 loading={templatesLoading}
               />
               
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep(1)}
                   disabled={isFormDisabled}
+                  className="h-11 sm:h-12 px-4 sm:px-6 order-2 sm:order-1 text-sm sm:text-base border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
                 <Button
                   onClick={() => setCurrentStep(3)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || !formData.templateId}
+                  className="h-11 sm:h-12 px-4 sm:px-6 order-1 sm:order-2 text-sm sm:text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   Next
                 </Button>
@@ -142,48 +146,17 @@ export default function CreateCampaignPage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               isFormDisabled={isFormDisabled}
-              canProceed={canProceedToStep3}
+              canProceed={canProceedToStep4}
               onNext={() => setCurrentStep(4)}
               onBack={() => setCurrentStep(2)}
               userSubscription={user?.subscription || 'free'}
             />
           )}
 
-          {/* Step 4: AI Configuration */}
+          {/* Step 4: Schedule & Timing */}
           {currentStep === 4 && (
             <div className="space-y-6">
-              <div className="text-center py-8">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  AI Configuration
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  AI configuration will be handled automatically based on your selected template.
-                </p>
-              </div>
-              
-              <div className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentStep(3)}
-                  disabled={isFormDisabled}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button
-                  onClick={() => setCurrentStep(5)}
-                  disabled={isFormDisabled}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Schedule & Timing */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                 <CampaignScheduler
                   campaignId=""
                   onSchedule={(scheduledFor) => updateFormData({ scheduledFor })}
@@ -201,21 +174,22 @@ export default function CreateCampaignPage() {
                 />
               </div>
               
-              <div className="flex justify-between pt-4">
+              <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => setCurrentStep(3)}
                   disabled={isFormDisabled}
-                  className="h-12 px-8"
+                  className="h-11 sm:h-12 px-4 sm:px-6 lg:px-8 order-2 sm:order-1 text-sm sm:text-base border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to AI Configuration
+                  <span className="hidden sm:inline">Back to Target Audience</span>
+                  <span className="sm:hidden">Back</span>
                 </Button>
                 
                 <Button
                   onClick={handleCreateCampaign}
                   disabled={!canCreateCampaign || isFormDisabled}
-                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
+                  className="h-11 sm:h-12 px-4 sm:px-6 lg:px-8 order-1 sm:order-2 text-sm sm:text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {creating ? 'Creating Campaign...' : 'Create Campaign'}
                 </Button>

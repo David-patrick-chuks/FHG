@@ -27,20 +27,34 @@ export class AuthController {
    * Set HTTP-only authentication cookies
    */
   private static setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken: string; expiresIn: number }, rememberMe: boolean = false): void {
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Check if we're running on localhost (development)
+    const isLocalhost = process.env.API_BASE_URL?.includes('localhost') || 
+                       process.env.API_BASE_URL?.includes('127.0.0.1') ||
+                       process.env.NODE_ENV === 'development';
     
     // Get cookie configuration from environment
-    const cookieDomain = isProduction 
-      ? (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online')
-      : (process.env.COOKIE_DOMAIN_DEV || process.env.COOKIE_DOMAIN || undefined);
+    const cookieDomain = isLocalhost 
+      ? undefined // No domain for localhost
+      : (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online');
     
-    const cookieSecure = isProduction 
-      ? (process.env.COOKIE_SECURE_PROD === 'true' || process.env.COOKIE_SECURE === 'true' || true)
-      : (process.env.COOKIE_SECURE_DEV === 'true' || process.env.COOKIE_SECURE === 'true' || false);
+    const cookieSecure = isLocalhost 
+      ? false // Never secure for localhost
+      : (process.env.COOKIE_SECURE_PROD === 'true' || process.env.COOKIE_SECURE === 'true' || true);
     
-    const cookieSameSite = isProduction 
-      ? (process.env.COOKIE_SAME_SITE_PROD || process.env.COOKIE_SAME_SITE || 'none')
-      : (process.env.COOKIE_SAME_SITE_DEV || process.env.COOKIE_SAME_SITE || 'lax');
+    const cookieSameSite = isLocalhost 
+      ? 'lax' // Lax for localhost development
+      : (process.env.COOKIE_SAME_SITE_PROD || process.env.COOKIE_SAME_SITE || 'none');
+
+    // Debug logging for development
+    if (isLocalhost) {
+      console.log('🍪 Setting cookies for localhost development:', {
+        cookieDomain,
+        cookieSecure,
+        cookieSameSite,
+        apiBaseUrl: process.env.API_BASE_URL,
+        nodeEnv: process.env.NODE_ENV
+      });
+    }
     
     // Access token cookie (15 minutes)
     // Ensure maxAge doesn't exceed 32-bit integer limit
@@ -83,10 +97,14 @@ export class AuthController {
    * Clear authentication cookies
    */
   private static clearAuthCookies(res: Response): void {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const cookieDomain = isProduction 
-      ? (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online')
-      : (process.env.COOKIE_DOMAIN_DEV || process.env.COOKIE_DOMAIN || undefined);
+    // Check if we're running on localhost (development)
+    const isLocalhost = process.env.API_BASE_URL?.includes('localhost') || 
+                       process.env.API_BASE_URL?.includes('127.0.0.1') ||
+                       process.env.NODE_ENV === 'development';
+    
+    const cookieDomain = isLocalhost 
+      ? undefined // No domain for localhost
+      : (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online');
     
     const cookieOptions = {
       path: '/',

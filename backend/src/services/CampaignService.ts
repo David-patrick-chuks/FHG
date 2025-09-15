@@ -108,6 +108,18 @@ export class CampaignService {
         };
       }
 
+      // Debug logging for template validation
+      console.log('🔍 Template validation:', {
+        templateId: campaignData.templateId,
+        templateName: template.name,
+        isApproved: template.isApproved,
+        isPublic: template.isPublic,
+        samplesCount: template.samples?.length || 0,
+        isDevelopment: process.env.NODE_ENV === 'development' || 
+                      process.env.API_BASE_URL?.includes('localhost') ||
+                      process.env.API_BASE_URL?.includes('127.0.0.1')
+      });
+
       // Check if template has at least 10 samples
       if (!template.samples || template.samples.length < 10) {
         return {

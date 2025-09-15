@@ -201,14 +201,14 @@ export function PricingPageContent() {
           setBillingCycle={setBillingCycle}
         />
 
-        {loadingPricing && (
+        {/* {loadingPricing && (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
             <span className="ml-3 text-slate-600 dark:text-slate-400">
               Loading pricing...
             </span>
           </div>
-        )}
+        )} */}
 
         <div className="relative grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (

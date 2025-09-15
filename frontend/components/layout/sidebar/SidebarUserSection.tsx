@@ -13,7 +13,7 @@ interface SidebarUserSectionProps {
 
 export function SidebarUserSection({ user, onLogout }: SidebarUserSectionProps) {
   return (
-    <div className="border-t border-white/20 dark:border-slate-700/50 p-4 flex-shrink-0">
+    <div className="border-t border-white/20 dark:border-slate-700/50 p-4 flex-shrink-0 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm">
       <div className="flex items-center space-x-3 mb-3">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium">

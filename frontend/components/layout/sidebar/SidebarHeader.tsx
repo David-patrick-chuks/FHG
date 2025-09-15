@@ -10,7 +10,7 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ onClose }: SidebarHeaderProps) {
   return (
-    <div className="flex h-16 items-center justify-between px-6 border-b border-white/20 dark:border-slate-700/50 flex-shrink-0">
+    <div className="flex h-16 items-center justify-between px-6 border-b border-white/20 dark:border-slate-700/50 flex-shrink-0 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm">
       <div className="flex items-center space-x-3">
         <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
           <MailQuillIcon variant="gradient" size="sm" />

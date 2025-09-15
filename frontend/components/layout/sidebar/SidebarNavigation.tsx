@@ -38,18 +38,18 @@ export function SidebarNavigation({ sidebarItems, onItemClick }: SidebarNavigati
         className={cn(
           "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300",
           isActive
-            ? "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400 shadow-sm"
+            ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 shadow-sm"
             : "text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 hover:shadow-sm"
         )}
         onClick={onItemClick}
       >
         <item.icon className={cn(
           "mr-3 h-5 w-5",
-          isActive ? "text-cyan-600 dark:text-cyan-400" : "text-slate-400"
+          isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400"
         )} />
         {item.label}
         {item.badge && (
-          <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
+          <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
             {item.badge}
           </span>
         )}

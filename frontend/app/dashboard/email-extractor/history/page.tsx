@@ -262,46 +262,42 @@ export default function EmailExtractorHistoryPage() {
       <DashboardLayout
         title="Email Extraction History"
         description="View all your email extraction jobs and results"
-      >
-        <div className="relative space-y-6">
-          {/* Breadcrumb Navigation */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-            <div className="relative p-4">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push('/dashboard/email-extractor')}
-                  className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Email Extractor
-                </Button>
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span>Email Extractor</span>
-                  <span>/</span>
-                  <span className="text-slate-900 dark:text-white font-medium">History</span>
-                </div>
-              </div>
+        navigation={
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/dashboard/email-extractor')}
+              className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Email Extractor
+            </Button>
+            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <span>Email Extractor</span>
+              <span>/</span>
+              <span className="text-slate-900 dark:text-white font-medium">History</span>
             </div>
           </div>
+        }
+      >
+        <div className="relative space-y-6">
           {/* Search and Stats */}
           <div className="group relative">
             <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
             <div className="relative p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-80">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                     <Input
                       placeholder="Search by job ID, URL, or email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-80 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 focus:bg-white/60 dark:focus:bg-slate-800/60 transition-all duration-300"
+                      className="pl-10 w-full bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 focus:bg-white/60 dark:focus:bg-slate-800/60 transition-all duration-300"
                     />
                   </div>
-                  <div className="text-sm text-slate-600 dark:text-slate-300 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-3 py-1 rounded-lg">
+                  <div className="text-sm text-slate-600 dark:text-slate-300 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-3 py-1 rounded-lg whitespace-nowrap">
                     {filteredExtractions.length} of {extractions.length} extractions
                   </div>
                 </div>
@@ -366,7 +362,7 @@ export default function EmailExtractorHistoryPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          {job.status === 'completed' && (
+                          {job.status === 'completed' && job.totalEmails > 0 && (
                             <>
                               <Button
                                 variant="outline"

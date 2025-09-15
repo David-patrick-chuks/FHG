@@ -201,25 +201,7 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
 
   return (
     <DashboardLayout 
-      title={
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard/templates')}
-            className="hover:bg-cyan-50 dark:hover:bg-cyan-900/20"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
-              {template.name}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">{template.description}</p>
-          </div>
-        </div>
-      }
+      title="Template Preview"
       description="Preview template details, samples, and add to your collection"
       actions={
         <div className="flex gap-3">
@@ -228,7 +210,8 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
             onClick={() => router.push('/dashboard/templates')}
             className="border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20"
           >
-            Cancel
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
           </Button>
           <Button
             onClick={handleAddToMyTemplates}
@@ -242,6 +225,16 @@ export default function TemplatePreviewPage({ params }: TemplatePreviewPageProps
       }
     >
       <div className="space-y-6">
+        {/* Template Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+            {template.name}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            {template.description}
+          </p>
+        </div>
+
         {/* Template Overview */}
         <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl">
           <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-t-lg">

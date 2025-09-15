@@ -166,8 +166,8 @@ export default function DashboardPage() {
           </div>
         }
         actions={
-          <div className="flex items-center gap-4">
-            <div className="text-right">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className="flex items-center justify-between sm:justify-end sm:flex-col sm:items-end">
               <p className="text-sm text-slate-500 dark:text-slate-400">Current Plan</p>
               <p className="text-lg font-semibold text-cyan-600 dark:text-cyan-400 capitalize">
                 {user?.subscription || 'Free'}
@@ -176,7 +176,7 @@ export default function DashboardPage() {
             {user?.subscription && user.subscription === 'free' && (
               <Button
                 onClick={() => router.push('/pricing')}
-                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
               >
                 <Crown className="w-4 h-4 mr-2" />
                 Upgrade
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           </div>
         }
       >
-        <div className="relative space-y-6">
+        <div className="relative space-y-6 sm:space-y-8">
           <DashboardStatsCards stats={dashboardStats} />
           <QuickActions />
           <RecentActivity activities={recentActivity} />

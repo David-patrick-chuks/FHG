@@ -35,7 +35,7 @@ export function QuickActions() {
           <p className="text-slate-600 dark:text-slate-300">Get started with common tasks</p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <div 
             className="group/campaign relative overflow-hidden rounded-xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 hover:bg-white/60 dark:hover:bg-slate-800/60"
             onClick={() => handleQuickAction('create_campaign')}

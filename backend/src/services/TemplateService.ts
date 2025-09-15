@@ -1,13 +1,13 @@
 import TemplateModel from '../models/Template';
 import UserModel from '../models/User';
 import {
-    ApiResponse,
-    ApproveTemplateRequest,
-    CreateTemplateRequest,
-    ReviewTemplateRequest,
-    TemplateCategory,
-    TemplateStatus,
-    UpdateTemplateRequest
+  ApiResponse,
+  ApproveTemplateRequest,
+  CreateTemplateRequest,
+  ReviewTemplateRequest,
+  TemplateCategory,
+  TemplateStatus,
+  UpdateTemplateRequest
 } from '../types';
 import { Logger } from '../utils/Logger';
 
@@ -524,7 +524,15 @@ export class TemplateService {
       }
 
       // Check if user already reviewed this template
-      const existingReview = template.reviews.find(review => review.userId.toString() === userId);
+      const existingReview = template.reviews.find(review => {
+        try {
+          return review.userId.toString() === userId;
+        } catch (error) {
+          // Handle any issues with review data
+          console.warn('Invalid review data found:', error);
+          return false;
+        }
+      });
       if (existingReview) {
         return {
           success: false,
@@ -536,7 +544,6 @@ export class TemplateService {
       // Add review
       try {
         template.reviews.push({
-          _id: new Date().getTime().toString(), // Generate a temporary ID
           userId,
           rating: reviewData.rating,
           comment: reviewData.comment || '',
@@ -544,8 +551,15 @@ export class TemplateService {
         });
 
         // Update rating average
-        const totalRating = template.reviews.reduce((sum, review) => sum + review.rating, 0);
-        template.rating.average = totalRating / template.reviews.length;
+        const totalRating = template.reviews.reduce((sum, review) => {
+          try {
+            return sum + (review.rating || 0);
+          } catch (error) {
+            console.warn('Invalid review rating found:', error);
+            return sum;
+          }
+        }, 0);
+        template.rating.average = template.reviews.length > 0 ? totalRating / template.reviews.length : 0;
         template.rating.count = template.reviews.length;
 
         TemplateService.logger.info('Saving template with new review', { 

@@ -11,6 +11,7 @@ import { TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
 import { format } from 'date-fns';
 import { Calendar, Copy, Edit, Eye, FileText, MoreVertical, Star, Tag, Trash2, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -31,12 +32,14 @@ export function MyTemplatesTab({
   onTemplateDeleted,
   onRefresh
 }: MyTemplatesTabProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,6 +51,49 @@ export function MyTemplatesTab({
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
+
+  const handleViewTemplate = (template: Template) => {
+    router.push(`/dashboard/templates/preview/${template._id}`);
+  };
+
+  const handleEditTemplate = (template: Template) => {
+    router.push(`/dashboard/templates/edit/${template._id}`);
+  };
+
+  const handleDuplicateTemplate = async (template: Template) => {
+    try {
+      setDuplicating(template._id);
+      
+      // Create a copy of the template with a new name
+      const duplicateData = {
+        name: `${template.name} (Copy)`,
+        description: template.description,
+        category: template.category,
+        industry: template.industry,
+        targetAudience: template.targetAudience,
+        isPublic: false, // Always make duplicates private
+        subject: template.subject,
+        body: template.body,
+        useCase: template.useCase,
+        variables: template.variables || [],
+        tags: template.tags || []
+      };
+
+      const response = await TemplatesAPI.createTemplate(duplicateData);
+      
+      if (response.success && response.data) {
+        toast.success('Template duplicated successfully!');
+        onRefresh(); // Refresh the templates list
+      } else {
+        toast.error(response.message || 'Failed to duplicate template');
+      }
+    } catch (error) {
+      console.error('Error duplicating template:', error);
+      toast.error('Failed to duplicate template');
+    } finally {
+      setDuplicating(null);
+    }
+  };
 
   const handleDeleteTemplate = async () => {
     if (!templateToDelete) return;
@@ -73,12 +119,12 @@ export function MyTemplatesTab({
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      draft: { color: 'bg-gray-100 text-gray-800', label: 'Draft' },
-      pending_approval: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending Approval' },
-      approved: { color: 'bg-green-100 text-green-800', label: 'Approved' },
-      rejected: { color: 'bg-red-100 text-red-800', label: 'Rejected' },
-      published: { color: 'bg-blue-100 text-blue-800', label: 'Published' },
-      archived: { color: 'bg-gray-100 text-gray-800', label: 'Archived' }
+      draft: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400', label: 'Draft' },
+      pending_approval: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400', label: 'Pending Approval' },
+      approved: { color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400', label: 'Approved' },
+      rejected: { color: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400', label: 'Rejected' },
+      published: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400', label: 'Published' },
+      archived: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400', label: 'Archived' }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
@@ -193,44 +239,55 @@ export function MyTemplatesTab({
                       {template.description}
                     </CardDescription>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Copy className="w-4 h-4 mr-2" />
-                        Duplicate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-red-600"
-                        onClick={() => {
-                          setTemplateToDelete(template);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-2">
+                    {template.featured && (
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                        <Star className="w-3 h-3 mr-1" />
+                        Featured
+                      </Badge>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewTemplate(template)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditTemplate(template)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDuplicateTemplate(template)}
+                          disabled={duplicating === template._id}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          {duplicating === template._id ? 'Duplicating...' : 'Duplicate'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => {
+                            setTemplateToDelete(template);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     {getStatusBadge(template.status)}
-                    <Badge variant="outline">
+                    <Badge className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
                       {getCategoryLabel(template.category)}
                     </Badge>
                   </div>
@@ -279,12 +336,12 @@ export function MyTemplatesTab({
                   {template.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {template.tags.slice(0, 3).map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge key={index} className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 text-xs">
                           {tag}
                         </Badge>
                       ))}
                       {template.tags.length > 3 && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 text-xs">
                           +{template.tags.length - 3} more
                         </Badge>
                       )}

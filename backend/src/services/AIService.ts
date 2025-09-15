@@ -309,13 +309,57 @@ Return a JSON object with a "variations" array containing the email variations.
           }
         }
 
+        // Apply variable replacement to each variation
+        const processedVariations = parsed.variations.map((variation: any) => {
+          // Create variables object from recipient context and template variables
+          const variables: Record<string, string> = {};
+          
+          // Add recipient context variables
+          if (recipientContext) {
+            if (recipientContext.name) variables['name'] = recipientContext.name;
+            if (recipientContext.email) variables['email'] = recipientContext.email;
+            if (recipientContext.company) variables['company'] = recipientContext.company;
+            if (recipientContext.industry) variables['industry'] = recipientContext.industry;
+          }
+          
+          // Add template variables (these are usually static values)
+          template.variables.forEach(variable => {
+            if (variable.value) {
+              variables[variable.key] = variable.value;
+            }
+          });
+
+          // Apply variable replacement to subject and body
+          const processedSubject = this.replaceVariables(variation.subject, variables);
+          const processedBody = this.replaceVariables(variation.body, variables);
+
+          // Log variable replacement statistics for monitoring
+          const subjectStats = this.getVariableReplacementStats(variation.subject, variables);
+          const bodyStats = this.getVariableReplacementStats(variation.body, variables);
+          
+          if (subjectStats.skippedVariables > 0 || bodyStats.skippedVariables > 0) {
+            AIService.logger.warn('Some variables were not replaced in AI-generated content', {
+              variation: variation.variation,
+              subjectStats,
+              bodyStats,
+              availableVariables: Object.keys(variables)
+            });
+          }
+
+          return {
+            ...variation,
+            subject: processedSubject,
+            body: processedBody
+          };
+        });
+
         AIService.logger.info(`Generated ${variationCount} email variations from template successfully`, {
           templateName: template.name,
           sampleCount: template.samples.length,
-          variationCount: parsed.variations.length
+          variationCount: processedVariations.length
         });
 
-        return parsed.variations;
+        return processedVariations;
       } catch (parseError) {
         throw new Error(`Failed to parse email variations response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
@@ -368,5 +412,97 @@ Return a JSON object with a "variations" array containing the email variations.
    */
   private static delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Replace variables in text with provided values, skipping missing variables
+   * @param text The text containing variables in {{variable_name}} format
+   * @param variables Object containing variable values
+   * @returns Text with variables replaced, missing variables are left as-is
+   */
+  public static replaceVariables(text: string, variables: Record<string, string>): string {
+    if (!text || typeof text !== 'string') {
+      return text;
+    }
+
+    // If no variables provided, return original text
+    if (!variables || Object.keys(variables).length === 0) {
+      return text;
+    }
+
+    // Find all variables in the format {{variable_name}}
+    const variablePattern = /\{\{([^}]+)\}\}/g;
+    
+    return text.replace(variablePattern, (match, variableName) => {
+      const trimmedVariableName = variableName.trim();
+      
+      // Check if the variable exists in our variables object and has a valid value
+      if (variables.hasOwnProperty(trimmedVariableName) && 
+          variables[trimmedVariableName] !== undefined && 
+          variables[trimmedVariableName] !== null && 
+          variables[trimmedVariableName] !== '') {
+        return String(variables[trimmedVariableName]);
+      }
+      
+      // If variable doesn't exist or is empty, log a warning and leave the placeholder as-is
+      AIService.logger.warn(`Variable '${trimmedVariableName}' not found or empty in variables list, skipping replacement`, {
+        availableVariables: Object.keys(variables),
+        missingVariable: trimmedVariableName,
+        variableValue: variables[trimmedVariableName]
+      });
+      
+      return match; // Return the original placeholder
+    });
+  }
+
+  /**
+   * Get statistics about variable replacement in text
+   * @param text The text to analyze
+   * @param variables Object containing variable values
+   * @returns Statistics about variable replacement
+   */
+  public static getVariableReplacementStats(text: string, variables: Record<string, string>): {
+    totalVariables: number;
+    replacedVariables: number;
+    skippedVariables: number;
+    missingVariables: string[];
+  } {
+    if (!text || typeof text !== 'string') {
+      return {
+        totalVariables: 0,
+        replacedVariables: 0,
+        skippedVariables: 0,
+        missingVariables: []
+      };
+    }
+
+    const variablePattern = /\{\{([^}]+)\}\}/g;
+    const matches = text.match(variablePattern);
+    const totalVariables = matches ? matches.length : 0;
+    
+    let replacedVariables = 0;
+    const missingVariables: string[] = [];
+    
+    if (matches) {
+      matches.forEach(match => {
+        const variableName = match.replace(/\{\{|\}\}/g, '').trim();
+        
+        if (variables.hasOwnProperty(variableName) && 
+            variables[variableName] !== undefined && 
+            variables[variableName] !== null && 
+            variables[variableName] !== '') {
+          replacedVariables++;
+        } else {
+          missingVariables.push(variableName);
+        }
+      });
+    }
+    
+    return {
+      totalVariables,
+      replacedVariables,
+      skippedVariables: totalVariables - replacedVariables,
+      missingVariables: [...new Set(missingVariables)] // Remove duplicates
+    };
   }
 }

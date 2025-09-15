@@ -186,6 +186,7 @@ export function useCampaignCreation() {
         name: formData.name,
         description: formData.description,
         botId: formData.botId,
+        templateId: formData.templateId,
         emailList,
         scheduledFor: formData.scheduledFor,
         emailInterval: formData.emailInterval,
@@ -227,8 +228,9 @@ export function useCampaignCreation() {
   };
 
   const canProceedToStep2 = Boolean(formData.name.trim() && formData.botId);
-  const canProceedToStep3 = Boolean(canProceedToStep2 && (uploadedEmails.length > 0 || formData.emailList.trim()));
-  const canCreateCampaign = Boolean(canProceedToStep3);
+  const canProceedToStep3 = Boolean(canProceedToStep2 && formData.templateId);
+  const canProceedToStep4 = Boolean(canProceedToStep3 && (uploadedEmails.length > 0 || formData.emailList.trim()));
+  const canCreateCampaign = Boolean(canProceedToStep4);
   
   const isFormDisabled = creating;
 
@@ -251,6 +253,7 @@ export function useCampaignCreation() {
     // Computed values
     canProceedToStep2,
     canProceedToStep3,
+    canProceedToStep4,
     canCreateCampaign,
     
     // Actions

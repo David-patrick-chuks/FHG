@@ -15,9 +15,17 @@ import { TemplateVariables } from './TemplateVariables';
 
 interface CreateTemplateFormProps {
   initialData?: Partial<CreateTemplateRequest>;
+  onTemplateCreated?: (template: any) => void;
+  isEditMode?: boolean;
+  templateId?: string;
 }
 
-export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
+export function CreateTemplateForm({ 
+  initialData, 
+  onTemplateCreated,
+  isEditMode = false,
+  templateId 
+}: CreateTemplateFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<CreateTemplateRequest>({
     name: '',
@@ -26,10 +34,11 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
     industry: '',
     targetAudience: '',
     isPublic: false,
+    subject: '',
+    body: '',
     useCase: '',
     variables: [],
     tags: [],
-    samples: [],
     ...initialData
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -52,17 +61,31 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
 
     try {
       setIsLoading(true);
-      const response = await TemplatesAPI.createTemplate(formData);
+      
+      let response;
+      if (isEditMode && templateId) {
+        response = await TemplatesAPI.updateTemplate(templateId, formData);
+      } else {
+        response = await TemplatesAPI.createTemplate(formData);
+      }
       
       if (response.success && response.data) {
-        toast.success('Template created successfully!');
-        router.push('/dashboard/templates');
+        const successMessage = isEditMode ? 'Template updated successfully!' : 'Template created successfully!';
+        toast.success(successMessage);
+        
+        if (onTemplateCreated) {
+          onTemplateCreated(response.data);
+        } else {
+          router.push('/dashboard/templates');
+        }
       } else {
-        toast.error(response.message || 'Failed to create template');
+        const errorMessage = isEditMode ? 'Failed to update template' : 'Failed to create template';
+        toast.error(response.message || errorMessage);
       }
     } catch (error) {
-      console.error('Error creating template:', error);
-      toast.error('Failed to create template. Please try again.');
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} template:`, error);
+      const errorMessage = isEditMode ? 'Failed to update template. Please try again.' : 'Failed to create template. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +130,10 @@ export function CreateTemplateForm({ initialData }: CreateTemplateFormProps) {
           disabled={!canCreateTemplate || isLoading}
           className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          {isLoading ? 'Creating...' : 'Create Template'}
+          {isLoading 
+            ? (isEditMode ? 'Updating...' : 'Creating...') 
+            : (isEditMode ? 'Update Template' : 'Create Template')
+          }
         </Button>
       </div>
     </form>

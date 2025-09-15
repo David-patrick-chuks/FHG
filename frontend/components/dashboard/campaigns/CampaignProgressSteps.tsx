@@ -15,15 +15,15 @@ interface CampaignProgressStepsProps {
 
 export function CampaignProgressSteps({ steps, currentStep }: CampaignProgressStepsProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
+    <div className="backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-0 shadow-xl rounded-lg p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center space-x-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
                 currentStep >= step.id 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg' 
+                  : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-500 dark:text-gray-400'
               }`}>
                 {currentStep > step.id ? (
                   <CheckCircle className="w-4 h-4" />
@@ -33,7 +33,7 @@ export function CampaignProgressSteps({ steps, currentStep }: CampaignProgressSt
               </div>
               <span className={`text-sm font-medium transition-colors ${
                 currentStep >= step.id 
-                  ? 'text-gray-700 dark:text-gray-300' 
+                  ? 'text-cyan-700 dark:text-cyan-300' 
                   : 'text-gray-500 dark:text-gray-400'
               }`}>
                 {step.title}
@@ -41,14 +41,14 @@ export function CampaignProgressSteps({ steps, currentStep }: CampaignProgressSt
               {index < steps.length - 1 && (
                 <div className={`w-8 h-0.5 ml-4 transition-all duration-300 ${
                   currentStep > step.id 
-                    ? 'bg-blue-500' 
-                    : 'bg-gray-200 dark:bg-gray-600'
+                    ? 'bg-gradient-to-r from-cyan-500 to-blue-500' 
+                    : 'bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-500'
                 }`}></div>
               )}
             </div>
           ))}
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-sm text-cyan-600 dark:text-cyan-400 font-medium">
           Step {currentStep} of {steps.length}
         </div>
       </div>

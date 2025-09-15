@@ -514,11 +514,33 @@ Generate exactly 1 message with subject and body.
             });
           } else {
             // Fallback message if AI generation fails
+            const fallbackSubject = `Re: ${campaign.name}`;
+            const fallbackBody = `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`;
+            
+            // Apply variable replacement to fallback message
+            const { AIService } = await import('./AIService');
+            const variables: Record<string, string> = {
+              name: name,
+              email: email,
+              company: email.split('@')[1]?.split('.')[0] || 'Unknown',
+              industry: template.industry || 'Unknown'
+            };
+            
+            // Add template variables
+            template.variables.forEach(variable => {
+              if (variable.value) {
+                variables[variable.key] = variable.value;
+              }
+            });
+            
+            const processedSubject = AIService.replaceVariables(fallbackSubject, variables);
+            const processedBody = AIService.replaceVariables(fallbackBody, variables);
+            
             generatedMessages.push({
               recipientEmail: email,
               recipientName: name,
-              subject: `Re: ${campaign.name}`,
-              body: `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`,
+              subject: processedSubject,
+              body: processedBody,
               personalizationData: {
                 name: name,
                 email: email,
@@ -536,11 +558,33 @@ Generate exactly 1 message with subject and body.
           
           // Add fallback message
           const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          const fallbackSubject = `Re: ${campaign.name}`;
+          const fallbackBody = `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`;
+          
+          // Apply variable replacement to error fallback message
+          const { AIService } = await import('./AIService');
+          const variables: Record<string, string> = {
+            name: name,
+            email: email,
+            company: email.split('@')[1]?.split('.')[0] || 'Unknown',
+            industry: template.industry || 'Unknown'
+          };
+          
+          // Add template variables
+          template.variables.forEach(variable => {
+            if (variable.value) {
+              variables[variable.key] = variable.value;
+            }
+          });
+          
+          const processedSubject = AIService.replaceVariables(fallbackSubject, variables);
+          const processedBody = AIService.replaceVariables(fallbackBody, variables);
+          
           generatedMessages.push({
             recipientEmail: email,
             recipientName: name,
-            subject: `Re: ${campaign.name}`,
-            body: `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`,
+            subject: processedSubject,
+            body: processedBody,
             personalizationData: {
               name: name,
               email: email,
