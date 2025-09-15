@@ -29,11 +29,22 @@ export class TokenRefreshMiddleware {
           next();
           return;
         } catch (error) {
-          // Access token is invalid/expired, try to refresh
-          TokenRefreshMiddleware.logger.info('Access token expired, attempting refresh', {
-            ip: req.ip,
-            userAgent: req.get('User-Agent')
-          });
+          // Only try to refresh if the error is specifically about expiration
+          // Don't refresh for other errors like "Token has been revoked"
+          if (error instanceof Error && error.message === 'Token expired') {
+            TokenRefreshMiddleware.logger.info('Access token expired, attempting refresh', {
+              ip: req.ip,
+              userAgent: req.get('User-Agent')
+            });
+          } else {
+            // For other errors (like revoked tokens), don't try to refresh
+            TokenRefreshMiddleware.logger.warn('Access token invalid, not attempting refresh', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              ip: req.ip
+            });
+            next();
+            return;
+          }
         }
       }
 
