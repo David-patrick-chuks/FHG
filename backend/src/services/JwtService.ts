@@ -8,9 +8,9 @@ export class JwtService {
   private static blacklistedTokens: Set<string> = new Set();
   
   // Token expiration times (from environment or defaults)
-  private static readonly ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m'; // 15 minutes
-  private static readonly REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '7d'; // 7 days
-  private static readonly REFRESH_TOKEN_EXPIRY_REMEMBER_ME = process.env.REFRESH_TOKEN_EXPIRY_REMEMBER_ME || '30d'; // 30 days for remember me
+  private static readonly ACCESS_TOKEN_EXPIRY: string = process.env.ACCESS_TOKEN_EXPIRY || '15m'; // 15 minutes
+  private static readonly REFRESH_TOKEN_EXPIRY: string = process.env.REFRESH_TOKEN_EXPIRY || '7d'; // 7 days
+  private static readonly REFRESH_TOKEN_EXPIRY_REMEMBER_ME: string = process.env.REFRESH_TOKEN_EXPIRY_REMEMBER_ME || '30d'; // 30 days for remember me
   
   // Minimum secret strength requirements
   private static readonly MIN_SECRET_LENGTH = 32;
@@ -71,12 +71,12 @@ export class JwtService {
       const secret = this.getSecret();
       
       // Generate access token
-      const accessToken = jwt.sign(payload, secret, {
-        expiresIn: this.ACCESS_TOKEN_EXPIRY || '15m',
+      const accessToken = jwt.sign(payload as object, secret, {
+        expiresIn: this.ACCESS_TOKEN_EXPIRY,
         algorithm: 'HS256',
         issuer: 'email-outreach-bot',
         audience: 'email-outreach-bot-api'
-      });
+      } as jwt.SignOptions);
 
       // Generate refresh token with different payload and expiration based on rememberMe
       const refreshPayload = {
@@ -86,23 +86,27 @@ export class JwtService {
       };
 
       const refreshExpiry = rememberMe ? 
-        (this.REFRESH_TOKEN_EXPIRY_REMEMBER_ME || '30d') : 
-        (this.REFRESH_TOKEN_EXPIRY || '7d');
+        this.REFRESH_TOKEN_EXPIRY_REMEMBER_ME : 
+        this.REFRESH_TOKEN_EXPIRY;
       
-      const refreshToken = jwt.sign(refreshPayload, secret, {
-        expiresIn: refreshExpiry,
-        algorithm: 'HS256',
-        issuer: 'email-outreach-bot',
-        audience: 'email-outreach-bot-api'
-      });
+      const refreshToken = jwt.sign(
+        refreshPayload,
+        secret,
+        {
+          expiresIn: refreshExpiry,
+          algorithm: 'HS256',
+          issuer: 'email-outreach-bot',
+          audience: 'email-outreach-bot-api'
+        } as jwt.SignOptions
+      );
 
       // Calculate expiration time
       const decoded = jwt.decode(accessToken) as any;
       const expiresIn = Math.max(0, decoded.exp - Math.floor(Date.now() / 1000));
 
-      this.logger.info('Token pair generated', {
+      JwtService.logger.info('Token pair generated', {
         userId: payload.userId,
-        expiresIn: this.ACCESS_TOKEN_EXPIRY || '15m',
+        expiresIn: this.ACCESS_TOKEN_EXPIRY,
         refreshExpiry,
         rememberMe
       });
@@ -113,7 +117,7 @@ export class JwtService {
         expiresIn
       };
     } catch (error: any) {
-      this.logger.error('Error generating token pair:', {
+      JwtService.logger.error('Error generating token pair:', {
         message: error?.message,
         stack: error?.stack
       });
@@ -214,14 +218,14 @@ export class JwtService {
             this.blacklistedTokens.delete(token);
           }, expirationTime - now);
           
-          this.logger.info('Token blacklisted', {
+          JwtService.logger.info('Token blacklisted', {
             tokenId: decoded.jti || 'unknown',
             expiresAt: new Date(expirationTime)
           });
         }
       }
     } catch (error: any) {
-      this.logger.error('Error blacklisting token:', {
+      JwtService.logger.error('Error blacklisting token:', {
         message: error?.message
       });
     }
@@ -232,7 +236,7 @@ export class JwtService {
    */
   public static clearBlacklist(): void {
     this.blacklistedTokens.clear();
-    this.logger.info('Token blacklist cleared');
+    JwtService.logger.info('Token blacklist cleared');
   }
 
   /**
