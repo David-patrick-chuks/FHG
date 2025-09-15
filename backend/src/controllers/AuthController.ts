@@ -29,37 +29,53 @@ export class AuthController {
   private static setAuthCookies(res: Response, tokens: { accessToken: string; refreshToken: string; expiresIn: number }, rememberMe: boolean = false): void {
     const isProduction = process.env.NODE_ENV === 'production';
     
+    // Get cookie configuration from environment
+    const cookieDomain = isProduction 
+      ? (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online')
+      : (process.env.COOKIE_DOMAIN_DEV || process.env.COOKIE_DOMAIN || undefined);
+    
+    const cookieSecure = isProduction 
+      ? (process.env.COOKIE_SECURE_PROD === 'true' || process.env.COOKIE_SECURE === 'true' || true)
+      : (process.env.COOKIE_SECURE_DEV === 'true' || process.env.COOKIE_SECURE === 'true' || false);
+    
+    const cookieSameSite = isProduction 
+      ? (process.env.COOKIE_SAME_SITE_PROD || process.env.COOKIE_SAME_SITE || 'none')
+      : (process.env.COOKIE_SAME_SITE_DEV || process.env.COOKIE_SAME_SITE || 'lax');
+    
     // Access token cookie (15 minutes)
     // Ensure maxAge doesn't exceed 32-bit integer limit
     const maxAge = Math.min(tokens.expiresIn * 1000, 2147483647); // 32-bit signed integer max
     res.cookie('accessToken', tokens.accessToken, {
       httpOnly: true,
-      secure: isProduction, // HTTPS only in production
-      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
-      maxAge: maxAge, // 15 minutes (capped at 32-bit limit)
+      secure: cookieSecure,
+      sameSite: cookieSameSite as any,
+      maxAge: maxAge,
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+      domain: cookieDomain
     });
 
     // Refresh token cookie (7 days or 30 days if remember me)
-    const refreshMaxAge = rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000; // 30 days or 7 days
+    const refreshMaxAge = rememberMe ? 
+      parseInt(process.env.COOKIE_MAX_AGE_REFRESH_REMEMBER || '2592000000') : 
+      parseInt(process.env.COOKIE_MAX_AGE_REFRESH || '604800000');
+    
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+      secure: cookieSecure,
+      sameSite: cookieSameSite as any,
       maxAge: refreshMaxAge,
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+      domain: cookieDomain
     });
 
     // User session cookie (for frontend to know if user is logged in)
     res.cookie('isAuthenticated', 'true', {
       httpOnly: false, // Frontend can read this
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+      secure: cookieSecure,
+      sameSite: cookieSameSite as any,
       maxAge: refreshMaxAge,
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+      domain: cookieDomain
     });
   }
 
@@ -68,9 +84,13 @@ export class AuthController {
    */
   private static clearAuthCookies(res: Response): void {
     const isProduction = process.env.NODE_ENV === 'production';
+    const cookieDomain = isProduction 
+      ? (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online')
+      : (process.env.COOKIE_DOMAIN_DEV || process.env.COOKIE_DOMAIN || undefined);
+    
     const cookieOptions = {
       path: '/',
-      domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+      domain: cookieDomain
     };
     
     res.clearCookie('accessToken', cookieOptions);

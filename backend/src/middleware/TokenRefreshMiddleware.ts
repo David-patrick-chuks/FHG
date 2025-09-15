@@ -64,34 +64,49 @@ export class TokenRefreshMiddleware {
 
         // Set new cookies with consistent settings
         const isProduction = process.env.NODE_ENV === 'production';
+        
+        // Get cookie configuration from environment
+        const cookieDomain = isProduction 
+          ? (process.env.COOKIE_DOMAIN_PROD || process.env.COOKIE_DOMAIN || '.agentworld.online')
+          : (process.env.COOKIE_DOMAIN_DEV || process.env.COOKIE_DOMAIN || undefined);
+        
+        const cookieSecure = isProduction 
+          ? (process.env.COOKIE_SECURE_PROD === 'true' || process.env.COOKIE_SECURE === 'true' || true)
+          : (process.env.COOKIE_SECURE_DEV === 'true' || process.env.COOKIE_SECURE === 'true' || false);
+        
+        const cookieSameSite = isProduction 
+          ? (process.env.COOKIE_SAME_SITE_PROD || process.env.COOKIE_SAME_SITE || 'none')
+          : (process.env.COOKIE_SAME_SITE_DEV || process.env.COOKIE_SAME_SITE || 'lax');
+        
         // Ensure maxAge doesn't exceed 32-bit integer limit
         const maxAge = Math.min(tokenPair.expiresIn * 1000, 2147483647); // 32-bit signed integer max
         res.cookie('accessToken', tokenPair.accessToken, {
           httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
+          secure: cookieSecure,
+          sameSite: cookieSameSite as any,
           maxAge: maxAge,
           path: '/',
-          domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+          domain: cookieDomain
         });
 
+        const refreshMaxAge = parseInt(process.env.COOKIE_MAX_AGE_REFRESH || '604800000'); // 7 days
         res.cookie('refreshToken', tokenPair.refreshToken, {
           httpOnly: true,
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          secure: cookieSecure,
+          sameSite: cookieSameSite as any,
+          maxAge: refreshMaxAge,
           path: '/',
-          domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+          domain: cookieDomain
         });
 
         // Set isAuthenticated cookie for frontend
         res.cookie('isAuthenticated', 'true', {
           httpOnly: false, // Frontend can read this
-          secure: isProduction,
-          sameSite: isProduction ? 'none' : 'lax', // Use 'none' in production for cross-origin, 'lax' in development
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          secure: cookieSecure,
+          sameSite: cookieSameSite as any,
+          maxAge: refreshMaxAge,
           path: '/',
-          domain: isProduction ? '.agentworld.online' : undefined // Use subdomain wildcard for better mobile compatibility
+          domain: cookieDomain
         });
 
         // Add user to request object

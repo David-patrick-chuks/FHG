@@ -7,10 +7,10 @@ export class JwtService {
   private static logger: Logger = new Logger();
   private static blacklistedTokens: Set<string> = new Set();
   
-  // Token expiration times
-  private static readonly ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
-  private static readonly REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
-  private static readonly REFRESH_TOKEN_EXPIRY_REMEMBER_ME = '30d'; // 30 days for remember me
+  // Token expiration times (from environment or defaults)
+  private static readonly ACCESS_TOKEN_EXPIRY = process.env.ACCESS_TOKEN_EXPIRY || '15m'; // 15 minutes
+  private static readonly REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '7d'; // 7 days
+  private static readonly REFRESH_TOKEN_EXPIRY_REMEMBER_ME = process.env.REFRESH_TOKEN_EXPIRY_REMEMBER_ME || '30d'; // 30 days for remember me
   
   // Minimum secret strength requirements
   private static readonly MIN_SECRET_LENGTH = 32;
@@ -72,7 +72,7 @@ export class JwtService {
       
       // Generate access token
       const accessToken = jwt.sign(payload, secret, {
-        expiresIn: this.ACCESS_TOKEN_EXPIRY,
+        expiresIn: this.ACCESS_TOKEN_EXPIRY || '15m',
         algorithm: 'HS256',
         issuer: 'email-outreach-bot',
         audience: 'email-outreach-bot-api'
@@ -85,7 +85,9 @@ export class JwtService {
         tokenId: crypto.randomUUID()
       };
 
-      const refreshExpiry = rememberMe ? this.REFRESH_TOKEN_EXPIRY_REMEMBER_ME : this.REFRESH_TOKEN_EXPIRY;
+      const refreshExpiry = rememberMe ? 
+        (this.REFRESH_TOKEN_EXPIRY_REMEMBER_ME || '30d') : 
+        (this.REFRESH_TOKEN_EXPIRY || '7d');
       
       const refreshToken = jwt.sign(refreshPayload, secret, {
         expiresIn: refreshExpiry,
@@ -100,7 +102,7 @@ export class JwtService {
 
       this.logger.info('Token pair generated', {
         userId: payload.userId,
-        expiresIn: this.ACCESS_TOKEN_EXPIRY,
+        expiresIn: this.ACCESS_TOKEN_EXPIRY || '15m',
         refreshExpiry,
         rememberMe
       });

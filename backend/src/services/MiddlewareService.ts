@@ -117,9 +117,27 @@ export class MiddlewareService {
    * Get CORS origins based on environment
    */
   private static getCorsOrigins(): string[] {
-    return process.env['NODE_ENV'] === 'production' 
+    const isProduction = process.env['NODE_ENV'] === 'production';
+    
+    // Check for environment-specific CORS origins first
+    const envSpecificOrigins = isProduction 
+      ? process.env.CORS_ORIGINS_PROD 
+      : process.env.CORS_ORIGINS_DEV;
+    
+    if (envSpecificOrigins) {
+      return envSpecificOrigins.split(',').map(origin => origin.trim());
+    }
+    
+    // Fallback to general CORS_ORIGINS
+    const corsOrigins = process.env.CORS_ORIGINS;
+    if (corsOrigins) {
+      return corsOrigins.split(',').map(origin => origin.trim());
+    }
+    
+    // Final fallback to hardcoded values
+    return isProduction 
       ? ['https://agentworld.online', 'https://www.agentworld.online'] 
-      : ['http://localhost:3000', 'http://localhost:3001'];
+      : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
   }
   /**
    * Create enhanced rate limiter configuration
