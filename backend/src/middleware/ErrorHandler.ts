@@ -8,7 +8,7 @@ export class ErrorHandler {
     // Log the error with sanitized information
     ErrorHandler.logger.error('Error occurred:', {
       error: error?.message || 'Unknown error',
-      stack: this.sanitizeStack(error?.stack),
+      stack: ErrorHandler.sanitizeStack(error?.stack),
       url: req.originalUrl,
       method: req.method,
       ip: req.ip,
@@ -27,7 +27,7 @@ export class ErrorHandler {
     if (error.name === 'ValidationError') {
       statusCode = 400;
       message = 'Validation Error';
-      details = this.formatValidationErrors(error);
+      details = ErrorHandler.formatValidationErrors(error);
     } else if (error.name === 'CastError') {
       statusCode = 400;
       message = 'Invalid ID format';
@@ -35,7 +35,7 @@ export class ErrorHandler {
       if (error.code === 11000) {
         statusCode = 409;
         message = 'Duplicate entry';
-        details = this.formatDuplicateError(error);
+        details = ErrorHandler.formatDuplicateError(error);
       } else {
         statusCode = 500;
         message = 'Database Error';
