@@ -103,7 +103,7 @@ export class JwtService {
       const decoded = jwt.decode(accessToken) as any;
       const expiresIn = Math.max(0, decoded.exp - Math.floor(Date.now() / 1000));
 
-      this.logger.info('Token pair generated', {
+      JwtService.logger.info('Token pair generated', {
         userId: payload.userId,
         expiresIn: this.ACCESS_TOKEN_EXPIRY,
         refreshExpiry,
@@ -116,7 +116,7 @@ export class JwtService {
         expiresIn
       };
     } catch (error: any) {
-      this.logger.error('Error generating token pair:', {
+      JwtService.logger.error('Error generating token pair:', {
         message: error?.message,
         stack: error?.stack
       });
@@ -217,14 +217,14 @@ export class JwtService {
             this.blacklistedTokens.delete(token);
           }, expirationTime - now);
           
-          this.logger.info('Token blacklisted', {
+          JwtService.logger.info('Token blacklisted', {
             tokenId: decoded.jti || 'unknown',
             expiresAt: new Date(expirationTime)
           });
         }
       }
     } catch (error: any) {
-      this.logger.error('Error blacklisting token:', {
+      JwtService.logger.error('Error blacklisting token:', {
         message: error?.message
       });
     }
@@ -235,7 +235,7 @@ export class JwtService {
    */
   public static clearBlacklist(): void {
     this.blacklistedTokens.clear();
-    this.logger.info('Token blacklist cleared');
+    JwtService.logger.info('Token blacklist cleared');
   }
 
   /**
