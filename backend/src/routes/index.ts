@@ -87,6 +87,16 @@ export class Routes {
       });
     }
 
+    // Production endpoint to clear rate limits (for testing)
+    router.post('/api/dev/clear-rate-limits', (_req, res) => {
+      AuthMiddleware.clearRateLimitStore();
+      res.status(200).json({
+        success: true,
+        message: 'Rate limits cleared',
+        timestamp: new Date()
+      });
+    });
+
     // Register all route modules
     router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
     router.use(AnalyticsRoutes.getBasePath(), AnalyticsRoutes.getRouter());

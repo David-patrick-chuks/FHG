@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import UserModel from '../models/User';
-import { Logger } from '../utils/Logger';
-import { JwtService } from '../services/JwtService';
 import { DatabaseSecurityService } from '../services/DatabaseSecurityService';
+import { JwtService } from '../services/JwtService';
+import { Logger } from '../utils/Logger';
 
 export class AuthMiddleware {
   private static logger: Logger = new Logger();
@@ -333,7 +333,7 @@ export class AuthMiddleware {
     // More lenient rate limits for development
     const isDevelopment = process.env['NODE_ENV'] === 'development';
     const windowMs = isDevelopment ? 5 * 60 * 1000 : 15 * 60 * 1000; // 5 min dev, 15 min prod
-    const maxRequests = isDevelopment ? 1000 : 100; // 1000 dev, 100 prod
+    const maxRequests = isDevelopment ? 1000 : 2000; // 1000 dev, 2000 prod
 
     // Initialize rate limit storage if not exists
     if (!(AuthMiddleware as any).rateLimitStore) {
