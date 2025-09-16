@@ -223,7 +223,6 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* Subscription Statistics */}
         {subscriptionStats && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card>
