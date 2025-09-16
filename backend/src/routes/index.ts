@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AuthMiddleware } from '../middleware/AuthMiddleware';
 import { AdminRoutes } from './AdminRoutes';
+import { AnalyticsRoutes } from './AnalyticsRoutes';
 import { ApiKeyRoutes } from './ApiKeyRoutes';
 import { AuthRoutes } from './AuthRoutes';
 import { BotRoutes } from './BotRoutes';
@@ -88,6 +89,7 @@ export class Routes {
 
     // Register all route modules
     router.use(AuthRoutes.getBasePath(), AuthRoutes.getRouter());
+    router.use(AnalyticsRoutes.getBasePath(), AnalyticsRoutes.getRouter());
     router.use(ApiKeyRoutes.getBasePath(), ApiKeyRoutes.getRouter());
     router.use(BotRoutes.getBasePath(), BotRoutes.getRouter());
     router.use(CampaignRoutes.getBasePath(), CampaignRoutes.getRouter());

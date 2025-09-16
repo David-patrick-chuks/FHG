@@ -1,4 +1,5 @@
 // Export all API services
+export { AnalyticsAPI } from './analytics';
 export { AuthAPI } from './auth';
 export { BotsAPI } from './bots';
 export { CampaignsAPI } from './campaigns';
@@ -49,6 +50,10 @@ export type {
     CreateSubscriptionRequest,
     UpdateSubscriptionRequest
 } from './subscriptions';
+
+export type {
+    AnalyticsAccessCheck, AnalyticsMetrics, AnalyticsSummary, CampaignPerformance, EmailTrends, UserAnalytics
+} from './analytics';
 
 export type {
     UserTrackingSummary

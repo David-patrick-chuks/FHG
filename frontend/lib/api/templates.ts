@@ -8,8 +8,6 @@ export interface CreateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic: boolean;
-  subject: string;
-  body: string;
   useCase: string;
   variables: Array<{
     key: string;
@@ -17,6 +15,10 @@ export interface CreateTemplateRequest {
     required: boolean;
   }>;
   tags: string[];
+  samples: Array<{
+    subject: string;
+    body: string;
+  }>;
 }
 
 export interface UpdateTemplateRequest {
@@ -26,8 +28,6 @@ export interface UpdateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic?: boolean;
-  subject?: string;
-  body?: string;
   useCase?: string;
   variables?: Array<{
     key: string;
@@ -35,6 +35,10 @@ export interface UpdateTemplateRequest {
     required: boolean;
   }>;
   tags?: string[];
+  samples?: Array<{
+    subject: string;
+    body: string;
+  }>;
 }
 
 export interface ReviewTemplateRequest {

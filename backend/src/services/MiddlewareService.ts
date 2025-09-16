@@ -160,16 +160,32 @@ export class MiddlewareService {
       standardHeaders: true,
       legacyHeaders: false,
       skip: (req: Request) => {
-        // Skip rate limiting for health checks, dev endpoints, and admin endpoints (with proper auth)
+        // Skip rate limiting for health checks, dev endpoints, auth endpoints, and admin endpoints (with proper auth)
         return req.path === '/health' || 
                req.path === '/api/health' ||
                req.path.startsWith('/api/dev/') ||
+               req.path.startsWith('/api/auth/') ||
+               req.path.startsWith('/api/payments/pricing') ||
                (req.path.startsWith('/api/admin') && (req as any).user?.isAdmin);
       },
       keyGenerator: (req: Request) => {
         // Use user ID if authenticated, otherwise IP (with proper IPv6 handling)
         const userId = (req as any).user?.id;
-        return userId ? `user:${userId}` : ipKeyGenerator(req.ip || req.connection.remoteAddress || 'unknown');
+        if (userId) {
+          return `user:${userId}`;
+        }
+        
+        // Handle IP detection for production environments with proxies/load balancers
+        const forwardedFor = req.headers['x-forwarded-for'];
+        const realIp = req.headers['x-real-ip'];
+        const clientIp = req.ip || req.connection.remoteAddress;
+        
+        // Use the first IP from x-forwarded-for if available, otherwise use x-real-ip or client IP
+        const ip = forwardedFor ? forwardedFor.toString().split(',')[0].trim() : 
+                   realIp ? realIp.toString() : 
+                   clientIp || 'unknown';
+        
+        return ipKeyGenerator(ip);
       },
       // Note: onLimitReached might not be available in all versions of express-rate-limit
       // Using standardHeaders and legacyHeaders for rate limit info instead

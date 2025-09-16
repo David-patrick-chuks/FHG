@@ -63,6 +63,9 @@ export class Server {
    * Initialize the server with all middleware, routes, and error handling
    */
   private initializeServer(): void {
+    // Configure Express to trust proxies for proper IP detection in production
+    this.app.set('trust proxy', true);
+    
     // Initialize services
     AuditService.initialize();
     

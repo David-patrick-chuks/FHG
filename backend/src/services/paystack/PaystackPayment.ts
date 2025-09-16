@@ -1,10 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
-import { ActivityType } from '../../types';
 import PaymentModel from '../../models/Payment';
 import UserModel from '../../models/User';
-import { ApiResponse, BillingCycle, InitializePaymentRequest, PaymentStatus, SubscriptionTier } from '../../types';
+import { ActivityType, ApiResponse, BillingCycle, InitializePaymentRequest, PaymentStatus } from '../../types';
 import { ActivityService } from '../ActivityService';
-import { PaystackCore, PaystackConfig, PaystackInitializeResponse, PaystackVerifyResponse } from './PaystackCore';
+import { PaystackCore, PaystackInitializeResponse, PaystackVerifyResponse } from './PaystackCore';
 
 export class PaystackPayment extends PaystackCore {
   public static async initializePayment(
@@ -12,6 +11,16 @@ export class PaystackPayment extends PaystackCore {
     userId: string
   ): Promise<ApiResponse<PaystackInitializeResponse>> {
     try {
+      // Check if PaystackCore is properly initialized
+      if (!PaystackPayment.config) {
+        PaystackPayment.logger.error('PaystackCore not initialized');
+        return {
+          success: false,
+          message: 'Payment service not initialized',
+          timestamp: new Date()
+        };
+      }
+
       const user = await UserModel.findById(userId);
       if (!user) {
         return {
@@ -22,14 +31,66 @@ export class PaystackPayment extends PaystackCore {
       }
 
       const { subscriptionTier, billingCycle } = request;
-      const pricing = PaystackPayment.getSubscriptionPricing();
-      const tierKey = subscriptionTier.toUpperCase() as keyof typeof pricing;
-      const amount = pricing[tierKey][billingCycle.toLowerCase() as 'monthly' | 'yearly'];
-
-      if (amount === 0) {
+      let pricing = PaystackPayment.getSubscriptionPricing();
+      
+      // Check if pricing is properly initialized, with fallback
+      if (!pricing || typeof pricing !== 'object') {
+        PaystackPayment.logger.error('Pricing not properly initialized, using fallback:', { pricing });
+        pricing = {
+          basic: { monthly: 2999, yearly: 28790 },
+          premium: { monthly: 9999, yearly: 95990 }
+        };
+      }
+      
+      const tierKey = subscriptionTier.toLowerCase() as keyof typeof pricing;
+      
+      // Add detailed logging for debugging
+      PaystackPayment.logger.info('Payment initialization details:', {
+        subscriptionTier,
+        billingCycle,
+        tierKey,
+        availableTiers: Object.keys(pricing),
+        pricing
+      });
+      
+      // Validate tier exists in pricing
+      if (!pricing[tierKey]) {
+        PaystackPayment.logger.error('Invalid subscription tier:', {
+          subscriptionTier,
+          tierKey,
+          availableTiers: Object.keys(pricing),
+          pricing
+        });
         return {
           success: false,
-          message: 'Invalid subscription tier or billing cycle',
+          message: `Invalid subscription tier: ${subscriptionTier}. Available tiers: ${Object.keys(pricing).join(', ')}`,
+          timestamp: new Date()
+        };
+      }
+
+      // Validate billing cycle exists for the tier
+      const tierPricing = pricing[tierKey];
+      const cycleKey = billingCycle.toLowerCase() as 'monthly' | 'yearly';
+      
+      if (!tierPricing[cycleKey]) {
+        PaystackPayment.logger.error('Invalid billing cycle:', {
+          billingCycle,
+          cycleKey,
+          availableCycles: Object.keys(tierPricing)
+        });
+        return {
+          success: false,
+          message: `Invalid billing cycle: ${billingCycle} for tier: ${subscriptionTier}. Available cycles: ${Object.keys(tierPricing).join(', ')}`,
+          timestamp: new Date()
+        };
+      }
+
+      const amount = tierPricing[cycleKey];
+
+      if (!amount || amount === 0) {
+        return {
+          success: false,
+          message: `Invalid billing cycle: ${billingCycle} for tier: ${subscriptionTier}`,
           timestamp: new Date()
         };
       }

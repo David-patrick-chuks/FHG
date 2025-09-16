@@ -6,6 +6,8 @@ export interface ITemplateDocument extends Omit<ITemplate, '_id'>, Document {
   rejectTemplate(reason: string): Promise<void>;
   publishTemplate(): Promise<void>;
   unpublishTemplate(): Promise<void>;
+  addSample(sample: any): Promise<void>;
+  removeSample(sampleId: string): Promise<void>;
   incrementUsageCount(): Promise<void>;
   getUsageStats(): { totalUsage: number; recentUsage: number };
 }
@@ -89,20 +91,6 @@ export class TemplateModel {
         type: String,
         trim: true,
         maxlength: 500
-      },
-      subject: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1,
-        maxlength: 200
-      },
-      body: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1,
-        maxlength: 5000
       },
       useCase: {
         type: String,
@@ -263,7 +251,19 @@ export class TemplateModel {
       await this.save();
     };
 
-    // Sample methods removed in new template structure
+    templateSchema.methods['addSample'] = async function(sample: any): Promise<void> {
+      if (this.samples.length >= 20) {
+        throw new Error('Maximum 20 samples allowed per template');
+      }
+      
+      this.samples.push(sample);
+      await this.save();
+    };
+
+    templateSchema.methods['removeSample'] = async function(sampleId: string): Promise<void> {
+      this.samples = this.samples.filter((sample: any) => sample._id.toString() !== sampleId);
+      await this.save();
+    };
 
     templateSchema.methods['incrementUsageCount'] = async function(): Promise<void> {
       this.usageCount += 1;

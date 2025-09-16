@@ -244,7 +244,7 @@ export default function EmailExtractorPage() {
           return;
         } catch (shareError) {
           // If user cancels the share dialog, don't show error
-          if (shareError.name === 'AbortError') {
+          if (shareError && typeof shareError === 'object' && 'name' in shareError && (shareError as { name?: string }).name === 'AbortError') {
             return;
           }
           // For other share errors, fall back to clipboard
@@ -305,7 +305,7 @@ export default function EmailExtractorPage() {
         <div className="relative space-y-4 sm:space-y-6">
           {/* Subscription Limits - Hidden on mobile if not needed */}
           {subscriptionInfo && (
-            <div className="group relative hidden sm:block">
+            <div className="group relative sm:block">
               <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
               <div className="relative p-4 sm:p-6">
                 <SubscriptionLimitsDisplay subscriptionInfo={subscriptionInfo} />

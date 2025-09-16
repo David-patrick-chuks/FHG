@@ -95,6 +95,21 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="useCase" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+          Use Case *
+        </Label>
+        <Textarea
+          id="useCase"
+          value={formData.useCase}
+          onChange={(e) => setFormData(prev => ({ ...prev, useCase: e.target.value }))}
+          placeholder="Describe when and why to use this template..."
+          rows={3}
+          required
+          className="text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400 transition-all duration-200"
+        />
+      </div>
+
       <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="industry" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">

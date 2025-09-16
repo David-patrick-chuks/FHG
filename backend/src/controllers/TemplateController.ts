@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { ActivityType } from '../types';
 import { ActivityService } from '../services/ActivityService';
 import { TemplateService } from '../services/TemplateService';
+import { ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class TemplateController {
@@ -290,7 +290,17 @@ export class TemplateController {
       // Validate request body
       const { rating, comment } = req.body;
       
-      if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+      // Check if request body exists
+      if (!req.body || typeof req.body !== 'object') {
+        res.status(400).json({
+          success: false,
+          message: 'Request body is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+      
+      if (rating === undefined || rating === null || typeof rating !== 'number' || rating < 1 || rating > 5) {
         res.status(400).json({
           success: false,
           message: 'Rating is required and must be a number between 1 and 5',
@@ -299,7 +309,7 @@ export class TemplateController {
         return;
       }
 
-      if (comment && typeof comment !== 'string') {
+      if (comment !== undefined && comment !== null && typeof comment !== 'string') {
         res.status(400).json({
           success: false,
           message: 'Comment must be a string',

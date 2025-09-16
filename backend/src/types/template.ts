@@ -65,8 +65,6 @@ export interface ITemplate {
   approvedBy?: string;
   approvedAt?: Date;
   rejectionReason?: string;
-  subject: string;
-  body: string;
   useCase: string;
   variables: ITemplateVariable[];
   samples: ITemplateSample[];
@@ -92,8 +90,6 @@ export interface CreateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic: boolean;
-  subject: string;
-  body: string;
   useCase: string;
   variables: ITemplateVariable[];
   samples: ITemplateSample[];
@@ -107,8 +103,6 @@ export interface UpdateTemplateRequest {
   industry?: string;
   targetAudience?: string;
   isPublic?: boolean;
-  subject?: string;
-  body?: string;
   useCase?: string;
   variables?: ITemplateVariable[];
   samples?: ITemplateSample[];

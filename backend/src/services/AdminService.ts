@@ -40,10 +40,16 @@ export class AdminService {
     try {
       const users = await UserModel.find({}).select('-password');
       
+      // Serialize users to convert ObjectIds to strings
+      const serializedUsers = users.map(user => ({
+        ...user.toObject(),
+        _id: (user._id as any).toString()
+      }));
+      
       return {
         success: true,
         message: 'Users retrieved successfully',
-        data: users,
+        data: serializedUsers,
         timestamp: new Date()
       };
     } catch (error) {
@@ -63,10 +69,16 @@ export class AdminService {
         };
       }
 
+      // Serialize user to convert ObjectId to string
+      const serializedUser = {
+        ...user.toObject(),
+        _id: (user._id as any).toString()
+      };
+
       return {
         success: true,
         message: 'User retrieved successfully',
-        data: user,
+        data: serializedUser,
         timestamp: new Date()
       };
     } catch (error) {
@@ -151,10 +163,22 @@ export class AdminService {
         amount
       });
 
+      // Serialize user and subscription to convert ObjectIds to strings
+      const serializedUser = {
+        ...user.toObject(),
+        _id: (user._id as any).toString()
+      };
+      
+      const serializedSubscription = {
+        ...subscription.toObject(),
+        _id: (subscription._id as any).toString(),
+        userId: (subscription.userId as any).toString()
+      };
+
       return {
         success: true,
         message: 'User subscription updated successfully',
-        data: { user, subscription },
+        data: { user: serializedUser, subscription: serializedSubscription },
         timestamp: new Date()
       };
     } catch (error) {
@@ -203,10 +227,16 @@ export class AdminService {
         reason
       });
 
+      // Serialize user to convert ObjectId to string
+      const serializedUser = {
+        ...user.toObject(),
+        _id: (user._id as any).toString()
+      };
+
       return {
         success: true,
         message: 'User suspended successfully',
-        data: user,
+        data: serializedUser,
         timestamp: new Date()
       };
     } catch (error) {
@@ -246,10 +276,16 @@ export class AdminService {
         userId
       });
 
+      // Serialize user to convert ObjectId to string
+      const serializedUser = {
+        ...user.toObject(),
+        _id: (user._id as any).toString()
+      };
+
       return {
         success: true,
         message: 'User activated successfully',
-        data: user,
+        data: serializedUser,
         timestamp: new Date()
       };
     } catch (error) {

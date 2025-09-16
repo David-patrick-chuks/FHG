@@ -24,6 +24,14 @@ export class PaystackCore {
   }
 
   public static getSubscriptionPricing() {
+    // Ensure we always return a valid pricing object
+    if (!PaystackCore.SUBSCRIPTION_PRICES) {
+      PaystackCore.logger.error('SUBSCRIPTION_PRICES is undefined');
+      return {
+        basic: { monthly: 2999, yearly: 28790 },
+        premium: { monthly: 9999, yearly: 95990 }
+      };
+    }
     return PaystackCore.SUBSCRIPTION_PRICES;
   }
 }

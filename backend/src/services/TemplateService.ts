@@ -1,13 +1,13 @@
 import TemplateModel from '../models/Template';
 import UserModel from '../models/User';
 import {
-  ApiResponse,
-  ApproveTemplateRequest,
-  CreateTemplateRequest,
-  ReviewTemplateRequest,
-  TemplateCategory,
-  TemplateStatus,
-  UpdateTemplateRequest
+    ApiResponse,
+    ApproveTemplateRequest,
+    CreateTemplateRequest,
+    ReviewTemplateRequest,
+    TemplateCategory,
+    TemplateStatus,
+    UpdateTemplateRequest
 } from '../types';
 import { Logger } from '../utils/Logger';
 
@@ -100,7 +100,10 @@ export class TemplateService {
         comment: review.comment,
         createdAt: review.createdAt?.toISOString()
       })),
-      // Note: samples field removed in new template structure
+      samples: (templateObj.samples || []).map((sample: any) => ({
+        ...sample,
+        _id: sample._id?.toString()
+      })), // Include samples array with proper _id serialization
       featured: templateObj.featured,
       featuredAt: templateObj.featuredAt?.toISOString(),
       createdAt: templateObj.createdAt?.toISOString(),
@@ -120,25 +123,22 @@ export class TemplateService {
         };
       }
 
-      // Validate required fields
-      if (!templateData.subject || !templateData.body) {
+      // Validate minimum samples requirement
+      if (templateData.samples.length < 10) {
         return {
           success: false,
-          message: 'Template subject and body are required',
+          message: 'Template must have at least 10 samples',
           timestamp: new Date()
         };
       }
 
-      // Validate variables if provided
-      if (templateData.variables && templateData.variables.length > 0) {
-        const requiredVariables = templateData.variables.filter(v => v.required);
-        if (requiredVariables.length > 10) {
-          return {
-            success: false,
-            message: 'Template cannot have more than 10 required variables',
-            timestamp: new Date()
-          };
-        }
+      // Validate maximum samples limit
+      if (templateData.samples.length > 20) {
+        return {
+          success: false,
+          message: 'Template cannot have more than 20 samples',
+          timestamp: new Date()
+        };
       }
 
       // Create template
@@ -154,7 +154,7 @@ export class TemplateService {
         templateId: template._id,
         userId,
         templateName: template.name,
-        variableCount: template.variables?.length || 0,
+        sampleCount: template.samples.length,
         isPublic: template.isPublic
       });
 
@@ -294,13 +294,19 @@ export class TemplateService {
         };
       }
 
-      // Validate variables if provided
-      if (updateData.variables && updateData.variables.length > 0) {
-        const requiredVariables = updateData.variables.filter(v => v.required);
-        if (requiredVariables.length > 10) {
+      // Validate samples if provided
+      if (updateData.samples) {
+        if (updateData.samples.length < 10) {
           return {
             success: false,
-            message: 'Template cannot have more than 10 required variables',
+            message: 'Template must have at least 10 samples',
+            timestamp: new Date()
+          };
+        }
+        if (updateData.samples.length > 20) {
+          return {
+            success: false,
+            message: 'Template cannot have more than 20 samples',
             timestamp: new Date()
           };
         }
@@ -470,6 +476,16 @@ export class TemplateService {
         };
       }
 
+      // Additional validation for comment if provided
+      if (reviewData.comment && (typeof reviewData.comment !== 'string' || reviewData.comment.length > 500)) {
+        TemplateService.logger.error('Invalid comment provided', { templateId, userId, commentLength: reviewData.comment?.length });
+        return {
+          success: false,
+          message: 'Comment must be a string with maximum 500 characters',
+          timestamp: new Date()
+        };
+      }
+
       // Validate MongoDB ObjectId format
       if (!/^[0-9a-fA-F]{24}$/.test(templateId)) {
         TemplateService.logger.error('Invalid MongoDB ObjectId format', { templateId, userId });
@@ -537,40 +553,86 @@ export class TemplateService {
 
       // Add review
       try {
-        template.reviews.push({
-          userId,
+        // Ensure reviews array exists
+        if (!template.reviews) {
+          template.reviews = [];
+        }
+
+        // Create new review object
+        const newReview = {
+          userId: userId,
           rating: reviewData.rating,
           comment: reviewData.comment || '',
           createdAt: new Date()
-        });
+        };
 
-        // Update rating average
+        // Add the review
+        template.reviews.push(newReview);
+
+        // Update rating average with better error handling
         const totalRating = template.reviews.reduce((sum, review) => {
           try {
-            return sum + (review.rating || 0);
+            if (review && typeof review.rating === 'number' && !isNaN(review.rating)) {
+              return sum + review.rating;
+            }
+            return sum;
           } catch (error) {
-            console.warn('Invalid review rating found:', error);
+            TemplateService.logger.warn('Invalid review rating found during calculation:', { error, review });
             return sum;
           }
         }, 0);
-        template.rating.average = template.reviews.length > 0 ? totalRating / template.reviews.length : 0;
-        template.rating.count = template.reviews.length;
+
+        // Calculate new average and count
+        const reviewCount = template.reviews.length;
+        template.rating.average = reviewCount > 0 ? Math.round((totalRating / reviewCount) * 100) / 100 : 0; // Round to 2 decimal places
+        template.rating.count = reviewCount;
 
         TemplateService.logger.info('Saving template with new review', { 
           templateId: template._id, 
           userId, 
-          reviewCount: template.reviews.length,
-          newRating: reviewData.rating 
+          reviewCount: reviewCount,
+          newRating: reviewData.rating,
+          newAverage: template.rating.average
         });
 
-        await template.save();
-      } catch (saveError) {
+        // Save with validation
+        const savedTemplate = await template.save();
+        
+        if (!savedTemplate) {
+          throw new Error('Failed to save template - no result returned');
+        }
+
+        TemplateService.logger.info('Template saved successfully with new review', { 
+          templateId: savedTemplate._id, 
+          userId, 
+          reviewCount: savedTemplate.reviews.length
+        });
+
+      } catch (saveError: any) {
         TemplateService.logger.error('Error saving template with review', { 
           templateId: template._id, 
           userId, 
-          error: saveError 
+          error: saveError?.message || 'Unknown save error',
+          errorName: saveError?.name,
+          errorCode: saveError?.code
         });
-        throw saveError;
+        
+        // Return a more specific error message
+        if (saveError?.name === 'ValidationError') {
+          return {
+            success: false,
+            message: 'Validation error: ' + saveError.message,
+            timestamp: new Date()
+          };
+        } else if (saveError?.name === 'CastError') {
+          return {
+            success: false,
+            message: 'Invalid data format in review',
+            timestamp: new Date()
+          };
+        } else {
+          throw saveError;
+        }
       }
 
       TemplateService.logger.info('Template review added', {
@@ -592,13 +654,17 @@ export class TemplateService {
         stack: error?.stack,
         templateId,
         userId,
-        reviewData
+        reviewData,
+        errorName: error?.name,
+        errorCode: error?.code
       });
       
-      // Re-throw with more context
-      const enhancedError = new Error(`Failed to add template review: ${error?.message || 'Unknown error'}`);
-      enhancedError.stack = error?.stack;
-      throw enhancedError;
+      // Return error response instead of throwing
+      return {
+        success: false,
+        message: `Failed to add template review: ${error?.message || 'Unknown error'}`,
+        timestamp: new Date()
+      };
     }
   }
 
@@ -684,7 +750,7 @@ export class TemplateService {
         templateId, 
         userId, 
         templateName: template.name,
-        // sampleCount removed in new template structure
+        sampleCount: template.samples?.length || 0,
         variableCount: template.variables?.length || 0
       });
 
@@ -701,8 +767,7 @@ export class TemplateService {
           isPublic: false, // User's copy is private by default
           isApproved: true, // User's copy is auto-approved
           status: TemplateStatus.APPROVED,
-          subject: template.subject,
-          body: template.body,
+          samples: template.samples || [],
           variables: template.variables || [],
           tags: template.tags || [],
           originalTemplateId: templateId, // Reference to the original template

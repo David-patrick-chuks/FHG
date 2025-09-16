@@ -1,6 +1,6 @@
 'use client';
 
-import { AnalyticsPageContent } from '@/components/analytics';
+import { SubscriptionBasedAnalytics } from '@/components/analytics/SubscriptionBasedAnalytics';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 export default function AnalyticsPage() {
@@ -9,7 +9,7 @@ export default function AnalyticsPage() {
       title="Analytics"
       description="Track performance metrics and insights across all your campaigns"
     >
-      <AnalyticsPageContent />
+      <SubscriptionBasedAnalytics />
     </DashboardLayout>
   );
 }

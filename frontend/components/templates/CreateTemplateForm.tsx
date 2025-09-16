@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { TemplateBasicInfo } from './TemplateBasicInfo';
-import { TemplateEmailContent } from './TemplateEmailContent';
 import { TemplateSamples } from './TemplateSamples';
 import { TemplateTags } from './TemplateTags';
 import { TemplateVariables } from './TemplateVariables';
@@ -36,11 +35,10 @@ export function CreateTemplateForm({
     industry: '',
     targetAudience: '',
     isPublic: false,
-    subject: '',
-    body: '',
     useCase: '',
     variables: [],
     tags: [],
+    samples: [],
     ...initialData
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -50,8 +48,7 @@ export function CreateTemplateForm({
                            formData.description.trim() && 
                            formData.useCase.trim() && 
                            formData.category &&
-                           formData.subject.trim() &&
-                           formData.body.trim();
+                           formData.samples.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,8 +93,6 @@ export function CreateTemplateForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       <TemplateBasicInfo formData={formData} setFormData={setFormData} />
-      
-      <TemplateEmailContent formData={formData} setFormData={setFormData} />
       
       <TemplateSamples formData={formData} setFormData={setFormData} />
       

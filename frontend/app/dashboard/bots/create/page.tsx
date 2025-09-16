@@ -1,5 +1,6 @@
 'use client';
 
+import { BotProgressSteps } from '@/components/dashboard/bots/BotProgressSteps';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -149,70 +150,40 @@ export default function CreateBotPage() {
         <Button 
           variant="outline"
           onClick={() => router.push('/dashboard/bots')}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Bots
+          <span className="hidden sm:inline">Back to Bots</span>
+          <span className="sm:hidden">Back</span>
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Progress Steps */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center space-x-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
-                    currentStep >= step.id 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {step.id}
-                  </div>
-                  <span className={`text-sm font-medium transition-colors ${
-                    currentStep >= step.id 
-                      ? 'text-gray-700 dark:text-gray-300' 
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {step.title}
-                  </span>
-                  {index < steps.length - 1 && (
-                    <div className={`w-8 h-0.5 ml-4 transition-all duration-300 ${
-                      currentStep > step.id 
-                        ? 'bg-blue-500' 
-                        : 'bg-gray-200 dark:bg-gray-600'
-                    }`}></div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Step {currentStep} of {steps.length}
-            </div>
-          </div>
+        <div className="px-2 sm:px-0">
+          <BotProgressSteps steps={steps} currentStep={currentStep} />
         </div>
 
         {/* Step Content */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                  <BotIcon className="w-5 h-5 text-white" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <BotIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div>
-                  <span className="text-xl">Basic Information</span>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
+                <div className="min-w-0 flex-1">
+                  <span className="text-lg sm:text-xl">Basic Information</span>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-normal mt-0.5 sm:mt-1">
                     Set up your bot's basic details and identity
                   </p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Bot Name <span className="text-red-500">*</span>
@@ -224,7 +195,7 @@ export default function CreateBotPage() {
                     placeholder="e.g., Sales Assistant Bot"
                     maxLength={50}
                     required
-                    className="h-12"
+                    className="h-10 sm:h-12 text-sm sm:text-base"
                   />
                   <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                     <span>Descriptive and unique name</span>
@@ -244,7 +215,7 @@ export default function CreateBotPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="bot@company.com"
                     required
-                    className="h-12"
+                    className="h-10 sm:h-12 text-sm sm:text-base"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Email address for sending emails
@@ -263,7 +234,7 @@ export default function CreateBotPage() {
                   placeholder="Describe what this bot does and its purpose (max 200 characters)"
                   rows={3}
                   maxLength={200}
-                  className="resize-none border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="resize-none border border-gray-300 dark:border-gray-600 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm sm:text-base"
                 />
                 <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                   <span>Brief description of the bot's purpose</span>
@@ -279,22 +250,22 @@ export default function CreateBotPage() {
                   <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Bot Avatar Preview
                   </Label>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border">
-                    <div className="flex items-center space-x-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 sm:p-4 border">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
                       <img
                         src={`https://robohash.org/${encodeURIComponent(formData.name)}?set=set3&size=200x200`}
                         alt={`${formData.name} avatar`}
-                        className="w-16 h-16 rounded-lg border-2 border-white dark:border-gray-600"
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg border-2 border-white dark:border-gray-600 flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                           {formData.name}
                         </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                           Unique avatar generated from your bot name
                         </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="flex items-center space-x-2 mt-1 sm:mt-2">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
                           <span className="text-xs text-green-600 dark:text-green-400 font-medium">Ready</span>
                         </div>
                       </div>
@@ -303,13 +274,14 @@ export default function CreateBotPage() {
                 </div>
               )}
             </CardContent>
-            <div className="flex justify-end p-6 pt-0">
+            <div className="flex justify-end p-4 sm:p-6 pt-0">
               <Button
                 onClick={() => setCurrentStep(2)}
                 disabled={!canProceedToStep2}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
+                className="h-10 sm:h-12 px-6 sm:px-8 bg-cyan-600 hover:bg-cyan-700 text-sm sm:text-base"
               >
-                Continue to Email Setup
+                <span className="hidden sm:inline">Continue to Email Setup</span>
+                <span className="sm:hidden">Continue</span>
                 <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
               </Button>
             </div>
@@ -319,36 +291,36 @@ export default function CreateBotPage() {
           {/* Step 2: Email Setup */}
           {currentStep === 2 && (
             <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-white" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div>
-                  <span className="text-xl">Email Setup</span>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-normal mt-1">
+                <div className="min-w-0 flex-1">
+                  <span className="text-lg sm:text-xl">Email Setup</span>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-normal mt-0.5 sm:mt-1">
                     Configure SMTP credentials for sending emails
                   </p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <span>
                     Email Password <span className="text-red-500">*</span>
                   </span>
                   <Link 
                     href="/app-password-guide" 
                     target="_blank"
-                    className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1"
+                    className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 flex items-center gap-1 self-start sm:self-auto"
                   >
                     <ExternalLink className="w-3 h-3" />
                     How to get app password
                   </Link>
                 </Label>
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
                     <Input
                       id="password"
@@ -378,12 +350,12 @@ export default function CreateBotPage() {
                       }}
                       placeholder="Enter your email password"
                       required
-                      className="h-12 pr-12"
+                      className="h-10 sm:h-12 pr-10 sm:pr-12 text-sm sm:text-base"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -396,33 +368,37 @@ export default function CreateBotPage() {
                     type="button"
                     onClick={handleVerifyCredentials}
                     disabled={isVerifying || !formData.email.trim() || !formData.password.trim()}
-                    className={`h-12 px-6 ${
+                    className={`h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base ${
                       verificationStatus === 'success' 
                         ? 'bg-green-600 hover:bg-green-700 text-white' 
                         : verificationStatus === 'error'
                         ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-cyan-600 hover:bg-cyan-700 text-white'
                     }`}
                   >
                     {isVerifying ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                        Verifying...
+                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent mr-1 sm:mr-2"></div>
+                        <span className="hidden sm:inline">Verifying...</span>
+                        <span className="sm:hidden">Verify...</span>
                       </>
                     ) : verificationStatus === 'success' ? (
                       <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Verified
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Verified</span>
+                        <span className="sm:hidden">✓</span>
                       </>
                     ) : verificationStatus === 'error' ? (
                       <>
-                        <X className="h-4 w-4 mr-2" />
-                        Failed
+                        <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Failed</span>
+                        <span className="sm:hidden">✗</span>
                       </>
                     ) : (
                       <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Verify
+                        <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden sm:inline">Verify</span>
+                        <span className="sm:hidden">Verify</span>
                       </>
                     )}
                   </Button>
@@ -443,41 +419,44 @@ export default function CreateBotPage() {
                   }`}>
                     <div className="flex items-center space-x-2">
                       {verificationStatus === 'success' ? (
-                        <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <Check className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                       ) : verificationStatus === 'error' ? (
-                        <X className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <X className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
                       ) : (
-                        <X className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        <X className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
                       )}
-                      <span className="font-medium">{verificationMessage}</span>
+                      <span className="font-medium text-xs sm:text-sm">{verificationMessage}</span>
                     </div>
                   </div>
                 )}
               </div>
             </CardContent>
-            <div className="flex justify-between p-6 pt-0">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 p-4 sm:p-6 pt-0">
               <Button
                 variant="outline"
                 onClick={() => setCurrentStep(1)}
-                className="h-12 px-6"
+                className="h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base order-2 sm:order-1"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Basic Info
+                <span className="hidden sm:inline">Back to Basic Info</span>
+                <span className="sm:hidden">Back</span>
               </Button>
               <Button 
                 onClick={handleSubmit}
                 disabled={!canCreateBot || isLoading}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700"
+                className="h-10 sm:h-12 px-6 sm:px-8 bg-cyan-600 hover:bg-cyan-700 text-sm sm:text-base order-1 sm:order-2"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                    Creating Bot...
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent mr-1 sm:mr-2"></div>
+                    <span className="hidden sm:inline">Creating Bot...</span>
+                    <span className="sm:hidden">Creating...</span>
                   </>
                 ) : (
                   <>
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Bot
+                    <span className="hidden sm:inline">Create Bot</span>
+                    <span className="sm:hidden">Create</span>
                   </>
                 )}
               </Button>

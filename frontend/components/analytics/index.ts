@@ -5,5 +5,6 @@ export { AnalyticsMetricsCards } from './AnalyticsMetricsCards';
 export { AnalyticsPageContent } from './AnalyticsPageContent';
 export { CampaignStatisticsTable } from './CampaignStatisticsTable';
 export { PerformanceTrendsChart } from './PerformanceTrendsChart';
+export { SubscriptionBasedAnalytics } from './SubscriptionBasedAnalytics';
 export { TopPerformingCampaigns } from './TopPerformingCampaigns';
 

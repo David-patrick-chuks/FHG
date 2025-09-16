@@ -72,11 +72,10 @@ export function MyTemplatesTab({
         industry: template.industry,
         targetAudience: template.targetAudience,
         isPublic: false, // Always make duplicates private
-        subject: template.subject,
-        body: template.body,
         useCase: template.useCase,
         variables: template.variables || [],
-        tags: template.tags || []
+        tags: template.tags || [],
+        samples: template.samples || []
       };
 
       const response = await TemplatesAPI.createTemplate(duplicateData);
