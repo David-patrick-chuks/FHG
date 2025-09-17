@@ -278,7 +278,7 @@ export class PaystackPayment extends PaystackCore {
       // Ensure proper serialization of _id fields
       const serializedPayments = payments.map(payment => ({
         ...payment.toObject(),
-        _id: payment._id.toString()
+        _id: (payment._id as any).toString()
       }));
 
       return {
