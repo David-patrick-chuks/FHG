@@ -2,9 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle, Upload, X, Users, AlertTriangle, Lock } from 'lucide-react';
-import { useState } from 'react';
 import { SubscriptionTier } from '@/types';
+import { AlertTriangle, CheckCircle, Lock, Upload, Users, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface EmailListManagerProps {
   emailList: string;
@@ -49,7 +49,11 @@ export function EmailListManager({
     const emails = text
       .split(/[\n\s,;]+/)
       .map(email => email.trim())
-      .filter(email => email && email.includes('@')); // Basic email validation
+      .filter(email => {
+        // Use the same email validation as backend
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return email && emailRegex.test(email);
+      });
     
     return emails;
   };

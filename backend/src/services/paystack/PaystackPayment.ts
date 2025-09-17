@@ -269,10 +269,79 @@ export class PaystackPayment extends PaystackCore {
     }
   }
 
-  public static async getUserPayments(userId: string): Promise<ApiResponse<any[]>> {
+  public static async getUserPayments(
+    userId: string,
+    options: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      subscriptionTier?: string;
+      billingCycle?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    } = {}
+  ): Promise<ApiResponse<{
+    payments: any[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  }>> {
     try {
-      const payments = await PaymentModel.find({ userId })
-        .sort({ createdAt: -1 })
+      const {
+        page = 1,
+        limit = 10,
+        status,
+        subscriptionTier,
+        billingCycle,
+        search,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+      } = options;
+
+      // Build query
+      const query: any = { userId };
+
+      // Add filters
+      if (status) {
+        query.status = status;
+      }
+      if (subscriptionTier) {
+        query.subscriptionTier = subscriptionTier;
+      }
+      if (billingCycle) {
+        query.billingCycle = billingCycle;
+      }
+
+      // Add search functionality
+      if (search) {
+        query.$or = [
+          { reference: { $regex: search, $options: 'i' } },
+          { paystackReference: { $regex: search, $options: 'i' } },
+          { gatewayResponse: { $regex: search, $options: 'i' } },
+          { failureReason: { $regex: search, $options: 'i' } }
+        ];
+      }
+
+      // Calculate pagination
+      const skip = (page - 1) * limit;
+      const totalItems = await PaymentModel.countDocuments(query);
+      const totalPages = Math.ceil(totalItems / limit);
+
+      // Build sort object
+      const sort: any = {};
+      sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+      // Execute query with pagination
+      const payments = await PaymentModel.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
         .select('-__v');
 
       // Ensure proper serialization of _id fields
@@ -284,7 +353,17 @@ export class PaystackPayment extends PaystackCore {
       return {
         success: true,
         message: 'Payments retrieved successfully',
-        data: serializedPayments,
+        data: {
+          payments: serializedPayments,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+          }
+        },
         timestamp: new Date()
       };
     } catch (error: any) {

@@ -41,16 +41,40 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
       // First, check if user has access to analytics
       const accessResponse = await AnalyticsAPI.checkAnalyticsAccess();
       
+      console.log('Analytics access response:', accessResponse);
+      
       if (accessResponse.success && accessResponse.data) {
         setHasAccess(accessResponse.data.hasAccess);
         
         if (accessResponse.data.hasAccess) {
           // User has paid subscription, fetch full analytics
+          console.log('User has access, fetching analytics data...');
           const analyticsResponse = await AnalyticsAPI.getUserAnalytics();
+          console.log('Analytics data response:', analyticsResponse);
+          
           if (analyticsResponse.success && analyticsResponse.data) {
             setAnalyticsData(analyticsResponse.data);
           } else {
-            setError(analyticsResponse.message || 'Failed to fetch analytics data');
+            // Don't set error for analytics data fetch failure, just log it
+            console.warn('Analytics data fetch failed:', analyticsResponse.message);
+            // Set empty analytics data instead of error
+            setAnalyticsData({
+              metrics: {
+                totalEmails: 0,
+                totalOpened: 0,
+                totalDelivered: 0,
+                totalFailed: 0,
+                averageOpenRate: 0,
+                totalCampaigns: 0,
+                activeCampaigns: 0,
+                completedCampaigns: 0,
+                topPerformingCampaign: null
+              },
+              campaignPerformance: [],
+              emailTrends: [],
+              subscriptionTier: accessResponse.data.subscriptionTier,
+              hasAccess: true
+            });
           }
         } else {
           // User has free subscription, show upgrade prompt with basic info
@@ -76,6 +100,15 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
     fetchAnalyticsData();
   }, [fetchAnalyticsData]);
 
+  // Debug logging
+  console.log('Analytics component state:', {
+    loading,
+    error,
+    hasAccess,
+    analyticsData: !!analyticsData,
+    summaryData: !!summaryData
+  });
+
   if (loading) {
     return <AnalyticsLoadingSkeleton />;
   }
@@ -85,7 +118,7 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
   }
 
   // Free users see blurred analytics preview with upgrade prompt
-  if (!hasAccess && summaryData) {
+  if (!hasAccess) {
     return (
       <div className={`space-y-6 ${className} relative`}>
         {/* Blurred Analytics Preview */}
@@ -246,20 +279,25 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
   }
 
   // Paid users see full analytics
-  if (hasAccess && analyticsData) {
-    return (
-      <div className={`space-y-6 ${className}`}>
-        <AnalyticsMetricsCards trackingSummary={analyticsData} />
-        
-        <PerformanceTrendsChart campaignStats={analyticsData.campaignPerformance} />
-        
-        <TopPerformingCampaigns trackingSummary={analyticsData} />
-        
-        <CampaignStatisticsTable campaignStats={analyticsData.campaignPerformance} />
+  if (hasAccess) {
+    if (analyticsData) {
+      return (
+        <div className={`space-y-6 ${className}`}>
+          <AnalyticsMetricsCards trackingSummary={analyticsData} />
+          
+          <PerformanceTrendsChart campaignStats={analyticsData.campaignPerformance} />
+          
+          <TopPerformingCampaigns trackingSummary={analyticsData} />
+          
+          <CampaignStatisticsTable campaignStats={analyticsData.campaignPerformance} />
 
-        {!analyticsData.metrics.totalCampaigns && <AnalyticsEmptyState />}
-      </div>
-    );
+          {!analyticsData.metrics.totalCampaigns && <AnalyticsEmptyState />}
+        </div>
+      );
+    } else if (!loading && !error) {
+      // User has access but analytics data is still loading or failed to load
+      return <AnalyticsLoadingSkeleton />;
+    }
   }
 
   // Fallback empty state

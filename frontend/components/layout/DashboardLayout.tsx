@@ -110,6 +110,11 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
       href: '/dashboard/admin/activity',
       icon: Activity,
     },
+    {
+      label: 'Template Approvals',
+      href: '/dashboard/admin/templates',
+      icon: FileText,
+    },
   ];
 
   return isAdmin ? [...regularItems, ...adminItems] : regularItems;

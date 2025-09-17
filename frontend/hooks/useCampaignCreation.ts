@@ -2,6 +2,7 @@
 
 import { BotsAPI, CampaignsAPI } from '@/lib/api';
 import { TemplatesAPI } from '@/lib/api/templates';
+import { config } from '@/lib/config';
 import { Bot, Template } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -118,7 +119,8 @@ export function useCampaignCreation() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/campaigns/upload-emails', {
+      const baseUrl= config.api.baseUrl || process.env.NEXT_PUBLIC_API_BASE_URL ;
+      const response = await fetch(`${baseUrl}/campaigns/upload-emails`, {
         method: 'POST',
         credentials: 'include', // Include cookies automatically
         body: formData,
@@ -181,7 +183,39 @@ export function useCampaignCreation() {
       setCreating(true);
       setError(null);
       
-      const emailList = formData.emailList.split('\n').filter(email => email.trim());
+      // Parse emails from text field - support both line breaks and spaces/commas
+      const parseEmailsFromText = (text: string) => {
+        if (!text.trim()) return [];
+        
+        // Split by multiple delimiters: newlines, spaces, commas, semicolons
+        const emails = text
+          .split(/[\n\s,;]+/)
+          .map(email => email.trim())
+          .filter(email => {
+            // Use the same email validation as backend
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return email && emailRegex.test(email);
+          });
+        
+        return emails;
+      };
+      
+      // Use uploaded emails if available, otherwise parse from text field
+      const emailList = uploadedEmails.length > 0 ? uploadedEmails : parseEmailsFromText(formData.emailList);
+      
+      // Debug logging
+      console.log('Campaign creation - Email parsing:', {
+        originalText: formData.emailList,
+        parsedEmails: emailList,
+        uploadedEmails: uploadedEmails.length
+      });
+      
+      // Validate that we have at least one email
+      if (emailList.length === 0) {
+        setError('Please provide at least one valid email address');
+        return;
+      }
+      
       const response = await CampaignsAPI.createCampaign({
         name: formData.name,
         description: formData.description,
@@ -227,9 +261,26 @@ export function useCampaignCreation() {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
+  // Helper function to check if we have valid emails
+  const hasValidEmails = () => {
+    if (uploadedEmails.length > 0) return true;
+    if (!formData.emailList.trim()) return false;
+    
+    // Parse emails from text field
+    const emails = formData.emailList
+      .split(/[\n\s,;]+/)
+      .map(email => email.trim())
+      .filter(email => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return email && emailRegex.test(email);
+      });
+    
+    return emails.length > 0;
+  };
+
   const canProceedToStep2 = Boolean(formData.name.trim() && formData.botId);
   const canProceedToStep3 = Boolean(canProceedToStep2 && formData.templateId);
-  const canProceedToStep4 = Boolean(canProceedToStep3 && (uploadedEmails.length > 0 || formData.emailList.trim()));
+  const canProceedToStep4 = Boolean(canProceedToStep3 && hasValidEmails());
   const canCreateCampaign = Boolean(canProceedToStep4);
   
   const isFormDisabled = creating;

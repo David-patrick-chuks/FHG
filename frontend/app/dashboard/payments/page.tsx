@@ -5,19 +5,26 @@ import { PaymentsLoadingSkeleton } from '@/components/payments';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PaymentAPI, PaymentHistory } from '@/lib/api/payment';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PaymentAPI, PaymentHistory, PaymentHistoryFilters, PaymentHistoryResponse } from '@/lib/api/payment';
 import {
     CheckCircle,
     Clock,
     CreditCard,
     Crown,
     Download,
+    Search,
     Settings,
     XCircle,
-    Zap
+    Zap,
+    ChevronLeft,
+    ChevronRight,
+    Filter,
+    X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 export default function UserPaymentsPage() {

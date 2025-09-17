@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import sharp from 'sharp';
 import PaymentModel from '../../models/Payment';
 import UserModel from '../../models/User';
@@ -64,6 +66,27 @@ export class PaystackReceipt extends PaystackCore {
       minute: '2-digit'
     });
 
+    // Calculate expiry date (1 year from payment date)
+    const paymentDate = payment.paidAt || payment.createdAt;
+    const expiryDate = new Date(paymentDate);
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+
+    // Read and process the MailQuill logo
+    const logoPath = path.join(process.cwd(), 'public', 'MailQuill.svg');
+    let logoData = '';
+    try {
+      const logoContent = fs.readFileSync(logoPath, 'utf8');
+      // Update the logo color to blue and make it smaller
+      logoData = logoContent
+        .replace('fill="#000000"', 'fill="#1e3a8a"')
+        .replace('width="275.000000pt"', 'width="40"')
+        .replace('height="282.000000pt"', 'height="40"')
+        .replace('viewBox="0 0 275.000000 282.000000"', 'viewBox="0 0 275 282"');
+    } catch (error) {
+      // Fallback to text logo if SVG file not found
+      logoData = '';
+    }
+
     // Receipt dimensions - more professional A4-like proportions
     const width = 600;
     const height = 800;
@@ -96,22 +119,26 @@ export class PaystackReceipt extends PaystackCore {
         
         <!-- Company Logo Area -->
         <rect x="${padding + 20}" y="${padding + 20}" width="60" height="60" fill="white" rx="8" ry="8"/>
+        ${logoData ? `
+        <g transform="translate(${padding + 30}, ${padding + 30})">
+          ${logoData.replace('<svg', '<g').replace('</svg>', '</g>')}
+        </g>
+        ` : `
         <text x="${padding + 50}" y="${padding + 45}" text-anchor="middle" fill="#1e3a8a" 
               font-family="Arial, sans-serif" font-size="24" font-weight="bold">MQ</text>
+        `}
         
-        <!-- Header Text -->
-        <text x="${padding + 100}" y="${padding + 45}" fill="white" 
+        <!-- Header Text - Centered -->
+        <text x="${width / 2}" y="${padding + 50}" text-anchor="middle" fill="white" 
               font-family="Arial, sans-serif" font-size="24" font-weight="bold">MailQuill</text>
-        <text x="${padding + 100}" y="${padding + 65}" fill="white" 
+        <text x="${width / 2}" y="${padding + 70}" text-anchor="middle" fill="white" 
               font-family="Arial, sans-serif" font-size="14" font-weight="400" opacity="0.9">Email Marketing Platform</text>
-        <text x="${padding + 100}" y="${padding + 85}" fill="white" 
+        <text x="${width / 2}" y="${padding + 90}" text-anchor="middle" fill="white" 
               font-family="Arial, sans-serif" font-size="16" font-weight="600">PAYMENT RECEIPT</text>
         
-        <!-- Receipt Number -->
-        <text x="${width - padding - 20}" y="${padding + 45}" text-anchor="end" fill="white" 
-              font-family="Arial, sans-serif" font-size="12" font-weight="400">Receipt #</text>
-        <text x="${width - padding - 20}" y="${padding + 60}" text-anchor="end" fill="white" 
-              font-family="Arial, sans-serif" font-size="14" font-weight="600">${payment.reference}</text>
+        <!-- Receipt Number - Moved to content area -->
+        <text x="${width - padding - 20}" y="${padding + 100}" text-anchor="end" fill="white" 
+              font-family="Arial, sans-serif" font-size="12" font-weight="400">Receipt # ${payment.reference}</text>
         
         <!-- Content Area -->
         <g transform="translate(${padding + 30}, ${padding + 160})">
@@ -122,7 +149,7 @@ export class PaystackReceipt extends PaystackCore {
           <text x="${width - 2 * padding - 60 - 20}" y="45" text-anchor="end" fill="#059669" 
                 font-family="Arial, sans-serif" font-size="20" font-weight="bold">${formatCurrency(payment.amount)}</text>
           <text x="20" y="65" fill="#374151" font-family="Arial, sans-serif" font-size="14" font-weight="400">Status</text>
-          <rect x="${width - 2 * padding - 60 - 80}" y="50" width="70" height="20" fill="#059669" rx="10" ry="10"/>
+          <rect x="${width - 2 * padding - 60 - 90}" y="50" width="90" height="20" fill="#059669" rx="10" ry="10"/>
           <text x="${width - 2 * padding - 60 - 45}" y="63" text-anchor="middle" fill="white" 
                 font-family="Arial, sans-serif" font-size="11" font-weight="600">${payment.status.toUpperCase()}</text>
           
@@ -154,18 +181,24 @@ export class PaystackReceipt extends PaystackCore {
             <text x="15" y="127" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Payment Method</text>
             <text x="${width - 2 * padding - 60 - 15}" y="127" text-anchor="end" fill="#111827" 
                   font-family="Arial, sans-serif" font-size="13" font-weight="500">Paystack</text>
+            
+            <!-- Expiry Date Row -->
+            <rect x="0" y="140" width="${width - 2 * padding - 60}" height="35" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
+            <text x="15" y="162" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Expires On</text>
+            <text x="${width - 2 * padding - 60 - 15}" y="162" text-anchor="end" fill="#111827" 
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${formatDate(expiryDate)}</text>
           </g>
           
           <!-- Customer Information -->
-          <text x="0" y="320" fill="#1e3a8a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Customer Information</text>
+          <text x="0" y="355" fill="#1e3a8a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Customer Information</text>
           
           <!-- Customer Details Table -->
-          <g transform="translate(0, 340)">
+          <g transform="translate(0, 375)">
             <!-- Name Row -->
             <rect x="0" y="0" width="${width - 2 * padding - 60}" height="35" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
             <text x="15" y="22" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Customer Name</text>
             <text x="${width - 2 * padding - 60 - 15}" y="22" text-anchor="end" fill="#111827" 
-                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${user.username}</text>
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${user.username.charAt(0).toUpperCase() + user.username.slice(1)}</text>
             
             <!-- Email Row -->
             <rect x="0" y="35" width="${width - 2 * padding - 60}" height="35" fill="white" stroke="#e5e7eb" stroke-width="1"/>
@@ -175,19 +208,31 @@ export class PaystackReceipt extends PaystackCore {
           </g>
           
           <!-- Footer -->
-          <rect x="0" y="450" width="${width - 2 * padding - 60}" height="120" fill="#f8fafc" rx="6" ry="6" stroke="#e5e7eb" stroke-width="1"/>
-          <text x="${(width - 2 * padding - 60) / 2}" y="480" text-anchor="middle" fill="#1e3a8a" 
-                font-family="Arial, sans-serif" font-size="14" font-weight="bold">Thank you for your business!</text>
-          <text x="${(width - 2 * padding - 60) / 2}" y="505" text-anchor="middle" fill="#6b7280" 
+          <rect x="0" y="485" width="${width - 2 * padding - 60}" height="120" fill="#f8fafc" rx="6" ry="6" stroke="#e5e7eb" stroke-width="1"/>
+          <text x="${(width - 2 * padding - 60) / 2}" y="515" text-anchor="middle" fill="#1e3a8a" 
+                font-family="Arial, sans-serif" font-size="14" font-weight="bold">Thank you for choosing MailQuill!</text>
+          <text x="${(width - 2 * padding - 60) / 2}" y="540" text-anchor="middle" fill="#6b7280" 
                 font-family="Arial, sans-serif" font-size="12" font-weight="400">This receipt serves as proof of payment for your MailQuill subscription.</text>
-          <text x="${(width - 2 * padding - 60) / 2}" y="525" text-anchor="middle" fill="#6b7280" 
+          <text x="${(width - 2 * padding - 60) / 2}" y="560" text-anchor="middle" fill="#6b7280" 
                 font-family="Arial, sans-serif" font-size="12" font-weight="400">Please keep this receipt for your records.</text>
-          <text x="${(width - 2 * padding - 60) / 2}" y="550" text-anchor="middle" fill="#9ca3af" 
+          <text x="${(width - 2 * padding - 60) / 2}" y="585" text-anchor="middle" fill="#9ca3af" 
                 font-family="Arial, sans-serif" font-size="10" font-weight="400">Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</text>
         </g>
         
         <!-- Professional border -->
         <rect x="10" y="10" width="${width - 20}" height="${height - 20}" fill="none" stroke="#1e3a8a" stroke-width="2" rx="12" ry="12"/>
+        
+        <!-- Watermark -->
+        <g opacity="0.1" transform="translate(${width / 2 - 100}, ${height / 2 - 50})">
+          ${logoData ? `
+          <g transform="scale(2)">
+            ${logoData.replace('<svg', '<g').replace('</svg>', '</g>')}
+          </g>
+          ` : `
+          <text x="100" y="50" text-anchor="middle" fill="#1e3a8a" 
+                font-family="Arial, sans-serif" font-size="48" font-weight="bold">MailQuill</text>
+          `}
+        </g>
       </svg>
     `;
 

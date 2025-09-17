@@ -59,6 +59,29 @@ export interface PaymentStats {
   pendingPayments: number;
 }
 
+export interface PaymentHistoryResponse {
+  payments: PaymentHistory[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export interface PaymentHistoryFilters {
+  page?: number;
+  limit?: number;
+  status?: string;
+  subscriptionTier?: string;
+  billingCycle?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 export class PaymentAPI {
   private static baseUrl = '/payments';
 
@@ -84,10 +107,23 @@ export class PaymentAPI {
   }
 
   /**
-   * Get user payment history
+   * Get user payment history with pagination, filtering, and search
    */
-  static async getPaymentHistory(): Promise<ApiResponse<PaymentHistory[]>> {
-    return apiClient.get<PaymentHistory[]>(`${this.baseUrl}/history`);
+  static async getPaymentHistory(filters?: PaymentHistoryFilters): Promise<ApiResponse<PaymentHistoryResponse>> {
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+    }
+    
+    const queryString = params.toString();
+    const url = queryString ? `${this.baseUrl}/history?${queryString}` : `${this.baseUrl}/history`;
+    
+    return apiClient.get<PaymentHistoryResponse>(url);
   }
 
   /**

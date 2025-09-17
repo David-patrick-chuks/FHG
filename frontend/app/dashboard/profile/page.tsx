@@ -94,9 +94,28 @@ export default function ProfilePage() {
           });
         } else {
           // Fallback to API call if user data doesn't have API key info
-          const keyResponse = await apiClient.get<ApiKeyInfo>("/api-keys/info");
-          if (keyResponse.success && keyResponse.data) {
-            setApiKeyInfo((keyResponse.data as any).data);
+          try {
+            const keyResponse = await apiClient.get<ApiKeyInfo>("/api-keys/info");
+            if (keyResponse.success && keyResponse.data) {
+              setApiKeyInfo((keyResponse.data as any).data);
+            } else {
+              // No API key exists
+              setApiKeyInfo({
+                hasApiKey: false,
+                apiKey: null,
+                createdAt: null,
+                lastUsed: null,
+              });
+            }
+          } catch (error) {
+            console.error("Failed to fetch API key info:", error);
+            // Set as no API key on error
+            setApiKeyInfo({
+              hasApiKey: false,
+              apiKey: null,
+              createdAt: null,
+              lastUsed: null,
+            });
           }
         }
 

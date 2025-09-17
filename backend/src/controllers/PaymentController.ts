@@ -343,13 +343,41 @@ export class PaymentController {
   }
 
   /**
-   * Get user payment history
+   * Get user payment history with pagination, filtering, and search
    */
   public static async getUserPayments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = (req as any).user['id'];
+      
+      // Extract query parameters
+      const {
+        page = '1',
+        limit = '10',
+        status,
+        subscriptionTier,
+        billingCycle,
+        search,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+      } = req.query;
 
-      const result = await PaystackService.getUserPayments(userId);
+      // Parse and validate parameters
+      const pageNum = Math.max(1, parseInt(page as string) || 1);
+      const limitNum = Math.min(50, Math.max(1, parseInt(limit as string) || 10)); // Max 50 items per page
+      const sortOrderValue = sortOrder === 'asc' ? 'asc' : 'desc';
+
+      const options = {
+        page: pageNum,
+        limit: limitNum,
+        status: status as string,
+        subscriptionTier: subscriptionTier as string,
+        billingCycle: billingCycle as string,
+        search: search as string,
+        sortBy: sortBy as string,
+        sortOrder: sortOrderValue as 'asc' | 'desc'
+      };
+
+      const result = await PaystackService.getUserPayments(userId, options);
 
       if (result.success) {
         res.status(200).json(result);

@@ -51,24 +51,39 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
   const [refreshing, setRefreshing] = useState(false);
   const [progressSteps, setProgressSteps] = useState<ProgressStep[]>([
     {
-      name: 'Homepage Scan',
+      name: '🌐 Homepage Analysis',
       status: 'pending',
-      details: 'Scanning homepage for email addresses'
+      details: 'Analyzing homepage structure and content'
     },
     {
-      name: 'Homepage Email Extraction',
+      name: '🔍 Email Scanning',
       status: 'pending',
-      details: 'Extracting emails from homepage content'
+      details: 'Scanning for email addresses in content'
     },
     {
-      name: 'Contact Pages',
+      name: '📞 Contact Pages',
       status: 'pending',
-      details: 'Scanning contact and about pages'
+      details: 'Discovering and scanning contact pages'
     },
     {
-      name: 'Puppeteer Scan',
+      name: '🤖 Advanced Browser Scan',
       status: 'pending',
-      details: 'Advanced JavaScript-based email detection'
+      details: 'Using stealth browser automation'
+    },
+    {
+      name: '🌍 WHOIS Database',
+      status: 'pending',
+      details: 'Querying domain registration database'
+    },
+    {
+      name: '💡 Email Generation',
+      status: 'pending',
+      details: 'Generating common business email patterns'
+    },
+    {
+      name: '🎉 Extraction Complete',
+      status: 'pending',
+      details: 'Email extraction process finished'
     }
   ]);
   const { toast } = useToast();
@@ -124,18 +139,19 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
     
     // Map backend progress steps to frontend format
     const stepMapping: { [key: string]: string } = {
-      'homepage_scan': 'Homepage Scan',
-      'homepage_email_extraction': 'Homepage Email Extraction',
-      'contact_pages': 'Contact Pages',
-      'puppeteer_scan': 'Puppeteer Scan',
-      'whois_lookup': 'WHOIS Lookup',
-      'extraction_complete': 'Extraction Complete'
+      'homepage_scan': '🌐 Homepage Analysis',
+      'homepage_email_extraction': '🔍 Email Scanning',
+      'contact_pages': '📞 Contact Pages',
+      'puppeteer_scan': '🤖 Advanced Browser Scan',
+      'whois_lookup': '🌍 WHOIS Database',
+      'fallback_generation': '💡 Email Generation',
+      'extraction_complete': '🎉 Extraction Complete'
     };
 
     const steps: ProgressStep[] = [];
     
     // Add steps in order
-    const stepOrder = ['homepage_scan', 'homepage_email_extraction', 'contact_pages', 'puppeteer_scan', 'whois_lookup'];
+    const stepOrder = ['homepage_scan', 'homepage_email_extraction', 'contact_pages', 'puppeteer_scan', 'whois_lookup', 'fallback_generation', 'extraction_complete'];
     
     stepOrder.forEach(stepKey => {
       const progressStep = progress.find(p => p.step === stepKey);

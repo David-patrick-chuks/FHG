@@ -104,6 +104,10 @@ function getStepIcon(step: string) {
       return <Zap className="h-4 w-4" />;
     case 'whois_lookup':
       return <Database className="h-4 w-4" />;
+    case 'fallback_generation':
+      return <Zap className="h-4 w-4" />;
+    case 'extraction_complete':
+      return <CheckCircle className="h-4 w-4" />;
     default:
       return <Clock className="h-4 w-4" />;
   }
@@ -140,7 +144,17 @@ function getStepStatusColor(status: string) {
 }
 
 function formatStepName(step: string): string {
-  return step
+  const stepNames: { [key: string]: string } = {
+    'homepage_scan': '🌐 Homepage Analysis',
+    'homepage_email_extraction': '🔍 Email Scanning',
+    'contact_pages': '📞 Contact Pages',
+    'puppeteer_scan': '🤖 Advanced Browser Scan',
+    'whois_lookup': '🌍 WHOIS Database',
+    'fallback_generation': '💡 Email Generation',
+    'extraction_complete': '🎉 Extraction Complete'
+  };
+  
+  return stepNames[step] || step
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
@@ -182,7 +196,7 @@ function DetailedProgress({ result }: DetailedProgressProps) {
               </span>
               {step.message && (
                 <span className="text-gray-600 truncate">
-                  - {step.message}
+                  {step.message}
                 </span>
               )}
               {step.duration && (

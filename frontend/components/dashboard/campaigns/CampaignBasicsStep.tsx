@@ -1,6 +1,6 @@
 'use client';
 
-import { BotSelector } from '@/components/dashboard/campaigns/BotSelector';
+import { CustomBotSelector } from '@/components/dashboard/campaigns/CustomBotSelector';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -66,7 +66,7 @@ export function CampaignBasicsStep({
             </p>
           </div>
           
-          <BotSelector
+          <CustomBotSelector
             bots={bots}
             selectedBotId={formData.botId}
             onBotSelect={(botId) => onFormDataChange({ botId })}

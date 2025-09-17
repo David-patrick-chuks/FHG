@@ -67,21 +67,23 @@ export function ApiKeyManagement({
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+
   return (
     <div className="space-y-4">
       {!apiKeyInfo?.hasApiKey ? (
-        <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
-          <Key className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        <div className="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <Key className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
             No API Key Generated
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Generate an API key to access our email extraction service programmatically.
           </p>
           <Button 
             onClick={onGenerateApiKey}
             disabled={isGeneratingKey}
-            className="bg-blue-600 hover:bg-blue-700"
+            size="sm"
+            className="bg-cyan-600 hover:bg-cyan-700"
           >
             {isGeneratingKey && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
             <Key className="mr-2 h-4 w-4" />
@@ -231,7 +233,9 @@ export function ApiKeyManagement({
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min((apiUsage.usage.used / apiUsage.usage.limit) * 100, 100)}%` }}
+                    style={{ 
+                      width: `${Math.min((apiUsage.usage.used / apiUsage.usage.limit) * 100, 100)}%` 
+                    }}
                   />
                 </div>
               </div>

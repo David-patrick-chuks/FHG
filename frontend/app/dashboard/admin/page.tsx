@@ -1,33 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AdminAPI, PlatformStats, SubscriptionStats, AdminActivityStats, SystemActivityStats } from '@/lib/api/admin';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Users, 
-  Bot, 
-  Mail, 
-  TrendingUp, 
-  TrendingDown,
-  DollarSign,
-  Activity,
-  Shield,
-  Crown,
-  Zap,
-  Calendar,
-  Clock,
-  Loader2,
-  RefreshCw,
-  BarChart3,
-  PieChart,
-  Settings
+import { AdminActivityStats, AdminAPI, PlatformStats, SubscriptionStats, SystemActivityStats } from '@/lib/api/admin';
+import {
+    Activity,
+    Bot,
+    Crown,
+    DollarSign,
+    FileText,
+    Loader2,
+    Mail,
+    RefreshCw,
+    Shield,
+    Users,
+    Zap
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
@@ -78,11 +71,17 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | null | undefined) => {
+    if (num === null || num === undefined || isNaN(num)) {
+      return '0';
+    }
     return new Intl.NumberFormat('en-US').format(num);
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return '₦0';
+    }
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN',
@@ -90,8 +89,9 @@ export default function AdminDashboardPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (date: string | Date) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -253,7 +253,9 @@ export default function AdminDashboardPage() {
                       {formatNumber(subscriptionStats.freeUsers)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {Math.round((subscriptionStats.freeUsers / subscriptionStats.totalSubscriptions) * 100)}% of total
+                      {subscriptionStats.totalSubscriptions > 0 
+                        ? Math.round((subscriptionStats.freeUsers / subscriptionStats.totalSubscriptions) * 100)
+                        : 0}% of total
                     </p>
                   </div>
                   <div className="p-3 bg-gray-100 dark:bg-gray-900/20 rounded-lg">
@@ -272,7 +274,9 @@ export default function AdminDashboardPage() {
                       {formatNumber(subscriptionStats.proUsers)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {Math.round((subscriptionStats.proUsers / subscriptionStats.totalSubscriptions) * 100)}% of total
+                      {subscriptionStats.totalSubscriptions > 0 
+                        ? Math.round((subscriptionStats.proUsers / subscriptionStats.totalSubscriptions) * 100)
+                        : 0}% of total
                     </p>
                   </div>
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
@@ -291,7 +295,9 @@ export default function AdminDashboardPage() {
                       {formatNumber(subscriptionStats.enterpriseUsers)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {Math.round((subscriptionStats.enterpriseUsers / subscriptionStats.totalSubscriptions) * 100)}% of total
+                      {subscriptionStats.totalSubscriptions > 0 
+                        ? Math.round((subscriptionStats.enterpriseUsers / subscriptionStats.totalSubscriptions) * 100)
+                        : 0}% of total
                     </p>
                   </div>
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
@@ -304,7 +310,7 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Quick Actions */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/dashboard/admin/users')}>
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
@@ -342,6 +348,20 @@ export default function AdminDashboardPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">Activity Logs</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Monitor system activity</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/dashboard/admin/templates')}>
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                  <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Template Approvals</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Review community templates</p>
                 </div>
               </div>
             </CardContent>
