@@ -555,11 +555,24 @@ export class CampaignService {
         };
       }
 
-      // Validate scheduled time
-      if (scheduledFor <= new Date()) {
+      // Validate scheduled time - allow scheduling for today but not in the past
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today
+      const scheduledDate = new Date(scheduledFor.getFullYear(), scheduledFor.getMonth(), scheduledFor.getDate());
+      
+      if (scheduledDate < today) {
         return {
           success: false,
-          message: 'Scheduled time must be in the future',
+          message: 'Cannot schedule campaigns for past dates',
+          timestamp: new Date()
+        };
+      }
+      
+      // If scheduling for today, ensure the time is in the future
+      if (scheduledDate.getTime() === today.getTime() && scheduledFor <= now) {
+        return {
+          success: false,
+          message: 'When scheduling for today, the time must be in the future',
           timestamp: new Date()
         };
       }

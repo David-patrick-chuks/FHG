@@ -215,18 +215,18 @@ export function EmailListManager({
 
       {/* Uploaded File Success */}
       {uploadedFileName && (
-        <Card className="border-2 border-green-200 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10">
+        <Card className="border-2 border-blue-200 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl flex items-center justify-center">
-                  <Upload className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-900 rounded-2xl flex items-center justify-center">
+                  <Upload className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-green-900 dark:text-green-100">
+                  <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
                     {uploadedFileName}
                   </p>
-                  <p className="text-base text-green-700 dark:text-green-300 flex items-center space-x-2">
+                  <p className="text-base text-blue-700 dark:text-blue-300 flex items-center space-x-2">
                     <CheckCircle className="w-5 h-5" />
                     <span>{uploadedEmails.length} valid emails extracted</span>
                   </p>
@@ -289,7 +289,7 @@ export function EmailListManager({
               ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/20' 
               : isNearLimit
               ? 'border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20'
-              : 'border-gray-200 dark:border-gray-600 focus:border-green-500 focus:ring-4 focus:ring-green-500/20'
+              : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
           }`}
         />
         
