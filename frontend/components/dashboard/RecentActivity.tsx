@@ -34,23 +34,29 @@ export function RecentActivity({ activities }: RecentActivityProps) {
           )}
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {activities.length > 0 ? (
             activities.slice(0, 5).map((activity) => {
               const IconComponent = getActivityIcon(activity.type);
               const iconColor = getActivityIconColor(activity.type);
               return (
-                <div key={activity.id} className="group/item flex items-center space-x-3 p-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 rounded-xl hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300">
-                  <div className={`p-2 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 dark:border-blue-500/30`}>
-                    <IconComponent className={`w-5 h-5 ${iconColor}`} />
+                <div key={activity.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 rounded-xl hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300">
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                    <div className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 dark:border-blue-500/30 flex-shrink-0`}>
+                      <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 ${iconColor}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 dark:text-white text-sm sm:text-base truncate">{activity.title}</p>
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+                        {activity.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 dark:text-white">{activity.title}</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">
-                      {activity.description}
-                    </p>
+                  <div className="flex justify-between sm:justify-end items-center gap-2 sm:gap-0">
+                    <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {activity.time}
+                    </span>
                   </div>
-                  <span className="text-sm text-slate-500 dark:text-slate-400">{activity.time}</span>
                 </div>
               );
             })

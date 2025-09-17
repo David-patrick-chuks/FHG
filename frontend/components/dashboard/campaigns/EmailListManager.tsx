@@ -139,8 +139,8 @@ export function EmailListManager({
             disabled || !canUploadCsv
               ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-50'
               : isDragOver 
-              ? 'border-green-500 bg-green-50/80 dark:bg-green-900/20 scale-105 shadow-lg' 
-              : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500 bg-white dark:bg-gray-800 hover:bg-green-50/50 dark:hover:bg-green-900/10 hover:shadow-md'
+              ? 'border-blue-500 bg-blue-50/80 dark:bg-blue-900/20 scale-105 shadow-lg' 
+              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 bg-white dark:bg-gray-800 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 hover:shadow-md'
           }`}
           onDragOver={disabled || !canUploadCsv ? undefined : onDragOver}
           onDragLeave={disabled || !canUploadCsv ? undefined : onDragLeave}
@@ -157,9 +157,9 @@ export function EmailListManager({
           <label htmlFor="fileUpload" className={`block ${disabled || !canUploadCsv ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
             {isUploading ? (
               <div className="space-y-6">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
                 <div>
-                  <p className="text-xl font-semibold text-green-600 dark:text-green-400">Processing your file...</p>
+                  <p className="text-xl font-semibold text-blue-600 dark:text-blue-400">Processing your file...</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Please wait while we extract email addresses</p>
                 </div>
               </div>
@@ -167,17 +167,17 @@ export function EmailListManager({
               <div className="space-y-6">
                 <div className={`mx-auto w-24 h-24 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                   isDragOver 
-                    ? 'bg-green-500 scale-110 shadow-lg shadow-green-500/25' 
-                    : 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30'
+                    ? 'bg-blue-500 scale-110 shadow-lg shadow-blue-500/25' 
+                    : 'bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30'
                 }`}>
                   <Upload className={`w-12 h-12 transition-colors duration-300 ${
-                    isDragOver ? 'text-white' : 'text-green-600 dark:text-green-400'
+                    isDragOver ? 'text-white' : 'text-blue-600 dark:text-blue-400'
                   }`} />
                 </div>
                 <div>
                   <p className={`text-2xl font-bold transition-colors duration-300 ${
                     isDragOver 
-                      ? 'text-green-600 dark:text-green-400' 
+                      ? 'text-blue-600 dark:text-blue-400' 
                       : !canUploadCsv
                       ? 'text-gray-500 dark:text-gray-400'
                       : 'text-gray-900 dark:text-white'
@@ -194,7 +194,7 @@ export function EmailListManager({
                   </p>
                   <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <span>CSV files</span>
                     </span>
                     <span className="flex items-center space-x-1">
