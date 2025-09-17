@@ -293,7 +293,7 @@ export class EmailExtractorController {
       if (canUseCsv) {
         res.status(403).json({
           success: false,
-          message: 'CSV upload is not available in your current plan. Please upgrade to Pro or Enterprise.',
+          message: 'CSV upload is not available in your current plan. Please upgrade to Basic or Premium.',
           timestamp: new Date(),
           requiresUpgrade: true
         });

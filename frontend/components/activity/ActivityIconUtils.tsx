@@ -1,181 +1,52 @@
 import {
   Activity,
+  AlertCircle,
   AlertTriangle,
+  Archive,
+  BarChart3,
+  Bell,
   Bot,
   CheckCircle,
+  Clock,
+  CreditCard,
+  Crown,
+  Database,
+  Download,
+  Edit,
+  ExternalLink,
+  Eye,
+  FileText,
+  Globe,
+  Heart,
+  Key,
+  Link,
+  Lock,
   LogIn,
   LogOut,
+  Mail,
+  Minus,
+  Pause,
+  Play,
+  Plus,
+  RefreshCw,
+  Search,
+  Send,
   Settings,
   Shield,
-  Play,
   Square,
-  Search,
-  XCircle,
-  Link,
-  Globe,
-  FileUp,
-  Download,
-  Eye,
-  AlertCircle,
-  Clock,
-  Database,
-  BarChart3,
-  Key,
-  RefreshCw,
-  Trash2,
-  ExternalLink,
   Star,
-  TrendingUp,
-  XCircle as XCircleIcon,
-  Heart,
-  Bell,
   Target,
-  Send,
-  UserPlus,
-  User,
-  Zap,
-  Mail,
-  FileText,
-  Users,
-  Calendar,
-  DollarSign,
-  Lock,
-  Unlock,
-  Plus,
-  Minus,
-  Edit,
-  Save,
-  Upload,
-  Filter,
-  MessageSquare,
-  Phone,
-  Video,
-  Image,
-  File,
-  Folder,
-  Archive,
-  Copy,
-  Share,
-  Bookmark,
-  Flag,
-  ThumbsUp,
-  ThumbsDown,
-  Award,
-  Gift,
-  CreditCard,
-  Receipt,
-  PieChart,
-  LineChart,
-  Activity as ActivityIcon,
-  Cpu,
-  HardDrive,
-  Wifi,
-  WifiOff,
-  Battery,
-  BatteryCharging,
-  Volume2,
-  VolumeX,
-  Sun,
-  Moon,
-  Cloud,
-  CloudRain,
-  Wind,
-  Thermometer,
-  Droplets,
-  Flame,
-  Snowflake,
-  Umbrella,
-  TreePine,
-  Mountain,
-  Waves,
-  Fish,
-  Bird,
-  Cat,
-  Dog,
-  Bug,
-  Flower,
-  Leaf,
-  Apple,
-  Carrot,
-  Coffee,
-  Pizza,
-  Cake,
-  Wine,
-  Beer,
-  Music,
-  Headphones,
-  Radio,
-  Tv,
-  Monitor,
-  Smartphone,
-  Tablet,
-  Laptop,
-  Desktop,
-  Server,
-  Router,
-  Printer,
-  Scanner,
-  Camera,
-  VideoCamera,
-  Microphone,
-  Speaker,
-  Gamepad2,
-  Joystick,
-  Dice1,
-  Dice2,
-  Dice3,
-  Dice4,
-  Dice5,
-  Dice6,
-  Puzzle,
-  Chess,
-  Cards,
+  Trash2,
+  TrendingUp,
   Trophy,
-  Medal,
-  Crown,
-  Gem,
-  Diamond,
-  Ruby,
-  Sapphire,
-  Emerald,
-  Amethyst,
-  Pearl,
-  Gold,
-  Silver,
-  Bronze,
-  Iron,
-  Steel,
-  Copper,
-  Aluminum,
-  Titanium,
-  Platinum,
-  Uranium,
-  Radium,
-  Plutonium,
-  Helium,
-  Hydrogen,
-  Oxygen,
-  Nitrogen,
-  Carbon,
-  Silicon,
-  Phosphorus,
-  Sulfur,
-  Chlorine,
-  Fluorine,
-  Bromine,
-  Iodine,
-  Lithium,
-  Sodium,
-  Potassium,
-  Calcium,
-  Magnesium,
-  Barium,
-  Strontium,
-  Radon,
-  Xenon,
-  Krypton,
-  Neon,
-  Argon
+  Upload,
+  User,
+  UserCheck,
+  UserMinus,
+  UserPlus,
+  XCircle,
+  XCircle as XCircleIcon,
+  Zap
 } from 'lucide-react';
 
 export const getActivityIcon = (type: string) => {
@@ -259,6 +130,8 @@ export const getActivityIcon = (type: string) => {
       return Eye;
     
     // Subscription activities
+    case 'subscription_created':
+      return Crown;
     case 'subscription_upgraded':
       return Star;
     case 'subscription_downgraded':
@@ -267,10 +140,21 @@ export const getActivityIcon = (type: string) => {
       return XCircleIcon;
     case 'subscription_renewed':
       return Heart;
+    case 'subscription_updated':
+      return Edit;
+    case 'subscription_expired':
+      return Clock;
     case 'payment_processed':
+    case 'payment_completed':
       return CreditCard;
     case 'payment_failed':
       return AlertTriangle;
+    case 'payment_initialized':
+      return CreditCard;
+    case 'payment_cancelled':
+      return XCircle;
+    case 'payment_refunded':
+      return RefreshCw;
     
     // Notification activities
     case 'notification_sent':
@@ -304,11 +188,150 @@ export const getActivityIcon = (type: string) => {
     
     // Analytics activities
     case 'analytics_viewed':
+    case 'analytics_dashboard_viewed':
       return BarChart3;
     case 'report_generated':
+    case 'analytics_report_generated':
       return FileText;
     case 'export_completed':
+    case 'analytics_data_exported':
       return Download;
+    
+    // Bot activities (additional)
+    case 'bot_deleted':
+      return Trash2;
+    case 'bot_credentials_tested':
+      return CheckCircle;
+    
+    // Campaign activities (additional)
+    case 'campaign_updated':
+      return Edit;
+    case 'campaign_deleted':
+      return Trash2;
+    case 'campaign_paused':
+      return Pause;
+    case 'campaign_resumed':
+      return Play;
+    case 'campaign_cancelled':
+      return XCircle;
+    case 'campaign_failed':
+      return AlertTriangle;
+    
+    // Email activities (additional)
+    case 'email_delivered':
+      return CheckCircle;
+    case 'email_opened':
+      return Eye;
+    case 'email_clicked':
+      return ExternalLink;
+    case 'email_replied':
+      return Send;
+    case 'email_bounced':
+      return AlertTriangle;
+    
+    // Template activities (additional)
+    case 'template_published':
+      return Send;
+    case 'template_approved':
+      return CheckCircle;
+    case 'template_rejected':
+      return XCircle;
+    case 'template_reviewed':
+      return Eye;
+    
+    // System activities (additional)
+    case 'system_error':
+      return AlertTriangle;
+    case 'system_restore':
+      return RefreshCw;
+    
+    // Admin activities
+    case 'admin_user_created':
+      return UserPlus;
+    case 'admin_user_updated':
+      return Edit;
+    case 'admin_user_deleted':
+      return Trash2;
+    case 'admin_user_suspended':
+      return UserMinus;
+    case 'admin_user_unsuspended':
+      return UserCheck;
+    case 'admin_subscription_updated':
+      return Crown;
+    case 'admin_payment_processed':
+      return CreditCard;
+    case 'admin_system_settings_updated':
+      return Settings;
+    
+    // Security activities
+    case 'security_login_attempt':
+      return LogIn;
+    case 'security_login_failed':
+      return AlertTriangle;
+    case 'security_password_reset':
+      return Lock;
+    case 'security_account_locked':
+      return Shield;
+    case 'security_account_unlocked':
+      return Shield;
+    case 'security_suspicious_activity':
+      return AlertTriangle;
+    
+    // Notification activities (additional)
+    case 'notification_delivered':
+      return CheckCircle;
+    case 'notification_opened':
+      return Eye;
+    case 'notification_clicked':
+      return ExternalLink;
+    case 'notification_failed':
+      return AlertTriangle;
+    
+    // Integration activities
+    case 'integration_connected':
+      return Link;
+    case 'integration_disconnected':
+      return XCircle;
+    case 'integration_sync_started':
+      return RefreshCw;
+    case 'integration_sync_completed':
+      return CheckCircle;
+    case 'integration_sync_failed':
+      return AlertTriangle;
+    
+    // Data Export/Import activities
+    case 'data_export_started':
+      return Download;
+    case 'data_export_completed':
+      return CheckCircle;
+    case 'data_export_failed':
+      return AlertTriangle;
+    case 'data_import_started':
+      return Upload;
+    case 'data_import_completed':
+      return CheckCircle;
+    case 'data_import_failed':
+      return AlertTriangle;
+    
+    // Support activities
+    case 'support_ticket_created':
+      return Plus;
+    case 'support_ticket_updated':
+      return Edit;
+    case 'support_ticket_resolved':
+      return CheckCircle;
+    case 'support_ticket_closed':
+      return XCircle;
+    
+    // Compliance activities
+    case 'compliance_audit_started':
+      return Shield;
+    case 'compliance_audit_completed':
+      return CheckCircle;
+    case 'compliance_violation_detected':
+      return AlertTriangle;
+    case 'compliance_violation_resolved':
+      return CheckCircle;
     
     default:
       return Activity;
@@ -396,6 +419,8 @@ export const getActivityIconColor = (type: string) => {
       return 'text-blue-500';
     
     // Subscription activities
+    case 'subscription_created':
+      return 'text-cyan-600';
     case 'subscription_upgraded':
       return 'text-cyan-600';
     case 'subscription_downgraded':
@@ -404,10 +429,21 @@ export const getActivityIconColor = (type: string) => {
       return 'text-red-500';
     case 'subscription_renewed':
       return 'text-blue-600';
+    case 'subscription_updated':
+      return 'text-cyan-500';
+    case 'subscription_expired':
+      return 'text-orange-500';
     case 'payment_processed':
+    case 'payment_completed':
       return 'text-cyan-600';
     case 'payment_failed':
       return 'text-red-500';
+    case 'payment_initialized':
+      return 'text-blue-500';
+    case 'payment_cancelled':
+      return 'text-gray-500';
+    case 'payment_refunded':
+      return 'text-blue-600';
     
     // Notification activities
     case 'notification_sent':
@@ -441,11 +477,150 @@ export const getActivityIconColor = (type: string) => {
     
     // Analytics activities
     case 'analytics_viewed':
+    case 'analytics_dashboard_viewed':
       return 'text-blue-600';
     case 'report_generated':
+    case 'analytics_report_generated':
       return 'text-cyan-600';
     case 'export_completed':
+    case 'analytics_data_exported':
       return 'text-blue-500';
+    
+    // Bot activities (additional)
+    case 'bot_deleted':
+      return 'text-red-500';
+    case 'bot_credentials_tested':
+      return 'text-green-500';
+    
+    // Campaign activities (additional)
+    case 'campaign_updated':
+      return 'text-cyan-500';
+    case 'campaign_deleted':
+      return 'text-red-500';
+    case 'campaign_paused':
+      return 'text-orange-500';
+    case 'campaign_resumed':
+      return 'text-green-500';
+    case 'campaign_cancelled':
+      return 'text-gray-500';
+    case 'campaign_failed':
+      return 'text-red-500';
+    
+    // Email activities (additional)
+    case 'email_delivered':
+      return 'text-green-500';
+    case 'email_opened':
+      return 'text-blue-500';
+    case 'email_clicked':
+      return 'text-cyan-500';
+    case 'email_replied':
+      return 'text-blue-600';
+    case 'email_bounced':
+      return 'text-red-500';
+    
+    // Template activities (additional)
+    case 'template_published':
+      return 'text-green-500';
+    case 'template_approved':
+      return 'text-green-500';
+    case 'template_rejected':
+      return 'text-red-500';
+    case 'template_reviewed':
+      return 'text-blue-500';
+    
+    // System activities (additional)
+    case 'system_error':
+      return 'text-red-500';
+    case 'system_restore':
+      return 'text-blue-500';
+    
+    // Admin activities
+    case 'admin_user_created':
+      return 'text-green-500';
+    case 'admin_user_updated':
+      return 'text-cyan-500';
+    case 'admin_user_deleted':
+      return 'text-red-500';
+    case 'admin_user_suspended':
+      return 'text-orange-500';
+    case 'admin_user_unsuspended':
+      return 'text-green-500';
+    case 'admin_subscription_updated':
+      return 'text-cyan-600';
+    case 'admin_payment_processed':
+      return 'text-cyan-600';
+    case 'admin_system_settings_updated':
+      return 'text-blue-500';
+    
+    // Security activities
+    case 'security_login_attempt':
+      return 'text-blue-500';
+    case 'security_login_failed':
+      return 'text-red-500';
+    case 'security_password_reset':
+      return 'text-orange-500';
+    case 'security_account_locked':
+      return 'text-red-500';
+    case 'security_account_unlocked':
+      return 'text-green-500';
+    case 'security_suspicious_activity':
+      return 'text-red-500';
+    
+    // Notification activities (additional)
+    case 'notification_delivered':
+      return 'text-green-500';
+    case 'notification_opened':
+      return 'text-blue-500';
+    case 'notification_clicked':
+      return 'text-cyan-500';
+    case 'notification_failed':
+      return 'text-red-500';
+    
+    // Integration activities
+    case 'integration_connected':
+      return 'text-green-500';
+    case 'integration_disconnected':
+      return 'text-red-500';
+    case 'integration_sync_started':
+      return 'text-blue-500';
+    case 'integration_sync_completed':
+      return 'text-green-500';
+    case 'integration_sync_failed':
+      return 'text-red-500';
+    
+    // Data Export/Import activities
+    case 'data_export_started':
+      return 'text-blue-500';
+    case 'data_export_completed':
+      return 'text-green-500';
+    case 'data_export_failed':
+      return 'text-red-500';
+    case 'data_import_started':
+      return 'text-blue-500';
+    case 'data_import_completed':
+      return 'text-green-500';
+    case 'data_import_failed':
+      return 'text-red-500';
+    
+    // Support activities
+    case 'support_ticket_created':
+      return 'text-blue-500';
+    case 'support_ticket_updated':
+      return 'text-cyan-500';
+    case 'support_ticket_resolved':
+      return 'text-green-500';
+    case 'support_ticket_closed':
+      return 'text-gray-500';
+    
+    // Compliance activities
+    case 'compliance_audit_started':
+      return 'text-blue-500';
+    case 'compliance_audit_completed':
+      return 'text-green-500';
+    case 'compliance_violation_detected':
+      return 'text-red-500';
+    case 'compliance_violation_resolved':
+      return 'text-green-500';
     
     default:
       return 'text-gray-500';

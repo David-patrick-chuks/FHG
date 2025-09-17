@@ -5,7 +5,6 @@ import UserModel from '../models/User';
 import { ApiResponse, CampaignStatus, CreateCampaignRequest } from '../types';
 import { Logger } from '../utils/Logger';
 import { PaginationParams, PaginationResult, PaginationUtils } from '../utils/PaginationUtils';
-import { AIService } from './AIService';
 import { QueueService } from './QueueService';
 
 export class CampaignService {
@@ -115,6 +114,8 @@ export class CampaignService {
         isApproved: template.isApproved,
         isPublic: template.isPublic,
         samplesCount: template.samples?.length || 0,
+        originalTemplateId: template.originalTemplateId, // Check if this is a cloned template
+        canUseInCampaign: template.isApproved, // Only approval matters now
         isDevelopment: process.env.NODE_ENV === 'development' || 
                       process.env.API_BASE_URL?.includes('localhost') ||
                       process.env.API_BASE_URL?.includes('127.0.0.1')
@@ -129,11 +130,14 @@ export class CampaignService {
         };
       }
 
-      // Check if template is approved and published
-      if (!template.isApproved || !template.isPublic) {
+      // Check if template is approved
+      // Templates can be used if they are:
+      // 1. Public and approved (community templates)
+      // 2. Private but approved (user's own templates or cloned templates)
+      if (!template.isApproved) {
         return {
           success: false,
-          message: 'Template must be approved and published',
+          message: 'Template must be approved to be used in campaigns',
           timestamp: new Date()
         };
       }

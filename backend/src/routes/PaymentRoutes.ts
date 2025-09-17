@@ -102,6 +102,27 @@ export class PaymentRoutes {
      */
     router.get('/can-upgrade', AuthMiddleware.authenticate, PaymentController.canUpgrade);
 
+    /**
+     * @route GET /api/payments/admin/pending-stats
+     * @desc Get pending payment statistics (Admin only)
+     * @access Private (Admin)
+     */
+    router.get('/admin/pending-stats', AuthMiddleware.authenticate, PaymentController.getPendingPaymentStats);
+
+    /**
+     * @route POST /api/payments/admin/cleanup-expired
+     * @desc Manually clean up expired pending payments (Admin only)
+     * @access Private (Admin)
+     */
+    router.post('/admin/cleanup-expired', AuthMiddleware.authenticate, PaymentController.cleanupExpiredPayments);
+
+    /**
+     * @route POST /api/payments/admin/cleanup/:reference
+     * @desc Manually clean up specific payment by reference (Admin only)
+     * @access Private (Admin)
+     */
+    router.post('/admin/cleanup/:reference', AuthMiddleware.authenticate, PaymentController.cleanupPaymentByReference);
+
     return router;
   }
 }

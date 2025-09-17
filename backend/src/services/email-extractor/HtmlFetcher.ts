@@ -17,8 +17,27 @@ export class HtmlFetcher {
         }
       });
       return response.data;
-    } catch (error) {
-      HtmlFetcher.logger.warn('Failed to fetch HTML', { url, error: error instanceof Error ? error.message : 'Unknown error' });
+    } catch (error: any) {
+      // Only log errors that are not common/expected failures
+      const errorMessage = error?.message || 'Unknown error';
+      const statusCode = error?.response?.status;
+      
+      // Don't log 404s, DNS failures, or timeouts as warnings - these are common
+      if (statusCode === 404 || 
+          errorMessage.includes('EAI_AGAIN') || 
+          errorMessage.includes('ENOTFOUND') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('ECONNREFUSED')) {
+        // These are common failures, just return null silently
+        return null;
+      }
+      
+      // Log other errors as warnings
+      HtmlFetcher.logger.warn('Failed to fetch HTML', { 
+        url, 
+        error: errorMessage,
+        statusCode 
+      });
       return null;
     }
   }

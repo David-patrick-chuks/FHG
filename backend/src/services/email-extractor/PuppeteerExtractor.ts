@@ -117,8 +117,14 @@ export class PuppeteerExtractor {
             const html = await page.content();
             EmailParser.extractEmailsFromHtml(html).forEach(email => found.add(email));
             scannedUrls.add(testUrl);
-          } catch (error) {
-            PuppeteerExtractor.logger.warn('Puppeteer failed to access path', { url: testUrl, error });
+          } catch (error: any) {
+            // Only log unexpected errors, not common failures like 404s or timeouts
+            const errorMessage = error?.message || 'Unknown error';
+            if (!errorMessage.includes('404') && 
+                !errorMessage.includes('timeout') && 
+                !errorMessage.includes('net::ERR_NAME_NOT_RESOLVED')) {
+              PuppeteerExtractor.logger.warn('Puppeteer failed to access path', { url: testUrl, error: errorMessage });
+            }
           }
         }
       }
@@ -143,8 +149,13 @@ export class PuppeteerExtractor {
       }
 
       return Array.from(found);
-    } catch (error) {
-      PuppeteerExtractor.logger.error('Puppeteer extraction failed', { url, error });
+    } catch (error: any) {
+      // Only log unexpected errors, not common browser launch failures
+      const errorMessage = error?.message || 'Unknown error';
+      if (!errorMessage.includes('Could not find browser') && 
+          !errorMessage.includes('Failed to launch')) {
+        PuppeteerExtractor.logger.error('Puppeteer extraction failed', { url, error: errorMessage });
+      }
       return Array.from(found);
     } finally {
       if (browser) {

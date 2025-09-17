@@ -68,9 +68,9 @@ export class AnalyticsAPI {
    */
   static async getUserAnalytics(): Promise<{
     success: boolean;
-    message: string;
+    message?: string;
     data?: UserAnalytics;
-    timestamp: string;
+    timestamp?: string;
   }> {
     const response = await apiClient.get('/analytics');
     return response.data;
@@ -82,9 +82,9 @@ export class AnalyticsAPI {
    */
   static async getAnalyticsSummary(): Promise<{
     success: boolean;
-    message: string;
+    message?: string;
     data?: AnalyticsSummary;
-    timestamp: string;
+    timestamp?: string;
   }> {
     const response = await apiClient.get('/analytics/summary');
     return response.data;
@@ -96,9 +96,9 @@ export class AnalyticsAPI {
    */
   static async checkAnalyticsAccess(): Promise<{
     success: boolean;
-    message: string;
+    message?: string;
     data?: AnalyticsAccessCheck;
-    timestamp: string;
+    timestamp?: string;
   }> {
     const response = await apiClient.get('/analytics/access');
     return response.data;

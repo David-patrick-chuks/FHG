@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import sharp from 'sharp';
 import PaymentModel from '../../models/Payment';
 import UserModel from '../../models/User';
 import { ApiResponse } from '../../types';
@@ -28,8 +28,8 @@ export class PaystackReceipt extends PaystackCore {
         };
       }
 
-      // Generate PNG receipt
-      const imageBuffer = await PaystackReceipt.generateReceiptPNG(payment, user);
+      // Generate PNG receipt using Sharp
+      const imageBuffer = await PaystackReceipt.generateReceiptImage(payment, user);
 
       return {
         success: true,
@@ -54,7 +54,7 @@ export class PaystackReceipt extends PaystackCore {
     }
   }
 
-  private static generateReceiptHTML(payment: any, user: any): string {
+  private static async generateReceiptImage(payment: any, user: any): Promise<Buffer> {
     const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`;
     const formatDate = (date: Date) => date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -64,313 +64,117 @@ export class PaystackReceipt extends PaystackCore {
       minute: '2-digit'
     });
 
-    // Create HTML receipt with enhanced brand design
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Payment Receipt - MailQuill</title>
-        <style>
-          * {
-            box-sizing: border-box;
-          }
-          body {
-            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            width: 450px;
-            height: 600px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .receipt {
-            width: 400px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-            position: relative;
-          }
-          .receipt::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3B82F6 0%, #06B6D4 50%, #3B82F6 100%);
-            background-size: 200% 100%;
-            animation: shimmer 3s ease-in-out infinite;
-          }
-          @keyframes shimmer {
-            0%, 100% { background-position: 200% 0; }
-            50% { background-position: -200% 0; }
-          }
-          .header {
-            background: linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%);
-            color: white;
-            padding: 32px 24px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-          }
-          .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: float 6s ease-in-out infinite;
-          }
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-          }
-          .header-content {
-            position: relative;
-            z-index: 1;
-          }
-          .header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          }
-          .header p {
-            margin: 8px 0 0 0;
-            font-size: 16px;
-            opacity: 0.9;
-            font-weight: 500;
-          }
-          .content {
-            padding: 32px 24px;
-          }
-          .section {
-            margin-bottom: 28px;
-          }
-          .section h3 {
-            color: #1e293b;
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0 0 16px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
-          .section h3::before {
-            content: '';
-            width: 4px;
-            height: 20px;
-            background: linear-gradient(135deg, #3B82F6, #06B6D4);
-            border-radius: 2px;
-          }
-          .row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 12px 0;
-            padding: 12px 16px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border-left: 3px solid #e2e8f0;
-            transition: all 0.2s ease;
-          }
-          .row:hover {
-            background: #f1f5f9;
-            border-left-color: #3B82F6;
-            transform: translateX(2px);
-          }
-          .label {
-            color: #64748b;
-            font-size: 14px;
-            font-weight: 500;
-          }
-          .value {
-            color: #0f172a;
-            font-weight: 600;
-            font-size: 14px;
-          }
-          .amount {
-            color: #059669;
-            font-weight: 700;
-            font-size: 16px;
-          }
-          .status {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-          }
-          .divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
-            margin: 32px 0;
-            position: relative;
-          }
-          .divider::after {
-            content: '✉️';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 0 12px;
-            font-size: 16px;
-          }
-          .footer {
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
-            margin-top: 24px;
-            padding: 24px;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-          }
-          .footer p {
-            margin: 8px 0;
-            font-weight: 500;
-          }
-          .footer .main-message {
-            color: #3B82F6;
-            font-weight: 600;
-            font-size: 16px;
-          }
-          .footer .small {
-            font-size: 12px;
-            color: #94a3b8;
-            font-weight: 400;
-          }
-          .brand-accent {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border-radius: 50%;
-            transform: translate(30px, 30px);
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt">
-          <div class="header">
-            <div class="header-content">
-              <h1>MailQuill</h1>
-              <p>Payment Receipt</p>
-            </div>
-          </div>
+    // Receipt dimensions
+    const width = 450;
+    const height = 600;
+    const padding = 24;
+
+    // Create SVG receipt
+    const svg = `
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:0.1" />
+            <stop offset="100%" style="stop-color:#06B6D4;stop-opacity:0.1" />
+          </linearGradient>
+        </defs>
+        
+        <!-- Background -->
+        <rect width="${width}" height="${height}" fill="#f8fafc"/>
+        
+        <!-- Receipt Card -->
+        <rect x="${padding}" y="${padding}" width="${width - 2 * padding}" height="${height - 2 * padding}" 
+              rx="16" ry="16" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+        
+        <!-- Header Gradient Bar -->
+        <rect x="${padding}" y="${padding}" width="${width - 2 * padding}" height="4" 
+              fill="url(#headerGradient)" rx="2" ry="2"/>
+        
+        <!-- Header -->
+        <rect x="${padding}" y="${padding + 4}" width="${width - 2 * padding}" height="120" 
+              fill="url(#headerGradient)"/>
+        
+        <!-- Header Text -->
+        <text x="${width / 2}" y="${padding + 60}" text-anchor="middle" fill="white" 
+              font-family="Inter, sans-serif" font-size="28" font-weight="700">MailQuill</text>
+        <text x="${width / 2}" y="${padding + 85}" text-anchor="middle" fill="white" 
+              font-family="Inter, sans-serif" font-size="16" font-weight="500" opacity="0.9">Payment Receipt</text>
+        
+        <!-- Content Area -->
+        <g transform="translate(${padding + 24}, ${padding + 140})">
+          <!-- Payment Details Section -->
+          <text x="0" y="0" fill="#1e293b" font-family="Inter, sans-serif" font-size="18" font-weight="600">Payment Details</text>
           
-          <div class="content">
-            <div class="section">
-              <h3>Payment Details</h3>
-              <div class="row">
-                <span class="label">Reference</span>
-                <span class="value">${payment.reference}</span>
-              </div>
-              <div class="row">
-                <span class="label">Amount</span>
-                <span class="value amount">${formatCurrency(payment.amount)}</span>
-              </div>
-              <div class="row">
-                <span class="label">Plan</span>
-                <span class="value">${payment.subscriptionTier} - ${payment.billingCycle}</span>
-              </div>
-              <div class="row">
-                <span class="label">Date</span>
-                <span class="value">${formatDate(payment.paidAt || payment.createdAt)}</span>
-              </div>
-              <div class="row">
-                <span class="label">Status</span>
-                <span class="status">${payment.status.toUpperCase()}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <h3>Customer Information</h3>
-              <div class="row">
-                <span class="label">Name</span>
-                <span class="value">${user.username}</span>
-              </div>
-              <div class="row">
-                <span class="label">Email</span>
-                <span class="value">${user.email}</span>
-              </div>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="footer">
-              <p class="main-message">Thank you for choosing MailQuill!</p>
-              <p class="small">This is your official payment receipt</p>
-              <p class="small">Keep this receipt for your records</p>
-            </div>
-          </div>
+          <!-- Reference -->
+          <rect x="0" y="25" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="45" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Reference</text>
+          <text x="${width - 2 * padding - 48 - 16}" y="45" text-anchor="end" fill="#0f172a" 
+                font-family="Inter, sans-serif" font-size="14" font-weight="600">${payment.reference}</text>
           
-          <div class="brand-accent"></div>
-        </div>
-      </body>
-      </html>
+          <!-- Amount -->
+          <rect x="0" y="75" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="95" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Amount</text>
+          <text x="${width - 2 * padding - 48 - 16}" y="95" text-anchor="end" fill="#059669" 
+                font-family="Inter, sans-serif" font-size="16" font-weight="700">${formatCurrency(payment.amount)}</text>
+          
+          <!-- Plan -->
+          <rect x="0" y="125" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="145" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Plan</text>
+          <text x="${width - 2 * padding - 48 - 16}" y="145" text-anchor="end" fill="#0f172a" 
+                font-family="Inter, sans-serif" font-size="14" font-weight="600">${payment.subscriptionTier} - ${payment.billingCycle}</text>
+          
+          <!-- Date -->
+          <rect x="0" y="175" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="195" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Date</text>
+          <text x="${width - 2 * padding - 48 - 16}" y="195" text-anchor="end" fill="#0f172a" 
+                font-family="Inter, sans-serif" font-size="14" font-weight="600">${formatDate(payment.paidAt || payment.createdAt)}</text>
+          
+          <!-- Status -->
+          <rect x="0" y="225" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="245" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Status</text>
+          <rect x="${width - 2 * padding - 48 - 80}" y="230" width="70" height="30" fill="#10b981" rx="15" ry="15"/>
+          <text x="${width - 2 * padding - 48 - 45}" y="248" text-anchor="middle" fill="white" 
+                font-family="Inter, sans-serif" font-size="12" font-weight="600">${payment.status.toUpperCase()}</text>
+          
+          <!-- Customer Information Section -->
+          <text x="0" y="295" fill="#1e293b" font-family="Inter, sans-serif" font-size="18" font-weight="600">Customer Information</text>
+          
+          <!-- Name -->
+          <rect x="0" y="320" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="340" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Name</text>
+          <text x="${width - 2 * padding - 48 - 16}" y="340" text-anchor="end" fill="#0f172a" 
+                font-family="Inter, sans-serif" font-size="14" font-weight="600">${user.username}</text>
+          
+          <!-- Email -->
+          <rect x="0" y="370" width="${width - 2 * padding - 48}" height="40" fill="#f8fafc" rx="8" ry="8"/>
+          <text x="16" y="390" fill="#64748b" font-family="Inter, sans-serif" font-size="14" font-weight="500">Email</text>
+          <text x="${width - 2 * padding - 48 - 16}" y="390" text-anchor="end" fill="#0f172a" 
+                font-family="Inter, sans-serif" font-size="14" font-weight="600">${user.email}</text>
+          
+          <!-- Footer -->
+          <rect x="0" y="430" width="${width - 2 * padding - 48}" height="80" fill="#f8fafc" rx="12" ry="12" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="${(width - 2 * padding - 48) / 2}" y="450" text-anchor="middle" fill="#3B82F6" 
+                font-family="Inter, sans-serif" font-size="16" font-weight="600">Thank you for choosing MailQuill!</text>
+          <text x="${(width - 2 * padding - 48) / 2}" y="470" text-anchor="middle" fill="#64748b" 
+                font-family="Inter, sans-serif" font-size="12" font-weight="500">This is your official payment receipt</text>
+          <text x="${(width - 2 * padding - 48) / 2}" y="485" text-anchor="middle" fill="#94a3b8" 
+                font-family="Inter, sans-serif" font-size="12" font-weight="400">Keep this receipt for your records</text>
+        </g>
+        
+        <!-- Brand Accent -->
+        <circle cx="${width - 50}" cy="${height - 50}" r="50" fill="url(#accentGradient)"/>
+      </svg>
     `;
 
-    return html;
-  }
+    // Convert SVG to PNG using Sharp
+    const imageBuffer = await sharp(Buffer.from(svg))
+      .png()
+      .toBuffer();
 
-  private static async generateReceiptPNG(payment: any, user: any): Promise<Buffer> {
-    const html = PaystackReceipt.generateReceiptHTML(payment, user);
-
-    // Use Puppeteer to convert HTML to PNG with proper configuration
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.NODE_ENV === "production" 
-        ? process.env.PUPPETEER_EXECUTABLE_PATH 
-        : undefined,
-      args: [
-        '--no-sandbox', 
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor'
-      ]
-    });
-    
-    try {
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-      await page.setViewport({ width: 450, height: 600, deviceScaleFactor: 2 });
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      
-      // Take screenshot as PNG
-      const screenshot = await page.screenshot({
-        type: 'png',
-        fullPage: false,
-        clip: {
-          x: 0,
-          y: 0,
-          width: 450,
-          height: 600
-        }
-      });
-      
-      return screenshot as Buffer;
-    } finally {
-      await browser.close();
-    }
+    return imageBuffer;
   }
 }

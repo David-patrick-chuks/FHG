@@ -28,20 +28,20 @@ export function PricingPageContent() {
     try {
       setLoadingPricing(true);
       const response = await PaymentAPI.getPricing();
-      
+
       if (response.success && response.data) {
         // Validate the pricing data structure
         if (response.data.basic && response.data.premium) {
           setPricing(response.data);
         } else {
-          console.warn('Invalid pricing data structure:', response.data);
+          console.warn("Invalid pricing data structure:", response.data);
           toast.error("Invalid pricing data received");
         }
       } else {
         toast.error("Failed to load pricing information");
       }
     } catch (error) {
-      console.error('Error fetching pricing:', error);
+      console.error("Error fetching pricing:", error);
       toast.error("Failed to load pricing information");
     } finally {
       setLoadingPricing(false);
@@ -51,7 +51,6 @@ export function PricingPageContent() {
   useEffect(() => {
     fetchPricing();
   }, [fetchPricing]);
-
 
   const handlePayment = async (plan: "basic" | "premium") => {
     if (!isAuthenticated) {
@@ -72,9 +71,9 @@ export function PricingPageContent() {
         billingCycle: billingCycle,
         email: userEmail,
       });
-
+      console.log(response);
       if (response.success && response.data) {
-        window.location.href = response.data.authorizationUrl;
+        window.location.href = response.data.data.authorization_url;
       } else {
         toast.error(response.message || "Failed to initialize payment");
       }
@@ -139,9 +138,7 @@ export function PricingPageContent() {
         "Analytics",
         "Priority Support",
       ],
-        price: pricing
-          ? formatPrice(pricing.basic[billingCycle])
-          : "₦2,999",
+      price: pricing ? formatPrice(pricing.basic[billingCycle]) : "₦2,999",
       isPopular: true,
       buttonText: isAuthenticated ? "Upgrade to BASIC" : "Sign in to Upgrade",
       buttonClassName:
@@ -166,12 +163,8 @@ export function PricingPageContent() {
         "Analytics",
         "Dedicated Support",
       ],
-        price: pricing
-          ? formatPrice(pricing.premium[billingCycle])
-          : "₦9,999",
-      buttonText: isAuthenticated
-        ? "Upgrade to PREMIUM"
-        : "Sign in to Upgrade",
+      price: pricing ? formatPrice(pricing.premium[billingCycle]) : "₦9,999",
+      buttonText: isAuthenticated ? "Upgrade to PREMIUM" : "Sign in to Upgrade",
       buttonClassName:
         "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200",
       iconClassName: "bg-gradient-to-br from-blue-500/20 to-cyan-500/20",

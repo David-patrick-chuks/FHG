@@ -351,7 +351,7 @@ export function EmailExtractorForm({
             <Crown className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">CSV Upload Not Available</h3>
             <p className="text-gray-600 mb-4">
-              CSV upload is only available in Pro and Enterprise plans. Upgrade to use this feature.
+              CSV upload is only available in Basic and Premium plans. Upgrade to use this feature.
             </p>
             <Button onClick={() => window.location.href = '/pricing'}>
               Upgrade Plan

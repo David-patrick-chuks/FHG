@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import PaymentModel from '../../models/Payment';
 import UserModel from '../../models/User';
-import { ActivityType, ApiResponse, BillingCycle, InitializePaymentRequest, PaymentStatus } from '../../types';
+import { ActivityType, ApiResponse, BillingCycle, InitializePaymentRequest, PaymentMethod, PaymentStatus } from '../../types';
 import { ActivityService } from '../ActivityService';
 import { PaystackCore, PaystackInitializeResponse, PaystackVerifyResponse } from './PaystackCore';
 
@@ -124,6 +124,9 @@ export class PaystackPayment extends PaystackCore {
       );
 
       if (response.data.status) {
+        // Calculate subscription expiration date
+        const subscriptionExpiresAt = PaystackPayment.calculateSubscriptionExpiration(billingCycle);
+
         // Save payment record
         const payment = new PaymentModel({
           userId,
@@ -133,6 +136,8 @@ export class PaystackPayment extends PaystackCore {
           subscriptionTier,
           billingCycle,
           status: PaymentStatus.PENDING,
+          paymentMethod: PaymentMethod.PAYSTACK, // Default payment method for Paystack
+          subscriptionExpiresAt,
           paystackReference: response.data.data.reference,
           authorizationUrl: response.data.data.authorization_url
         });
@@ -270,10 +275,16 @@ export class PaystackPayment extends PaystackCore {
         .sort({ createdAt: -1 })
         .select('-__v');
 
+      // Ensure proper serialization of _id fields
+      const serializedPayments = payments.map(payment => ({
+        ...payment.toObject(),
+        _id: payment._id.toString()
+      }));
+
       return {
         success: true,
         message: 'Payments retrieved successfully',
-        data: payments,
+        data: serializedPayments,
         timestamp: new Date()
       };
     } catch (error: any) {

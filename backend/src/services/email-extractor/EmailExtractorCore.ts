@@ -365,6 +365,20 @@ export class EmailExtractorCore {
     jobId: string, 
     updateProgress: (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => Promise<void>
   ): Promise<string[]> {
+    // Add timeout to prevent hanging extractions
+    return Promise.race([
+      this.performExtraction(url, jobId, updateProgress),
+      new Promise<string[]>((_, reject) => 
+        setTimeout(() => reject(new Error('Extraction timeout')), this.EXTRACTION_TIMEOUT)
+      )
+    ]);
+  }
+
+  private static async performExtraction(
+    url: string, 
+    jobId: string, 
+    updateProgress: (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => Promise<void>
+  ): Promise<string[]> {
     const found = new Set<string>();
     const scannedUrls = new Set<string>();
 
@@ -422,13 +436,16 @@ export class EmailExtractorCore {
       // Step 4: WHOIS lookup (fast and often effective)
       if (found.size === 0) {
         await updateProgress('whois_lookup', 'processing', 'Trying WHOIS lookup...');
-        EmailExtractorCore.logger.info('Trying WHOIS lookup', { url });
         const whoisEmails = await this.extractEmailsFromWhois(url);
         whoisEmails.forEach(email => found.add(email));
         
-        await updateProgress('whois_lookup', 'completed', `WHOIS lookup found ${whoisEmails.length} emails`, {
-          emails: whoisEmails
-        });
+        if (whoisEmails.length > 0) {
+          await updateProgress('whois_lookup', 'completed', `WHOIS lookup found ${whoisEmails.length} emails`, {
+            emails: whoisEmails
+          });
+        } else {
+          await updateProgress('whois_lookup', 'completed', 'WHOIS lookup completed - no emails found');
+        }
       } else {
         await updateProgress('whois_lookup', 'skipped', 'Skipped WHOIS lookup - emails already found');
       }
@@ -503,7 +520,11 @@ export class EmailExtractorCore {
             return emails;
           }
         } catch (error) {
-          EmailExtractorCore.logger.warn('Failed to scan URL in parallel', { url, error });
+          // Only log unexpected errors, not common failures like 404s
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          if (!errorMessage.includes('404') && !errorMessage.includes('timeout')) {
+            EmailExtractorCore.logger.warn('Failed to scan URL in parallel', { url, error: errorMessage });
+          }
         }
         return [];
       });
@@ -528,6 +549,7 @@ export class EmailExtractorCore {
   private static readonly CONTACT_PATHS = [
     '/contact', '/contact-us', '/about', '/about-us', '/support'
   ];
+  private static readonly EXTRACTION_TIMEOUT = 30000; // 30 seconds max per URL
   private static readonly BUSINESS_PATHS = [
     '/business', '/partnership', '/team', '/company'
   ];

@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import { PaystackService } from '../services/PaystackService';
+import { PaymentCleanupService } from '../services/PaymentCleanupService';
 import { ValidationService } from '../services/ValidationService';
 import { InitializePaymentRequest, VerifyPaymentRequest } from '../types';
 import { Logger } from '../utils/Logger';
@@ -544,6 +545,137 @@ export class PaymentController {
       res.status(200).json(result);
     } catch (error: any) {
       PaymentController.logger.error('Error in canUpgrade controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Get pending payment statistics (Admin only)
+   */
+  public static async getPendingPaymentStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const isAdmin = (req as any).user['isAdmin'];
+      
+      if (!isAdmin) {
+        res.status(403).json({
+          success: false,
+          message: 'Admin access required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const stats = await PaymentCleanupService.getPendingPaymentStats();
+
+      res.status(200).json({
+        success: true,
+        message: 'Pending payment statistics retrieved successfully',
+        data: stats,
+        timestamp: new Date()
+      });
+    } catch (error: any) {
+      PaymentController.logger.error('Error in getPendingPaymentStats controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Manually clean up expired pending payments (Admin only)
+   */
+  public static async cleanupExpiredPayments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const isAdmin = (req as any).user['isAdmin'];
+      
+      if (!isAdmin) {
+        res.status(403).json({
+          success: false,
+          message: 'Admin access required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      await PaymentCleanupService.cleanupExpiredPayments();
+
+      res.status(200).json({
+        success: true,
+        message: 'Expired payments cleaned up successfully',
+        timestamp: new Date()
+      });
+    } catch (error: any) {
+      PaymentController.logger.error('Error in cleanupExpiredPayments controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Manually clean up specific payment by reference (Admin only)
+   */
+  public static async cleanupPaymentByReference(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const isAdmin = (req as any).user['isAdmin'];
+      
+      if (!isAdmin) {
+        res.status(403).json({
+          success: false,
+          message: 'Admin access required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const { reference } = req.params;
+
+      if (!reference) {
+        res.status(400).json({
+          success: false,
+          message: 'Payment reference is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const result = await PaymentCleanupService.cleanupPaymentByReference(reference);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: result.message,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message,
+          timestamp: new Date()
+        });
+      }
+    } catch (error: any) {
+      PaymentController.logger.error('Error in cleanupPaymentByReference controller:', {
         message: error?.message || 'Unknown error',
         stack: error?.stack,
         name: error?.name

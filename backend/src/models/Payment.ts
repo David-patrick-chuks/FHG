@@ -1,5 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
-import { IPayment, PaymentStatus, PaymentMethod } from '../types';
+import { IPayment, PaymentMethod, PaymentStatus } from '../types';
 import { Logger } from '../utils/Logger';
 
 export interface IPaymentDocument extends Omit<IPayment, '_id'>, Document {
@@ -121,7 +121,13 @@ export class PaymentModel {
       }
     }, {
       timestamps: true,
-      collection: 'payments'
+      collection: 'payments',
+      toJSON: {
+        transform: function(doc, ret) {
+          ret._id = (ret._id as any).toString();
+          return ret;
+        }
+      }
     });
 
     // Indexes for better query performance

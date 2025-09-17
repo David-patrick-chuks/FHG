@@ -41,16 +41,28 @@ export function EmailListManager({
 }: EmailListManagerProps) {
   const [showEmailCount, setShowEmailCount] = useState(false);
   
-  // Parse emails from text field
-  const emailsFromText = emailList.split('\n').filter(email => email.trim());
+  // Parse emails from text field - support both line breaks and spaces/commas
+  const parseEmailsFromText = (text: string) => {
+    if (!text.trim()) return [];
+    
+    // Split by multiple delimiters: newlines, spaces, commas, semicolons
+    const emails = text
+      .split(/[\n\s,;]+/)
+      .map(email => email.trim())
+      .filter(email => email && email.includes('@')); // Basic email validation
+    
+    return emails;
+  };
+  
+  const emailsFromText = parseEmailsFromText(emailList);
   const totalEmails = uploadedEmails.length > 0 ? uploadedEmails.length : emailsFromText.length;
   
   // Check if email count exceeds bot's remaining capacity
   const exceedsLimit = totalEmails > selectedBotEmailsRemaining;
   const isNearLimit = totalEmails > selectedBotEmailsRemaining * 0.8;
   
-  // Check if user can upload CSV files (Pro and Enterprise only)
-  const canUploadCsv = userSubscription === 'PRO' || userSubscription === 'ENTERPRISE';
+  // Check if user can upload CSV files (Basic and Premium only)
+  const canUploadCsv = userSubscription === 'basic' || userSubscription === 'premium';
 
   return (
     <div className="space-y-6">
@@ -108,7 +120,7 @@ export function EmailListManager({
                   CSV Upload Not Available
                 </h5>
                 <p className="text-amber-700 dark:text-amber-300">
-                  CSV file upload is available for <span className="font-semibold">Pro</span> and <span className="font-semibold">Enterprise</span> plans only.
+                  CSV file upload is available for <span className="font-semibold">Basic</span> and <span className="font-semibold">Premium</span> plans only.
                 </p>
                 <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
                   You can still add emails manually below.
@@ -170,7 +182,7 @@ export function EmailListManager({
                   </p>
                   <p className="text-base text-gray-600 dark:text-gray-400 mt-3">
                     {!canUploadCsv 
-                      ? 'Available for Pro and Enterprise plans only' 
+                      ? 'Available for Basic and Premium plans only' 
                       : isDragOver 
                       ? 'Release to upload' 
                       : 'Drag and drop your file here, or click to browse'
@@ -263,7 +275,7 @@ export function EmailListManager({
           id="emailList"
           value={emailList}
           onChange={(e) => onEmailListChange(e.target.value)}
-          placeholder="Enter email addresses, one per line&#10;example@domain.com&#10;another@domain.com&#10;contact@company.com"
+          placeholder="Enter email addresses separated by spaces, commas, or new lines&#10;example@domain.com another@domain.com&#10;contact@company.com, support@company.com&#10;admin@company.com"
           rows={6}
           disabled={disabled}
           className={`border-2 resize-none text-base rounded-xl transition-all duration-200 ${
@@ -279,7 +291,7 @@ export function EmailListManager({
         
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Type or paste email addresses, one per line
+            Separate emails with spaces, commas, or new lines
           </p>
           {showEmailCount && (
             <div className="text-sm text-gray-600 dark:text-gray-400">

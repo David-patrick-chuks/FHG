@@ -20,9 +20,13 @@ export interface InitializePaymentRequest {
 }
 
 export interface InitializePaymentResponse {
-  authorizationUrl: string;
-  reference: string;
-  accessCode: string;
+  status: boolean;
+  message: string;
+  data: {
+    authorization_url: string;
+    access_code: string;
+    reference: string;
+  };
 }
 
 export interface PaymentHistory {

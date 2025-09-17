@@ -1,12 +1,13 @@
 import express, { Application } from 'express';
 import { DatabaseConnection } from '../database/DatabaseConnection';
+import { PaymentCleanupJob } from '../jobs/PaymentCleanupJob';
 import { ErrorHandler } from '../middleware/ErrorHandler';
+import { AuditService } from '../services/AuditService';
+import { EnvironmentValidationService } from '../services/EnvironmentValidationService';
 import { HealthService } from '../services/HealthService';
 import { MiddlewareService } from '../services/MiddlewareService';
 import { RouteService } from '../services/RouteService';
 import { ServerLifecycleService } from '../services/ServerLifecycleService';
-import { EnvironmentValidationService } from '../services/EnvironmentValidationService';
-import { AuditService } from '../services/AuditService';
 import { Logger } from '../utils/Logger';
 
 export class Server {
@@ -86,12 +87,20 @@ export class Server {
    */
   public async start(): Promise<void> {
     await this.lifecycleService.start(this.port);
+    
+    // Start payment cleanup job
+    PaymentCleanupJob.start();
+    this.logger.info('Payment cleanup job started');
   }
 
   /**
    * Gracefully stop the server
    */
   public async stop(): Promise<void> {
+    // Stop payment cleanup job
+    PaymentCleanupJob.stop();
+    this.logger.info('Payment cleanup job stopped');
+    
     await this.lifecycleService.stop();
   }
 

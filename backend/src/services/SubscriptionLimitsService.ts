@@ -58,7 +58,7 @@ export class SubscriptionLimitsService {
       if (isCsvUpload && !limits.canUseCsvUpload) {
         return {
           canExtract: false,
-          reason: 'CSV upload is not available in your current plan. Please upgrade to Pro or Enterprise.',
+          reason: 'CSV upload is not available in your current plan. Please upgrade to Basic or Premium.',
           limits,
           usage
         };

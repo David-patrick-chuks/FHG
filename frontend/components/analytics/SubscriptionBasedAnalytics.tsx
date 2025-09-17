@@ -1,6 +1,5 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,10 +8,8 @@ import {
     ArrowRight,
     BarChart3,
     Crown,
-    Lock,
     Mail,
-    TrendingUp,
-    Users
+    TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
@@ -56,13 +53,14 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
             setError(analyticsResponse.message || 'Failed to fetch analytics data');
           }
         } else {
-          // User has free subscription, fetch summary only
-          const summaryResponse = await AnalyticsAPI.getAnalyticsSummary();
-          if (summaryResponse.success && summaryResponse.data) {
-            setSummaryData(summaryResponse.data);
-          } else {
-            setError(summaryResponse.message || 'Failed to fetch analytics summary');
-          }
+          // User has free subscription, show upgrade prompt with basic info
+          // Don't fetch summary data to avoid errors, just show the upgrade prompt
+          setSummaryData({
+            totalEmails: 0,
+            totalCampaigns: 0,
+            subscriptionTier: accessResponse.data.subscriptionTier,
+            upgradeMessage: accessResponse.data.message || 'Analytics requires a paid subscription. Upgrade to Basic or Premium to access detailed analytics.'
+          });
         }
       } else {
         setError(accessResponse.message || 'Failed to check analytics access');
@@ -86,104 +84,163 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
     return <AnalyticsErrorState error={error} onRetry={fetchAnalyticsData} />;
   }
 
-  // Free users see limited analytics with upgrade prompt
+  // Free users see blurred analytics preview with upgrade prompt
   if (!hasAccess && summaryData) {
     return (
-      <div className={`space-y-6 ${className}`}>
-        {/* Free User Analytics Summary */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Emails</p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                  {summaryData.totalEmails.toLocaleString()}
-                </p>
-                <p className="text-xs text-blue-500 dark:text-blue-300">Across all campaigns</p>
-              </div>
-              <Mail className="h-8 w-8 text-blue-500 dark:text-blue-400" />
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">Total Campaigns</p>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                  {summaryData.totalCampaigns}
-                </p>
-                <p className="text-xs text-green-500 dark:text-green-300">Active and completed</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-green-500 dark:text-green-400" />
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 border-purple-200 dark:border-purple-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Current Plan</p>
-                <Badge variant="outline" className="text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-700">
-                  {summaryData.subscriptionTier.toUpperCase()}
-                </Badge>
-                <p className="text-xs text-purple-500 dark:text-purple-300 mt-1">Free tier</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-500 dark:text-purple-400" />
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-200 dark:border-amber-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Upgrade Available</p>
-                <p className="text-lg font-bold text-amber-900 dark:text-amber-100">Unlock Analytics</p>
-                <p className="text-xs text-amber-500 dark:text-amber-300">Get detailed insights</p>
-              </div>
-              <Crown className="h-8 w-8 text-amber-500 dark:text-amber-400" />
-            </div>
-          </Card>
+      <div className={`space-y-6 ${className} relative`}>
+        {/* Blurred Analytics Preview */}
+        <div className="blur-sm pointer-events-none">
+          <AnalyticsMetricsCards trackingSummary={{
+            metrics: {
+              totalEmails: 1247,
+              totalCampaigns: 8,
+              openRate: 24.5,
+              clickRate: 3.2,
+              replyRate: 1.8,
+              bounceRate: 2.1
+            },
+            campaignPerformance: [
+              {
+                campaignId: 'demo-1',
+                campaignName: 'Q4 Product Launch',
+                emailsSent: 500,
+                openRate: 28.4,
+                clickRate: 4.2,
+                replyRate: 2.1,
+                bounceRate: 1.8,
+                status: 'completed' as const,
+                createdAt: new Date('2024-01-15'),
+                completedAt: new Date('2024-01-20')
+              },
+              {
+                campaignId: 'demo-2',
+                campaignName: 'Customer Onboarding',
+                emailsSent: 300,
+                openRate: 32.1,
+                clickRate: 5.8,
+                replyRate: 3.2,
+                bounceRate: 1.2,
+                status: 'completed' as const,
+                createdAt: new Date('2024-01-10'),
+                completedAt: new Date('2024-01-18')
+              }
+            ],
+            emailTrends: [
+              {
+                date: new Date('2024-01-01'),
+                emailsSent: 150,
+                emailsOpened: 45,
+                openRate: 30.0
+              },
+              {
+                date: new Date('2024-01-02'),
+                emailsSent: 200,
+                emailsOpened: 52,
+                openRate: 26.0
+              }
+            ],
+            subscriptionTier: 'free' as const,
+            hasAccess: false
+          }} />
+          
+          <PerformanceTrendsChart campaignStats={[
+            {
+              campaignId: 'demo-1',
+              campaignName: 'Q4 Product Launch',
+              emailsSent: 500,
+              openRate: 28.4,
+              clickRate: 4.2,
+              replyRate: 2.1,
+              bounceRate: 1.8,
+              status: 'completed' as const,
+              createdAt: new Date('2024-01-15'),
+              completedAt: new Date('2024-01-20')
+            }
+          ]} />
+          
+          <TopPerformingCampaigns trackingSummary={{
+            metrics: {
+              totalEmails: 1247,
+              totalCampaigns: 8,
+              openRate: 24.5,
+              clickRate: 3.2,
+              replyRate: 1.8,
+              bounceRate: 2.1
+            },
+            campaignPerformance: [],
+            emailTrends: [],
+            subscriptionTier: 'free' as const,
+            hasAccess: false
+          }} />
         </div>
 
-        {/* Upgrade Prompt */}
-        <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <Lock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        {/* Upgrade Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 dark:bg-black/40 backdrop-blur-sm rounded-lg">
+          <Card className="max-w-2xl mx-4 p-8 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2 border-blue-200 dark:border-blue-800 shadow-2xl">
+            <div className="text-center space-y-6">
+              <div className="flex justify-center">
+                <div className="p-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full">
+                  <Crown className="h-12 w-12 text-white" />
+                </div>
               </div>
+              
               <div>
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
                   Unlock Advanced Analytics
-                </h3>
-                <p className="text-blue-700 dark:text-blue-300 mt-1">
-                  {summaryData.upgradeMessage || 'Get detailed insights into your email campaigns with open rates, performance trends, and campaign analytics.'}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 text-lg">
+                  Get detailed insights into your email campaigns with comprehensive analytics, performance trends, and campaign tracking.
                 </p>
-                <div className="flex items-center gap-4 mt-3">
-                  <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                    <TrendingUp className="h-4 w-4" />
-                    <span>Performance Trends</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
+                <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="text-left">
+                    <p className="font-semibold text-blue-900 dark:text-blue-100">Performance Trends</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">Track email performance over time</p>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                    <BarChart3 className="h-4 w-4" />
-                    <span>Campaign Analytics</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <BarChart3 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <div className="text-left">
+                    <p className="font-semibold text-green-900 dark:text-green-100">Campaign Analytics</p>
+                    <p className="text-sm text-green-600 dark:text-green-400">Detailed campaign insights</p>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                    <Mail className="h-4 w-4" />
-                    <span>Open Rate Tracking</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <Mail className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <div className="text-left">
+                    <p className="font-semibold text-purple-900 dark:text-purple-100">Open Rate Tracking</p>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">Monitor engagement metrics</p>
                   </div>
                 </div>
               </div>
-            </div>
-            <Link href="/dashboard/payments">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                Upgrade Now
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </Card>
 
-        {/* Empty State for Free Users */}
-        <AnalyticsEmptyState />
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/dashboard/payments">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-3 text-lg">
+                    <Crown className="h-5 w-5 mr-2" />
+                    Upgrade Now
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={() => window.history.back()}
+                  className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 px-8 py-3 text-lg"
+                >
+                  Go Back
+                </Button>
+              </div>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Starting from just $29.99/month • Cancel anytime
+              </p>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }

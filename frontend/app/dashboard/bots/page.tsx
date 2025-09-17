@@ -15,6 +15,7 @@ import { Bot } from '@/types';
 import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function BotsPage() {
   const router = useRouter();
@@ -85,7 +86,7 @@ export default function BotsPage() {
       if (response.success && response.data) {
         setBotActiveCampaigns(prev => ({
           ...prev,
-          [stringBotId]: response.data.hasActiveCampaigns
+          [stringBotId]: response.data?.hasActiveCampaigns || false
         }));
       }
     } catch (error) {
@@ -170,7 +171,7 @@ export default function BotsPage() {
   const handleEditBot = (bot: Bot) => {
     // Check if bot has active campaigns
     if (botActiveCampaigns[bot._id]) {
-      setVerificationMessage('Cannot edit bot while it has active campaigns. Please pause or complete the campaigns first.');
+      toast.error('Cannot edit bot while it has active campaigns. Please pause or complete the campaigns first.');
       return;
     }
     setEditingBot(bot);
@@ -236,7 +237,7 @@ export default function BotsPage() {
   const handleToggleBotStatus = async (bot: Bot) => {
     // Check if bot has active campaigns and user is trying to deactivate
     if (bot.isActive && botActiveCampaigns[bot._id]) {
-      setVerificationMessage('Cannot deactivate bot while it has active campaigns. Please pause or complete the campaigns first.');
+      toast.error('Cannot deactivate bot while it has active campaigns. Please pause or complete the campaigns first.');
       return;
     }
 
@@ -571,7 +572,7 @@ export default function BotsPage() {
                         {/* Bot info section */}
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                           <Avatar className="h-12 w-12 flex-shrink-0">
-                            <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
+                            <AvatarImage className='bg-white'  src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
                             <AvatarFallback>{getBotAvatar(bot)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
