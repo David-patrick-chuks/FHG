@@ -2,33 +2,33 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
-  AccountDetails,
-  ApiKeyManagement,
-  PlanFeatures,
-  ProfileInformation,
+    AccountDetails,
+    ApiKeyManagement,
+    PlanFeatures,
+    ProfileInformation,
 } from "@/components/profile";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Icons } from "@/components/ui/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import { User } from "@/types";
 import {
-  AlertCircle,
-  CheckCircle,
-  CreditCard,
-  Key,
-  Shield,
-  User as UserIcon,
+    AlertCircle,
+    CheckCircle,
+    CreditCard,
+    Key,
+    Shield,
+    User as UserIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ProfileFormData {
   username: string;
@@ -68,17 +68,20 @@ export default function ProfilePage() {
   const [apiUsage, setApiUsage] = useState<ApiUsage | null>(null);
   const [isGeneratingKey, setIsGeneratingKey] = useState(false);
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
+  const fetchInProgress = useRef(false);
+  const hasFetchedData = useRef(false);
 
   // Fetch API key info and usage
   useEffect(() => {
     const fetchApiInfo = async () => {
+      // Prevent duplicate calls
+      if (fetchInProgress.current || hasFetchedData.current) {
+        return;
+      }
+      
+      fetchInProgress.current = true;
+      
       try {
-        // First, refresh the user profile to get the latest data including API key
-        const profileResponse = await apiClient.get<User>('/auth/profile');
-        if (profileResponse.success && profileResponse.data) {
-          updateUser(profileResponse.data);
-        }
-        
         // Use user data directly if available, otherwise fetch from API
         const userWithApiKey = user as any;
         
@@ -106,20 +109,31 @@ export default function ProfilePage() {
         }
       } catch (error) {
         console.error("Failed to fetch API info:", error);
+      } finally {
+        fetchInProgress.current = false;
+        hasFetchedData.current = true;
       }
     };
 
-    if (user) {
+    if (user?.id) {
       fetchApiInfo();
     }
-  }, [user, updateUser]);
+  }, [user?.id]); // Only depend on user ID to prevent unnecessary re-fetches
 
   // Cleanup effect to clear generated API key when component unmounts
   useEffect(() => {
     return () => {
       setGeneratedApiKey(null);
+      hasFetchedData.current = false;
+      fetchInProgress.current = false;
     };
   }, []);
+
+  // Reset fetch flags when user changes
+  useEffect(() => {
+    hasFetchedData.current = false;
+    fetchInProgress.current = false;
+  }, [user?.id]);
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     setIsLoading(true);
