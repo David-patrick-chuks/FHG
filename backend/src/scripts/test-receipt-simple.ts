@@ -1,6 +1,6 @@
-import { PaystackReceipt } from '../services/paystack/PaystackReceipt';
 import fs from 'fs';
 import path from 'path';
+import { PaystackReceipt } from '../services/paystack/PaystackReceipt';
 
 // Simple test script that doesn't require database connection
 async function testReceiptGeneration() {
@@ -34,9 +34,9 @@ async function testReceiptGeneration() {
   }
 }
 
-// Test the SVG generation directly (bypassing database)
-async function testSvgGeneration() {
-  console.log('🎨 Testing SVG generation...');
+// Test the PDF generation directly (bypassing database)
+async function testPdfGeneration() {
+  console.log('📄 Testing PDF generation...');
 
   try {
     // Import the private method for testing (this is a hack for testing)
@@ -58,22 +58,22 @@ async function testSvgGeneration() {
       email: 'test@example.com'
     };
 
-    // Test SVG generation
-    const svgBuffer = await PaystackReceiptClass.generateReceiptImage(mockPayment, mockUser);
+    // Test PDF generation
+    const pdfBuffer = await PaystackReceiptClass.generateReceiptPDF(mockPayment, mockUser);
     
-    console.log('✅ SVG generated successfully!');
-    console.log('📊 SVG Details:', {
-      size: svgBuffer.length,
-      format: 'PNG'
+    console.log('✅ PDF generated successfully!');
+    console.log('📊 PDF Details:', {
+      size: pdfBuffer.length,
+      format: 'PDF'
     });
 
-    // Save the generated image
-    const outputPath = path.join(process.cwd(), 'test-svg-receipt.png');
-    fs.writeFileSync(outputPath, svgBuffer);
-    console.log(`💾 SVG receipt saved to: ${outputPath}`);
+    // Save the generated PDF
+    const outputPath = path.join(process.cwd(), 'test-pdf-receipt.pdf');
+    fs.writeFileSync(outputPath, pdfBuffer);
+    console.log(`💾 PDF receipt saved to: ${outputPath}`);
 
   } catch (error) {
-    console.error('💥 SVG generation test failed:', error);
+    console.error('💥 PDF generation test failed:', error);
   }
 }
 
@@ -169,7 +169,7 @@ async function runSimpleTests() {
   testXmlEscaping();
   console.log('-'.repeat(50));
 
-  await testSvgGeneration();
+  await testPdfGeneration();
   console.log('-'.repeat(50));
 
   await testReceiptGeneration();
@@ -184,4 +184,5 @@ if (require.main === module) {
   runSimpleTests().catch(console.error);
 }
 
-export { runSimpleTests, testLogoLoading, testXmlEscaping, testSvgGeneration, testReceiptGeneration };
+export { runSimpleTests, testLogoLoading, testPdfGeneration, testReceiptGeneration, testXmlEscaping };
+
