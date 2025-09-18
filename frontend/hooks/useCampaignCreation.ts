@@ -228,24 +228,8 @@ export function useCampaignCreation() {
       });
       
       if (response.success && response.data) {
-        const campaignId = response.data._id;
-        
-        // If campaign has a scheduled time, schedule it
-        if (formData.scheduledFor) {
-          const scheduleResponse = await CampaignsAPI.scheduleCampaign(campaignId, formData.scheduledFor);
-          if (!scheduleResponse.success) {
-            setError(scheduleResponse.error || 'Failed to schedule campaign');
-            return;
-          }
-        } else {
-          // If no scheduled time, start the campaign immediately
-          const startResponse = await CampaignsAPI.startCampaign(campaignId);
-          if (!startResponse.success) {
-            setError(startResponse.error || 'Failed to start campaign');
-            return;
-          }
-        }
-        
+        // Campaign creation now handles timing automatically
+        // No need for separate schedule/start calls
         router.push('/dashboard/campaigns');
       } else {
         setError(response.error || 'Failed to create campaign');

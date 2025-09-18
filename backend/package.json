@@ -13,6 +13,7 @@
     "seed:users": "tsx src/scripts/seedData.ts users",
     "seed:bots": "tsx src/scripts/seedData.ts bots",
     "seed:campaigns": "tsx src/scripts/seedData.ts campaigns",
+    "test:receipt": "tsx src/scripts/test-receipt-simple.ts",
     "seed:all": "tsx src/scripts/seedData.ts all",
     "seed:templates": "tsx src/scripts/seed-templates.ts"
   },

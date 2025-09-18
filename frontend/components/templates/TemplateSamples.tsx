@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { formatVariableSyntax } from '@/lib/utils/variableValidation';
+import { TEMPLATE_VALIDATION_RULES } from '@/lib/utils/templateValidation';
 import { CreateTemplateRequest, TemplateSample } from '@/types';
 import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -18,17 +19,30 @@ interface TemplateSamplesProps {
 export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps) {
   const [newSample, setNewSample] = useState({ subject: '', body: '' });
 
+  // Validation for new sample
+  const isSubjectValid = newSample.subject.length <= TEMPLATE_VALIDATION_RULES.samples.subject.maxLength;
+  const isBodyValid = newSample.body.length <= TEMPLATE_VALIDATION_RULES.samples.body.maxLength;
+  const canAddSample = newSample.subject.trim() && 
+                      newSample.body.trim() && 
+                      isSubjectValid && 
+                      isBodyValid && 
+                      formData.samples.length < 100;
+
   const addSample = () => {
     if (formData.samples.length >= 100) {
       toast.error('Maximum 100 samples allowed per template');
       return;
     }
 
-    if (newSample.subject.trim() && newSample.body.trim()) {
+    if (canAddSample) {
+      // Format variable syntax before adding
+      const formattedSubject = formatVariableSyntax(newSample.subject.trim());
+      const formattedBody = formatVariableSyntax(newSample.body.trim());
+      
       const sample: TemplateSample = {
         _id: Date.now().toString(),
-        subject: newSample.subject.trim(),
-        body: newSample.body.trim(),
+        subject: formattedSubject,
+        body: formattedBody,
         createdAt: new Date()
       };
 
@@ -38,6 +52,11 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
       }));
 
       setNewSample({ subject: '', body: '' });
+      
+      // Show toast if formatting was applied
+      if (formattedSubject !== newSample.subject.trim() || formattedBody !== newSample.body.trim()) {
+        toast.success('Variable syntax automatically formatted');
+      }
     }
   };
 
@@ -73,31 +92,59 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
         <div className="space-y-4 p-4 sm:p-6 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg bg-gradient-to-br from-blue-50/50 to-cyan-50/50 dark:from-blue-900/10 dark:to-cyan-900/10">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <Label htmlFor="sample-subject" className="text-sm font-medium">Subject Line</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="sample-subject" className="text-sm font-medium">Subject Line</Label>
+                <span className={`text-xs ${isSubjectValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {newSample.subject.length}/{TEMPLATE_VALIDATION_RULES.samples.subject.maxLength}
+                </span>
+              </div>
               <Input
                 id="sample-subject"
                 placeholder="e.g., Quick question about your business"
                 value={newSample.subject}
                 onChange={(e) => setNewSample(prev => ({ ...prev, subject: e.target.value }))}
-                className="h-10 sm:h-11 text-sm sm:text-base"
+                className={`h-10 sm:h-11 text-sm sm:text-base ${
+                  isSubjectValid 
+                    ? 'border-blue-200 focus:border-blue-500' 
+                    : 'border-red-300 focus:border-red-500'
+                }`}
               />
+              {!isSubjectValid && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  Subject line must be {TEMPLATE_VALIDATION_RULES.samples.subject.maxLength} characters or less
+                </p>
+              )}
             </div>
             <div>
-              <Label htmlFor="sample-body" className="text-sm font-medium">Email Body</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="sample-body" className="text-sm font-medium">Email Body</Label>
+                <span className={`text-xs ${isBodyValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {newSample.body.length}/{TEMPLATE_VALIDATION_RULES.samples.body.maxLength}
+                </span>
+              </div>
               <Textarea
                 id="sample-body"
                 placeholder="Enter the email content..."
                 rows={6}
                 value={newSample.body}
                 onChange={(e) => setNewSample(prev => ({ ...prev, body: e.target.value }))}
-                className="text-sm sm:text-base"
+                className={`text-sm sm:text-base ${
+                  isBodyValid 
+                    ? 'border-blue-200 focus:border-blue-500' 
+                    : 'border-red-300 focus:border-red-500'
+                }`}
               />
+              {!isBodyValid && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                  Email body must be {TEMPLATE_VALIDATION_RULES.samples.body.maxLength} characters or less
+                </p>
+              )}
             </div>
           </div>
           <Button
             type="button"
             onClick={addSample}
-            disabled={!newSample.subject.trim() || !newSample.body.trim() || formData.samples.length >= 100}
+            disabled={!canAddSample}
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white h-10 sm:h-11 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4 mr-2" />

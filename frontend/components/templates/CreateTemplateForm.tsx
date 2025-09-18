@@ -11,6 +11,10 @@ import { TemplateBasicInfo } from './TemplateBasicInfo';
 import { TemplateSamples } from './TemplateSamples';
 import { TemplateTags } from './TemplateTags';
 import { TemplateVariables } from './TemplateVariables';
+import { VariableValidationModal } from './VariableValidationModal';
+import { TemplateValidationModal } from './TemplateValidationModal';
+import { validateTemplateVariables, VariableValidationResult } from '@/lib/utils/variableValidation';
+import { validateTemplateData, ValidationError } from '@/lib/utils/templateValidation';
 
 interface CreateTemplateFormProps {
   initialData?: Partial<CreateTemplateRequest>;
@@ -42,6 +46,10 @@ export function CreateTemplateForm({
     ...initialData
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationResult, setValidationResult] = useState<VariableValidationResult | null>(null);
+  const [showTemplateValidationModal, setShowTemplateValidationModal] = useState(false);
+  const [templateValidationErrors, setTemplateValidationErrors] = useState<ValidationError[]>([]);
 
   // Validation
   const canCreateTemplate = formData.name.trim() && 
@@ -49,6 +57,54 @@ export function CreateTemplateForm({
                            formData.useCase.trim() && 
                            formData.category &&
                            formData.samples.length > 0;
+
+  // Validate template data before submission
+  const validateTemplate = (): boolean => {
+    // First validate basic template data
+    const templateValidation = validateTemplateData(formData);
+    if (!templateValidation.isValid) {
+      setTemplateValidationErrors(templateValidation.errors);
+      setShowTemplateValidationModal(true);
+      return false;
+    }
+
+    // Then validate variables if samples exist
+    if (formData.samples.length > 0) {
+      const variableResult = validateTemplateVariables(formData.samples, formData.variables);
+      setValidationResult(variableResult);
+      
+      if (!variableResult.isValid || variableResult.warnings.length > 0) {
+        setShowValidationModal(true);
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  // Apply formatting to samples
+  const applyFormatting = () => {
+    if (!validationResult) return;
+    
+    setFormData(prev => ({
+      ...prev,
+      samples: prev.samples.map((sample, index) => ({
+        ...sample,
+        subject: validationResult.formattedSamples[index]?.subject || sample.subject,
+        body: validationResult.formattedSamples[index]?.body || sample.body
+      }))
+    }));
+    
+    setShowValidationModal(false);
+    toast.success('Variable formatting applied successfully');
+  };
+
+  // Ignore validation and continue
+  const ignoreValidation = () => {
+    setShowValidationModal(false);
+    // Continue with form submission
+    submitForm();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +114,16 @@ export function CreateTemplateForm({
       return;
     }
 
+    // Validate template data before submission
+    if (!validateTemplate()) {
+      return; // Validation modal will be shown
+    }
+
+    // If validation passes, submit the form
+    submitForm();
+  };
+
+  const submitForm = async () => {
     try {
       setIsLoading(true);
       
@@ -137,6 +203,25 @@ export function CreateTemplateForm({
           }
         </Button>
       </div>
+
+      {/* Template Validation Modal */}
+      <TemplateValidationModal
+        isOpen={showTemplateValidationModal}
+        onClose={() => setShowTemplateValidationModal(false)}
+        errors={templateValidationErrors}
+        onFixErrors={() => setShowTemplateValidationModal(false)}
+      />
+
+      {/* Variable Validation Modal */}
+      {validationResult && (
+        <VariableValidationModal
+          isOpen={showValidationModal}
+          onClose={() => setShowValidationModal(false)}
+          validationResult={validationResult}
+          onApplyFormatting={applyFormatting}
+          onIgnore={ignoreValidation}
+        />
+      )}
     </form>
   );
 }

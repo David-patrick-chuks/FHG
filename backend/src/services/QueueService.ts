@@ -668,6 +668,47 @@ export class QueueService {
       campaign.status = CampaignStatus.SCHEDULED; // Ready to start
       await campaign.save();
 
+      // Auto-start campaign based on timing settings
+      try {
+        if (!campaign.isScheduled) {
+          // Start immediately if not scheduled
+          QueueService.logger.info('Auto-starting campaign (not scheduled)', {
+            campaignId,
+            userId
+          });
+          
+          const { CampaignService } = await import('./CampaignService');
+          const startResult = await CampaignService.startCampaign(campaignId, userId);
+          
+          if (startResult.success) {
+            QueueService.logger.info('Campaign auto-started successfully', {
+              campaignId,
+              userId
+            });
+          } else {
+            QueueService.logger.warn('Failed to auto-start campaign', {
+              campaignId,
+              userId,
+              error: startResult.message
+            });
+          }
+        } else {
+          // Campaign is scheduled, it will be started by SchedulerService
+          QueueService.logger.info('Campaign scheduled, waiting for scheduled time', {
+            campaignId,
+            userId,
+            scheduledFor: campaign.scheduledFor
+          });
+        }
+      } catch (error) {
+        QueueService.logger.error('Error auto-starting campaign', {
+          campaignId,
+          userId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+        // Don't fail the AI generation job if auto-start fails
+      }
+
       // Update queue job status
       await this.updateQueueJobStatus(job.id.toString(), 'completed');
 
@@ -675,7 +716,8 @@ export class QueueService {
         jobId: job.id,
         campaignId,
         userId,
-        totalMessages: generatedMessages.length
+        totalMessages: generatedMessages.length,
+        autoStarted: !campaign.isScheduled
       });
     } catch (error) {
       QueueService.logger.error('AI message generation job failed:', error);

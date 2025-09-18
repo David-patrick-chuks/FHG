@@ -162,7 +162,9 @@ export class CampaignService {
         this.logger.info('Generating AI messages for campaign', {
           campaignId: campaign._id,
           userId,
-          recipientCount: campaign.emailList.length
+          recipientCount: campaign.emailList.length,
+          isScheduled: !!campaignData.scheduledFor,
+          scheduledFor: campaignData.scheduledFor
         });
 
         await QueueService.addAIMessageGenerationJob(
@@ -175,7 +177,8 @@ export class CampaignService {
         this.logger.info('AI message generation job added to queue', {
           campaignId: campaign._id,
           userId,
-          recipientCount: campaign.emailList.length
+          recipientCount: campaign.emailList.length,
+          willAutoStart: !campaignData.scheduledFor
         });
       } catch (error) {
         this.logger.error('Failed to add AI message generation job to queue', {
