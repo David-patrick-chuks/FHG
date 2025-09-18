@@ -5,6 +5,7 @@ import { ApiResponse } from '../../types';
 import { PaystackCore } from './PaystackCore';
 import path from "path"
 import fs from "fs"
+import sharp from 'sharp';
 
 export class PaystackReceipt extends PaystackCore {
   public static async generateReceipt(
@@ -86,25 +87,23 @@ export class PaystackReceipt extends PaystackCore {
       email: user.email || 'user@example.com'
     };
 
+
     // Read and process the MailQuill logo
     const logoPath = path.join(process.cwd(), 'public', 'MailQuill.svg');
-    let logoData = '';
+    let logoDataUrl = '';
     try {
-      const logoContent = fs.readFileSync(logoPath, 'utf8');
-      // Clean and prepare the logo for embedding
-      logoData = logoContent
-        .replace(/fill="#000000"/g, 'fill="#1e3a8a"') // Change color to brand blue
-        .replace(/width="275\.000000pt"/g, 'width="40"')
-        .replace(/height="282\.000000pt"/g, 'height="40"')
-        .replace(/viewBox="0 0 275\.000000 282\.000000"/g, 'viewBox="0 0 275 282"')
-        .replace(/<?xml[^>]*>/g, '') // Remove XML declaration
-        .replace(/<!DOCTYPE[^>]*>/g, '') // Remove DOCTYPE
-        .replace(/<metadata>[\s\S]*?<\/metadata>/g, '') // Remove metadata
-        .trim();
+      const logoBuffer = fs.readFileSync(logoPath);
+      const pngBuffer = await sharp(logoBuffer)
+        .resize(40, 40) // Match desired size
+        .toFormat('png')
+        .toBuffer();
+      logoDataUrl = `data:image/png;base64,${pngBuffer.toString('base64')}`;
+      PaystackReceipt.logger.info('Generated PNG logoDataUrl', { length: logoDataUrl.length });
     } catch (error) {
-      PaystackReceipt.logger.warn('Could not load MailQuill logo, using fallback', { error: error instanceof Error ? error.message : 'Unknown error' });
-      logoData = '';
+      PaystackReceipt.logger.warn('Could not load or convert MailQuill logo, using fallback', { error: error instanceof Error ? error.message : 'Unknown error' });
+      logoDataUrl = '';
     }
+
 
     // Create HTML receipt
     const htmlContent = `
@@ -148,8 +147,6 @@ export class PaystackReceipt extends PaystackCore {
           .logo {
             width: 60px;
             height: 60px;
-            background: white;
-            border-radius: 8px;
             margin: 0 auto 20px;
             display: flex;
             align-items: center;
@@ -159,7 +156,7 @@ export class PaystackReceipt extends PaystackCore {
             color: #1e3a8a;
           }
           
-          .logo svg {
+          .logo img {
             width: 40px;
             height: 40px;
           }
@@ -347,7 +344,7 @@ export class PaystackReceipt extends PaystackCore {
           <div class="header">
             <div class="receipt-number">Receipt # ${safePayment.reference}</div>
             <div class="logo">
-              ${logoData ? logoData : 'MQ'}
+              ${logoDataUrl ? `<img src="${logoDataUrl}" alt="MailQuill Logo" />` : 'MQ'}
             </div>
             <div class="company-name">MailQuill</div>
             <div class="company-tagline">Email Marketing Platform</div>
@@ -417,7 +414,7 @@ export class PaystackReceipt extends PaystackCore {
       </html>
     `;
 
-    // Configure PDF options
+    // Configure PDF options (unchanged)
     const options = {
       format: 'A4',
       margin: {
@@ -434,15 +431,15 @@ export class PaystackReceipt extends PaystackCore {
     try {
       // Generate PDF from HTML
       const pdfBuffer = await htmlPdf.generatePdf({ content: htmlContent }, options);
-      
+
       return pdfBuffer;
     } catch (error) {
       PaystackReceipt.logger.error('Error generating PDF:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined
       });
-      
-      // Fallback: create a simple HTML receipt
+
+      // Fallback: create a simple HTML receipt (unchanged)
       const fallbackHtml = `
         <!DOCTYPE html>
         <html>
@@ -473,7 +470,7 @@ export class PaystackReceipt extends PaystackCore {
         </body>
         </html>
       `;
-      
+
       const fallbackPdf = await htmlPdf.generatePdf({ content: fallbackHtml }, options);
       return fallbackPdf;
     }

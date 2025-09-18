@@ -22,7 +22,7 @@ async function testReceiptGeneration() {
 
     if (result.success && result.data) {
       // Save receipt if generated
-      const outputPath = path.join(process.cwd(), 'test-receipt.png');
+      const outputPath = path.join(process.cwd(), 'test-receipt.pdf');
       fs.writeFileSync(outputPath, result.data);
       console.log(`💾 Receipt saved to: ${outputPath}`);
     } else {

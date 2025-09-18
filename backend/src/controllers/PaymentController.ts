@@ -483,9 +483,9 @@ export class PaymentController {
       const result = await PaystackService.generateReceipt(userId, reference);
 
       if (result.success) {
-        // Set headers for PNG image download
-        res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.png"`);
+        // Set headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="receipt-${reference}.pdf"`);
         res.status(200).send(result.data);
       } else {
         res.status(404).json(result);

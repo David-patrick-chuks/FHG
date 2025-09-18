@@ -281,13 +281,26 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
   // Paid users see full analytics
   if (hasAccess) {
     if (analyticsData) {
+      // Map UserAnalytics to UserTrackingSummary format
+      const trackingSummary = {
+        totalCampaigns: analyticsData.metrics.totalCampaigns,
+        totalEmails: analyticsData.metrics.totalEmails,
+        totalOpened: analyticsData.metrics.totalOpened,
+        averageOpenRate: analyticsData.metrics.averageOpenRate,
+        topPerformingCampaigns: analyticsData.metrics.topPerformingCampaign ? [{
+          campaignId: analyticsData.metrics.topPerformingCampaign.campaignId,
+          openRate: analyticsData.metrics.topPerformingCampaign.openRate,
+          totalEmails: analyticsData.metrics.topPerformingCampaign.totalEmails
+        }] : []
+      };
+
       return (
         <div className={`space-y-6 ${className}`}>
-          <AnalyticsMetricsCards trackingSummary={analyticsData} />
+          <AnalyticsMetricsCards trackingSummary={trackingSummary} />
           
           <PerformanceTrendsChart campaignStats={analyticsData.campaignPerformance} />
           
-          <TopPerformingCampaigns trackingSummary={analyticsData} />
+          <TopPerformingCampaigns trackingSummary={trackingSummary} />
           
           <CampaignStatisticsTable campaignStats={analyticsData.campaignPerformance} />
 

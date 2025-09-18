@@ -158,7 +158,7 @@ export class PaymentAPI {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `receipt-${reference}.png`;
+        a.download = `receipt-${reference}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

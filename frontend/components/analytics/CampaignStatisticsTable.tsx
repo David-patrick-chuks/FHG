@@ -37,12 +37,12 @@ export function CampaignStatisticsTable({ campaignStats }: CampaignStatisticsTab
                   <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">
                     {stats.campaignId.slice(-8)}
                   </td>
-                  <td className="py-3 px-4">{stats.sent}</td>
-                  <td className="py-3 px-4">{stats.delivered}</td>
-                  <td className="py-3 px-4">{stats.opened}</td>
-                  <td className="py-3 px-4">{stats.replied}</td>
-                  <td className="py-3 px-4">{(stats.openRate * 100).toFixed(1)}%</td>
-                  <td className="py-3 px-4">{(stats.replyRate * 100).toFixed(1)}%</td>
+                  <td className="py-3 px-4">{stats.sent ?? 0}</td>
+                  <td className="py-3 px-4">{stats.delivered ?? 0}</td>
+                  <td className="py-3 px-4">{stats.opened ?? 0}</td>
+                  <td className="py-3 px-4">{stats.replied ?? 0}</td>
+                  <td className="py-3 px-4">{((stats.openRate ?? 0) * 100).toFixed(1)}%</td>
+                  <td className="py-3 px-4">{((stats.replyRate ?? 0) * 100).toFixed(1)}%</td>
                 </tr>
               ))}
             </tbody>

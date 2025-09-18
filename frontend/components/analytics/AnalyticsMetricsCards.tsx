@@ -18,7 +18,7 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {trackingSummary?.totalEmails.toLocaleString() || 0}
+            {(trackingSummary?.totalEmails ?? 0).toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
             Across all campaigns
@@ -33,10 +33,10 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {trackingSummary?.totalOpened.toLocaleString() || 0}
+            {(trackingSummary?.totalOpened ?? 0).toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
-            {trackingSummary?.averageOpenRate.toFixed(1) || 0}% average open rate
+            {(trackingSummary?.averageOpenRate ?? 0).toFixed(1)}% average open rate
           </p>
         </CardContent>
       </Card>
@@ -48,7 +48,7 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {trackingSummary?.totalCampaigns || 0}
+            {trackingSummary?.totalCampaigns ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">
             Active and completed
@@ -63,7 +63,7 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {trackingSummary?.topPerformingCampaigns[0]?.openRate.toFixed(1) || 0}%
+            {(trackingSummary?.topPerformingCampaigns?.[0]?.openRate ?? 0).toFixed(1)}%
           </div>
           <p className="text-xs text-muted-foreground">
             Best campaign open rate

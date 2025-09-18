@@ -32,13 +32,13 @@ export function TopPerformingCampaigns({ trackingSummary }: TopPerformingCampaig
                     Campaign {campaign.campaignId.slice(-4)}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {campaign.totalEmails} emails sent
+                    {campaign.totalEmails ?? 0} emails sent
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {(campaign.openRate * 100).toFixed(1)}%
+                  {((campaign.openRate ?? 0) * 100).toFixed(1)}%
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Open Rate

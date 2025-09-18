@@ -214,19 +214,19 @@ export default function UserPaymentsPage() {
         {/* Upgrade Section - Only show if user can upgrade */}
         {canUpgrade && (
           <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     Need to upgrade your plan?
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
                     Access more features and higher limits with our premium plans.
                   </p>
                 </div>
                 <Button
                   onClick={() => window.location.href = '/pricing'}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full sm:w-auto"
                 >
                   <Zap className="w-4 h-4 mr-2" />
                   Upgrade Now
@@ -371,17 +371,17 @@ export default function UserPaymentsPage() {
               )}
 
               {/* Results Summary */}
-              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600 dark:text-gray-400">
                 <span>
                   Showing {payments.length} of {pagination.totalItems} payments
                 </span>
                 <div className="flex items-center gap-2">
-                  <span>Items per page:</span>
+                  <span className="text-xs sm:text-sm">Items per page:</span>
                   <Select
                     value={filters.limit?.toString() || '10'}
                     onValueChange={(value) => handleItemsPerPageChange(parseInt(value))}
                   >
-                    <SelectTrigger className="w-20">
+                    <SelectTrigger className="w-16 sm:w-20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,47 +399,98 @@ export default function UserPaymentsPage() {
                 {payments.map((payment) => (
                   <div
                     key={payment._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <div className="flex items-center space-x-4">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                        {getPlanIcon(payment.subscriptionTier)}
+                    {/* Mobile Layout */}
+                    <div className="flex flex-col sm:hidden space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                            {getPlanIcon(payment.subscriptionTier)}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white text-sm">
+                              {payment.subscriptionTier.toUpperCase()} - {payment.billingCycle}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {formatDate(payment.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                            {formatPrice(payment.amount)}
+                          </p>
+                          {getStatusBadge(payment.status)}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {payment.subscriptionTier.toUpperCase()} - {payment.billingCycle}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                      
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           Reference: {payment.reference}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatDate(payment.createdAt)}
-                        </p>
                         {payment.paidAt && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
                             Paid: {formatDate(payment.paidAt)}
                           </p>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {formatPrice(payment.amount)}
-                      </p>
-                      <div className="mt-2">
-                        {getStatusBadge(payment.status)}
-                      </div>
+                      
                       {payment.status === 'completed' && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="mt-2"
+                          className="w-full"
                           onClick={() => handleDownloadReceipt(payment.reference)}
                         >
                           <Download className="w-3 h-3 mr-1" />
-                          Receipt
+                          Download Receipt
                         </Button>
                       )}
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                          {getPlanIcon(payment.subscriptionTier)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {payment.subscriptionTier.toUpperCase()} - {payment.billingCycle}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Reference: {payment.reference}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatDate(payment.createdAt)}
+                          </p>
+                          {payment.paidAt && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Paid: {formatDate(payment.paidAt)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {formatPrice(payment.amount)}
+                        </p>
+                        <div className="mt-2">
+                          {getStatusBadge(payment.status)}
+                        </div>
+                        {payment.status === 'completed' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => handleDownloadReceipt(payment.reference)}
+                          >
+                            <Download className="w-3 h-3 mr-1" />
+                            Receipt
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -448,90 +499,126 @@ export default function UserPaymentsPage() {
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No payment history</p>
-                <p className="text-sm mb-4">
+                <p className="text-sm mb-4 px-4">
                   {filters.search || filters.status || filters.subscriptionTier || filters.billingCycle
                     ? 'No payments match your current filters.'
                     : 'You haven\'t made any payments yet.'}
                 </p>
-                {(filters.search || filters.status || filters.subscriptionTier || filters.billingCycle) ? (
-                  <Button
-                    variant="outline"
-                    onClick={clearFilters}
-                    className="mr-2"
-                  >
-                    Clear Filters
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => window.location.href = '/pricing'}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                  >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Upgrade Your Plan
-                  </Button>
-                )}
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  {(filters.search || filters.status || filters.subscriptionTier || filters.billingCycle) ? (
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      className="w-full sm:w-auto"
+                    >
+                      Clear Filters
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => window.location.href = '/pricing'}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full sm:w-auto"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Upgrade Your Plan
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <span>
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                {/* Mobile Pagination */}
+                <div className="flex flex-col sm:hidden space-y-4">
+                  <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                     Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={!pagination.hasPrevPage}
-                    className="flex items-center gap-1"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                  </Button>
-                  
-                  {/* Page Numbers */}
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                      let pageNum;
-                      if (pagination.totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (pagination.currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (pagination.currentPage >= pagination.totalPages - 2) {
-                        pageNum = pagination.totalPages - 4 + i;
-                      } else {
-                        pageNum = pagination.currentPage - 2 + i;
-                      }
-                      
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={pageNum === pagination.currentPage ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handlePageChange(pageNum)}
-                          className="w-8 h-8 p-0"
-                        >
-                          {pageNum}
-                        </Button>
-                      );
-                    })}
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={!pagination.hasNextPage}
-                    className="flex items-center gap-1"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={!pagination.hasPrevPage}
+                      className="flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={!pagination.hasNextPage}
+                      className="flex items-center gap-1"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Desktop Pagination */}
+                <div className="hidden sm:flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span>
+                      Page {pagination.currentPage} of {pagination.totalPages}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={!pagination.hasPrevPage}
+                      className="flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (pagination.totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (pagination.currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                          pageNum = pagination.totalPages - 4 + i;
+                        } else {
+                          pageNum = pagination.currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={!pagination.hasNextPage}
+                      className="flex items-center gap-1"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
