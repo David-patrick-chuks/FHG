@@ -89,12 +89,12 @@ export class PuppeteerExtractor {
           
           await page.goto(currentUrl, { 
             waitUntil: 'networkidle0', 
-            timeout: this.PUPPETEER_TIMEOUT 
-          });
-          
+        timeout: this.PUPPETEER_TIMEOUT 
+      });
+      
           // Wait for dynamic content
-          await page.waitForTimeout(3000);
-          
+      await page.waitForTimeout(3000);
+      
           // Extract emails using enhanced method
           const pageEmails = await EmailParser.extractEmailsFromPuppeteerPage(page);
           pageEmails.forEach(email => found.add(email));
@@ -127,11 +127,11 @@ export class PuppeteerExtractor {
             });
 
             // Add common paths
-            const allPaths = [
-              ...this.CONTACT_PATHS,
-              ...this.BUSINESS_PATHS,
-              ...this.COMMON_CHECKOUT_PATHS
-            ];
+      const allPaths = [
+        ...this.CONTACT_PATHS,
+        ...this.BUSINESS_PATHS,
+        ...this.COMMON_CHECKOUT_PATHS
+      ];
 
             allPaths.forEach(path => {
               try {

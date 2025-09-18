@@ -79,11 +79,6 @@ export class CampaignModel {
           message: 'Please provide valid email addresses'
         }
       }],
-      aiMessages: [{
-        type: String,
-        trim: true,
-        minlength: 10
-      }],
       generatedMessages: [{
         recipientEmail: {
           type: String,
@@ -320,13 +315,6 @@ export class CampaignModel {
     campaignSchema.pre('save', function(next) {
       if (this['emailList'].length === 0) {
         next(new Error('Campaign must have at least one email address'));
-      }
-      
-      // Only validate aiMessages if they exist (for backward compatibility)
-      if (this['aiMessages'] && this['aiMessages'].length > 0) {
-        if (this['selectedMessageIndex'] >= this['aiMessages'].length) {
-          next(new Error('Selected message index is out of range'));
-        }
       }
       
       // Validate generatedMessages if they exist

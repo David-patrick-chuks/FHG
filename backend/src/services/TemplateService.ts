@@ -631,7 +631,7 @@ export class TemplateService {
             timestamp: new Date()
           };
         } else {
-          throw saveError;
+        throw saveError;
         }
       }
 

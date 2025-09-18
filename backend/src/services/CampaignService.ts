@@ -23,7 +23,6 @@ export class CampaignService {
       emailList: campaignObj.emailList,
       botId: campaignObj.botId.toString(),
       templateId: campaignObj.templateId?.toString(),
-      aiMessages: campaignObj.aiMessages,
       generatedMessages: campaignObj.generatedMessages || [],
       status: campaignObj.status,
       selectedMessageIndex: campaignObj.selectedMessageIndex,
@@ -142,20 +141,11 @@ export class CampaignService {
         };
       }
 
-      // Create placeholder AI messages from template samples
-      // The real AI generation happens in QueueService using generateVariationsFromTemplate
-      const aiMessages: Array<{ subject: string; body: string; tone: string }> = template.samples.map((sample, index) => ({
-        subject: sample.subject,
-        body: sample.body,
-        tone: 'professional'
-      }));
-
       // Create campaign with optional scheduling and interval settings
       const campaign = new CampaignModel({
         ...campaignData,
         userId,
         templateId: campaignData.templateId,
-        aiMessages: aiMessages,
         status: CampaignStatus.DRAFT,
         // Handle optional scheduling
         scheduledFor: campaignData.scheduledFor,
@@ -201,7 +191,6 @@ export class CampaignService {
         userId,
         campaignName: campaign.name,
         emailCount: campaign.emailList.length,
-        aiMessageCount: campaign.aiMessages.length,
         generatedMessagesCount: campaign.generatedMessages?.length || 0
       });
 
@@ -506,13 +495,6 @@ export class CampaignService {
         };
       }
 
-      if (campaign.aiMessages.length === 0) {
-        return {
-          success: false,
-          message: 'Campaign must have AI-generated messages',
-          timestamp: new Date()
-        };
-      }
 
       // Prepare campaign
       await campaign.prepareCampaign();

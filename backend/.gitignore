@@ -90,7 +90,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+email.txt
 
 # Storybook build outputs
 .out

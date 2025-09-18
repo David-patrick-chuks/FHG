@@ -37,7 +37,6 @@ export interface ICampaign {
   description: string;
   status: CampaignStatus;
   emailList: string[];
-  aiMessages: string[];
   generatedMessages?: IGeneratedMessage[];
   selectedMessageIndex: number;
   sentEmails: ISentEmail[];
@@ -81,6 +80,7 @@ export interface CreateCampaignRequest {
   templateId: string; // Required template reference
   emailList: string[];
   scheduledFor?: Date;
+  isScheduled?: boolean;
   emailInterval: number;
   emailIntervalUnit: 'seconds' | 'minutes' | 'hours';
 }

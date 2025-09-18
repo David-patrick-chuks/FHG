@@ -41,12 +41,12 @@ export function CampaignScheduler({
   const handleSchedule = () => {
     if (!selectedDate) return;
 
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const scheduledDateTime = new Date(selectedDate);
-    scheduledDateTime.setHours(hours, minutes, 0, 0);
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const scheduledDateTime = new Date(selectedDate);
+      scheduledDateTime.setHours(hours, minutes, 0, 0);
 
     onSchedule(scheduledDateTime);
-    setIsOpen(false);
+      setIsOpen(false);
   };
 
   const handleStartNow = () => {
@@ -83,7 +83,7 @@ export function CampaignScheduler({
         </div>
       </div>
 
-      <div className="space-y-4">
+    <div className="space-y-4">
         <RadioGroup
           value={timingOption}
           onValueChange={handleTimingOptionChange}
@@ -106,7 +106,7 @@ export function CampaignScheduler({
                 </div>
               </div>
             </Label>
-          </div>
+      </div>
 
           {/* Schedule Option */}
           <div className="flex items-center space-x-4 p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200">
@@ -146,8 +146,8 @@ export function CampaignScheduler({
                     <li>• <strong>Time validation:</strong> Times must be in the future</li>
                   </ul>
                 </div>
-              </div>
-            </div>
+          </div>
+        </div>
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Schedule Details</h4>
@@ -174,57 +174,57 @@ export function CampaignScheduler({
                 <Label htmlFor="schedule-date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Date
                 </Label>
-                <Popover open={isOpen} onOpenChange={setIsOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
                         "w-full justify-start text-left font-normal border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-400",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                      disabled={disabled}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                  disabled={disabled}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
                       disabled={(date) => {
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         return date < today;
                       }}
-                      initialFocus
+                  initialFocus
                       className="rounded-md border"
-                    />
+                />
                     <div className="p-3 border-t bg-gray-50 dark:bg-gray-800">
                       <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
                         💡 You can schedule for today or any future date
                       </p>
                     </div>
-                  </PopoverContent>
-                </Popover>
+              </PopoverContent>
+            </Popover>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="schedule-time" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Time
                 </Label>
-                <input
+              <input
                   id="schedule-time"
-                  type="time"
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
+                type="time"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={disabled}
+                disabled={disabled}
                   aria-label="Select time for campaign start"
-                />
-              </div>
+              />
             </div>
+          </div>
 
             {selectedDate && (
               <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -286,9 +286,9 @@ export function CampaignScheduler({
                   Campaign is ready to launch at the scheduled time
                 </p>
               </div>
-            </div>
           </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   );

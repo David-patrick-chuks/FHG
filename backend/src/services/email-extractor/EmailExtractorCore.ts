@@ -395,11 +395,13 @@ export class EmailExtractorCore {
         
         await updateProgress('homepage_email_extraction', 'processing', '🔍 Scanning homepage for email addresses...');
         const homepageEmails = this.extractEmailsFromHtml(homepageHtml);
-        homepageEmails.forEach(email => found.add(email));
+        if (homepageEmails && Array.isArray(homepageEmails)) {
+          homepageEmails.forEach(email => found.add(email));
+        }
         scannedUrls.add(url);
         
-        await updateProgress('homepage_email_extraction', 'completed', `📧 Found ${homepageEmails.length} email(s) on homepage`, {
-          emails: homepageEmails
+        await updateProgress('homepage_email_extraction', 'completed', `📧 Found ${homepageEmails?.length || 0} email(s) on homepage`, {
+          emails: homepageEmails || []
         });
       } else {
         await updateProgress('homepage_scan', 'failed', '❌ Failed to fetch homepage content');
@@ -410,10 +412,12 @@ export class EmailExtractorCore {
         await updateProgress('contact_pages', 'processing', '📞 Scanning contact and about pages...');
         const contactUrls = this.getTopContactUrls(url);
         const contactEmails = await this.scanUrlsInParallel(contactUrls, updateProgress, 'contact_pages');
-        contactEmails.forEach(email => found.add(email));
+        if (contactEmails && Array.isArray(contactEmails)) {
+          contactEmails.forEach(email => found.add(email));
+        }
         
-        await updateProgress('contact_pages', 'completed', `📧 Found ${contactEmails.length} email(s) from contact pages`, {
-          emails: contactEmails
+        await updateProgress('contact_pages', 'completed', `📧 Found ${contactEmails?.length || 0} email(s) from contact pages`, {
+          emails: contactEmails || []
         });
       } else {
         await updateProgress('contact_pages', 'skipped', '⏭️ Skipped contact pages - emails already found');
@@ -424,10 +428,12 @@ export class EmailExtractorCore {
         await updateProgress('puppeteer_scan', 'processing', '🤖 Launching advanced browser scanning with stealth mode...');
         EmailExtractorCore.logger.info('Using enhanced Puppeteer for comprehensive deep scanning', { url });
         const puppeteerEmails = await this.extractEmailsWithPuppeteer(url);
-        puppeteerEmails.forEach(email => found.add(email));
+        if (puppeteerEmails && Array.isArray(puppeteerEmails)) {
+          puppeteerEmails.forEach(email => found.add(email));
+        }
         
-        await updateProgress('puppeteer_scan', 'completed', `🎯 Advanced browser scan found ${puppeteerEmails.length} email(s)`, {
-          emails: puppeteerEmails
+        await updateProgress('puppeteer_scan', 'completed', `🎯 Advanced browser scan found ${puppeteerEmails?.length || 0} email(s)`, {
+          emails: puppeteerEmails || []
         });
       } else {
         await updateProgress('puppeteer_scan', 'skipped', '⏭️ Skipped advanced browser scan - emails already found');
@@ -437,9 +443,11 @@ export class EmailExtractorCore {
       if (found.size === 0) {
         await updateProgress('whois_lookup', 'processing', '🌍 Querying domain registration database (WHOIS)...');
         const whoisEmails = await this.extractEmailsFromWhois(url);
-        whoisEmails.forEach(email => found.add(email));
+        if (whoisEmails && Array.isArray(whoisEmails)) {
+          whoisEmails.forEach(email => found.add(email));
+        }
         
-        if (whoisEmails.length > 0) {
+        if (whoisEmails && whoisEmails.length > 0) {
           await updateProgress('whois_lookup', 'completed', `📋 WHOIS database found ${whoisEmails.length} email(s)`, {
             emails: whoisEmails
           });
@@ -455,10 +463,12 @@ export class EmailExtractorCore {
         await updateProgress('fallback_generation', 'processing', '💡 Generating common business email patterns...');
         const domain = new URL(url).hostname;
         const commonEmails = this.generateCommonBusinessEmails(domain);
-        commonEmails.forEach(email => found.add(email));
+        if (commonEmails && Array.isArray(commonEmails)) {
+          commonEmails.forEach(email => found.add(email));
+        }
         
-        await updateProgress('fallback_generation', 'completed', `🎯 Generated ${commonEmails.length} common business email patterns`, {
-          emails: commonEmails
+        await updateProgress('fallback_generation', 'completed', `🎯 Generated ${commonEmails?.length || 0} common business email patterns`, {
+          emails: commonEmails || []
         });
       } else {
         await updateProgress('fallback_generation', 'skipped', '⏭️ Skipped fallback generation - emails already found');
@@ -544,7 +554,11 @@ export class EmailExtractorCore {
       });
       
       const results = await Promise.all(promises);
-      results.forEach(emails => emails.forEach(email => found.add(email)));
+      results.forEach(emails => {
+        if (emails && Array.isArray(emails)) {
+          emails.forEach(email => found.add(email));
+        }
+      });
     }
     
     return Array.from(found);

@@ -131,7 +131,6 @@ export interface Campaign extends BaseEntity {
   botId: string;
   templateId?: string;
   emailList: string[];
-  aiMessages: string[];
   generatedMessages?: GeneratedMessage[];
   selectedMessageIndex: number;
   sentEmails: string[];
