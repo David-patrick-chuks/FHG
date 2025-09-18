@@ -73,7 +73,7 @@ export class AnalyticsAPI {
     timestamp?: string;
   }> {
     const response = await apiClient.get('/analytics');
-    return response.data;
+    return response;
   }
 
   /**
@@ -87,7 +87,7 @@ export class AnalyticsAPI {
     timestamp?: string;
   }> {
     const response = await apiClient.get('/analytics/summary');
-    return response.data;
+    return response;
   }
 
   /**
@@ -101,6 +101,6 @@ export class AnalyticsAPI {
     timestamp?: string;
   }> {
     const response = await apiClient.get('/analytics/access');
-    return response.data;
+    return response;
   }
 }

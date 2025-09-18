@@ -34,6 +34,11 @@ export class EmailParser {
   public static extractEmailsFromHtml(html: string): string[] {
     const emails: string[] = [];
     
+    // Return empty array if html is null or undefined
+    if (!html || typeof html !== 'string') {
+      return emails;
+    }
+    
     // Method 1: Standard regex extraction
     const matches = html.match(this.EMAIL_REGEX);
     if (matches) {
@@ -374,7 +379,9 @@ export class EmailParser {
 
       // Process the extracted text
       const processedEmails = this.extractEmailsFromHtml(textContent);
-      processedEmails.forEach(email => emails.add(email));
+      if (processedEmails && Array.isArray(processedEmails)) {
+        processedEmails.forEach(email => emails.add(email));
+      }
 
       // Extract from form inputs
       const formEmails = await page.evaluate(() => {
@@ -383,9 +390,11 @@ export class EmailParser {
           .map((input: any) => input.value || input.placeholder || '')
           .filter(v => v.includes('@'));
       });
-      formEmails.forEach(email => {
-        if (validator.isEmail(email)) emails.add(email);
-      });
+      if (formEmails && Array.isArray(formEmails)) {
+        formEmails.forEach(email => {
+          if (validator.isEmail(email)) emails.add(email);
+        });
+      }
 
       // Extract from meta tags
       const metaEmails = await page.evaluate(() => {
@@ -394,10 +403,12 @@ export class EmailParser {
           .map((meta: any) => meta.content || '')
           .filter(content => /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(content));
       });
-      metaEmails.forEach(content => {
-        const matches = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
-        if (matches) matches.forEach(email => emails.add(email));
-      });
+      if (metaEmails && Array.isArray(metaEmails)) {
+        metaEmails.forEach(content => {
+          const matches = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+          if (matches) matches.forEach(email => emails.add(email));
+        });
+      }
 
       // Extract from JSON-LD
       const jsonLd = await page.evaluate(() => {
@@ -422,9 +433,11 @@ export class EmailParser {
         });
         return emails;
       });
-      jsonLd.forEach(email => {
-        if (validator.isEmail(email)) emails.add(email);
-      });
+      if (jsonLd && Array.isArray(jsonLd)) {
+        jsonLd.forEach(email => {
+          if (validator.isEmail(email)) emails.add(email);
+        });
+      }
 
       // Extract from specific hotspots
       const hotspotEmails = await page.evaluate(() => {
@@ -446,9 +459,11 @@ export class EmailParser {
         });
         return emails;
       });
-      hotspotEmails.forEach((email : any) => {
-        if (validator.isEmail(email)) emails.add(email);
-      });
+      if (hotspotEmails && Array.isArray(hotspotEmails)) {
+        hotspotEmails.forEach((email : any) => {
+          if (validator.isEmail(email)) emails.add(email);
+        });
+      }
 
     } catch (error) {
       console.error('Error extracting emails from Puppeteer page:', error);

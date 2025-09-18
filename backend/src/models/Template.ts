@@ -252,8 +252,8 @@ export class TemplateModel {
     };
 
     templateSchema.methods['addSample'] = async function(sample: any): Promise<void> {
-      if (this.samples.length >= 20) {
-        throw new Error('Maximum 20 samples allowed per template');
+      if (this.samples.length >= 100) {
+        throw new Error('Maximum 100 samples allowed per template');
       }
       
       this.samples.push(sample);

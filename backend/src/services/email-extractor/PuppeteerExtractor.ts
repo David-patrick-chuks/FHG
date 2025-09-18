@@ -97,9 +97,11 @@ export class PuppeteerExtractor {
       
           // Extract emails using enhanced method
           const pageEmails = await EmailParser.extractEmailsFromPuppeteerPage(page);
-          pageEmails.forEach(email => found.add(email));
+          if (pageEmails && Array.isArray(pageEmails)) {
+            pageEmails.forEach(email => found.add(email));
+          }
           
-          if (pageEmails.length > 0) {
+          if (pageEmails && pageEmails.length > 0) {
             noEmailsYet = false;
             PuppeteerExtractor.logger.info('Found emails', { url: currentUrl, count: pageEmails.length });
           }

@@ -239,8 +239,8 @@ Name: ${template.name}
 Description: ${template.description}
 Use Case: ${template.useCase}
 
-VARIABLES AVAILABLE:
-${template.variables.map(v => `- {{${v.key}}}: ${v.value} (${v.required ? 'required' : 'optional'})`).join('\n')}
+VARIABLES AVAILABLE (use these placeholders in your variations):
+${template.variables.map(v => `- {{${v.key}}}: ${v.required ? 'required' : 'optional'} variable`).join('\n')}
 
 TEMPLATE SAMPLES (learn from these patterns):
 ${template.samples.map((sample, index) => `
@@ -260,12 +260,17 @@ ${recipientContext ? `
 REQUIREMENTS:
 1. Generate exactly ${variationCount} unique variations
 2. Each variation should follow the patterns and style of the template samples
-3. Use the available variables ({{variable_name}}) appropriately in each variation
+3. CRITICAL: Use the available variables ({{variable_name}}) as placeholders in your variations - DO NOT replace them with actual values
 4. Vary the tone, structure, and wording while maintaining the core message
 5. Make each variation feel natural and professional
 6. Ensure subject lines are compelling and varied
 7. Keep content length similar to the template samples
 8. Maintain the same purpose and intent as the original template
+9. IMPORTANT: Keep variables as {{variable_name}} format - they will be replaced later
+
+EXAMPLE OF CORRECT VARIABLE USAGE:
+- Subject: "Quick question about {{company_name}}'s {{pain_point}}"
+- Body: "Hi {{name}}, I noticed {{company_name}} is in the {{industry}} space..."
 
 Return a JSON object with a "variations" array containing the email variations.
 `;
@@ -295,7 +300,7 @@ Return a JSON object with a "variations" array containing the email variations.
 
       try {
         const parsed = JSON.parse(text);
-        
+        console.log('AI Response:', JSON.stringify(parsed, null, 2));
         // Validate the response structure
         if (!parsed.variations || !Array.isArray(parsed.variations) || parsed.variations.length !== variationCount) {
           throw new Error(`Expected variations array with ${variationCount} items, got ${Array.isArray(parsed.variations) ? parsed.variations.length : 'non-array'}`);

@@ -444,42 +444,36 @@ export class QueueService {
 
       const template = templateResponse.data;
 
-      // Generate AI messages for each email address
+      // Adaptive AI generation strategy based on email list size
+      const MAX_VARIATION_COUNT = 30; // Maximum variations per AI call
       const generatedMessages: IGeneratedMessage[] = [];
       
-      for (const email of emailList) {
-        try {
-          // Extract name from email if possible
-          const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      // Calculate how many AI calls we need to generate unique messages for all emails
+      const emailCount = emailList.length;
+      const aiCallsNeeded = Math.ceil(emailCount / MAX_VARIATION_COUNT);
+      
+      try {
+        QueueService.logger.info('Generating AI variations for campaign', {
+          campaignId,
+          emailCount,
+          aiCallsNeeded,
+          maxVariationsPerCall: MAX_VARIATION_COUNT,
+          strategy: 'unique-messages'
+        });
+
+        // Generate all variations needed for unique messages
+        const allVariations: any[] = [];
+        
+        for (let callIndex = 0; callIndex < aiCallsNeeded; callIndex++) {
+          const remainingEmails = emailCount - (callIndex * MAX_VARIATION_COUNT);
+          const variationsForThisCall = Math.min(remainingEmails, MAX_VARIATION_COUNT);
           
-          // Create prompt based on template samples
-          const samplePrompts = template.samples.map((sample: any, index: number) => 
-            `Sample ${index + 1}:
-Subject: ${sample.subject}
-Body: ${sample.body}`
-          ).join('\n\n');
+          QueueService.logger.info(`AI call ${callIndex + 1}/${aiCallsNeeded}`, {
+            campaignId,
+            variationsForThisCall,
+            callIndex
+          });
 
-          const prompt = `
-Generate a unique, personalized email message based on these template samples:
-
-${samplePrompts}
-
-Recipient: ${name} (${email})
-Campaign: ${campaign.name}
-
-Requirements:
-- Create a unique subject line and body content
-- Personalize the message for ${name}
-- Keep it professional and engaging
-- Length: 100-200 words
-- Include a clear call-to-action
-- Make it feel personal and authentic
-- Avoid spam-like language
-
-Generate exactly 1 message with subject and body.
-`;
-
-          // Generate AI message using template
           const aiResult = await AIService.generateVariationsFromTemplate(
             {
               name: template.name,
@@ -489,36 +483,122 @@ Generate exactly 1 message with subject and body.
               samples: template.samples
             },
             {
-              email: email,
-              name: name,
-              company: email.split('@')[1]?.split('.')[0] || 'Unknown',
-              industry: template.industry || 'Unknown'
+              industry: template.industry || 'Various',
+              company: 'Various Companies'
             },
-            1
+            variationsForThisCall
           );
-          
+
           if (aiResult.success && aiResult.data && aiResult.data.length > 0) {
-            const message = aiResult.data[0];
-            generatedMessages.push({
-              recipientEmail: email,
-              recipientName: name,
-              subject: message.subject,
-              body: message.body,
-              personalizationData: {
-                name: name,
-                email: email,
-                campaignName: campaign.name
-              },
-              isSent: false,
-              createdAt: new Date()
+            allVariations.push(...(aiResult.data as any[]));
+            QueueService.logger.info(`AI call ${callIndex + 1} completed`, {
+              campaignId,
+              variationsGenerated: aiResult.data.length,
+              totalVariationsSoFar: allVariations.length
             });
           } else {
-            // Fallback message if AI generation fails
-            const fallbackSubject = `Re: ${campaign.name}`;
-            const fallbackBody = `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`;
+            throw new Error(`AI call ${callIndex + 1} failed: ${aiResult.message}`);
+          }
+        }
+        
+        if (allVariations.length > 0) {
+          QueueService.logger.info('All AI variations generated successfully', {
+            campaignId,
+            totalVariations: allVariations.length,
+            emailCount: emailList.length,
+            aiCallsMade: aiCallsNeeded,
+            strategy: 'unique-messages'
+          });
+
+          // Import AIService once for variable replacement
+          const { AIService } = await import('./AIService');
+
+          // Distribute variations across all emails (one-to-one mapping)
+          emailList.forEach((email, index) => {
+            try {
+              // Extract name from email
+              const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              
+              // Each email gets its own unique variation (one-to-one mapping)
+              const variation = allVariations[index];
+              const variationIndex = index;
+              
+              // Create variables for personalization
+              const variables: Record<string, string> = {
+                name: name,
+                email: email,
+                company: email.split('@')[1]?.split('.')[0] || 'Unknown',
+                industry: template.industry || 'Unknown'
+              };
+              
+              // Add template variables
+              template.variables.forEach(variable => {
+                if (variable.value) {
+                  variables[variable.key] = variable.value;
+                }
+              });
+              
+              // Apply variable replacement to personalize the message
+              const personalizedSubject = AIService.replaceVariables(variation.subject, variables);
+              const personalizedBody = AIService.replaceVariables(variation.body, variables);
+              
+              generatedMessages.push({
+                recipientEmail: email,
+                recipientName: name,
+                subject: personalizedSubject,
+                body: personalizedBody,
+                personalizationData: {
+                  name: name,
+                  email: email,
+                  campaignName: campaign.name,
+                  variationIndex: variationIndex + 1,
+                  strategy: 'unique-messages',
+                  totalVariations: allVariations.length,
+                  aiCallNumber: Math.floor(index / MAX_VARIATION_COUNT) + 1
+                },
+                isSent: false,
+                createdAt: new Date()
+              });
+              
+            } catch (error) {
+              QueueService.logger.warn('Failed to personalize message for email', {
+                email,
+                error: error instanceof Error ? error.message : 'Unknown error'
+              });
+              
+              // Add fallback message
+              const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const fallbackSubject = `Re: ${campaign.name}`;
+              const fallbackBody = `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`;
+              
+              generatedMessages.push({
+                recipientEmail: email,
+                recipientName: name,
+                subject: fallbackSubject,
+                body: fallbackBody,
+                personalizationData: {
+                  name: name,
+                  email: email,
+                  campaignName: campaign.name
+                },
+                isSent: false,
+                createdAt: new Date()
+              });
+            }
+          });
+        } else {
+          // Fallback: Generate messages from template samples if AI fails
+          QueueService.logger.warn('AI generation failed, using template samples as fallback', {
+            campaignId,
+            error: 'No variations generated'
+          });
+          
+          emailList.forEach(async (email, index) => {
+            const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const sampleIndex = index % template.samples.length;
+            const sample = template.samples[sampleIndex];
             
-            // Apply variable replacement to fallback message
-            const { AIService } = await import('./AIService');
+            // Create variables for personalization
             const variables: Record<string, string> = {
               name: name,
               email: email,
@@ -533,67 +613,54 @@ Generate exactly 1 message with subject and body.
               }
             });
             
-            const processedSubject = AIService.replaceVariables(fallbackSubject, variables);
-            const processedBody = AIService.replaceVariables(fallbackBody, variables);
+            // Apply variable replacement
+            const { AIService } = await import('./AIService');
+            const personalizedSubject = AIService.replaceVariables(sample.subject, variables);
+            const personalizedBody = AIService.replaceVariables(sample.body, variables);
             
             generatedMessages.push({
               recipientEmail: email,
               recipientName: name,
-              subject: processedSubject,
-              body: processedBody,
+              subject: personalizedSubject,
+              body: personalizedBody,
               personalizationData: {
                 name: name,
                 email: email,
-                campaignName: campaign.name
+                campaignName: campaign.name,
+                fallback: true
               },
               isSent: false,
               createdAt: new Date()
             });
-          }
-        } catch (error) {
-          QueueService.logger.warn('Failed to generate AI message for email', {
-            email,
-            error: error instanceof Error ? error.message : 'Unknown error'
           });
-          
-          // Add fallback message
+        }
+        
+      } catch (error) {
+        QueueService.logger.error('Failed to generate AI variations for campaign', {
+          campaignId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+        
+        // Ultimate fallback: Use first template sample for all emails
+        emailList.forEach((email) => {
           const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          const fallbackSubject = `Re: ${campaign.name}`;
-          const fallbackBody = `Hello ${name},\n\n${template.samples[0]?.body || 'Thank you for your interest in our campaign.'}\n\nBest regards,\n${campaign.name}`;
-          
-          // Apply variable replacement to error fallback message
-          const { AIService } = await import('./AIService');
-          const variables: Record<string, string> = {
-            name: name,
-            email: email,
-            company: email.split('@')[1]?.split('.')[0] || 'Unknown',
-            industry: template.industry || 'Unknown'
-          };
-          
-          // Add template variables
-          template.variables.forEach(variable => {
-            if (variable.value) {
-              variables[variable.key] = variable.value;
-            }
-          });
-          
-          const processedSubject = AIService.replaceVariables(fallbackSubject, variables);
-          const processedBody = AIService.replaceVariables(fallbackBody, variables);
+          const sample = template.samples[0];
           
           generatedMessages.push({
             recipientEmail: email,
             recipientName: name,
-            subject: processedSubject,
-            body: processedBody,
+            subject: sample.subject,
+            body: sample.body,
             personalizationData: {
               name: name,
               email: email,
-              campaignName: campaign.name
+              campaignName: campaign.name,
+              ultimateFallback: true
             },
             isSent: false,
             createdAt: new Date()
           });
-        }
+        });
       }
 
       // Save generated messages to campaign

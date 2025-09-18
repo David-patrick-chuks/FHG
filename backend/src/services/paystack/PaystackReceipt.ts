@@ -1,10 +1,10 @@
-import fs from 'fs';
-import path from 'path';
 import sharp from 'sharp';
 import PaymentModel from '../../models/Payment';
 import UserModel from '../../models/User';
 import { ApiResponse } from '../../types';
 import { PaystackCore } from './PaystackCore';
+import path from 'path';
+import fs from 'fs';
 
 export class PaystackReceipt extends PaystackCore {
   public static async generateReceipt(
@@ -57,6 +57,17 @@ export class PaystackReceipt extends PaystackCore {
   }
 
   private static async generateReceiptImage(payment: any, user: any): Promise<Buffer> {
+    // XML escape function to prevent XML parsing errors
+    const xmlEscape = (str: string): string => {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+
     const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`;
     const formatDate = (date: Date) => date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -71,19 +82,38 @@ export class PaystackReceipt extends PaystackCore {
     const expiryDate = new Date(paymentDate);
     expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
+    // Safe data extraction with fallbacks
+    const safePayment = {
+      reference: xmlEscape(payment.reference || 'N/A'),
+      amount: payment.amount || 0,
+      status: xmlEscape(payment.status || 'unknown'),
+      subscriptionTier: xmlEscape(payment.subscriptionTier || 'basic'),
+      billingCycle: xmlEscape(payment.billingCycle || 'monthly'),
+      paidAt: payment.paidAt || payment.createdAt
+    };
+
+    const safeUser = {
+      username: xmlEscape(user.username || 'User'),
+      email: xmlEscape(user.email || 'user@example.com')
+    };
+
     // Read and process the MailQuill logo
     const logoPath = path.join(process.cwd(), 'public', 'MailQuill.svg');
     let logoData = '';
     try {
       const logoContent = fs.readFileSync(logoPath, 'utf8');
-      // Update the logo color to blue and make it smaller
+      // Clean and prepare the logo for embedding
       logoData = logoContent
-        .replace('fill="#000000"', 'fill="#1e3a8a"')
-        .replace('width="275.000000pt"', 'width="40"')
-        .replace('height="282.000000pt"', 'height="40"')
-        .replace('viewBox="0 0 275.000000 282.000000"', 'viewBox="0 0 275 282"');
+        .replace(/fill="#000000"/g, 'fill="#1e3a8a"') // Change color to brand blue
+        .replace(/width="275\.000000pt"/g, 'width="40"')
+        .replace(/height="282\.000000pt"/g, 'height="40"')
+        .replace(/viewBox="0 0 275\.000000 282\.000000"/g, 'viewBox="0 0 275 282"')
+        .replace(/<?xml[^>]*>/g, '') // Remove XML declaration
+        .replace(/<!DOCTYPE[^>]*>/g, '') // Remove DOCTYPE
+        .replace(/<metadata>[\s\S]*?<\/metadata>/g, '') // Remove metadata
+        .trim();
     } catch (error) {
-      // Fallback to text logo if SVG file not found
+      PaystackReceipt.logger.warn('Could not load MailQuill logo, using fallback', { error: error instanceof Error ? error.message : 'Unknown error' });
       logoData = '';
     }
 
@@ -121,7 +151,7 @@ export class PaystackReceipt extends PaystackCore {
         <rect x="${padding + 20}" y="${padding + 20}" width="60" height="60" fill="white" rx="8" ry="8"/>
         ${logoData ? `
         <g transform="translate(${padding + 30}, ${padding + 30})">
-          ${logoData.replace('<svg', '<g').replace('</svg>', '</g>')}
+          ${logoData}
         </g>
         ` : `
         <text x="${padding + 50}" y="${padding + 45}" text-anchor="middle" fill="#1e3a8a" 
@@ -138,7 +168,7 @@ export class PaystackReceipt extends PaystackCore {
         
         <!-- Receipt Number - Moved to content area -->
         <text x="${width - padding - 20}" y="${padding + 100}" text-anchor="end" fill="white" 
-              font-family="Arial, sans-serif" font-size="12" font-weight="400">Receipt # ${payment.reference}</text>
+              font-family="Arial, sans-serif" font-size="12" font-weight="400">Receipt # ${safePayment.reference}</text>
         
         <!-- Content Area -->
         <g transform="translate(${padding + 30}, ${padding + 160})">
@@ -147,11 +177,11 @@ export class PaystackReceipt extends PaystackCore {
           <text x="20" y="25" fill="#1e3a8a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Payment Summary</text>
           <text x="20" y="45" fill="#374151" font-family="Arial, sans-serif" font-size="14" font-weight="400">Amount Paid</text>
           <text x="${width - 2 * padding - 60 - 20}" y="45" text-anchor="end" fill="#059669" 
-                font-family="Arial, sans-serif" font-size="20" font-weight="bold">${formatCurrency(payment.amount)}</text>
+                font-family="Arial, sans-serif" font-size="20" font-weight="bold">${formatCurrency(safePayment.amount)}</text>
           <text x="20" y="65" fill="#374151" font-family="Arial, sans-serif" font-size="14" font-weight="400">Status</text>
           <rect x="${width - 2 * padding - 60 - 90}" y="50" width="90" height="20" fill="#059669" rx="10" ry="10"/>
           <text x="${width - 2 * padding - 60 - 45}" y="63" text-anchor="middle" fill="white" 
-                font-family="Arial, sans-serif" font-size="11" font-weight="600">${payment.status.toUpperCase()}</text>
+                font-family="Arial, sans-serif" font-size="11" font-weight="600">${safePayment.status.toUpperCase()}</text>
           
           <!-- Payment Details -->
           <text x="0" y="120" fill="#1e3a8a" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Payment Details</text>
@@ -162,19 +192,19 @@ export class PaystackReceipt extends PaystackCore {
             <rect x="0" y="0" width="${width - 2 * padding - 60}" height="35" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
             <text x="15" y="22" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Transaction Reference</text>
             <text x="${width - 2 * padding - 60 - 15}" y="22" text-anchor="end" fill="#111827" 
-                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${payment.reference}</text>
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${safePayment.reference}</text>
             
             <!-- Plan Row -->
             <rect x="0" y="35" width="${width - 2 * padding - 60}" height="35" fill="white" stroke="#e5e7eb" stroke-width="1"/>
             <text x="15" y="57" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Subscription Plan</text>
             <text x="${width - 2 * padding - 60 - 15}" y="57" text-anchor="end" fill="#111827" 
-                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${payment.subscriptionTier.charAt(0).toUpperCase() + payment.subscriptionTier.slice(1)} - ${payment.billingCycle.charAt(0).toUpperCase() + payment.billingCycle.slice(1)}</text>
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${safePayment.subscriptionTier.charAt(0).toUpperCase() + safePayment.subscriptionTier.slice(1)} - ${safePayment.billingCycle.charAt(0).toUpperCase() + safePayment.billingCycle.slice(1)}</text>
             
             <!-- Date Row -->
             <rect x="0" y="70" width="${width - 2 * padding - 60}" height="35" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
             <text x="15" y="92" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Payment Date</text>
             <text x="${width - 2 * padding - 60 - 15}" y="92" text-anchor="end" fill="#111827" 
-                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${formatDate(payment.paidAt || payment.createdAt)}</text>
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${formatDate(safePayment.paidAt)}</text>
             
             <!-- Payment Method Row -->
             <rect x="0" y="105" width="${width - 2 * padding - 60}" height="35" fill="white" stroke="#e5e7eb" stroke-width="1"/>
@@ -198,13 +228,13 @@ export class PaystackReceipt extends PaystackCore {
             <rect x="0" y="0" width="${width - 2 * padding - 60}" height="35" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1"/>
             <text x="15" y="22" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Customer Name</text>
             <text x="${width - 2 * padding - 60 - 15}" y="22" text-anchor="end" fill="#111827" 
-                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${user.username.charAt(0).toUpperCase() + user.username.slice(1)}</text>
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${safeUser.username.charAt(0).toUpperCase() + safeUser.username.slice(1)}</text>
             
             <!-- Email Row -->
             <rect x="0" y="35" width="${width - 2 * padding - 60}" height="35" fill="white" stroke="#e5e7eb" stroke-width="1"/>
             <text x="15" y="57" fill="#6b7280" font-family="Arial, sans-serif" font-size="13" font-weight="400">Email Address</text>
             <text x="${width - 2 * padding - 60 - 15}" y="57" text-anchor="end" fill="#111827" 
-                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${user.email}</text>
+                  font-family="Arial, sans-serif" font-size="13" font-weight="500">${safeUser.email}</text>
           </g>
           
           <!-- Footer -->
@@ -226,7 +256,7 @@ export class PaystackReceipt extends PaystackCore {
         <g opacity="0.1" transform="translate(${width / 2 - 100}, ${height / 2 - 50})">
           ${logoData ? `
           <g transform="scale(2)">
-            ${logoData.replace('<svg', '<g').replace('</svg>', '</g>')}
+            ${logoData}
           </g>
           ` : `
           <text x="100" y="50" text-anchor="middle" fill="#1e3a8a" 
@@ -236,11 +266,38 @@ export class PaystackReceipt extends PaystackCore {
       </svg>
     `;
 
-    // Convert SVG to PNG using Sharp
-    const imageBuffer = await sharp(Buffer.from(svg))
-      .png()
-      .toBuffer();
+    try {
+      // Convert SVG to PNG using Sharp
+      const imageBuffer = await sharp(Buffer.from(svg))
+        .png()
+        .toBuffer();
 
-    return imageBuffer;
+      return imageBuffer;
+    } catch (error) {
+      PaystackReceipt.logger.error('Error converting SVG to PNG:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        svgLength: svg.length
+      });
+      
+      // Fallback: create a simple receipt without complex SVG
+      const fallbackSvg = `
+        <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="600" height="400" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+          <text x="300" y="50" text-anchor="middle" fill="#1e3a8a" font-family="Arial, sans-serif" font-size="24" font-weight="bold">MailQuill Payment Receipt</text>
+          <text x="50" y="100" fill="#374151" font-family="Arial, sans-serif" font-size="16">Reference: ${safePayment.reference}</text>
+          <text x="50" y="130" fill="#374151" font-family="Arial, sans-serif" font-size="16">Amount: ${formatCurrency(safePayment.amount)}</text>
+          <text x="50" y="160" fill="#374151" font-family="Arial, sans-serif" font-size="16">Status: ${safePayment.status}</text>
+          <text x="50" y="190" fill="#374151" font-family="Arial, sans-serif" font-size="16">Customer: ${safeUser.username}</text>
+          <text x="50" y="220" fill="#374151" font-family="Arial, sans-serif" font-size="16">Email: ${safeUser.email}</text>
+          <text x="50" y="250" fill="#374151" font-family="Arial, sans-serif" font-size="16">Date: ${formatDate(safePayment.paidAt)}</text>
+          <text x="300" y="350" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="12">Thank you for choosing MailQuill!</text>
+        </svg>
+      `;
+      
+      return await sharp(Buffer.from(fallbackSvg))
+        .png()
+        .toBuffer();
+    }
   }
 }

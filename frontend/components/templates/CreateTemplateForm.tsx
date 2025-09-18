@@ -94,9 +94,9 @@ export function CreateTemplateForm({
     <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       <TemplateBasicInfo formData={formData} setFormData={setFormData} />
       
-      <TemplateSamples formData={formData} setFormData={setFormData} />
-      
       <TemplateVariables formData={formData} setFormData={setFormData} />
+      
+      <TemplateSamples formData={formData} setFormData={setFormData} />
       
       <TemplateTags formData={formData} setFormData={setFormData} />
 

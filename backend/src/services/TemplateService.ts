@@ -133,10 +133,10 @@ export class TemplateService {
       }
 
       // Validate maximum samples limit
-      if (templateData.samples.length > 20) {
+      if (templateData.samples.length > 100) {
         return {
           success: false,
-          message: 'Template cannot have more than 20 samples',
+          message: 'Template cannot have more than 100 samples',
           timestamp: new Date()
         };
       }

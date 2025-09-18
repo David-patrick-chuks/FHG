@@ -75,7 +75,9 @@ export class WhoisExtractor {
       
       // Use EmailParser to extract emails from the text
       const extractedEmails = EmailParser.extractEmailsFromHtml(whoisText);
-      extractedEmails.forEach(email => emails.add(email));
+      if (extractedEmails && Array.isArray(extractedEmails)) {
+        extractedEmails.forEach(email => emails.add(email));
+      }
 
       // Also look for specific WHOIS fields that commonly contain emails
       const emailFields = [

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { ActivityType } from '../types';
 import UserModel from '../models/User';
 import { ActivityService } from '../services/ActivityService';
+import { ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class ApiKeyController {
@@ -35,6 +35,13 @@ export class ApiKeyController {
 
       // Generate new API key
       const apiKey = await user.generateApiKey();
+      
+      ApiKeyController.logger.info('API key generated successfully', { 
+        userId, 
+        apiKeyLength: apiKey?.length,
+        apiKeyPrefix: apiKey?.substring(0, 10),
+        apiKeyCreatedAt: user.apiKeyCreatedAt 
+      });
 
       // Log API key generation activity
       await ActivityService.logApiKeyActivity(
@@ -44,16 +51,22 @@ export class ApiKeyController {
         `API key created at ${new Date().toISOString()}`
       );
 
-      ApiKeyController.logger.info('API key generated', { userId, apiKeyCreatedAt: user.apiKeyCreatedAt });
+      const responseData = {
+        apiKey: apiKey,
+        createdAt: user.apiKeyCreatedAt?.toISOString(),
+        lastUsed: user.apiKeyLastUsed?.toISOString()
+      };
+      
+      ApiKeyController.logger.info('Sending API key response', { 
+        hasApiKey: !!responseData.apiKey,
+        apiKeyLength: responseData.apiKey?.length,
+        createdAt: responseData.createdAt
+      });
 
       res.status(200).json({
         success: true,
         message: 'API key generated successfully',
-        data: {
-          apiKey: apiKey,
-          createdAt: user.apiKeyCreatedAt?.toISOString(),
-          lastUsed: user.apiKeyLastUsed?.toISOString()
-        },
+        data: responseData,
         timestamp: new Date()
       });
     } catch (error) {

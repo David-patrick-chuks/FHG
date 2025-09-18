@@ -49,6 +49,32 @@ export function TemplateVariables({ formData, setFormData }: TemplateVariablesPr
         </p>
       </div>
 
+      {/* Variable Usage Tips */}
+      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 sm:p-6">
+        <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          How to Use Variables
+        </h4>
+        <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+          <div>
+            <p className="font-medium mb-1">1. Declare Variables:</p>
+            <p>Add variables below (e.g., <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">name</code>, <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">company</code>, <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">product</code>)</p>
+          </div>
+          <div>
+            <p className="font-medium mb-1">2. Use in Email Content:</p>
+            <p>Wrap variable names in double curly braces: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{`{{name}}`}</code>, <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{`{{company}}`}</code></p>
+          </div>
+          <div>
+            <p className="font-medium mb-1">3. Example Usage:</p>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-3 font-mono text-xs">
+              <div>Subject: Quick question about {`{{company}}`}</div>
+              <div className="mt-1">Hi {`{{name}}`},</div>
+              <div className="mt-1">I noticed {`{{company}}`} is using {`{{product}}`}...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="variableKey" className="text-sm font-medium">Variable Key</Label>

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { CreateTemplateRequest, TemplateSample } from '@/types';
 import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface TemplateSamplesProps {
   formData: CreateTemplateRequest;
@@ -18,6 +19,11 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
   const [newSample, setNewSample] = useState({ subject: '', body: '' });
 
   const addSample = () => {
+    if (formData.samples.length >= 100) {
+      toast.error('Maximum 100 samples allowed per template');
+      return;
+    }
+
     if (newSample.subject.trim() && newSample.body.trim()) {
       const sample: TemplateSample = {
         _id: Date.now().toString(),
@@ -58,7 +64,7 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
           Email Samples
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Add 10-20 email samples that demonstrate your template. The AI will learn from these patterns to generate personalized messages.
+          Add 10-100 email samples that demonstrate your template. The AI will learn from these patterns to generate personalized messages.
         </p>
       </div>
       
@@ -91,11 +97,11 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
           <Button
             type="button"
             onClick={addSample}
-            disabled={!newSample.subject.trim() || !newSample.body.trim()}
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white h-10 sm:h-11 text-sm sm:text-base"
+            disabled={!newSample.subject.trim() || !newSample.body.trim() || formData.samples.length >= 100}
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white h-10 sm:h-11 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Sample
+            {formData.samples.length >= 100 ? 'Maximum Reached' : 'Add Sample'}
           </Button>
         </div>
 
@@ -103,7 +109,7 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
         {formData.samples.length > 0 && (
           <div className="space-y-4">
             <h4 className="font-medium text-sm sm:text-base">
-              Samples ({formData.samples.length}/20)
+              Samples ({formData.samples.length}/100)
             </h4>
             {formData.samples.map((sample, index) => (
               <div key={sample._id} className="border border-blue-200 dark:border-blue-800 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
@@ -156,10 +162,18 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
           </div>
         )}
 
-        {formData.samples.length >= 10 && (
+        {formData.samples.length >= 10 && formData.samples.length < 100 && (
           <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
             <p className="text-sm text-green-800 dark:text-green-200">
-              ✅ Great! You have {formData.samples.length} samples. You can add up to 20 samples total.
+              ✅ Great! You have {formData.samples.length} samples. You can add up to 100 samples total.
+            </p>
+          </div>
+        )}
+
+        {formData.samples.length >= 100 && (
+          <div className="p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              🎯 Maximum reached! You have {formData.samples.length} samples. This is the maximum allowed.
             </p>
           </div>
         )}
