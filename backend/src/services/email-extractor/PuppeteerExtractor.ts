@@ -112,19 +112,22 @@ export class PuppeteerExtractor {
             const links = await page.evaluate(() => {
               const domain = (globalThis as any).window.location.hostname;
               const links: string[] = [];
-              (globalThis as any).document.querySelectorAll('a[href]').forEach((link: any) => {
-                const href = link.getAttribute('href');
-                if (href) {
-                  try {
-                    const url = new URL(href, (globalThis as any).window.location.href);
-                    if (url.hostname === domain && url.href.startsWith('http') && !url.href.match(/\.(pdf|jpg|png|gif|zip)$/i)) {
-                      links.push(url.href);
+              const linkElements = (globalThis as any).document.querySelectorAll('a[href]');
+              if (linkElements && linkElements.length > 0) {
+                linkElements.forEach((link: any) => {
+                  const href = link.getAttribute('href');
+                  if (href) {
+                    try {
+                      const url = new URL(href, (globalThis as any).window.location.href);
+                      if (url.hostname === domain && url.href.startsWith('http') && !url.href.match(/\.(pdf|jpg|png|gif|zip)$/i)) {
+                        links.push(url.href);
+                      }
+                    } catch (e) {
+                      // Invalid URL, skip
                     }
-                  } catch (e) {
-                    // Invalid URL, skip
                   }
-                }
-              });
+                });
+              }
               return links;
             });
 
@@ -135,29 +138,33 @@ export class PuppeteerExtractor {
         ...this.COMMON_CHECKOUT_PATHS
       ];
 
-            allPaths.forEach(path => {
-              try {
-                const testUrl = new URL(path, currentUrl).href;
-                if (!visited.has(testUrl)) {
-                  queue.push({ url: testUrl, depth: depth + 1 });
+            if (allPaths && Array.isArray(allPaths)) {
+              allPaths.forEach(path => {
+                try {
+                  const testUrl = new URL(path, currentUrl).href;
+                  if (!visited.has(testUrl)) {
+                    queue.push({ url: testUrl, depth: depth + 1 });
+                  }
+                } catch (e) {
+                  // Invalid URL, skip
                 }
-              } catch (e) {
-                // Invalid URL, skip
-              }
-            });
+              });
+            }
 
             // Add discovered links (prioritize contact-related ones)
-            links
-              .filter(link => !visited.has(link))
-              .sort((a, b) => {
-                const aScore = a.includes('contact') || a.includes('about') || a.includes('support') ? -1 : 0;
-                const bScore = b.includes('contact') || b.includes('about') || b.includes('support') ? -1 : 0;
-                return aScore - bScore;
-              })
-              .slice(0, 20) // Limit to 20 new links
-              .forEach(link => {
-                queue.push({ url: link, depth: depth + 1 });
-              });
+            if (links && Array.isArray(links)) {
+              links
+                .filter(link => !visited.has(link))
+                .sort((a, b) => {
+                  const aScore = a.includes('contact') || a.includes('about') || a.includes('support') ? -1 : 0;
+                  const bScore = b.includes('contact') || b.includes('about') || b.includes('support') ? -1 : 0;
+                  return aScore - bScore;
+                })
+                .slice(0, 20) // Limit to 20 new links
+                .forEach(link => {
+                  queue.push({ url: link, depth: depth + 1 });
+                });
+            }
           }
 
           pagesCrawled++;

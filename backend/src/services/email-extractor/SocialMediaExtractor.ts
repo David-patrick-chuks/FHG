@@ -1,6 +1,6 @@
 import { Logger } from '../../utils/Logger';
-import { HtmlFetcher } from './HtmlFetcher';
 import { EmailParser } from './EmailParser';
+import { HtmlFetcher } from './HtmlFetcher';
 
 export class SocialMediaExtractor {
   private static logger: Logger = new Logger();
@@ -32,7 +32,10 @@ export class SocialMediaExtractor {
         try {
           const html = await HtmlFetcher.fetchHtml(socialUrl);
           if (html) {
-            EmailParser.extractEmailsFromHtml(html).forEach(email => emails.push(email));
+            const extractedEmails = EmailParser.extractEmailsFromHtml(html);
+            if (extractedEmails && Array.isArray(extractedEmails)) {
+              extractedEmails.forEach(email => emails.push(email));
+            }
           }
         } catch (error) {
           // Social media page not found, continue

@@ -641,21 +641,52 @@ export class QueueService {
           error: error instanceof Error ? error.message : 'Unknown error'
         });
         
-        // Ultimate fallback: Use first template sample for all emails
-        emailList.forEach((email) => {
+        // Ultimate fallback: Use template samples cyclically for emails
+        QueueService.logger.warn('Using template samples as fallback due to AI generation failure', {
+          campaignId,
+          templateName: template.name,
+          sampleCount: template.samples.length,
+          emailCount: emailList.length
+        });
+        
+        // Import AIService for variable replacement
+        const { AIService } = await import('./AIService');
+        
+        emailList.forEach((email, index) => {
           const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          const sample = template.samples[0];
+          // Cycle through template samples to provide variety
+          const sample = template.samples[index % template.samples.length];
+          
+          // Create variables for personalization
+          const variables: Record<string, string> = {
+            name: name,
+            email: email,
+            company: email.split('@')[1]?.split('.')[0] || 'Unknown',
+            industry: template.industry || 'Unknown'
+          };
+          
+          // Add template variables
+          template.variables.forEach(variable => {
+            if (variable.value) {
+              variables[variable.key] = variable.value;
+            }
+          });
+          
+          // Apply variable replacement
+          const personalizedSubject = AIService.replaceVariables(sample.subject, variables);
+          const personalizedBody = AIService.replaceVariables(sample.body, variables);
           
           generatedMessages.push({
             recipientEmail: email,
             recipientName: name,
-            subject: sample.subject,
-            body: sample.body,
+            subject: personalizedSubject,
+            body: personalizedBody,
             personalizationData: {
               name: name,
               email: email,
               campaignName: campaign.name,
-              ultimateFallback: true
+              templateSampleIndex: index % template.samples.length,
+              fallbackUsed: true
             },
             isSent: false,
             createdAt: new Date()

@@ -31,7 +31,7 @@ export class SitemapExtractor {
         const parser = new xml2js.Parser();
         const result = await parser.parseStringPromise(xmlContent);
 
-        if (result.urlset && result.urlset.url) {
+        if (result.urlset && result.urlset.url && Array.isArray(result.urlset.url)) {
           result.urlset.url.forEach((entry: any) => {
             if (entry.loc && entry.loc[0]) {
               const url = entry.loc[0].trim();

@@ -1,6 +1,6 @@
 import { PaystackConfig } from './PaystackCore';
 import { PaystackPayment } from './PaystackPayment';
-import { PaystackReceipt } from './PaystackReceipt';
+import { PaystackReceiptNew as PaystackReceipt } from './PaystackReceiptNew';
 import { PaystackSubscription } from './PaystackSubscription';
 
 export class PaystackService {
@@ -31,5 +31,5 @@ export class PaystackService {
 // Re-export types and classes for external use
 export { PaystackConfig } from './PaystackCore';
 export { PaystackPayment } from './PaystackPayment';
-export { PaystackReceipt } from './PaystackReceipt';
+export { PaystackReceiptNew as PaystackReceipt } from './PaystackReceiptNew';
 export { PaystackSubscription } from './PaystackSubscription';

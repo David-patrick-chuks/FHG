@@ -298,9 +298,27 @@ Return a JSON object with a "variations" array containing the email variations.
         throw new Error('No content generated from AI model');
       }
 
+      // Log the raw response for debugging
+      AIService.logger.info('Raw AI Response:', { 
+        responseLength: text.length,
+        responsePreview: text.substring(0, 200) + (text.length > 200 ? '...' : ''),
+        responseEnd: text.length > 100 ? text.substring(text.length - 100) : text
+      });
+
+      // Check if response looks like it might be truncated
+      if (!text.trim().endsWith('}') && !text.trim().endsWith(']')) {
+        AIService.logger.warn('AI response appears to be truncated - does not end with } or ]', {
+          responseLength: text.length,
+          lastChars: text.substring(Math.max(0, text.length - 50))
+        });
+      }
+
       try {
         const parsed = JSON.parse(text);
-        console.log('AI Response:', JSON.stringify(parsed, null, 2));
+        AIService.logger.info('Parsed AI Response:', { 
+          variationsCount: parsed.variations?.length || 0,
+          hasVariations: !!parsed.variations
+        });
         // Validate the response structure
         if (!parsed.variations || !Array.isArray(parsed.variations) || parsed.variations.length !== variationCount) {
           throw new Error(`Expected variations array with ${variationCount} items, got ${Array.isArray(parsed.variations) ? parsed.variations.length : 'non-array'}`);
@@ -366,7 +384,57 @@ Return a JSON object with a "variations" array containing the email variations.
 
         return processedVariations;
       } catch (parseError) {
-        throw new Error(`Failed to parse email variations response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+        const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown parsing error';
+        
+        AIService.logger.error('JSON Parsing Error:', {
+          error: errorMessage,
+          responseLength: text.length,
+          responsePreview: text.substring(0, 300),
+          responseEnd: text.length > 100 ? text.substring(text.length - 100) : text,
+          isTruncated: !text.trim().endsWith('}') && !text.trim().endsWith(']'),
+          variationCount: variationCount
+        });
+        
+        // Try to extract partial data if response was truncated
+        if (errorMessage.includes('Unexpected end of JSON input')) {
+          AIService.logger.warn('Attempting to extract partial variations from truncated response');
+          
+          try {
+            // Try to find and extract any complete variations from the truncated response
+            const variationsMatch = text.match(/"variations"\s*:\s*\[(.*?)(?:\]|$)/s);
+            if (variationsMatch) {
+              const variationsText = variationsMatch[1];
+              const subjectMatches = variationsText.match(/"subject"\s*:\s*"([^"]+)"/g);
+              const bodyMatches = variationsText.match(/"body"\s*:\s*"([^"]+)"/g);
+              
+              if (subjectMatches && bodyMatches && subjectMatches.length === bodyMatches.length) {
+                const partialVariations = subjectMatches.map((_, index) => ({
+                  subject: subjectMatches[index].match(/"subject"\s*:\s*"([^"]+)"/)?.[1] || '',
+                  body: bodyMatches[index].match(/"body"\s*:\s*"([^"]+)"/)?.[1] || '',
+                  variation: index + 1
+                }));
+                
+                AIService.logger.info('Successfully extracted partial variations from truncated response', {
+                  extractedCount: partialVariations.length,
+                  expectedCount: variationCount
+                });
+                
+                // Return the partial variations we could extract
+                return partialVariations;
+              }
+            }
+          } catch (extractError) {
+            AIService.logger.warn('Failed to extract partial variations from truncated response', {
+              error: extractError instanceof Error ? extractError.message : 'Unknown error'
+            });
+          }
+          
+          throw new Error(`AI response was truncated or incomplete. Expected ${variationCount} variations but got incomplete JSON. Response length: ${text.length} characters.`);
+        } else if (errorMessage.includes('Unexpected token')) {
+          throw new Error(`AI response contains invalid JSON syntax. ${errorMessage}`);
+        } else {
+          throw new Error(`Failed to parse email variations response: ${errorMessage}`);
+        }
       }
     }, 'Email variations generation from template');
   }

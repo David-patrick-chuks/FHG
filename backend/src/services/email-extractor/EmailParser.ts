@@ -99,7 +99,7 @@ export class EmailParser {
 
     // Method 6: Look for emails in JavaScript variables
     const jsMatches = html.match(/['"`]([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})['"`]/g);
-    if (jsMatches) {
+    if (jsMatches && Array.isArray(jsMatches)) {
       jsMatches.forEach(match => {
         const email = match.replace(/['"`]/g, '');
         emails.push(email);
@@ -108,7 +108,7 @@ export class EmailParser {
 
     // Method 7: Look for emails in JSON data
     const jsonMatches = html.match(/"email":\s*"([^"]+)"/g);
-    if (jsonMatches) {
+    if (jsonMatches && Array.isArray(jsonMatches)) {
       jsonMatches.forEach(match => {
         const emailMatch = match.match(/"email":\s*"([^"]+)"/);
         if (emailMatch && emailMatch[1].includes('@')) {
@@ -130,7 +130,7 @@ export class EmailParser {
 
     // Method 9: Look for emails in comments
     const commentMatches = html.match(/<!--[\s\S]*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})[\s\S]*?-->/g);
-    if (commentMatches) {
+    if (commentMatches && Array.isArray(commentMatches)) {
       commentMatches.forEach(comment => {
         const commentEmailMatches = comment.match(this.EMAIL_REGEX);
         if (commentEmailMatches) {
@@ -169,17 +169,19 @@ export class EmailParser {
       /delivery\s*:?\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})/gi
     ];
 
-    businessEmailPatterns.forEach(pattern => {
-      const matches = html.match(pattern);
-      if (matches) {
-        matches.forEach(match => {
-          const emailMatch = match.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})/);
-          if (emailMatch) {
-            emails.push(emailMatch[1]);
-          }
-        });
-      }
-    });
+    if (businessEmailPatterns && Array.isArray(businessEmailPatterns)) {
+      businessEmailPatterns.forEach(pattern => {
+        const matches = html.match(pattern);
+        if (matches && Array.isArray(matches)) {
+          matches.forEach(match => {
+            const emailMatch = match.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})/);
+            if (emailMatch) {
+              emails.push(emailMatch[1]);
+            }
+          });
+        }
+      });
+    }
 
     // Method 12: Look for emails in structured data (JSON-LD, microdata)
     $1('script[type="application/ld+json"]').each((_, element) => {
@@ -193,9 +195,12 @@ export class EmailParser {
               const emailMatches = obj.match(this.EMAIL_REGEX);
               if (emailMatches) foundEmails.push(...emailMatches);
             } else if (typeof obj === 'object' && obj !== null) {
-              Object.values(obj).forEach(value => {
-                foundEmails.push(...extractEmailsFromObject(value));
-              });
+              const values = Object.values(obj);
+              if (values && Array.isArray(values)) {
+                values.forEach(value => {
+                  foundEmails.push(...extractEmailsFromObject(value));
+                });
+              }
             }
             return foundEmails;
           };
@@ -222,14 +227,16 @@ export class EmailParser {
     let textContent = $2('body').text();
     
     // Process obfuscated patterns
-    this.OBFUSCATED_PATTERNS.forEach(pattern => {
-      textContent = textContent.replace(pattern, match => {
-        const low = match.toLowerCase();
-        if (low.includes('at')) return '@';
-        if (low.includes('dot')) return '.';
-        return '';
+    if (this.OBFUSCATED_PATTERNS && Array.isArray(this.OBFUSCATED_PATTERNS)) {
+      this.OBFUSCATED_PATTERNS.forEach(pattern => {
+        textContent = textContent.replace(pattern, match => {
+          const low = match.toLowerCase();
+          if (low.includes('at')) return '@';
+          if (low.includes('dot')) return '.';
+          return '';
+        });
       });
-    });
+    }
     
     // Decode obfuscated emails
     textContent = this.decodeObfuscatedEmail(textContent);
@@ -237,7 +244,7 @@ export class EmailParser {
     // Check for reversed text emails
     const reversed = textContent.split('').reverse().join('');
     const reversedMatches = reversed.match(this.EMAIL_REGEX);
-    if (reversedMatches) {
+    if (reversedMatches && Array.isArray(reversedMatches)) {
       reversedMatches.forEach(email => {
         const revEmail = email.split('').reverse().join('');
         if (validator.isEmail(revEmail)) {
@@ -247,16 +254,18 @@ export class EmailParser {
     }
     
     // Apply all email patterns to processed text
-    this.EMAIL_PATTERNS.forEach(pattern => {
-      const textMatches = textContent.match(pattern);
-      if (textMatches) {
-        textMatches.forEach(email => {
-          if (validator.isEmail(email)) {
-            emails.push(email);
-          }
-        });
-      }
-    });
+    if (this.EMAIL_PATTERNS && Array.isArray(this.EMAIL_PATTERNS)) {
+      this.EMAIL_PATTERNS.forEach(pattern => {
+        const textMatches = textContent.match(pattern);
+        if (textMatches && Array.isArray(textMatches)) {
+          textMatches.forEach(email => {
+            if (validator.isEmail(email)) {
+              emails.push(email);
+            }
+          });
+        }
+      });
+    }
     
     // Method 15: Extract from specific hotspots (footer, header, contact sections)
     const hotspotSelectors = [
@@ -265,18 +274,20 @@ export class EmailParser {
       '.footer', '.header', '.support', '.help', '.about'
     ];
     
-    hotspotSelectors.forEach(selector => {
-      const sectionText = $1(selector).text();
-      const decodedSectionText = this.decodeObfuscatedEmail(sectionText);
-      const sectionMatches = decodedSectionText.match(this.EMAIL_REGEX);
-      if (sectionMatches) {
-        sectionMatches.forEach(email => {
-          if (validator.isEmail(email)) {
-            emails.push(email);
-          }
-        });
-      }
-    });
+    if (hotspotSelectors && Array.isArray(hotspotSelectors)) {
+      hotspotSelectors.forEach(selector => {
+        const sectionText = $1(selector).text();
+        const decodedSectionText = this.decodeObfuscatedEmail(sectionText);
+        const sectionMatches = decodedSectionText.match(this.EMAIL_REGEX);
+        if (sectionMatches && Array.isArray(sectionMatches)) {
+          sectionMatches.forEach(email => {
+            if (validator.isEmail(email)) {
+              emails.push(email);
+            }
+          });
+        }
+      });
+    }
 
     // Clean and normalize emails
     const cleanedEmails = emails
@@ -406,7 +417,7 @@ export class EmailParser {
       if (metaEmails && Array.isArray(metaEmails)) {
         metaEmails.forEach(content => {
           const matches = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
-          if (matches) matches.forEach(email => emails.add(email));
+          if (matches && Array.isArray(matches)) matches.forEach(email => emails.add(email));
         });
       }
 
@@ -415,22 +426,27 @@ export class EmailParser {
         const doc = document as any;
         const scripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'));
         let emails: string[] = [];
-        scripts.forEach(script => {
-          try {
-            const data = JSON.parse((script as any).innerHTML);
-            function findEmails(obj: any) {
-              if (typeof obj === 'string' && /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(obj)) {
-                emails.push(obj);
+        if (scripts && Array.isArray(scripts)) {
+          scripts.forEach(script => {
+            try {
+              const data = JSON.parse((script as any).innerHTML);
+              function findEmails(obj: any) {
+                if (typeof obj === 'string' && /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(obj)) {
+                  emails.push(obj);
+                }
+                if (typeof obj === 'object' && obj) {
+                  const values = Object.values(obj);
+                  if (values && Array.isArray(values)) {
+                    values.forEach(findEmails);
+                  }
+                }
               }
-              if (typeof obj === 'object' && obj) {
-                Object.values(obj).forEach(findEmails);
-              }
+              findEmails(data);
+            } catch (e) {
+              // Invalid JSON, skip
             }
-            findEmails(data);
-          } catch (e) {
-            // Invalid JSON, skip
-          }
-        });
+          });
+        }
         return emails;
       });
       if (jsonLd && Array.isArray(jsonLd)) {
@@ -447,16 +463,20 @@ export class EmailParser {
           '.footer', '.header', '.support', '.help', '.about'
         ];
         let emails: string[] = [];
-        selectors.forEach(sel => {
-          const doc = document as any;
-          const els = doc.querySelectorAll(sel);
-          els.forEach(el => {
-            let text = el.innerText;
-            text = text.replace(/\[at\]/g, '@').replace(/\[dot\]/g, '.');
-            const matches = text.match(/[\w\.-]+@[\w\.-]+\.\w+/g);
-            if (matches) emails.push(...matches);
+        if (selectors && Array.isArray(selectors)) {
+          selectors.forEach(sel => {
+            const doc = document as any;
+            const els = doc.querySelectorAll(sel);
+            if (els && els.length > 0) {
+              els.forEach(el => {
+                let text = el.innerText;
+                text = text.replace(/\[at\]/g, '@').replace(/\[dot\]/g, '.');
+                const matches = text.match(/[\w\.-]+@[\w\.-]+\.\w+/g);
+                if (matches && Array.isArray(matches)) emails.push(...matches);
+              });
+            }
           });
-        });
+        }
         return emails;
       });
       if (hotspotEmails && Array.isArray(hotspotEmails)) {

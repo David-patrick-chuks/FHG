@@ -66,9 +66,6 @@ export function TemplateSelector({
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Select Email Template
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Choose a template to use for your campaign. The AI will generate 20 variations of each sample (minimum 10 samples required).
-        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -149,12 +146,6 @@ export function TemplateSelector({
                   )}
                 </div>
 
-                {/* AI Generation Info */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    <strong>AI Generation:</strong> {template.samples?.length || 0} samples × 20 variations = {(template.samples?.length || 0) * 20} unique emails
-                  </p>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -166,7 +157,7 @@ export function TemplateSelector({
           <div className="flex items-center space-x-2">
             <Check className="h-5 w-5 text-blue-600" />
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              Template selected! The AI will cycle through all samples and generate 20 variations of each.
+              Template selected!
             </p>
           </div>
         </div>

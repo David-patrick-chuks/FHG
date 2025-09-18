@@ -21,7 +21,9 @@ export class WhoisExtractor {
       if (whoisData) {
         // Extract emails from WHOIS data
         const whoisEmails = this.extractEmailsFromWhoisData(whoisData);
-        whoisEmails.forEach(email => emails.add(email));
+        if (whoisEmails && Array.isArray(whoisEmails)) {
+          whoisEmails.forEach(email => emails.add(email));
+        }
 
         WhoisExtractor.logger.info('WHOIS extraction completed', { 
           domain, 
@@ -99,30 +101,38 @@ export class WhoisExtractor {
       ];
 
       // Search through all WHOIS servers' data
-      Object.values(whoisData).forEach((serverData: any) => {
-        if (typeof serverData === 'object' && serverData !== null) {
-          emailFields.forEach(field => {
-            const value = serverData[field];
-            if (value && typeof value === 'string' && value.includes('@')) {
-              // Extract email from the field value
-              const emailMatches = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
-              if (emailMatches) {
-                emailMatches.forEach(email => emails.add(email.toLowerCase()));
-              }
+      const whoisValues = Object.values(whoisData);
+      if (whoisValues && Array.isArray(whoisValues)) {
+        whoisValues.forEach((serverData: any) => {
+          if (typeof serverData === 'object' && serverData !== null) {
+            if (emailFields && Array.isArray(emailFields)) {
+              emailFields.forEach(field => {
+                const value = serverData[field];
+                if (value && typeof value === 'string' && value.includes('@')) {
+                  // Extract email from the field value
+                  const emailMatches = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                  if (emailMatches && Array.isArray(emailMatches)) {
+                    emailMatches.forEach(email => emails.add(email.toLowerCase()));
+                  }
+                }
+              });
             }
-          });
 
-          // Also check for email patterns in any field value
-          Object.values(serverData).forEach((value: any) => {
-            if (typeof value === 'string' && value.includes('@')) {
-              const emailMatches = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
-              if (emailMatches) {
-                emailMatches.forEach(email => emails.add(email.toLowerCase()));
-              }
+            // Also check for email patterns in any field value
+            const serverValues = Object.values(serverData);
+            if (serverValues && Array.isArray(serverValues)) {
+              serverValues.forEach((value: any) => {
+                if (typeof value === 'string' && value.includes('@')) {
+                  const emailMatches = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                  if (emailMatches && Array.isArray(emailMatches)) {
+                    emailMatches.forEach(email => emails.add(email.toLowerCase()));
+                  }
+                }
+              });
             }
-          });
-        }
-      });
+          }
+        });
+      }
 
     } catch (error) {
       WhoisExtractor.logger.warn('Error extracting emails from WHOIS data', { 

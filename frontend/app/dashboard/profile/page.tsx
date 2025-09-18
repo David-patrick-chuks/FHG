@@ -82,17 +82,35 @@ export default function ProfilePage() {
       fetchInProgress.current = true;
       
       try {
-        // Use user data directly if available, otherwise fetch from API
-        const userWithApiKey = user as any;
-        
-        if (userWithApiKey?.apiKey) {
-          setApiKeyInfo({
-            hasApiKey: true,
-            apiKey: userWithApiKey.apiKey, // Show full API key, not masked
-            createdAt: userWithApiKey.apiKeyCreatedAt?.toString() || null,
-            lastUsed: userWithApiKey.apiKeyLastUsed?.toString() || null,
-          });
+        // First, refresh user data to ensure we have the latest API key info
+        console.log('Profile page - Refreshing user data...');
+        const profileResponse = await apiClient.get<User>('/auth/profile');
+        if (profileResponse.success && profileResponse.data) {
+          console.log('Profile page - Updated user data:', profileResponse.data);
+          updateUser(profileResponse.data);
+          
+          // Use the fresh user data
+          const freshUser = profileResponse.data;
+          if (freshUser.apiKey) {
+            console.log('Profile page - Found API key in fresh user data:', freshUser.apiKey);
+            setApiKeyInfo({
+              hasApiKey: true,
+              apiKey: freshUser.apiKey, // Show full API key, not masked
+              createdAt: freshUser.apiKeyCreatedAt?.toString() || null,
+              lastUsed: freshUser.apiKeyLastUsed?.toString() || null,
+            });
+          } else {
+            console.log('Profile page - No API key found in fresh user data');
+            // No API key exists
+            setApiKeyInfo({
+              hasApiKey: false,
+              apiKey: null,
+              createdAt: null,
+              lastUsed: null,
+            });
+          }
         } else {
+          console.log('Profile page - Failed to refresh user data');
           // Fallback to API call if user data doesn't have API key info
           try {
             const keyResponse = await apiClient.get<ApiKeyInfo>("/api-keys/info");

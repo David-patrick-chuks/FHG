@@ -10,34 +10,47 @@ export class HtmlFetcher {
    */
   public static async fetchHtml(url: string): Promise<string | null> {
     try {
+      HtmlFetcher.logger.info('Fetching HTML content', { url });
+      
       const response = await axios.get(url, {
         timeout: this.REQUEST_TIMEOUT,
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+        },
+        validateStatus: (status) => status < 500 // Don't throw for 4xx errors
       });
-      return response.data;
-    } catch (error: any) {
-      // Only log errors that are not common/expected failures
-      const errorMessage = error?.message || 'Unknown error';
-      const statusCode = error?.response?.status;
       
-      // Don't log 404s, DNS failures, or timeouts as warnings - these are common
-      if (statusCode === 404 || 
-          errorMessage.includes('EAI_AGAIN') || 
-          errorMessage.includes('ENOTFOUND') ||
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('ECONNREFUSED')) {
-        // These are common failures, just return null silently
+      if (response.status >= 400) {
+        HtmlFetcher.logger.warn('HTTP error response', { 
+          url, 
+          status: response.status,
+          statusText: response.statusText 
+        });
         return null;
       }
       
-      // Log other errors as warnings
+      HtmlFetcher.logger.info('HTML content fetched successfully', { 
+        url, 
+        contentLength: response.data?.length || 0,
+        status: response.status 
+      });
+      
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Unknown error';
+      const statusCode = error?.response?.status;
+      const errorCode = error?.code;
+      
+      // Log all errors with detailed information for debugging
       HtmlFetcher.logger.warn('Failed to fetch HTML', { 
         url, 
         error: errorMessage,
-        statusCode 
+        statusCode,
+        errorCode,
+        stack: error?.stack?.split('\n').slice(0, 3).join('\n')
       });
+      
+      // Still return null, but now we have proper logging
       return null;
     }
   }
