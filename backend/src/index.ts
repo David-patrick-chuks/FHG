@@ -2,9 +2,7 @@ import dotenv from "dotenv";
 import { Server } from "./server/Server";
 import { Logger } from "./utils/Logger";
 
-/**
- * Main Application class responsible for bootstrapping and managing the backend service
- */
+
 export class Application {
   private server: Server;
   private logger: Logger;
@@ -15,22 +13,16 @@ export class Application {
     this.server = new Server();
   }
 
-  /**
-   * Initialize and start the application
-   */
   public async bootstrap(): Promise<void> {
     try {
       this.logger.info('🚀 Starting Email Outreach Bot Backend...');
       
-      // Load environment variables
       this.loadEnvironment();
       
-      // Start the server
       await this.server.start();
       
       this.logger.info('✅ Backend server started successfully');
       
-      // Setup graceful shutdown handlers
       this.setupGracefulShutdown();
       
     } catch (error) {
@@ -39,29 +31,21 @@ export class Application {
     }
   }
 
-  /**
-   * Load environment configuration
-   */
   private loadEnvironment(): void {
     dotenv.config();
     this.logger.info('📋 Environment configuration loaded');
   }
 
-  /**
-   * Setup graceful shutdown handlers for various signals
-   */
   private setupGracefulShutdown(): void {
     // Handle shutdown signals
     process.on("SIGTERM", () => this.handleShutdownSignal("SIGTERM"));
     process.on("SIGINT", () => this.handleShutdownSignal("SIGINT"));
 
-    // Handle uncaught exceptions
     process.on("uncaughtException", (error: Error) => {
       this.logger.error('💥 Uncaught Exception:', error);
       this.handleShutdownSignal("uncaughtException");
     });
 
-    // Handle unhandled promise rejections
     process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
       this.logger.error('💥 Unhandled Rejection:', { reason, promise });
       this.handleShutdownSignal("unhandledRejection");
@@ -70,9 +54,6 @@ export class Application {
     this.logger.info('🛡️ Graceful shutdown handlers configured');
   }
 
-  /**
-   * Handle shutdown signals gracefully
-   */
   private async handleShutdownSignal(signal: string): Promise<void> {
     if (this.isShuttingDown) {
       this.logger.warn(`⚠️ Shutdown already in progress, ignoring ${signal}`);
