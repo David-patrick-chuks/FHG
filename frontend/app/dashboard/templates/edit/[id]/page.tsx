@@ -3,6 +3,8 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { CreateTemplateForm } from '@/components/templates';
 import { Button } from '@/components/ui/button';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
 import { ArrowLeft } from 'lucide-react';
@@ -19,6 +21,19 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Handle unsaved changes
+  const {
+    showConfirmModal,
+    setShowConfirmModal,
+    confirmLeave,
+    cancelLeave,
+    message
+  } = useUnsavedChanges({
+    hasUnsavedChanges,
+    message: 'You have unsaved changes to your template. Are you sure you want to leave? Your changes will be lost.'
+  });
 
   useEffect(() => {
     loadTemplate();
@@ -115,10 +130,23 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
               isEditMode={true}
               templateId={template._id}
               isCloned={!!template.originalTemplateId}
+              onUnsavedChangesChange={setHasUnsavedChanges}
             />
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={cancelLeave}
+        onConfirm={confirmLeave}
+        title="Leave without saving?"
+        description={message}
+        confirmText="Leave"
+        cancelText="Stay"
+        variant="destructive"
+      />
     </DashboardLayout>
   );
 }

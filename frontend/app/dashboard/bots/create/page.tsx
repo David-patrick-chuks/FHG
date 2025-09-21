@@ -4,9 +4,12 @@ import { BotProgressSteps } from '@/components/dashboard/bots/BotProgressSteps';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useBotUnsavedChanges } from '@/hooks/useBotUnsavedChanges';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { BotsAPI } from '@/lib/api';
 import { ArrowLeft, Bot as BotIcon, Check, ExternalLink, Eye, EyeOff, Mail, Plus, X } from 'lucide-react';
 import Link from 'next/link';
@@ -142,6 +145,25 @@ export default function CreateBotPage() {
                      formData.password.trim() &&
                      verificationStatus === 'success';
 
+  // Detect unsaved changes
+  const { hasUnsavedChanges } = useBotUnsavedChanges({
+    formData,
+    currentStep,
+    verificationStatus
+  });
+
+  // Handle unsaved changes navigation
+  const {
+    showConfirmModal,
+    setShowConfirmModal,
+    confirmLeave,
+    cancelLeave,
+    message
+  } = useUnsavedChanges({
+    hasUnsavedChanges,
+    message: 'You have unsaved changes to your bot. Are you sure you want to leave? Your progress will be lost.'
+  });
+
   return (
     <DashboardLayout
       title="Create New Bot"
@@ -149,8 +171,14 @@ export default function CreateBotPage() {
       actions={
         <Button 
           variant="outline"
-          onClick={() => router.push('/dashboard/bots')}
-          className="flex items-center gap-2 border-cyan-200 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base"
+          onClick={() => {
+            if (hasUnsavedChanges) {
+              setShowConfirmModal(true);
+            } else {
+              router.push('/dashboard/bots');
+            }
+          }}
+          className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Back to Bots</span>
@@ -171,7 +199,7 @@ export default function CreateBotPage() {
             <Card>
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <BotIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -234,7 +262,7 @@ export default function CreateBotPage() {
                   placeholder="Describe what this bot does and its purpose (max 200 characters)"
                   rows={3}
                   maxLength={200}
-                  className="resize-none border border-gray-300 dark:border-gray-600 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm sm:text-base"
+                  className="resize-none border border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
                 />
                 <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                   <span>Brief description of the bot's purpose</span>
@@ -278,7 +306,7 @@ export default function CreateBotPage() {
               <Button
                 onClick={() => setCurrentStep(2)}
                 disabled={!canProceedToStep2}
-                className="h-10 sm:h-12 px-6 sm:px-8 bg-cyan-600 hover:bg-cyan-700 text-sm sm:text-base"
+                className="h-10 sm:h-12 px-6 sm:px-8 bg-blue-600 hover:bg-blue-700 text-sm sm:text-base"
               >
                 <span className="hidden sm:inline">Continue to Email Setup</span>
                 <span className="sm:hidden">Continue</span>
@@ -293,7 +321,7 @@ export default function CreateBotPage() {
             <Card>
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -314,7 +342,7 @@ export default function CreateBotPage() {
                   <Link 
                     href="/app-password-guide" 
                     target="_blank"
-                    className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 flex items-center gap-1 self-start sm:self-auto"
+                    className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 self-start sm:self-auto"
                   >
                     <ExternalLink className="w-3 h-3" />
                     How to get app password
@@ -373,7 +401,7 @@ export default function CreateBotPage() {
                         ? 'bg-green-600 hover:bg-green-700 text-white' 
                         : verificationStatus === 'error'
                         ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                   >
                     {isVerifying ? (
@@ -444,7 +472,7 @@ export default function CreateBotPage() {
               <Button 
                 onClick={handleSubmit}
                 disabled={!canCreateBot || isLoading}
-                className="h-10 sm:h-12 px-6 sm:px-8 bg-cyan-600 hover:bg-cyan-700 text-sm sm:text-base order-1 sm:order-2"
+                className="h-10 sm:h-12 px-6 sm:px-8 bg-blue-600 hover:bg-blue-700 text-sm sm:text-base order-1 sm:order-2"
               >
                 {isLoading ? (
                   <>
@@ -465,6 +493,18 @@ export default function CreateBotPage() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={cancelLeave}
+        onConfirm={confirmLeave}
+        title="Leave without saving?"
+        description={message}
+        confirmText="Leave"
+        cancelText="Stay"
+        variant="destructive"
+      />
     </DashboardLayout>
   );
 }

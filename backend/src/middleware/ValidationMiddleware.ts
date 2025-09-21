@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { Logger } from '../utils/Logger';
 import { FileUploadRequest } from '../types';
+import { Logger } from '../utils/Logger';
 
 export class ValidationMiddleware {
   private static logger: Logger = new Logger();
@@ -8,6 +8,11 @@ export class ValidationMiddleware {
   public static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  public static isValidObjectId(id: string): boolean {
+    const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+    return objectIdRegex.test(id);
   }
 
   public static validatePassword(password: string): { isValid: boolean; errors: string[] } {
@@ -218,7 +223,7 @@ export class ValidationMiddleware {
 
   public static validateCreateCampaign(req: Request, res: Response, next: NextFunction): void {
     try {
-      const { name, description, emailList, botId } = req.body;
+      const { name, description, emailList, botId, templateId, scheduledFor, emailInterval, emailIntervalUnit } = req.body;
       const errors: string[] = [];
 
       // Validate name
@@ -243,6 +248,12 @@ export class ValidationMiddleware {
           errors.push('Email list cannot exceed 10,000 emails');
         }
 
+        // Check for duplicate emails
+        const uniqueEmails = new Set(emailList);
+        if (uniqueEmails.size !== emailList.length) {
+          errors.push('Email list contains duplicate email addresses');
+        }
+
         for (let i = 0; i < emailList.length; i++) {
           if (!ValidationMiddleware.validateEmail(emailList[i])) {
             errors.push(`Invalid email at position ${i + 1}: ${emailList[i]}`);
@@ -254,6 +265,38 @@ export class ValidationMiddleware {
       // Validate bot ID
       if (!botId) {
         errors.push('Bot ID is required');
+      } else if (!ValidationMiddleware.isValidObjectId(botId)) {
+        errors.push('Invalid bot ID format');
+      }
+
+      // Validate template ID
+      if (!templateId) {
+        errors.push('Template ID is required');
+      } else if (!ValidationMiddleware.isValidObjectId(templateId)) {
+        errors.push('Invalid template ID format');
+      }
+
+      // Validate optional fields
+      if (scheduledFor !== undefined && scheduledFor !== null) {
+        const scheduledDate = new Date(scheduledFor);
+        if (isNaN(scheduledDate.getTime())) {
+          errors.push('Invalid scheduled date format');
+        } else if (scheduledDate <= new Date()) {
+          errors.push('Scheduled date must be in the future');
+        }
+      }
+
+      if (emailInterval !== undefined && emailInterval !== null) {
+        if (typeof emailInterval !== 'number' || emailInterval < 0 || emailInterval > 1440) {
+          errors.push('Email interval must be a number between 0 and 1440 minutes');
+        }
+      }
+
+      if (emailIntervalUnit !== undefined && emailIntervalUnit !== null) {
+        const validUnits = ['seconds', 'minutes', 'hours'];
+        if (!validUnits.includes(emailIntervalUnit)) {
+          errors.push('Email interval unit must be one of: seconds, minutes, hours');
+        }
       }
 
       if (errors.length > 0) {
@@ -272,6 +315,20 @@ export class ValidationMiddleware {
         req.body.description = ValidationMiddleware.sanitizeString(description);
       }
       req.body.emailList = emailList.map((email: string) => ValidationMiddleware.sanitizeEmail(email));
+      
+      // Sanitize optional fields
+      if (templateId) {
+        req.body.templateId = ValidationMiddleware.sanitizeString(templateId);
+      }
+      if (scheduledFor) {
+        req.body.scheduledFor = new Date(scheduledFor);
+      }
+      if (emailInterval !== undefined) {
+        req.body.emailInterval = Number(emailInterval);
+      }
+      if (emailIntervalUnit) {
+        req.body.emailIntervalUnit = ValidationMiddleware.sanitizeString(emailIntervalUnit);
+      }
 
       next();
     } catch (error) {

@@ -857,4 +857,39 @@ export class TemplateService {
       throw error;
     }
   }
+
+  public static async getTemplateCounts(userId: string): Promise<ApiResponse<{
+    myTemplates: number;
+    communityTemplates: number;
+    totalUsage: number;
+  }>> {
+    try {
+      // Get user's templates count
+      const myTemplatesCount = await TemplateModel.countDocuments({ userId });
+      
+      // Get community templates count (published templates)
+      const communityTemplatesCount = await TemplateModel.countDocuments({ 
+        isPublic: true, 
+        status: 'published' 
+      });
+      
+      // Get total usage count for user's templates
+      const userTemplates = await TemplateModel.find({ userId });
+      const totalUsage = userTemplates.reduce((sum, template) => sum + (template.usageCount || 0), 0);
+      
+      return {
+        success: true,
+        message: 'Template counts retrieved successfully',
+        data: {
+          myTemplates: myTemplatesCount,
+          communityTemplates: communityTemplatesCount,
+          totalUsage
+        },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      TemplateService.logger.error('Error retrieving template counts:', error);
+      throw error;
+    }
+  }
 }

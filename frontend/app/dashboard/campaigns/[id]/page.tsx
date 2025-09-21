@@ -57,16 +57,20 @@ export default function CampaignDetailsPage() {
           <Button 
             onClick={() => router.push('/dashboard/campaigns')}
             variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Campaigns
+            <span className="hidden sm:inline">Back to Campaigns</span>
+            <span className="sm:hidden">Back</span>
           </Button>
           <Button 
             onClick={() => router.push(`/dashboard/campaigns/${localCampaign._id}/edit`)}
             variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base"
           >
             <Edit className="w-4 h-4 mr-2" />
-            Edit Campaign
+            <span className="hidden sm:inline">Edit Campaign</span>
+            <span className="sm:hidden">Edit</span>
           </Button>
         </div>
       }

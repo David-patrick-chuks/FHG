@@ -236,165 +236,167 @@ export default function UserPaymentsPage() {
           </Card>
         )}
 
-        {/* Payment List */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <CardTitle>Payment Transactions</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="w-4 h-4" />
-                  Filters
-                </Button>
-                {(filters.status || filters.subscriptionTier || filters.billingCycle || filters.search) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                    Clear
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Search and Filters */}
-            <div className="space-y-4 mb-6">
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search by reference, gateway response, or failure reason..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Filters */}
-              {showFilters && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                      Status
-                    </label>
-                    <Select
-                      value={filters.status || ''}
-                      onValueChange={(value) => handleFilterChange('status', value || undefined)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All statuses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All statuses</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="refunded">Refunded</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                      Plan
-                    </label>
-                    <Select
-                      value={filters.subscriptionTier || ''}
-                      onValueChange={(value) => handleFilterChange('subscriptionTier', value || undefined)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All plans" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All plans</SelectItem>
-                        <SelectItem value="basic">Basic</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                      Billing Cycle
-                    </label>
-                    <Select
-                      value={filters.billingCycle || ''}
-                      onValueChange={(value) => handleFilterChange('billingCycle', value || undefined)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All cycles" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">All cycles</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                      Sort By
-                    </label>
-                    <Select
-                      value={`${filters.sortBy}-${filters.sortOrder}`}
-                      onValueChange={(value) => {
-                        const [sortBy, sortOrder] = value.split('-');
-                        handleFilterChange('sortBy', sortBy);
-                        handleFilterChange('sortOrder', sortOrder as 'asc' | 'desc');
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sort by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="createdAt-desc">Date (Newest)</SelectItem>
-                        <SelectItem value="createdAt-asc">Date (Oldest)</SelectItem>
-                        <SelectItem value="amount-desc">Amount (High to Low)</SelectItem>
-                        <SelectItem value="amount-asc">Amount (Low to High)</SelectItem>
-                        <SelectItem value="status-asc">Status (A-Z)</SelectItem>
-                        <SelectItem value="status-desc">Status (Z-A)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-
-              {/* Results Summary */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600 dark:text-gray-400">
-                <span>
-                  Showing {payments.length} of {pagination.totalItems} payments
-                </span>
+        {/* Payment List - Only show if user has transactions */}
+        {pagination.totalItems > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle>Payment Transactions</CardTitle>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm">Items per page:</span>
-                  <Select
-                    value={filters.limit?.toString() || '10'}
-                    onValueChange={(value) => handleItemsPerPageChange(parseInt(value))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2"
                   >
-                    <SelectTrigger className="w-16 sm:w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Filter className="w-4 h-4" />
+                    Filters
+                  </Button>
+                  {(filters.status || filters.subscriptionTier || filters.billingCycle || filters.search) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                      Clear
+                    </Button>
+                  )}
                 </div>
               </div>
-            </div>
-            {payments.length > 0 ? (
+            </CardHeader>
+            <CardContent>
+              {/* Search and Filters */}
+              <div className="space-y-4 mb-6">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by reference, gateway response, or failure reason..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Filters */}
+                {showFilters && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                        Status
+                      </label>
+                      <Select
+                        value={filters.status || ''}
+                        onValueChange={(value) => handleFilterChange('status', value || undefined)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="All statuses" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All statuses</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="failed">Failed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="refunded">Refunded</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                        Plan
+                      </label>
+                      <Select
+                        value={filters.subscriptionTier || ''}
+                        onValueChange={(value) => handleFilterChange('subscriptionTier', value || undefined)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="All plans" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All plans</SelectItem>
+                          <SelectItem value="basic">Basic</SelectItem>
+                          <SelectItem value="premium">Premium</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                        Billing Cycle
+                      </label>
+                      <Select
+                        value={filters.billingCycle || ''}
+                        onValueChange={(value) => handleFilterChange('billingCycle', value || undefined)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="All cycles" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All cycles</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                        Sort By
+                      </label>
+                      <Select
+                        value={`${filters.sortBy}-${filters.sortOrder}`}
+                        onValueChange={(value) => {
+                          const [sortBy, sortOrder] = value.split('-');
+                          handleFilterChange('sortBy', sortBy);
+                          handleFilterChange('sortOrder', sortOrder as 'asc' | 'desc');
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="createdAt-desc">Date (Newest)</SelectItem>
+                          <SelectItem value="createdAt-asc">Date (Oldest)</SelectItem>
+                          <SelectItem value="amount-desc">Amount (High to Low)</SelectItem>
+                          <SelectItem value="amount-asc">Amount (Low to High)</SelectItem>
+                          <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                          <SelectItem value="status-desc">Status (Z-A)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results Summary */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600 dark:text-gray-400">
+                  <span>
+                    Showing {payments.length} of {pagination.totalItems} payments
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm">Items per page:</span>
+                    <Select
+                      value={filters.limit?.toString() || '10'}
+                      onValueChange={(value) => handleItemsPerPageChange(parseInt(value))}
+                    >
+                      <SelectTrigger className="w-16 sm:w-20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Items */}
               <div className="space-y-4">
                 {payments.map((payment) => (
                   <div
@@ -495,135 +497,127 @@ export default function UserPaymentsPage() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">No payment history</p>
-                <p className="text-sm mb-4 px-4">
-                  {filters.search || filters.status || filters.subscriptionTier || filters.billingCycle
-                    ? 'No payments match your current filters.'
-                    : 'You haven\'t made any payments yet.'}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                  {(filters.search || filters.status || filters.subscriptionTier || filters.billingCycle) ? (
-                    <Button
-                      variant="outline"
-                      onClick={clearFilters}
-                      className="w-full sm:w-auto"
-                    >
-                      Clear Filters
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => window.location.href = '/pricing'}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white w-full sm:w-auto"
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      Upgrade Your Plan
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
 
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                {/* Mobile Pagination */}
-                <div className="flex flex-col sm:hidden space-y-4">
-                  <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={!pagination.hasPrevPage}
-                      className="flex items-center gap-1"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Previous
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={!pagination.hasNextPage}
-                      className="flex items-center gap-1"
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Desktop Pagination */}
-                <div className="hidden sm:flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <span>
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  {/* Mobile Pagination */}
+                  <div className="flex flex-col sm:hidden space-y-4">
+                    <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                       Page {pagination.currentPage} of {pagination.totalPages}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={!pagination.hasPrevPage}
-                      className="flex items-center gap-1"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Previous
-                    </Button>
-                    
-                    {/* Page Numbers */}
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (pagination.totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (pagination.currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (pagination.currentPage >= pagination.totalPages - 2) {
-                          pageNum = pagination.totalPages - 4 + i;
-                        } else {
-                          pageNum = pagination.currentPage - 2 + i;
-                        }
-                        
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={pageNum === pagination.currentPage ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(pageNum)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
                     </div>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={!pagination.hasNextPage}
-                      className="flex items-center gap-1"
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={!pagination.hasPrevPage}
+                        className="flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={!pagination.hasNextPage}
+                        className="flex items-center gap-1"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Desktop Pagination */}
+                  <div className="hidden sm:flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <span>
+                        Page {pagination.currentPage} of {pagination.totalPages}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={!pagination.hasPrevPage}
+                        className="flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (pagination.totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (pagination.currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                            pageNum = pagination.totalPages - 4 + i;
+                          } else {
+                            pageNum = pagination.currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(pageNum)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={!pagination.hasNextPage}
+                        className="flex items-center gap-1"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Empty State - Only show when no transactions and no filters applied */}
+        {pagination.totalItems === 0 && !filters.search && !filters.status && !filters.subscriptionTier && !filters.billingCycle && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <CreditCard className="w-16 h-16 mx-auto mb-6 opacity-50 text-gray-400 dark:text-gray-500" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No payment history</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                You haven't made any payments yet. Upgrade to a paid plan to start using premium features.
+              </p>
+              <Button
+                onClick={() => window.location.href = '/pricing'}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                size="lg"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                View Pricing Plans
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
       
       </div>

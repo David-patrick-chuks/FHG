@@ -53,19 +53,39 @@ export default function AdminActivityPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [adminResponse, systemResponse] = await Promise.all([
+      const [adminActionsResponse, adminStatsResponse, systemResponse] = await Promise.all([
+        AdminAPI.getAdminActions(undefined, undefined, daysFilter),
         AdminAPI.getAdminActivityStats(undefined, daysFilter),
         AdminAPI.getSystemActivityStats(daysFilter)
       ]);
 
-      if (adminResponse.success && adminResponse.data) {
-        setAdminActivityStats(adminResponse.data);
+      // Process admin actions to create stats
+      if (adminActionsResponse.success && adminActionsResponse.data) {
+        const actions = adminActionsResponse.data;
+        const totalActions = actions.length;
+        const actionsByType: Record<string, number> = {};
+        const actionsByAdmin: Record<string, number> = {};
+        
+        actions.forEach(action => {
+          // Count by target type
+          actionsByType[action.targetType] = (actionsByType[action.targetType] || 0) + 1;
+          // Count by admin
+          actionsByAdmin[action.adminId] = (actionsByAdmin[action.adminId] || 0) + 1;
+        });
+
+        setAdminActivityStats({
+          totalActions,
+          actionsByType,
+          actionsByAdmin,
+          recentActions: actions.slice(0, 10) // Get recent 10 actions
+        });
       }
 
       if (systemResponse.success && systemResponse.data) {
         setSystemActivityStats(systemResponse.data);
       }
     } catch (error) {
+      console.error('Failed to load activity data:', error);
       toast.error('Failed to load activity data');
     } finally {
       setLoading(false);
@@ -139,13 +159,6 @@ export default function AdminActivityPage() {
     return matchesSearch && matchesType;
   }) || [];
 
-  const filteredSystemActivities = systemActivityStats?.recentActivities?.filter(activity => {
-    const matchesSearch = activity.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = activityTypeFilter === 'all' || activity.type === activityTypeFilter;
-    return matchesSearch && matchesType;
-  }) || [];
 
   if (!user?.isAdmin) {
     return null;
@@ -234,11 +247,11 @@ export default function AdminActivityPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Total Activities</span>
-                  <span className="font-semibold">{systemActivityStats?.totalActivities || 0}</span>
+                  <span className="font-semibold">{systemActivityStats?.totalActions || 0}</span>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Activities by Type:</p>
-                  {systemActivityStats?.activitiesByType && Object.entries(systemActivityStats.activitiesByType).map(([type, count]) => (
+                  {systemActivityStats?.actionsByType && Object.entries(systemActivityStats.actionsByType).map(([type, count]) => (
                     <div key={type} className="flex justify-between items-center text-sm">
                       <span className="text-gray-600 dark:text-gray-400">{type.replace(/_/g, ' ')}</span>
                       <span className="font-medium">{count}</span>
@@ -350,44 +363,11 @@ export default function AdminActivityPage() {
                   </div>
                 )
               ) : (
-                filteredSystemActivities.length > 0 ? (
-                  filteredSystemActivities.map((activity) => (
-                    <div
-                      key={activity._id}
-                      className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                          <Activity className="w-4 h-4 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {activity.title}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {activity.description}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            {getActivityTypeBadge(activity.type)}
-                            <Badge variant="outline" className="text-xs">
-                              {activity.userId}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatDate(activity.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No system activities found</p>
-                  </div>
-                )
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>System activity statistics are shown above</p>
+                  <p className="text-sm mt-2">Detailed system logs are available in the server logs</p>
+                </div>
               )}
             </div>
           </CardContent>

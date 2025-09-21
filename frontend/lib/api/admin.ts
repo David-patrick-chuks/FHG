@@ -64,18 +64,11 @@ export interface AdminActivityStats {
 }
 
 export interface SystemActivityStats {
-  totalActivities: number;
-  activitiesByType: Record<string, number>;
-  activitiesByUser: Record<string, number>;
-  recentActivities: Array<{
-    _id: string;
-    userId: string;
-    type: string;
-    title: string;
-    description: string;
-    metadata: any;
-    createdAt: string;
-  }>;
+  totalActions: number;
+  uniqueAdmins: number;
+  actionsByType: Record<string, number>;
+  actionsByTarget: Record<string, number>;
+  averageActionsPerDay: number;
 }
 
 export interface UpdateSubscriptionRequest {
@@ -168,6 +161,40 @@ export class AdminAPI {
   }
 
   /**
+   * Get admin actions
+   */
+  static async getAdminActions(
+    targetAdminId?: string,
+    targetType?: string,
+    days: number = 7
+  ): Promise<ApiResponse<Array<{
+    _id: string;
+    adminId: string;
+    action: string;
+    targetType: string;
+    targetId: string;
+    details: any;
+    ipAddress: string;
+    createdAt: string;
+  }>>> {
+    const params = new URLSearchParams();
+    if (targetAdminId) params.append('targetAdminId', targetAdminId);
+    if (targetType) params.append('targetType', targetType);
+    params.append('days', days.toString());
+    
+    return apiClient.get<Array<{
+      _id: string;
+      adminId: string;
+      action: string;
+      targetType: string;
+      targetId: string;
+      details: any;
+      ipAddress: string;
+      createdAt: string;
+    }>>(`${this.baseUrl}/actions?${params.toString()}`);
+  }
+
+  /**
    * Get admin activity statistics
    */
   static async getAdminActivityStats(
@@ -176,7 +203,7 @@ export class AdminAPI {
   ): Promise<ApiResponse<AdminActivityStats>> {
     const url = adminId 
       ? `${this.baseUrl}/actions/${adminId}?days=${days}`
-      : `${this.baseUrl}/actions?days=${days}`;
+      : `${this.baseUrl}/stats/admin-activity?days=${days}`;
     
     return apiClient.get<AdminActivityStats>(url);
   }

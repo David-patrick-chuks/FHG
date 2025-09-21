@@ -18,7 +18,7 @@ export function TemplateVariables({ formData, setFormData }: TemplateVariablesPr
   const [newVariable, setNewVariable] = useState<TemplateVariable>({
     key: '',
     value: '',
-    required: false
+    required: true
   });
 
   const addVariable = () => {
@@ -27,7 +27,7 @@ export function TemplateVariables({ formData, setFormData }: TemplateVariablesPr
         ...prev,
         variables: [...prev.variables, { ...newVariable }]
       }));
-      setNewVariable({ key: '', value: '', required: false });
+      setNewVariable({ key: '', value: '', required: true });
     }
   };
 

@@ -52,7 +52,7 @@ export function TargetAudienceStep({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -63,30 +63,28 @@ export function TargetAudienceStep({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6">
-        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 sm:p-6 border">
-          <EmailListManager
-            emailList={formData.emailList}
-            onEmailListChange={(emails) => onFormDataChange({ emailList: emails })}
-            uploadedEmails={uploadedEmails}
-            uploadedFileName={uploadedFileName}
-            onFileUpload={onFileUpload}
-            onClearUploaded={onClearUploaded}
-            isUploading={isUploading}
-            isDragOver={isDragOver}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
-            selectedBotEmailsRemaining={(() => {
-              const selectedBot = bots.find(bot => bot._id === formData.botId);
-              if (!selectedBot) return 500; // Default Gmail limit
-              const emailsSentToday = selectedBot.emailsSentToday || 0;
-              return Math.max(0, 500 - emailsSentToday);
-            })()}
-            disabled={isFormDisabled}
-            userSubscription={userSubscription}
-          />
-        </div>
+      <CardContent className="space-y-6">
+        <EmailListManager
+          emailList={formData.emailList}
+          onEmailListChange={(emails) => onFormDataChange({ emailList: emails })}
+          uploadedEmails={uploadedEmails}
+          uploadedFileName={uploadedFileName}
+          onFileUpload={onFileUpload}
+          onClearUploaded={onClearUploaded}
+          isUploading={isUploading}
+          isDragOver={isDragOver}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          selectedBotEmailsRemaining={(() => {
+            const selectedBot = bots.find(bot => bot._id === formData.botId);
+            if (!selectedBot) return 500; // Default Gmail limit
+            const emailsSentToday = selectedBot.emailsSentToday || 0;
+            return Math.max(0, 500 - emailsSentToday);
+          })()}
+          disabled={isFormDisabled}
+          userSubscription={userSubscription}
+        />
 
         <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-4">
           <Button
@@ -96,15 +94,15 @@ export function TargetAudienceStep({
             className="h-11 sm:h-12 px-4 sm:px-6 order-2 sm:order-1 text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Back to Email Template</span>
+            <span className="hidden sm:inline">Back</span>
             <span className="sm:hidden">Back</span>
           </Button>
           <Button
             onClick={onNext}
             disabled={!canProceed || isFormDisabled}
-            className="h-11 sm:h-12 px-4 sm:px-8 order-1 sm:order-2 text-sm sm:text-base bg-green-600 hover:bg-green-700"
+            className="h-11 sm:h-12 px-4 sm:px-8 order-1 sm:order-2 text-sm sm:text-base bg-blue-600 hover:bg-blue-700"
           >
-            <span className="hidden sm:inline">Continue to Schedule & Timing</span>
+            <span className="hidden sm:inline">Continue</span>
             <span className="sm:hidden">Next</span>
             <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
           </Button>

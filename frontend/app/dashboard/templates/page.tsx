@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
 import { FileText, Plus, Star, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -17,7 +17,11 @@ export default function TemplatesPage() {
   const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [communityTemplates, setCommunityTemplates] = useState<Template[]>([]);
   const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
-  const [communityTemplatesCount, setCommunityTemplatesCount] = useState(0);
+  const [templateCounts, setTemplateCounts] = useState({
+    myTemplates: 0,
+    communityTemplates: 0,
+    totalUsage: 0
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,16 +35,16 @@ export default function TemplatesPage() {
       setLoading(true);
       setError(null);
 
+      // Load template counts (optimized single API call)
+      const countsResponse = await TemplatesAPI.getTemplateCounts();
+      if (countsResponse.success && countsResponse.data) {
+        setTemplateCounts(countsResponse.data);
+      }
+
       // Load my templates
       const myTemplatesResponse = await TemplatesAPI.getMyTemplates();
       if (myTemplatesResponse.success && myTemplatesResponse.data) {
         setMyTemplates(myTemplatesResponse.data);
-      }
-
-      // Load community templates count
-      const communityResponse = await TemplatesAPI.getCommunityTemplates();
-      if (communityResponse.success && communityResponse.data) {
-        setCommunityTemplatesCount(communityResponse.data.length);
       }
 
       // Load popular templates for community tab
@@ -74,15 +78,22 @@ export default function TemplatesPage() {
 
   const handleCommunityTemplatesLoaded = (templates: Template[]) => {
     setCommunityTemplates(templates);
-    setCommunityTemplatesCount(templates.length);
   };
 
   const handleTemplateAdded = async () => {
-    // Refresh my templates count when a template is added from community
+    // Refresh my templates and counts when a template is added from community
     try {
-      const myTemplatesResponse = await TemplatesAPI.getMyTemplates();
+      const [myTemplatesResponse, countsResponse] = await Promise.all([
+        TemplatesAPI.getMyTemplates(),
+        TemplatesAPI.getTemplateCounts()
+      ]);
+      
       if (myTemplatesResponse.success && myTemplatesResponse.data) {
         setMyTemplates(myTemplatesResponse.data);
+      }
+      
+      if (countsResponse.success && countsResponse.data) {
+        setTemplateCounts(countsResponse.data);
       }
     } catch (err) {
       console.error('Failed to refresh my templates:', err);
@@ -110,7 +121,7 @@ export default function TemplatesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">My Templates</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{myTemplates.length}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateCounts.myTemplates}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -122,7 +133,7 @@ export default function TemplatesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Community Templates</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{communityTemplatesCount}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateCounts.communityTemplates}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -134,9 +145,7 @@ export default function TemplatesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Usage</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {myTemplates.reduce((sum, template) => sum + template.usageCount, 0)}
-                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateCounts.totalUsage}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <Star className="w-6 h-6 text-blue-600 dark:text-blue-400" />

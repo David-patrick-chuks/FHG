@@ -32,6 +32,7 @@ export function useCampaignCreation() {
   const [templatesLoading, setTemplatesLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scheduleConfirmed, setScheduleConfirmed] = useState(true); // Default to true for "Start Now"
   const fetchInProgress = useRef(false);
 
   // Fetch bots data
@@ -265,7 +266,7 @@ export function useCampaignCreation() {
   const canProceedToStep2 = Boolean(formData.name.trim() && formData.botId);
   const canProceedToStep3 = Boolean(canProceedToStep2 && formData.templateId);
   const canProceedToStep4 = Boolean(canProceedToStep3 && hasValidEmails());
-  const canCreateCampaign = Boolean(canProceedToStep4);
+  const canCreateCampaign = Boolean(canProceedToStep4 && scheduleConfirmed);
   
   const isFormDisabled = creating;
 
@@ -284,6 +285,7 @@ export function useCampaignCreation() {
     creating,
     error,
     isFormDisabled,
+    scheduleConfirmed,
     
     // Computed values
     canProceedToStep2,
@@ -299,6 +301,7 @@ export function useCampaignCreation() {
     handleDragOver,
     handleDragLeave,
     handleDrop,
-    handleCreateCampaign
+    handleCreateCampaign,
+    setScheduleConfirmed
   };
 }

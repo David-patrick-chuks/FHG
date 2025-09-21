@@ -493,4 +493,34 @@ export class TemplateController {
       });
     }
   }
+
+  public static async getTemplateCounts(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      const result = await TemplateService.getTemplateCounts(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Template counts retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to retrieve template counts',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      TemplateController.logger.error('Error in getTemplateCounts controller:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
 }

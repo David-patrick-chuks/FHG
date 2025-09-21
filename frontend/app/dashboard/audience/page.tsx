@@ -1,17 +1,17 @@
 'use client';
 
+import {
+    EmailRecordsTable,
+    EmptyState,
+    ErrorState,
+    FiltersSection,
+    LoadingState,
+    Pagination
+} from '@/components/dashboard/audience';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { 
-  LoadingState, 
-  ErrorState, 
-  EmptyState, 
-  FiltersSection, 
-  EmailRecordsTable, 
-  Pagination 
-} from '@/components/dashboard/audience';
-import { useEmailRecords } from '@/hooks/useEmailRecords';
 import { useEmailExport } from '@/hooks/useEmailExport';
+import { useEmailRecords } from '@/hooks/useEmailRecords';
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 
@@ -57,18 +57,21 @@ export default function AudiencePage() {
       title="Audience"
       description="Track email delivery and engagement across all your campaigns"
       actions={
-        <Button 
-          onClick={handleExport}
-          variant="outline"
-          disabled={totalItems === 0 || loading}
-          className="flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Export CSV
-        </Button>
+        totalItems > 0 ? (
+          <Button 
+            onClick={handleExport}
+            variant="outline"
+            disabled={loading}
+            className="flex items-center gap-2 w-full sm:w-auto"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">Export</span>
+          </Button>
+        ) : undefined
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Filters - Only show when there are email records */}
         {!loading && totalItems > 0 && (
           <FiltersSection

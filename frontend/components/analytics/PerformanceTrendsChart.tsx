@@ -37,8 +37,8 @@ export function PerformanceTrendsChart({ campaignStats }: PerformanceTrendsChart
         opened: dayStats?.opened || 0,
         replied: dayStats?.replied || 0,
         bounced: dayStats?.bounced || 0,
-        openRate: dayStats?.openRate || 0,
-        replyRate: dayStats?.replyRate || 0
+        openRate: (dayStats?.openRate || 0) * 100,
+        replyRate: (dayStats?.replyRate || 0) * 100
       });
     }
 
@@ -50,18 +50,33 @@ export function PerformanceTrendsChart({ campaignStats }: PerformanceTrendsChart
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Email Performance Trends</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">Email Performance Trends</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[400px]">
+        <div className="h-[300px] sm:h-[400px]">
           {performanceTrends.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={performanceTrends}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <XAxis 
+                  dataKey="date" 
+                  fontSize={12}
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  fontSize={12}
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    fontSize: '12px',
+                    padding: '8px',
+                    borderRadius: '6px'
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{ fontSize: '12px' }}
+                />
                 <Line 
                   type="monotone" 
                   dataKey="emails" 
@@ -93,14 +108,14 @@ export function PerformanceTrendsChart({ campaignStats }: PerformanceTrendsChart
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                <BarChart3 className="w-12 h-12 text-gray-400" />
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+              <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                <BarChart3 className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 No Performance Data Yet
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 max-w-md">
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
                 Performance trends will appear here once you start sending campaigns and collecting email data.
               </p>
             </div>

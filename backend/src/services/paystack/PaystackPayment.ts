@@ -385,9 +385,10 @@ export class PaystackPayment extends PaystackCore {
   public static async getPaymentStats(): Promise<ApiResponse<any>> {
     try {
       const totalPayments = await PaymentModel.countDocuments();
-      const completedPayments = await PaymentModel.countDocuments({ status: PaymentStatus.COMPLETED });
+      const successfulPayments = await PaymentModel.countDocuments({ status: PaymentStatus.COMPLETED });
+      const failedPayments = await PaymentModel.countDocuments({ status: PaymentStatus.FAILED });
       const pendingPayments = await PaymentModel.countDocuments({ status: PaymentStatus.PENDING });
-      const totalRevenue = await PaymentModel.aggregate([
+      const totalAmount = await PaymentModel.aggregate([
         { $match: { status: PaymentStatus.COMPLETED } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]);
@@ -397,9 +398,10 @@ export class PaystackPayment extends PaystackCore {
         message: 'Payment stats retrieved successfully',
         data: {
           totalPayments,
-          completedPayments,
-          pendingPayments,
-          totalRevenue: totalRevenue[0]?.total || 0
+          totalAmount: totalAmount[0]?.total || 0,
+          successfulPayments,
+          failedPayments,
+          pendingPayments
         },
         timestamp: new Date()
       };

@@ -125,8 +125,8 @@ export function ApiKeyManagement({
             </div>
           )}
 
-          {/* API Key Info - Only show if not displaying a newly generated key */}
-          {apiKeyInfo?.hasApiKey && !generatedApiKey && (
+          {/* API Key Info - Show existing API key */}
+          {apiKeyInfo?.hasApiKey && apiKeyInfo.apiKey && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -150,33 +150,31 @@ export function ApiKeyManagement({
               </div>
 
               {/* Show full API key */}
-              {apiKeyInfo.apiKey && (
-                <div>
-                  <Label className="text-sm font-medium">API Key</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Input
-                      value={apiKeyInfo.apiKey}
-                      readOnly
-                      className="font-mono text-sm bg-gray-50 dark:bg-gray-800"
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleCopy(apiKeyInfo.apiKey!)}
-                      className="text-gray-600 hover:text-gray-700"
-                    >
-                      {copiedKey === apiKeyInfo.apiKey ? (
-                        <CheckCircle className="h-4 w-4" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Copy this API key to use in your applications
-                  </p>
+              <div>
+                <Label className="text-sm font-medium">API Key</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    value={apiKeyInfo.apiKey}
+                    readOnly
+                    className="font-mono text-sm bg-gray-50 dark:bg-gray-800"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleCopy(apiKeyInfo.apiKey!)}
+                    className="text-gray-600 hover:text-gray-700"
+                  >
+                    {copiedKey === apiKeyInfo.apiKey ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
-              )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Copy this API key to use in your applications
+                </p>
+              </div>
 
               {apiKeyInfo.createdAt && (
                 <div>

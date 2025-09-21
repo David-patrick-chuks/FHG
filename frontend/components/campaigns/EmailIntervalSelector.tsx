@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Clock, Mail } from 'lucide-react';
 import { useState } from 'react';
 
 interface EmailIntervalSelectorProps {
@@ -35,9 +34,11 @@ export function EmailIntervalSelector({
 
   const handleIntervalChange = (value: string) => {
     const newInterval = parseInt(value) || 0;
-    setInterval(newInterval);
+    // Allow 0 for "send all at once"
+    const validInterval = Math.max(0, newInterval);
+    setInterval(validInterval);
     if (isEnabled) {
-      onIntervalChange(newInterval, unit);
+      onIntervalChange(validInterval, unit);
     }
   };
 
@@ -72,51 +73,62 @@ export function EmailIntervalSelector({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="p-1 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg">
-          <Mail className="h-4 w-4 text-white" />
-        </div>
-        <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Email Sending Interval</span>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Email Sending Interval</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Control how frequently emails are sent</p>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
+      <div className="space-y-4">
+        <div className="flex items-center space-x-3">
           <Switch
             id="interval-enabled"
             checked={isEnabled}
             onCheckedChange={handleToggle}
             disabled={disabled}
           />
-          <Label htmlFor="interval-enabled" className="text-sm text-cyan-700 dark:text-cyan-300">
+          <Label htmlFor="interval-enabled" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Enable email intervals
           </Label>
         </div>
 
         {isEnabled && (
-          <div className="space-y-3 pl-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
-              <div className="flex-1 w-full sm:w-auto">
-                <Label htmlFor="interval-value" className="text-sm text-cyan-700 dark:text-cyan-300">
+          <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="interval-value" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Send emails every
                 </Label>
-                <Input
-                  id="interval-value"
-                  type="number"
-                  min="1"
-                  max={getMaxValue()}
-                  value={interval}
-                  onChange={(e) => handleIntervalChange(e.target.value)}
-                  disabled={disabled}
-                  className="mt-1 border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400"
-                />
+        <Input
+          id="interval-value"
+          type="number"
+          min="0"
+          max={getMaxValue()}
+          value={interval}
+          onChange={(e) => handleIntervalChange(e.target.value)}
+          onBlur={(e) => {
+            const value = parseInt(e.target.value) || 0;
+            const validValue = Math.max(0, value);
+            if (validValue !== interval) {
+              setInterval(validValue);
+              if (isEnabled) {
+                onIntervalChange(validValue, unit);
+              }
+            }
+          }}
+          disabled={disabled}
+          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-400"
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Use 0 to send all emails at once
+        </p>
               </div>
               
-              <div className="flex-1 w-full sm:w-auto">
-                <Label htmlFor="interval-unit" className="text-sm text-cyan-700 dark:text-cyan-300">
+              <div className="space-y-2">
+                <Label htmlFor="interval-unit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Unit
                 </Label>
                 <Select value={unit} onValueChange={handleUnitChange} disabled={disabled}>
-                  <SelectTrigger className="mt-1 border-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-800 dark:focus:border-cyan-400">
+                  <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:focus:border-blue-400">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -128,20 +140,14 @@ export function EmailIntervalSelector({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 p-3 bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-900/20 dark:to-blue-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg">
-              <div className="p-1 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg">
-                <Clock className="h-3 w-3 text-white" />
-              </div>
-              <span className="text-sm text-cyan-700 dark:text-cyan-300">{getIntervalDescription()}</span>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <span className="text-sm text-blue-700 dark:text-blue-300">{getIntervalDescription()}</span>
             </div>
           </div>
         )}
 
         {!isEnabled && (
-          <div className="flex items-center gap-2 p-3 bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <div className="p-1 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg">
-              <Mail className="h-3 w-3 text-white" />
-            </div>
+          <div className="p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
             <span className="text-sm text-gray-600 dark:text-gray-400">All emails will be sent at once</span>
           </div>
         )}

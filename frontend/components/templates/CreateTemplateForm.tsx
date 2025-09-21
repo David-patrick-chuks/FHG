@@ -3,18 +3,18 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { TemplatesAPI } from '@/lib/api/templates';
+import { validateTemplateData, ValidationError } from '@/lib/utils/templateValidation';
+import { validateTemplateVariables, VariableValidationResult } from '@/lib/utils/variableValidation';
 import { CreateTemplateRequest } from '@/types';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { TemplateBasicInfo } from './TemplateBasicInfo';
 import { TemplateSamples } from './TemplateSamples';
 import { TemplateTags } from './TemplateTags';
+import { TemplateValidationModal } from './TemplateValidationModal';
 import { TemplateVariables } from './TemplateVariables';
 import { VariableValidationModal } from './VariableValidationModal';
-import { TemplateValidationModal } from './TemplateValidationModal';
-import { validateTemplateVariables, VariableValidationResult } from '@/lib/utils/variableValidation';
-import { validateTemplateData, ValidationError } from '@/lib/utils/templateValidation';
 
 interface CreateTemplateFormProps {
   initialData?: Partial<CreateTemplateRequest>;
@@ -22,6 +22,7 @@ interface CreateTemplateFormProps {
   isEditMode?: boolean;
   templateId?: string;
   isCloned?: boolean;
+  onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void;
 }
 
 export function CreateTemplateForm({ 
@@ -29,7 +30,8 @@ export function CreateTemplateForm({
   onTemplateCreated,
   isEditMode = false,
   templateId,
-  isCloned = false
+  isCloned = false,
+  onUnsavedChangesChange
 }: CreateTemplateFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState<CreateTemplateRequest>({
@@ -50,6 +52,33 @@ export function CreateTemplateForm({
   const [validationResult, setValidationResult] = useState<VariableValidationResult | null>(null);
   const [showTemplateValidationModal, setShowTemplateValidationModal] = useState(false);
   const [templateValidationErrors, setTemplateValidationErrors] = useState<ValidationError[]>([]);
+
+  // Track initial data for unsaved changes detection
+  const initialFormData = useRef<CreateTemplateRequest>({
+    name: '',
+    description: '',
+    category: 'sales',
+    industry: '',
+    targetAudience: '',
+    isPublic: false,
+    useCase: '',
+    variables: [],
+    tags: [],
+    samples: [],
+    ...initialData
+  });
+
+  // Check for unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    if (!isEditMode) return false;
+    
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData.current);
+  }, [formData, isEditMode]);
+
+  // Notify parent component about unsaved changes
+  useEffect(() => {
+    onUnsavedChangesChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onUnsavedChangesChange]);
 
   // Validation
   const canCreateTemplate = formData.name.trim() && 

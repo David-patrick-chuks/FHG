@@ -271,70 +271,106 @@ export default function CampaignsPage() {
 
   if (campaignsLoading) {
     return (
-      <DashboardLayout>
-        <div className="space-y-6">
+      <DashboardLayout
+        title="Campaigns" 
+        description="Manage your email campaigns and track their performance"
+        actions={
+          <Button 
+            onClick={handleCreateCampaignClick}
+            disabled={!botsLoading && bots.length === 0}
+            className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base"
+            title={!botsLoading && bots.length === 0 ? "You need to create a bot first before creating campaigns" : ""}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Create Campaign</span>
+            <span className="sm:hidden">Create</span>
+          </Button>
+        }
+      >
+        <div className="space-y-4 sm:space-y-6">
           <div className="animate-pulse">
-            {/* Header skeleton */}
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-            
             {/* Filters skeleton */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-2"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border-0 shadow-sm p-4 sm:p-6">
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <div className="flex-1">
+                    <div className="h-10 sm:h-11 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                  <div className="w-full sm:w-48">
+                    <div className="h-10 sm:h-11 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
                 </div>
-                <div className="w-48">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-12 mb-2"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </div>
-                <div className="w-32">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-2"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                  </div>
                 </div>
               </div>
             </div>
             
             {/* Campaign cards skeleton */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border p-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border-0 shadow-md p-4 sm:p-6">
                   {/* Campaign header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      </div>
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
                     </div>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
                   </div>
                   
-                  {/* Campaign stats */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mb-1"></div>
-                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
+                  {/* Stats grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="flex-1">
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mb-1"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-1"></div>
-                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-6"></div>
+                    <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="flex-1">
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-1"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-6"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="flex-1">
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 mb-1"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="flex-1">
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-1"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-12"></div>
+                      </div>
                     </div>
                   </div>
                   
                   {/* Progress bar */}
-                  <div className="mb-4">
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-8"></div>
+                    </div>
                     <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
                   </div>
                   
-                  {/* Bot info */}
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-                  </div>
-                  
                   {/* Action buttons */}
-                  <div className="flex gap-2">
-                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
+                      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
+                    </div>
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
                   </div>
                 </div>
               ))}
@@ -372,22 +408,25 @@ export default function CampaignsPage() {
       title="Campaigns" 
       description="Manage your email campaigns and track their performance"
       actions={
-        <Button 
-          onClick={handleCreateCampaignClick}
-          disabled={!botsLoading && bots.length === 0}
-          className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
-          title={!botsLoading && bots.length === 0 ? "You need to create a bot first before creating campaigns" : ""}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Campaign
-        </Button>
+        campaigns.length > 0 ? (
+          <Button 
+            onClick={handleCreateCampaignClick}
+            disabled={!botsLoading && bots.length === 0}
+            className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base"
+            title={!botsLoading && bots.length === 0 ? "You need to create a bot first before creating campaigns" : ""}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Create Campaign</span>
+            <span className="sm:hidden">Create</span>
+          </Button>
+        ) : undefined
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Filters and Search - Only show when there are campaigns */}
         {campaigns.length > 0 && (
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4 sm:p-6">
               <CampaignFilters
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
@@ -412,24 +451,26 @@ export default function CampaignsPage() {
           />
         ) : (
           <>
-            <CampaignList
-              campaigns={filteredCampaigns}
-              getBotName={getBotName}
-              onPause={handlePauseClick}
-              onResume={handleResumeCampaign}
-              onStop={handleStopClick}
-              getStatusBadgeVariant={getStatusBadgeVariant}
-              getStatusColor={getStatusColor}
-              viewMode={viewMode}
-            />
+            <div className="space-y-4 sm:space-y-6">
+              <CampaignList
+                campaigns={filteredCampaigns}
+                getBotName={getBotName}
+                onPause={handlePauseClick}
+                onResume={handleResumeCampaign}
+                onStop={handleStopClick}
+                getStatusBadgeVariant={getStatusBadgeVariant}
+                getStatusColor={getStatusColor}
+                viewMode={viewMode}
+              />
 
-            <CampaignPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalCampaigns={totalCampaigns}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-            />
+              <CampaignPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCampaigns={totalCampaigns}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </>
         )}
 

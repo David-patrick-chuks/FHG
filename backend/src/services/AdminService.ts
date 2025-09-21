@@ -419,8 +419,7 @@ export class AdminService {
       let actions: IAdminActionDocument[];
 
       if (adminId) {
-        await AdminActionModel.getAdminActivityStats(adminId, days);
-        actions = []; // Convert stats to empty array for now
+        actions = await AdminActionModel.findByAdminId(adminId);
       } else if (targetType) {
         actions = await AdminActionModel.findByTargetType(targetType);
       } else {
@@ -429,10 +428,16 @@ export class AdminService {
         actions = await AdminActionModel.findByDateRange(startDate, new Date());
       }
 
+      // Serialize actions to convert ObjectIds to strings
+      const serializedActions = actions.map(action => ({
+        ...action.toObject(),
+        _id: (action._id as any).toString()
+      }));
+
       return {
         success: true,
         message: 'Admin actions retrieved successfully',
-        data: actions,
+        data: serializedActions,
         timestamp: new Date()
       };
     } catch (error) {

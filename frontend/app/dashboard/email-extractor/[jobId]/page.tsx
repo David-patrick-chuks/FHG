@@ -76,11 +76,6 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
       details: 'Querying domain registration database'
     },
     {
-      name: '💡 Email Generation',
-      status: 'pending',
-      details: 'Generating common business email patterns'
-    },
-    {
       name: '🎉 Extraction Complete',
       status: 'pending',
       details: 'Email extraction process finished'
@@ -144,14 +139,13 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
       'contact_pages': '📞 Contact Pages',
       'puppeteer_scan': '🤖 Advanced Browser Scan',
       'whois_lookup': '🌍 WHOIS Database',
-      'fallback_generation': '💡 Email Generation',
       'extraction_complete': '🎉 Extraction Complete'
     };
 
     const steps: ProgressStep[] = [];
     
     // Add steps in order
-    const stepOrder = ['homepage_scan', 'homepage_email_extraction', 'contact_pages', 'puppeteer_scan', 'whois_lookup', 'fallback_generation', 'extraction_complete'];
+    const stepOrder = ['homepage_scan', 'homepage_email_extraction', 'contact_pages', 'puppeteer_scan', 'whois_lookup', 'extraction_complete'];
     
     stepOrder.forEach(stepKey => {
       const progressStep = progress.find(p => p.step === stepKey);

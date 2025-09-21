@@ -10,14 +10,14 @@ interface AnalyticsMetricsCardsProps {
 
 export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCardsProps) {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Emails</CardTitle>
           <Mail className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl sm:text-2xl font-bold">
             {(trackingSummary?.totalEmails ?? 0).toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -32,7 +32,7 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl sm:text-2xl font-bold">
             {(trackingSummary?.totalOpened ?? 0).toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -47,7 +47,7 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl sm:text-2xl font-bold">
             {trackingSummary?.totalCampaigns ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -62,7 +62,7 @@ export function AnalyticsMetricsCards({ trackingSummary }: AnalyticsMetricsCards
           <Bot className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl sm:text-2xl font-bold">
             {(trackingSummary?.topPerformingCampaigns?.[0]?.openRate ?? 0).toFixed(1)}%
           </div>
           <p className="text-xs text-muted-foreground">

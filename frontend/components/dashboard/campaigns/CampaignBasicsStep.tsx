@@ -47,7 +47,7 @@ export function CampaignBasicsStep({
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">

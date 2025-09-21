@@ -14,35 +14,46 @@ interface SidebarItem {
 
 interface SidebarProps {
   sidebarOpen: boolean;
+  sidebarCollapsed: boolean;
   sidebarItems: SidebarItem[];
   user: {
     username?: string;
     email?: string;
   } | null;
   onClose: () => void;
+  onToggleCollapse: () => void;
   onLogout: () => void;
 }
 
 export function Sidebar({ 
   sidebarOpen, 
+  sidebarCollapsed,
   sidebarItems, 
   user, 
   onClose, 
+  onToggleCollapse,
   onLogout 
 }: SidebarProps) {
   return (
     <div className={cn(
-      "fixed inset-y-0 left-0 z-50 w-64 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
-      sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      "fixed inset-y-0 left-0 z-50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-all duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
+      sidebarOpen ? "translate-x-0" : "-translate-x-full",
+      sidebarCollapsed ? "w-16" : "w-64"
     )}>
-      <SidebarHeader onClose={onClose} />
+      <SidebarHeader 
+        onClose={onClose} 
+        onToggleCollapse={onToggleCollapse}
+        collapsed={sidebarCollapsed}
+      />
       <SidebarNavigation 
         sidebarItems={sidebarItems} 
-        onItemClick={onClose} 
+        onItemClick={onClose}
+        collapsed={sidebarCollapsed}
       />
       <SidebarUserSection 
         user={user} 
-        onLogout={onLogout} 
+        onLogout={onLogout}
+        collapsed={sidebarCollapsed}
       />
     </div>
   );

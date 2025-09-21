@@ -94,11 +94,19 @@ export function PricingPageContent() {
   };
 
   const formatPrice = useCallback((amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
+    const nairaAmount = new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
     }).format(amount);
+    
+    const usdAmount = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+    }).format(Math.round(amount / 1500));
+    
+    return `${nairaAmount} / ${usdAmount}`;
   }, []);
 
   const plans = [
@@ -138,7 +146,7 @@ export function PricingPageContent() {
         "Analytics",
         "Priority Support",
       ],
-      price: pricing ? formatPrice(pricing.basic[billingCycle]) : "₦2,999",
+      price: pricing ? formatPrice(pricing.basic[billingCycle]) : "₦2,999 / $2",
       isPopular: true,
       buttonText: isAuthenticated ? "Upgrade to BASIC" : "Sign in to Upgrade",
       buttonClassName:
@@ -163,7 +171,7 @@ export function PricingPageContent() {
         "Analytics",
         "Dedicated Support",
       ],
-      price: pricing ? formatPrice(pricing.premium[billingCycle]) : "₦9,999",
+      price: pricing ? formatPrice(pricing.premium[billingCycle]) : "₦9,999 / $7",
       buttonText: isAuthenticated ? "Upgrade to PREMIUM" : "Sign in to Upgrade",
       buttonClassName:
         "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200",

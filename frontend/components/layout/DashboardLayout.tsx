@@ -136,6 +136,7 @@ export function DashboardLayout({
   navigation
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const { unreadCount } = useUnreadCount();
   const pathname = usePathname();
@@ -162,14 +163,16 @@ export function DashboardLayout({
         {/* Sidebar */}
         <Sidebar
           sidebarOpen={sidebarOpen}
+          sidebarCollapsed={sidebarCollapsed}
           sidebarItems={getSidebarItems(unreadCount, user?.isAdmin)}
           user={user}
           onClose={() => setSidebarOpen(false)}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onLogout={handleLogout}
         />
 
         {/* Main content */}
-        <div className="flex-1 lg:ml-64">
+        <div className={`flex-1 transition-all duration-200 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
           <div className="min-h-screen">
             <DashboardHeader
               title={title}

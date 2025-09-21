@@ -177,7 +177,7 @@ export function EditCampaignForm({
         <Button 
           type="submit" 
           disabled={saving}
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
         >
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save Changes'}

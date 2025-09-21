@@ -9,7 +9,9 @@ export default function AnalyticsPage() {
       title="Analytics"
       description="Track performance metrics and insights across all your campaigns"
     >
-      <SubscriptionBasedAnalytics />
+      <div className="space-y-4 sm:space-y-6">
+        <SubscriptionBasedAnalytics />
+      </div>
     </DashboardLayout>
   );
 }

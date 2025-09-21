@@ -26,7 +26,7 @@ export function CampaignList({
 }: CampaignListProps) {
   if (viewMode === 'list') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-6">
         {campaigns.map((campaign) => (
           <CampaignCard
             key={campaign._id}
@@ -44,9 +44,9 @@ export function CampaignList({
     );
   }
 
-  // Grid view
+  // Grid view - Responsive grid with better mobile layout
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {campaigns.map((campaign) => (
         <CampaignCard
           key={campaign._id}

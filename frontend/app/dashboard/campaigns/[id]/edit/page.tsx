@@ -44,7 +44,7 @@ export default function EditCampaignPage() {
     >
       <div className="space-y-6">
         {/* Campaign Info Card */}
-        <Card className="bg-gradient-to-br from-blue-50/50 to-cyan-50/50 dark:from-blue-950/10 dark:to-cyan-950/10 border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-br from-blue-50/50 to-blue-50/50 dark:from-blue-950/10 dark:to-blue-950/10 border-blue-200 dark:border-blue-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
               <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30">

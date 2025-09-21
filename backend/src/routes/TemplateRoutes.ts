@@ -15,6 +15,7 @@ export class TemplateRoutes {
     router.get('/my', TemplateController.getMyTemplates);
     router.get('/community', TemplateController.getCommunityTemplates);
     router.get('/popular', TemplateController.getPopularTemplates);
+    router.get('/counts', TemplateController.getTemplateCounts);
     router.get('/:id', TemplateController.getTemplate);
     router.put('/:id', TemplateController.updateTemplate);
     router.delete('/:id', TemplateController.deleteTemplate);

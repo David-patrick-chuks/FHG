@@ -49,10 +49,15 @@ export function EmailRecordsTable({ emailRecords }: EmailRecordsTableProps) {
     return new Date(date).toLocaleString();
   };
 
+  const formatDateShort = (date: Date) => {
+    return new Date(date).toLocaleDateString();
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b">
@@ -100,6 +105,59 @@ export function EmailRecordsTable({ emailRecords }: EmailRecordsTableProps) {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden space-y-4">
+          {emailRecords.map((record) => (
+            <div key={record.emailId} className="border rounded-lg p-4 bg-white dark:bg-gray-800">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-white truncate">
+                    {record.recipientEmail}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Sent: {formatDateShort(record.sentAt)}
+                  </p>
+                </div>
+                <Badge 
+                  variant={getStatusBadgeVariant(record.status)}
+                  className={`${getStatusColor(record.status)} ml-2`}
+                >
+                  {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Delivered:</span>
+                  <p className="text-gray-900 dark:text-white">
+                    {record.deliveredAt ? formatDateShort(record.deliveredAt) : '-'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Opened:</span>
+                  <p className="text-gray-900 dark:text-white">
+                    {record.openedAt ? formatDateShort(record.openedAt) : '-'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Replied:</span>
+                  <p className="text-gray-900 dark:text-white">
+                    {record.repliedAt ? formatDateShort(record.repliedAt) : '-'}
+                  </p>
+                </div>
+                {record.errorMessage && (
+                  <div className="col-span-2">
+                    <span className="text-gray-500 dark:text-gray-400">Error:</span>
+                    <p className="text-red-600 dark:text-red-400 text-xs break-words">
+                      {record.errorMessage}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

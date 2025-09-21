@@ -75,7 +75,7 @@ export class CampaignService {
       if (!bot) {
         return {
           success: false,
-          message: 'Bot not found',
+          message: `Bot with ID "${campaignData.botId}" not found`,
           timestamp: new Date()
         };
       }
@@ -83,7 +83,7 @@ export class CampaignService {
       if (bot.userId.toString() !== userId.toString()) {
         return {
           success: false,
-          message: 'Bot does not belong to user',
+          message: `Bot "${bot.name}" does not belong to your account`,
           timestamp: new Date()
         };
       }
@@ -101,7 +101,7 @@ export class CampaignService {
       if (!template) {
         return {
           success: false,
-          message: 'Template not found',
+          message: `Template with ID "${campaignData.templateId}" not found`,
           timestamp: new Date()
         };
       }
@@ -124,7 +124,7 @@ export class CampaignService {
       if (!template.samples || template.samples.length < 10) {
         return {
           success: false,
-          message: 'Template must have at least 10 samples',
+          message: `Template "${template.name}" must have at least 10 samples to be used in campaigns. Currently has ${template.samples?.length || 0} samples.`,
           timestamp: new Date()
         };
       }
@@ -136,7 +136,7 @@ export class CampaignService {
       if (!template.isApproved) {
         return {
           success: false,
-          message: 'Template must be approved to be used in campaigns',
+          message: `Template "${template.name}" must be approved to be used in campaigns. Please wait for admin approval or use an approved template.`,
           timestamp: new Date()
         };
       }
@@ -186,7 +186,15 @@ export class CampaignService {
           userId,
           error
         });
-        // Continue with campaign creation even if job addition fails
+        
+        // Delete the campaign if job creation fails
+        await CampaignModel.findByIdAndDelete(campaign._id);
+        
+        return {
+          success: false,
+          message: 'Failed to create campaign: AI message generation job failed',
+          timestamp: new Date()
+        };
       }
 
       CampaignService.logger.info('Campaign created successfully', {

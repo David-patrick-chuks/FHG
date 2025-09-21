@@ -393,13 +393,15 @@ export default function BotsPage() {
       title="Bots"
       description="Manage your AI-powered email bots and their configurations"
         actions={
-          <Button 
-            onClick={handleCreateBotClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Bot
-          </Button>
+          bots.length > 0 ? (
+            <Button 
+              onClick={handleCreateBotClick}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Bot
+            </Button>
+          ) : undefined
         }
     >
       <div className="space-y-6">

@@ -110,7 +110,7 @@ export function TemplateSelector({
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400" />
+                      <Star className="h-4 w-4 text-blue-500" />
                       <span className="text-gray-600 dark:text-gray-400">
                         {template.rating.average.toFixed(1)}
                       </span>
@@ -152,7 +152,7 @@ export function TemplateSelector({
         ))}
       </div>
 
-      {selectedTemplateId && (
+      {/* {selectedTemplateId && (
         <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <div className="flex items-center space-x-2">
             <Check className="h-5 w-5 text-blue-600" />
@@ -161,7 +161,7 @@ export function TemplateSelector({
             </p>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

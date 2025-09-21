@@ -1,4 +1,4 @@
-import { ApiResponse, Template, PaginatedResponse } from '@/types';
+import { ApiResponse, Template } from '@/types';
 import { apiClient } from '../api-client';
 
 export interface CreateTemplateRequest {
@@ -83,6 +83,18 @@ export class TemplatesAPI {
     
     const query = queryParams.toString();
     return apiClient.get<Template[]>(`/templates/popular${query ? `?${query}` : ''}`);
+  }
+
+  static async getTemplateCounts(): Promise<ApiResponse<{
+    myTemplates: number;
+    communityTemplates: number;
+    totalUsage: number;
+  }>> {
+    return apiClient.get<{
+      myTemplates: number;
+      communityTemplates: number;
+      totalUsage: number;
+    }>('/templates/counts');
   }
 
   static async getTemplate(id: string): Promise<ApiResponse<Template>> {

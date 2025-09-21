@@ -102,8 +102,6 @@ function getStepIcon(step: string) {
       return <Zap className="h-4 w-4" />;
     case 'whois_lookup':
       return <Database className="h-4 w-4" />;
-    case 'fallback_generation':
-      return <Zap className="h-4 w-4" />;
     case 'extraction_complete':
       return <CheckCircle className="h-4 w-4" />;
     default:
@@ -148,7 +146,6 @@ function formatStepName(step: string): string {
     'contact_pages': 'Contact Pages',
     'puppeteer_scan': 'Advanced Browser Scan',
     'whois_lookup': 'WHOIS Database',
-    'fallback_generation': 'Email Generation',
     'extraction_complete': 'Extraction Complete'
   };
   
@@ -184,21 +181,23 @@ function DetailedProgress({ result }: DetailedProgressProps) {
       {isExpanded && (
         <div className="mt-2 space-y-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
           {result.progress.map((step: any, index: number) => (
-            <div key={index} className="flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1">
+            <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 {getStepIcon(step.step)}
                 {getStepStatusIcon(step.status)}
               </div>
-              <span className={`font-medium ${getStepStatusColor(step.status)}`}>
-                {formatStepName(step.step)}
-              </span>
-              {step.message && (
-                <span className="text-slate-600 dark:text-slate-400 truncate">
-                  {step.message}
+              <div className="flex-1 min-w-0">
+                <span className={`font-medium ${getStepStatusColor(step.status)} block sm:inline`}>
+                  {formatStepName(step.step)}
                 </span>
-              )}
+                {step.message && (
+                  <span className="text-slate-600 dark:text-slate-400 block sm:inline sm:ml-2">
+                    {step.message}
+                  </span>
+                )}
+              </div>
               {step.duration && (
-                <span className="text-slate-500 dark:text-slate-500 ml-auto">
+                <span className="text-slate-500 dark:text-slate-500 flex-shrink-0 sm:ml-auto">
                   {formatDuration(step.duration)}
                 </span>
               )}
@@ -262,23 +261,23 @@ export function CurrentJobStatus({
             </div>
           )}
         </CardTitle>
-        <CardDescription>
-          Job ID: {currentJob.jobId}
+        <CardDescription className="space-y-1 sm:space-y-0">
+          <div className="text-sm">
+            Job ID: {currentJob.jobId}
+          </div>
           {currentJob.status === 'processing' && (
-            <span className="ml-2 text-blue-600">
-              • {getProgressText(currentJob)}
-            </span>
+            <div className="text-sm text-blue-600">
+              {getProgressText(currentJob)}
+            </div>
           )}
-          {currentJob.startedAt && (
-            <span className="ml-2 text-muted-foreground">
-              • Started: {new Date(currentJob.startedAt).toLocaleTimeString()}
-            </span>
-          )}
-          {currentJob.duration && (
-            <span className="ml-2 text-muted-foreground">
-              • Duration: {formatDuration(currentJob.duration)}
-            </span>
-          )}
+          <div className="flex flex-col sm:flex-row sm:gap-4 text-sm text-muted-foreground">
+            {currentJob.startedAt && (
+              <span>Started: {new Date(currentJob.startedAt).toLocaleTimeString()}</span>
+            )}
+            {currentJob.duration && (
+              <span>Duration: {formatDuration(currentJob.duration)}</span>
+            )}
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -304,14 +303,14 @@ export function CurrentJobStatus({
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {currentJob.results.map((result, index) => (
               <div key={index} className="p-3 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-mono truncate max-w-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm font-mono truncate">
                       {result.url}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">
                       {result.emails.length} emails
                     </Badge>
@@ -331,20 +330,20 @@ export function CurrentJobStatus({
                   </div>
                 </div>
                 {result.emails.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <span className="text-xs text-muted-foreground">Emails found:</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => copyEmails(result.emails)}
-                        className="h-6 px-2 text-xs"
+                        className="h-6 px-2 text-xs self-start sm:self-auto"
                       >
                         <Copy className="h-3 w-3 mr-1" />
                         Copy All
                       </Button>
                     </div>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="grid gap-2 sm:flex sm:flex-wrap sm:gap-1">
                       {result.emails.map((email, emailIndex) => {
                         const isCopied = copiedEmails.has(email);
                         return (
@@ -353,12 +352,12 @@ export function CurrentJobStatus({
                               ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' 
                               : 'bg-slate-100 dark:bg-slate-700'
                           }`}>
-                            <span className="font-mono text-slate-900 dark:text-slate-100">{email}</span>
+                            <span className="font-mono text-slate-900 dark:text-slate-100 truncate flex-1 min-w-0">{email}</span>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => copyEmails([email])}
-                              className="h-4 w-4 p-0 hover:bg-slate-200 dark:hover:bg-slate-600"
+                              className="h-4 w-4 p-0 hover:bg-slate-200 dark:hover:bg-slate-600 flex-shrink-0"
                             >
                               {isCopied ? (
                                 <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
