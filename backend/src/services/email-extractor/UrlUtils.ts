@@ -68,10 +68,6 @@ export class UrlUtils {
     }
   }
 
-  /**
-   * Normalize and validate URLs - automatically add https:// if no protocol
-   * Also validates that URLs have proper domain structure
-   */
   public static validateUrls(urls: string[]): string[] {
     const validUrls: string[] = [];
     
@@ -140,13 +136,6 @@ export class UrlUtils {
         UrlUtils.logger.error('Exception in URL processing', { url, error: error?.message || String(error), stack: error?.stack });
       }
     }
-    
-    // UrlUtils.logger.info('URL validation completed', { 
-    //   inputCount: urls.length, 
-    //   validCount: validUrls.length, 
-    //   validUrls 
-    // });
-    
     return validUrls;
   }
 }

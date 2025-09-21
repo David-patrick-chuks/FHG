@@ -396,58 +396,81 @@ export class EmailParser {
 
       // Extract from form inputs
       const formEmails = await page.evaluate(() => {
-        const doc = document as any;
-        return Array.from(doc.querySelectorAll('input[type="email"], input[placeholder*="email"], input[value*="email"]'))
-          .map((input: any) => input.value || input.placeholder || '')
-          .filter(v => v.includes('@'));
+        try {
+          const doc = document as any;
+          if (!doc || !doc.querySelectorAll) return [];
+          const inputs = doc.querySelectorAll('input[type="email"], input[placeholder*="email"], input[value*="email"]');
+          if (!inputs || !inputs.length) return [];
+          return Array.from(inputs)
+            .map((input: any) => input?.value || input?.placeholder || '')
+            .filter(v => v && v.includes('@'));
+        } catch (e) {
+          return [];
+        }
       });
       if (formEmails && Array.isArray(formEmails)) {
         formEmails.forEach(email => {
-          if (validator.isEmail(email)) emails.add(email);
+          if (email && validator.isEmail(email)) emails.add(email);
         });
       }
 
       // Extract from meta tags
       const metaEmails = await page.evaluate(() => {
-        const doc = document as any;
-        return Array.from(doc.querySelectorAll('meta[name*="email"], meta[property*="email"], meta[content*="email"]'))
-          .map((meta: any) => meta.content || '')
-          .filter(content => /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(content));
+        try {
+          const doc = document as any;
+          if (!doc || !doc.querySelectorAll) return [];
+          const metas = doc.querySelectorAll('meta[name*="email"], meta[property*="email"], meta[content*="email"]');
+          if (!metas || !metas.length) return [];
+          return Array.from(metas)
+            .map((meta: any) => meta?.content || '')
+            .filter(content => content && /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(content));
+        } catch (e) {
+          return [];
+        }
       });
       if (metaEmails && Array.isArray(metaEmails)) {
         metaEmails.forEach(content => {
-          const matches = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
-          if (matches && Array.isArray(matches)) matches.forEach(email => emails.add(email));
+          if (content) {
+            const matches = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+            if (matches && Array.isArray(matches)) matches.forEach(email => emails.add(email));
+          }
         });
       }
 
       // Extract from JSON-LD
       const jsonLd = await page.evaluate(() => {
-        const doc = document as any;
-        const scripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'));
-        let emails: string[] = [];
-        if (scripts && Array.isArray(scripts)) {
-          scripts.forEach(script => {
-            try {
-              const data = JSON.parse((script as any).innerHTML);
-              function findEmails(obj: any) {
-                if (typeof obj === 'string' && /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(obj)) {
-                  emails.push(obj);
-                }
-                if (typeof obj === 'object' && obj) {
-                  const values = Object.values(obj);
-                  if (values && Array.isArray(values)) {
-                    values.forEach(findEmails);
+        try {
+          const doc = document as any;
+          if (!doc || !doc.querySelectorAll) return [];
+          const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+          if (!scripts || !scripts.length) return [];
+          const scriptArray = Array.from(scripts);
+          let emails: string[] = [];
+          if (scriptArray && Array.isArray(scriptArray)) {
+            scriptArray.forEach(script => {
+              try {
+                const data = JSON.parse((script as any)?.innerHTML || '{}');
+                function findEmails(obj: any) {
+                  if (typeof obj === 'string' && /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(obj)) {
+                    emails.push(obj);
+                  }
+                  if (typeof obj === 'object' && obj) {
+                    const values = Object.values(obj);
+                    if (values && Array.isArray(values)) {
+                      values.forEach(findEmails);
+                    }
                   }
                 }
+                findEmails(data);
+              } catch (e) {
+                // Invalid JSON, skip
               }
-              findEmails(data);
-            } catch (e) {
-              // Invalid JSON, skip
-            }
-          });
+            });
+          }
+          return emails;
+        } catch (e) {
+          return [];
         }
-        return emails;
       });
       if (jsonLd && Array.isArray(jsonLd)) {
         jsonLd.forEach(email => {

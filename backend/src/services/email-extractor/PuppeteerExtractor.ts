@@ -46,11 +46,54 @@ export class PuppeteerExtractor {
     let pagesCrawled = 0;
 
     try {
+      // Determine the correct executable path based on environment
+      let executablePath: string | undefined;
+      
+      if (process.env.NODE_ENV === "production") {
+        executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      } else {
+        // Development environment - try to find Chrome/Chromium
+        const { execSync } = require('child_process');
+        try {
+          // Try to find Chrome on Windows
+          if (process.platform === 'win32') {
+            const chromePaths = [
+              'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+              'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+              process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe'
+            ];
+            
+            for (const path of chromePaths) {
+              try {
+                execSync(`"${path}" --version`, { stdio: 'ignore' });
+                executablePath = path;
+                break;
+              } catch (e) {
+                // Continue to next path
+              }
+            }
+          } else {
+            // Try to find Chrome/Chromium on macOS/Linux
+            try {
+              const chromePath = execSync('which google-chrome-stable || which google-chrome || which chromium-browser || which chromium', { encoding: 'utf8' }).trim();
+              executablePath = chromePath;
+            } catch (e) {
+              // Fall back to default Puppeteer bundled Chromium
+              executablePath = undefined;
+            }
+          }
+        } catch (e) {
+          // Fall back to default Puppeteer bundled Chromium
+          executablePath = undefined;
+        }
+      }
+
+      // Log the executable path being used
+      this.logger.info(`Puppeteer executable path: ${executablePath || 'default bundled Chromium'}`);
+
       browser = await puppeteerExtra.launch({
         headless: true,
-        executablePath: process.env.NODE_ENV === "production" 
-          ? process.env.PUPPETEER_EXECUTABLE_PATH 
-          : undefined,
+        executablePath,
         args: [
           '--no-sandbox', 
           '--disable-setuid-sandbox',
@@ -101,7 +144,7 @@ export class PuppeteerExtractor {
             pageEmails.forEach(email => found.add(email));
           }
           
-          if (pageEmails && pageEmails.length > 0) {
+          if (pageEmails && Array.isArray(pageEmails) && pageEmails.length > 0) {
             noEmailsYet = false;
             PuppeteerExtractor.logger.info('Found emails', { url: currentUrl, count: pageEmails.length });
           }

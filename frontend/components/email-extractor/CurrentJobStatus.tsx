@@ -18,7 +18,6 @@ import {
     Link,
     Loader2,
     Search,
-    Share,
     XCircle,
     Zap
 } from 'lucide-react';
@@ -27,7 +26,6 @@ import { useState } from 'react';
 interface CurrentJobStatusProps {
   currentJob: EmailExtractionJob | null;
   onDownloadResults: (jobId: string) => void;
-  onShareExtraction: (job: EmailExtractionJob) => void;
 }
 
 // Utility function to format duration
@@ -145,13 +143,13 @@ function getStepStatusColor(status: string) {
 
 function formatStepName(step: string): string {
   const stepNames: { [key: string]: string } = {
-    'homepage_scan': '🌐 Homepage Analysis',
-    'homepage_email_extraction': '🔍 Email Scanning',
-    'contact_pages': '📞 Contact Pages',
-    'puppeteer_scan': '🤖 Advanced Browser Scan',
-    'whois_lookup': '🌍 WHOIS Database',
-    'fallback_generation': '💡 Email Generation',
-    'extraction_complete': '🎉 Extraction Complete'
+    'homepage_scan': 'Homepage Analysis',
+    'homepage_email_extraction': 'Email Scanning',
+    'contact_pages': 'Contact Pages',
+    'puppeteer_scan': 'Advanced Browser Scan',
+    'whois_lookup': 'WHOIS Database',
+    'fallback_generation': 'Email Generation',
+    'extraction_complete': 'Extraction Complete'
   };
   
   return stepNames[step] || step
@@ -177,14 +175,14 @@ function DetailedProgress({ result }: DetailedProgressProps) {
         variant="ghost"
         size="sm"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="h-6 px-2 text-xs text-gray-600 hover:text-gray-800"
+        className="h-6 px-2 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
       >
         {isExpanded ? <ChevronDown className="h-3 w-3 mr-1" /> : <ChevronRight className="h-3 w-3 mr-1" />}
         View Progress Details
       </Button>
       
       {isExpanded && (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
           {result.progress.map((step: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-xs">
               <div className="flex items-center gap-1">
@@ -195,12 +193,12 @@ function DetailedProgress({ result }: DetailedProgressProps) {
                 {formatStepName(step.step)}
               </span>
               {step.message && (
-                <span className="text-gray-600 truncate">
+                <span className="text-slate-600 dark:text-slate-400 truncate">
                   {step.message}
                 </span>
               )}
               {step.duration && (
-                <span className="text-gray-500 ml-auto">
+                <span className="text-slate-500 dark:text-slate-500 ml-auto">
                   {formatDuration(step.duration)}
                 </span>
               )}
@@ -214,15 +212,28 @@ function DetailedProgress({ result }: DetailedProgressProps) {
 
 export function CurrentJobStatus({ 
   currentJob, 
-  onDownloadResults, 
-  onShareExtraction 
+  onDownloadResults
 }: CurrentJobStatusProps) {
   const { toast } = useToast();
+  const [copiedEmails, setCopiedEmails] = useState<Set<string>>(new Set());
 
   const copyEmails = async (emails: string[]) => {
     try {
       const emailText = emails.join(', ');
       await navigator.clipboard.writeText(emailText);
+      
+      // Add emails to copied set for visual feedback
+      setCopiedEmails(prev => new Set([...prev, ...emails]));
+      
+      // Remove from copied set after 2 seconds
+      setTimeout(() => {
+        setCopiedEmails(prev => {
+          const newSet = new Set(prev);
+          emails.forEach(email => newSet.delete(email));
+          return newSet;
+        });
+      }, 2000);
+      
       toast({
         title: 'Success',
         description: `${emails.length} email(s) copied to clipboard`
@@ -334,19 +345,30 @@ export function CurrentJobStatus({
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {result.emails.map((email, emailIndex) => (
-                        <div key={emailIndex} className="flex items-center gap-1 bg-gray-100 rounded px-2 py-1 text-xs">
-                          <span className="font-mono">{email}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyEmails([email])}
-                            className="h-4 w-4 p-0 hover:bg-gray-200"
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
+                      {result.emails.map((email, emailIndex) => {
+                        const isCopied = copiedEmails.has(email);
+                        return (
+                          <div key={emailIndex} className={`flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
+                            isCopied 
+                              ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' 
+                              : 'bg-slate-100 dark:bg-slate-700'
+                          }`}>
+                            <span className="font-mono text-slate-900 dark:text-slate-100">{email}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyEmails([email])}
+                              className="h-4 w-4 p-0 hover:bg-slate-200 dark:hover:bg-slate-600"
+                            >
+                              {isCopied ? (
+                                <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <Copy className="h-3 w-3 text-slate-600 dark:text-slate-400" />
+                              )}
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -369,13 +391,6 @@ export function CurrentJobStatus({
             >
               <Download className="h-4 w-4 mr-2" />
               Download CSV
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onShareExtraction(currentJob)}
-            >
-              <Share className="h-4 w-4 mr-2" />
-              Share
             </Button>
           </div>
         )}

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
+    "dev:local": "cross-env NODE_ENV=development PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false nodemon src/index.ts",
     "test": "npx tsx test-ai-service.ts",
     "clear-db": "tsx src/scripts/clear-database.ts",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
@@ -46,6 +47,7 @@
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "csv-parser": "^3.2.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",

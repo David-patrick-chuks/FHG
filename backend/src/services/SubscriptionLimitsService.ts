@@ -138,11 +138,11 @@ export class SubscriptionLimitsService {
       // Only log daily usage calculation in debug mode to reduce noise
       if (process.env.LOG_LEVEL === 'debug') {
         SubscriptionLimitsService.logger.debug('Daily usage calculation', {
-          userId,
-          totalActivities: activities.length,
-          todayActivities: todayActivities.length,
-          activityTypes: todayActivities.map(a => a.type)
-        });
+        userId,
+        totalActivities: activities.length,
+        todayActivities: todayActivities.length,
+        activityTypes: todayActivities.map(a => a.type)
+      });
       }
 
       let totalUrlsUsed = 0;
@@ -163,13 +163,13 @@ export class SubscriptionLimitsService {
         // Only log activity counting in debug mode to reduce noise
         if (process.env.LOG_LEVEL === 'debug') {
           SubscriptionLimitsService.logger.debug('Activity counted for usage', {
-            userId,
-            activityType: activity.type,
-            activityId: activity._id,
-            urlCount,
-            totalUrlsUsed,
-            metadata: activity.metadata
-          });
+          userId,
+          activityType: activity.type,
+          activityId: activity._id,
+          urlCount,
+          totalUrlsUsed,
+          metadata: activity.metadata
+        });
         }
       });
 

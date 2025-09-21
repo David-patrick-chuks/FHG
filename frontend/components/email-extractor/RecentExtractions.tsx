@@ -11,14 +11,12 @@ import {
     ExternalLink,
     Globe,
     Mail,
-    Share,
     XCircle
 } from 'lucide-react';
 
 interface RecentExtractionsProps {
   extractionHistory: EmailExtractionJob[];
   onDownloadResults: (jobId: string) => void;
-  onShareExtraction: (job: EmailExtractionJob) => void;
   onViewAll: () => void;
 }
 
@@ -60,7 +58,6 @@ function getStatusColor(status: string) {
 export function RecentExtractions({ 
   extractionHistory, 
   onDownloadResults, 
-  onShareExtraction,
   onViewAll 
 }: RecentExtractionsProps) {
   if (extractionHistory.length === 0) return null;
@@ -121,26 +118,15 @@ export function RecentExtractions({
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {job.status === 'completed' && job.totalEmails > 0 && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDownloadResults(job.jobId)}
-                        title="Download CSV"
-                        className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300 h-8 w-8 sm:h-9 sm:w-9 p-0"
-                      >
-                        <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onShareExtraction(job)}
-                        title="Share extraction"
-                        className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300 h-8 w-8 sm:h-9 sm:w-9 p-0"
-                      >
-                        <Share className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </Button>
-                    </>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDownloadResults(job.jobId)}
+                      title="Download CSV"
+                      className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300 h-8 w-8 sm:h-9 sm:w-9 p-0"
+                    >
+                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
                   )}
                   <Button
                     variant="outline"

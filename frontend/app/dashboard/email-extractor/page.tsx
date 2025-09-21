@@ -225,49 +225,6 @@ export default function EmailExtractorPage() {
     }
   };
 
-  const shareExtraction = async (job: EmailExtractionJob) => {
-    try {
-      const shareData = {
-        title: 'Email Extraction Results',
-        text: `Found ${job.totalEmails} emails from ${job.urls.length} websites`,
-        url: window.location.href
-      };
-
-      // Check if Web Share API is available and supported
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        try {
-          await navigator.share(shareData);
-          toast({
-            title: 'Success',
-            description: 'Extraction shared successfully'
-          });
-          return;
-        } catch (shareError) {
-          // If user cancels the share dialog, don't show error
-          if (shareError && typeof shareError === 'object' && 'name' in shareError && (shareError as { name?: string }).name === 'AbortError') {
-            return;
-          }
-          // For other share errors, fall back to clipboard
-          console.warn('Web Share API failed, falling back to clipboard:', shareError);
-        }
-      }
-
-      // Fallback to clipboard
-      const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
-      await navigator.clipboard.writeText(shareText);
-      toast({
-        title: 'Success',
-        description: 'Extraction details copied to clipboard'
-      });
-    } catch (error) {
-      console.error('Share extraction error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to share extraction. Please try copying the URL manually.',
-        variant: 'destructive'
-      });
-    }
-  };
 
   const handleViewAll = () => {
     router.push('/dashboard/email-extractor/history');
@@ -306,7 +263,7 @@ export default function EmailExtractorPage() {
           {/* Subscription Limits - Hidden on mobile if not needed */}
           {subscriptionInfo && (
             <div className="group relative sm:block">
-              <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+              <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-slate-700/60 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
               <div className="relative p-4 sm:p-6">
                 <SubscriptionLimitsDisplay subscriptionInfo={subscriptionInfo} />
               </div>
@@ -315,7 +272,7 @@ export default function EmailExtractorPage() {
 
           {/* Email Extraction Form */}
           <div className="group relative">
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-slate-700/60 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
             <div className="relative p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-semibold mb-4 text-slate-900 dark:text-white">Extract Emails</h2>
               <EmailExtractorForm
@@ -330,12 +287,11 @@ export default function EmailExtractorPage() {
           {/* Current Job Status - Only show if there's an active job */}
           {currentJob && (
             <div className="group relative">
-              <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+              <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-slate-700/60 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
               <div className="relative p-4 sm:p-6">
                 <CurrentJobStatus
                   currentJob={currentJob}
                   onDownloadResults={downloadResults}
-                  onShareExtraction={shareExtraction}
                 />
               </div>
             </div>
@@ -344,12 +300,11 @@ export default function EmailExtractorPage() {
           {/* Recent Extractions - Only show if there are extractions */}
           {extractionHistory.length > 0 && (
             <div className="group relative">
-              <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
+              <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-slate-700/60 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
               <div className="relative p-4 sm:p-6">
                 <RecentExtractions
                   extractionHistory={extractionHistory}
                   onDownloadResults={downloadResults}
-                  onShareExtraction={shareExtraction}
                   onViewAll={handleViewAll}
                 />
               </div>
