@@ -23,7 +23,10 @@ export class PaymentCleanupJob {
       PaymentCleanupJob.runCleanup();
     }, 30 * 60 * 1000); // 30 minutes
 
-    PaymentCleanupJob.logger.info('Payment cleanup job started - will run every 30 minutes');
+    // Only log payment cleanup job start in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      PaymentCleanupJob.logger.debug('Payment cleanup job started - will run every 30 minutes');
+    }
   }
 
   /**
@@ -53,11 +56,14 @@ export class PaymentCleanupJob {
       // Get stats after cleanup
       const statsAfter = await PaymentCleanupService.getPendingPaymentStats();
       
-      PaymentCleanupJob.logger.info('Payment cleanup job completed', {
-        before: statsBefore,
-        after: statsAfter,
-        cleaned: statsBefore.expiredPending - statsAfter.expiredPending
-      });
+      // Only log payment cleanup completion in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        PaymentCleanupJob.logger.debug('Payment cleanup job completed', {
+          before: statsBefore,
+          after: statsAfter,
+          cleaned: statsBefore.expiredPending - statsAfter.expiredPending
+        });
+      }
     } catch (error: any) {
       PaymentCleanupJob.logger.error('Error in payment cleanup job:', {
         message: error?.message || 'Unknown error',

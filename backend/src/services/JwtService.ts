@@ -103,12 +103,15 @@ export class JwtService {
       const decoded = jwt.decode(accessToken) as any;
       const expiresIn = Math.max(0, decoded.exp - Math.floor(Date.now() / 1000));
 
-      JwtService.logger.info('Token pair generated', {
-        userId: payload.userId,
-        expiresIn: this.ACCESS_TOKEN_EXPIRY,
-        refreshExpiry,
-        rememberMe
-      });
+      // Only log token generation in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        JwtService.logger.debug('Token pair generated', {
+          userId: payload.userId,
+          expiresIn: this.ACCESS_TOKEN_EXPIRY,
+          refreshExpiry,
+          rememberMe
+        });
+      }
 
       return {
         accessToken,
@@ -217,10 +220,13 @@ export class JwtService {
             this.blacklistedTokens.delete(token);
           }, expirationTime - now);
           
-          JwtService.logger.info('Token blacklisted', {
-            tokenId: decoded.jti || 'unknown',
-            expiresAt: new Date(expirationTime)
-          });
+          // Only log token blacklisting in debug mode
+          if (process.env.LOG_LEVEL === 'debug') {
+            JwtService.logger.debug('Token blacklisted', {
+              tokenId: decoded.jti || 'unknown',
+              expiresAt: new Date(expirationTime)
+            });
+          }
         }
       }
     } catch (error: any) {

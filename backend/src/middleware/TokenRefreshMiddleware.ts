@@ -130,13 +130,16 @@ export class TokenRefreshMiddleware {
           isAdmin: userResult.data.isAdmin
         };
 
-        TokenRefreshMiddleware.logger.info('Token refreshed successfully', {
-          userId: (userResult.data._id as any).toString(),
-          email: userResult.data.email,
-          ip: req.ip,
-          userAgent: userAgent,
-          isMobile: isMobile
-        });
+        // Only log token refresh in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          TokenRefreshMiddleware.logger.debug('Token refreshed successfully', {
+            userId: (userResult.data._id as any).toString(),
+            email: userResult.data.email,
+            ip: req.ip,
+            userAgent: userAgent,
+            isMobile: isMobile
+          });
+        }
 
         next();
       } catch (refreshError) {

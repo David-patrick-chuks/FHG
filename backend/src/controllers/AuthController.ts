@@ -193,13 +193,16 @@ export class AuthController {
       const userAgent = req.get('User-Agent') || '';
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 
-      AuthController.logger.info('User login attempt', {
-        email: req.body.email,
-        rememberMe,
-        ip: req.ip,
-        userAgent: userAgent,
-        isMobile: isMobile
-      });
+      // Only log login attempts in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        AuthController.logger.debug('User login attempt', {
+          email: req.body.email,
+          rememberMe,
+          ip: req.ip,
+          userAgent: userAgent,
+          isMobile: isMobile
+        });
+      }
 
       const result = await UserService.loginUser(req.body);
 
@@ -234,15 +237,17 @@ export class AuthController {
         // Set HTTP-only cookies
         AuthController.setAuthCookies(res, tokens, rememberMe);
 
-        // Log successful login with mobile detection
-        AuthController.logger.info('User logged in successfully', {
-          userId: result.data.user._id,
-          email: result.data.user.email,
-          ip: req.ip,
-          userAgent: userAgent,
-          isMobile: isMobile,
-          rememberMe: rememberMe
-        });
+        // Only log successful login in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          AuthController.logger.debug('User logged in successfully', {
+            userId: result.data.user._id,
+            email: result.data.user.email,
+            ip: req.ip,
+            userAgent: userAgent,
+            isMobile: isMobile,
+            rememberMe: rememberMe
+          });
+        }
 
         res.status(200).json({
           success: true,
@@ -271,10 +276,13 @@ export class AuthController {
     try {
       const userId = (req as any).user['id'];
 
-      AuthController.logger.info('Profile retrieval request', {
-        userId,
-        ip: req.ip
-      });
+      // Only log profile retrieval in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        AuthController.logger.debug('Profile retrieval request', {
+          userId,
+          ip: req.ip
+        });
+      }
 
       const result = await UserService.getUserById(userId);
 

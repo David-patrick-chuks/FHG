@@ -55,9 +55,12 @@ export class Server {
       process.exit(1);
     }
     
-    this.logger.info('Environment validation passed', {
-      envInfo: EnvironmentValidationService.getSanitizedEnvInfo()
-    });
+    // Only log environment validation in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      this.logger.debug('Environment validation passed', {
+        envInfo: EnvironmentValidationService.getSanitizedEnvInfo()
+      });
+    }
   }
 
   /**

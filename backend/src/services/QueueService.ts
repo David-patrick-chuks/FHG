@@ -51,7 +51,10 @@ export class QueueService {
       this.emailQueue.on('stalled', this.onJobStalled.bind(this));
 
       this.isInitialized = true;
-      QueueService.logger.info('Queue service initialized successfully');
+      // Only log queue service initialization in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        QueueService.logger.debug('Queue service initialized successfully');
+      }
     } catch (error) {
       QueueService.logger.error('Failed to initialize queue service:', error);
       throw error;
@@ -346,11 +349,14 @@ export class QueueService {
         }
       });
 
-      QueueService.logger.info('Email extraction job added to queue', {
-        jobId: job.id,
-        userId: jobData.userId,
-        urlCount: jobData.urls.length
-      });
+      // Only log job queuing in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        QueueService.logger.debug('Email extraction job added to queue', {
+          jobId: job.id,
+          userId: jobData.userId,
+          urlCount: jobData.urls.length
+        });
+      }
 
       return job;
     } catch (error) {
@@ -777,12 +783,15 @@ export class QueueService {
     const { jobId, userId, urls } = job.data;
     
     try {
-      QueueService.logger.info('Processing email extraction job', {
-        jobId: job.id,
-        extractionJobId: jobId,
-        userId,
-        urlCount: urls.length
-      });
+      // Only log job processing in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        QueueService.logger.debug('Processing email extraction job', {
+          jobId: job.id,
+          extractionJobId: jobId,
+          userId,
+          urlCount: urls.length
+        });
+      }
 
       // Process the email extraction
       await EmailExtractorService.processExtractionJob({
@@ -791,11 +800,14 @@ export class QueueService {
         urls
       });
 
-      QueueService.logger.info('Email extraction job completed successfully', {
-        jobId: job.id,
-        extractionJobId: jobId,
-        userId
-      });
+      // Only log job completion in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        QueueService.logger.debug('Email extraction job completed successfully', {
+          jobId: job.id,
+          extractionJobId: jobId,
+          userId
+        });
+      }
     } catch (error) {
       QueueService.logger.error('Email extraction job failed:', error);
 
@@ -805,11 +817,14 @@ export class QueueService {
   }
 
   private static async onJobCompleted(job: Bull.Job, result: any): Promise<void> {
-    QueueService.logger.info('Job completed', {
-      jobId: job.id,
-      jobType: job.name,
-      result
-    });
+    // Only log job completion in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      QueueService.logger.debug('Job completed', {
+        jobId: job.id,
+        jobType: job.name,
+        result
+      });
+    }
   }
 
   private static async onJobFailed(job: Bull.Job, error: Error): Promise<void> {

@@ -24,20 +24,26 @@ export class EmailExtractorCore {
     extractionType: 'single' | 'multiple' | 'csv' = 'multiple'
   ): Promise<ApiResponse<{ jobId: string }>> {
     try {
-      EmailExtractorCore.logger.info('EmailExtractorCore.startExtraction called', { 
-        userId, 
-        urls, 
-        extractionType,
-        urlCount: urls.length 
-      });
+      // Only log extraction start in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('EmailExtractorCore.startExtraction called', { 
+          userId, 
+          urls, 
+          extractionType,
+          urlCount: urls.length 
+        });
+      }
       
       // Validate URLs
       const validUrls = this.validateUrls(urls);
-      EmailExtractorCore.logger.info('URL validation result', { 
-        inputUrls: urls, 
-        validUrls, 
-        validCount: validUrls.length 
-      });
+      // Only log URL validation in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('URL validation result', { 
+          inputUrls: urls, 
+          validUrls, 
+          validCount: validUrls.length 
+        });
+      }
       
       if (validUrls.length === 0) {
         EmailExtractorCore.logger.warn('No valid URLs found after validation', { inputUrls: urls });
@@ -96,11 +102,14 @@ export class EmailExtractorCore {
         urls: validUrls
       });
 
-      EmailExtractorCore.logger.info('Email extraction job started', {
-        userId,
-        jobId,
-        urlCount: validUrls.length
-      });
+      // Only log job start in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('Email extraction job started', {
+          userId,
+          jobId,
+          urlCount: validUrls.length
+        });
+      }
 
       return {
         success: true,
@@ -134,7 +143,10 @@ export class EmailExtractorCore {
     const failedUrlList: string[] = [];
     
     try {
-      EmailExtractorCore.logger.info('Processing email extraction job', { jobId, urlCount: urls.length });
+      // Only log job processing in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('Processing email extraction job', { jobId, urlCount: urls.length });
+      }
       
       // Update status to processing and set startedAt
       await EmailExtractionModel.updateExtractionStatus(jobId, ExtractionStatus.PROCESSING);
@@ -148,7 +160,10 @@ export class EmailExtractorCore {
       for (const url of urls) {
         const urlStartTime = Date.now();
         try {
-          EmailExtractorCore.logger.info('Extracting emails from URL', { jobId, url });
+          // Only log extraction start in debug mode
+          if (process.env.LOG_LEVEL === 'debug') {
+            EmailExtractorCore.logger.debug('Extracting emails from URL', { jobId, url });
+          }
           
           // Create progress updater for this URL
           const updateProgress = async (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => {
@@ -220,12 +235,15 @@ export class EmailExtractorCore {
         urls
       );
       
-      EmailExtractorCore.logger.info('Email extraction job completed', { 
-        jobId, 
-        totalEmails, 
-        successfulUrls, 
-        failedUrls 
-      });
+      // Only log job completion in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('Email extraction job completed', { 
+          jobId, 
+          totalEmails, 
+          successfulUrls, 
+          failedUrls 
+        });
+      }
     } catch (error) {
       EmailExtractorCore.logger.error('Error processing email extraction job', {
         jobId,
@@ -383,7 +401,10 @@ export class EmailExtractorCore {
     const scannedUrls = new Set<string>();
 
     try {
-      EmailExtractorCore.logger.info('Starting optimized email extraction', { url });
+      // Only log extraction start in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('Starting optimized email extraction', { url });
+      }
 
       // Step 1: Fast homepage scan (most important - emails are usually on homepage)
       await updateProgress('homepage_scan', 'processing', '🌐 Analyzing homepage content...');
@@ -426,7 +447,10 @@ export class EmailExtractorCore {
       // Step 3: Enhanced Puppeteer scan with comprehensive crawling
       if (found.size === 0) {
         await updateProgress('puppeteer_scan', 'processing', '🤖 Launching advanced browser scanning with stealth mode...');
-        EmailExtractorCore.logger.info('Using enhanced Puppeteer for comprehensive deep scanning', { url });
+        // Only log Puppeteer usage in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          EmailExtractorCore.logger.debug('Using enhanced Puppeteer for comprehensive deep scanning', { url });
+        }
         const puppeteerEmails = await this.extractEmailsWithPuppeteer(url);
         if (puppeteerEmails && Array.isArray(puppeteerEmails)) {
           puppeteerEmails.forEach(email => found.add(email));
@@ -480,11 +504,14 @@ export class EmailExtractorCore {
         emails: Array.from(found)
       });
 
-      EmailExtractorCore.logger.info('Email extraction completed', { 
-        url, 
-        emailsFound: found.size, 
-        pagesScanned: scannedUrls.size 
-      });
+      // Only log extraction completion in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('Email extraction completed', { 
+          url, 
+          emailsFound: found.size, 
+          pagesScanned: scannedUrls.size 
+        });
+      }
 
       return Array.from(found);
     } catch (error) {

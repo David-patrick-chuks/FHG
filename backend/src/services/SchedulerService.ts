@@ -14,7 +14,10 @@ export class SchedulerService {
     }
 
     this.isRunning = true;
-    this.logger.info('Scheduler service started');
+    // Only log scheduler start in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      this.logger.debug('Scheduler service started');
+    }
 
     // Check for scheduled campaigns every minute
     this.intervalId = setInterval(async () => {
@@ -59,11 +62,17 @@ export class SchedulerService {
         scheduledFor: { $lte: now }
       });
 
-      this.logger.info(`Found ${scheduledCampaigns.length} campaigns ready to start`);
+      // Only log campaign count in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.debug(`Found ${scheduledCampaigns.length} campaigns ready to start`);
+      }
 
       for (const campaign of scheduledCampaigns) {
         try {
-          this.logger.info(`Starting scheduled campaign: ${campaign.name} (${campaign._id})`);
+          // Only log campaign start in debug mode
+          if (process.env.LOG_LEVEL === 'debug') {
+            this.logger.debug(`Starting scheduled campaign: ${campaign.name} (${campaign._id})`);
+          }
           
           // Start the campaign
           const result = await CampaignService.startCampaign(
@@ -72,7 +81,10 @@ export class SchedulerService {
           );
 
           if (result.success) {
-            this.logger.info(`Successfully started scheduled campaign: ${campaign.name}`);
+            // Only log campaign start in debug mode
+            if (process.env.LOG_LEVEL === 'debug') {
+              this.logger.debug(`Successfully started scheduled campaign: ${campaign.name}`);
+            }
           } else {
             this.logger.error(`Failed to start scheduled campaign: ${campaign.name}`, {
               error: result.message

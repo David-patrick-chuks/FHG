@@ -34,7 +34,10 @@ export class EmailExtractorActivityService {
         }
       );
 
-      EmailExtractorActivityService.logger.info(`Email extraction started logged for user ${userId}, job ${jobId}`);
+      // Only log activity logging in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorActivityService.logger.debug(`Email extraction started logged for user ${userId}, job ${jobId}`);
+      }
     } catch (error) {
       EmailExtractorActivityService.logger.error('Error logging extraction started activity:', error);
     }
@@ -89,7 +92,10 @@ export class EmailExtractorActivityService {
         }
       );
 
-      EmailExtractorActivityService.logger.info(`Email extraction completed logged for user ${userId}, job ${jobId}`);
+      // Only log activity logging in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorActivityService.logger.debug(`Email extraction completed logged for user ${userId}, job ${jobId}`);
+      }
     } catch (error) {
       EmailExtractorActivityService.logger.error('Error logging extraction completed activity:', error);
     }
@@ -124,7 +130,10 @@ export class EmailExtractorActivityService {
         }
       );
 
-      EmailExtractorActivityService.logger.info(`Email extraction failed logged for user ${userId}, job ${jobId}`);
+      // Only log activity logging in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorActivityService.logger.debug(`Email extraction failed logged for user ${userId}, job ${jobId}`);
+      }
     } catch (error) {
       EmailExtractorActivityService.logger.error('Error logging extraction failed activity:', error);
     }
@@ -155,7 +164,10 @@ export class EmailExtractorActivityService {
         }
       );
 
-      EmailExtractorActivityService.logger.info(`Email extraction cancelled logged for user ${userId}, job ${jobId}`);
+      // Only log activity logging in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorActivityService.logger.debug(`Email extraction cancelled logged for user ${userId}, job ${jobId}`);
+      }
     } catch (error) {
       EmailExtractorActivityService.logger.error('Error logging extraction cancelled activity:', error);
     }

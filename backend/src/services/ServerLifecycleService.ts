@@ -21,11 +21,17 @@ export class ServerLifecycleService {
    */
   public async start(port: number): Promise<void> {
     try {
-      this.logger.info('Starting server initialization...');
+      // Only log server initialization in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.debug('Starting server initialization...');
+      }
       
       // Connect to database first
       await this.database.connect();
-      this.logger.info('Database connection established');
+      // Only log database connection in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.debug('Database connection established');
+      }
       
       // Initialize Paystack service
       this.initializePaystack();
@@ -36,7 +42,10 @@ export class ServerLifecycleService {
       // Start HTTP server
       await this.startHttpServer(port);
       
-      this.logger.info(`Server successfully started on port ${port}`);
+      // Only log server start in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.debug(`Server successfully started on port ${port}`);
+      }
       this.logServerInfo(port);
       
     } catch (error) {
@@ -65,13 +74,16 @@ export class ServerLifecycleService {
    * Log server information
    */
   private logServerInfo(port: number): void {
-    this.logger.info('Server Information:', {
-      port: port,
-      environment: process.env['NODE_ENV'] || 'development',
-      nodeVersion: process.version,
-      platform: process.platform,
-      uptime: process.uptime()
-    });
+    // Only log server info in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      this.logger.debug('Server Information:', {
+        port: port,
+        environment: process.env['NODE_ENV'] || 'development',
+        nodeVersion: process.version,
+        platform: process.platform,
+        uptime: process.uptime()
+      });
+    }
   }
 
   /**
@@ -142,7 +154,10 @@ export class ServerLifecycleService {
       }
 
       PaystackService.initialize(paystackConfig);
-      this.logger.info('Paystack service initialized successfully');
+      // Only log Paystack initialization in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.debug('Paystack service initialized successfully');
+      }
     } catch (error) {
       this.logger.error('Failed to initialize Paystack service:', error);
     }

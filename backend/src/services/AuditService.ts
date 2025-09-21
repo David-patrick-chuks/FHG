@@ -37,7 +37,10 @@ export class AuditService {
   public static initialize(): void {
     try {
       this.auditModel = mongoose.model<IAuditLog>('AuditLog', auditLogSchema);
-      AuditService.logger.info('Audit service initialized successfully');
+      // Only log audit service initialization in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        AuditService.logger.debug('Audit service initialized successfully');
+      }
     } catch (error) {
       AuditService.logger.error('Failed to initialize audit service:', error);
     }
@@ -226,14 +229,16 @@ export class AuditService {
 
       await auditLog.save();
 
-      // Also log to application logs for immediate visibility
-      AuditService.logger.info('Audit Event', {
-        action: eventData.action,
-        resource: eventData.resource,
-        userId: eventData.userId,
-        success: eventData.success,
-        requestId: eventData.requestId
-      });
+      // Only log audit events in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        AuditService.logger.debug('Audit Event', {
+          action: eventData.action,
+          resource: eventData.resource,
+          userId: eventData.userId,
+          success: eventData.success,
+          requestId: eventData.requestId
+        });
+      }
 
     } catch (error) {
       AuditService.logger.error('Failed to log audit event:', {

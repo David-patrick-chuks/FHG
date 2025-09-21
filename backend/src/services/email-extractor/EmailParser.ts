@@ -239,7 +239,7 @@ export class EmailParser {
     }
     
     // Decode obfuscated emails
-    textContent = this.decodeObfuscatedEmail(textContent);
+    textContent = EmailParser.decodeObfuscatedEmail(textContent);
     
     // Check for reversed text emails
     const reversed = textContent.split('').reverse().join('');
@@ -277,7 +277,7 @@ export class EmailParser {
     if (hotspotSelectors && Array.isArray(hotspotSelectors)) {
       hotspotSelectors.forEach(selector => {
         const sectionText = $1(selector).text();
-        const decodedSectionText = this.decodeObfuscatedEmail(sectionText);
+        const decodedSectionText = EmailParser.decodeObfuscatedEmail(sectionText);
         const sectionMatches = decodedSectionText.match(this.EMAIL_REGEX);
         if (sectionMatches && Array.isArray(sectionMatches)) {
           sectionMatches.forEach(email => {

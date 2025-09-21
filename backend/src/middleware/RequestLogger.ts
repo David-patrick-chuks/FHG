@@ -64,7 +64,10 @@ export class RequestLogger {
       userId: (req as any).user?.id || 'anonymous'
     };
 
-    RequestLogger.logger.info('Request started', logData);
+    // Only log request start in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      RequestLogger.logger.debug('Request started', logData);
+    }
   }
 
   private static logRequest(req: Request, res: Response, responseTime: number, responseData?: any): void {
@@ -89,7 +92,10 @@ export class RequestLogger {
     } else if (res.statusCode >= 400) {
       RequestLogger.logger.warn('Client error', logData);
     } else if (RequestLogger.shouldLogRequest(req)) {
-      RequestLogger.logger.info('Request completed', logData);
+      // Only log request completion in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        RequestLogger.logger.debug('Request completed', logData);
+      }
     }
 
     // Log slow requests (only for important endpoints)

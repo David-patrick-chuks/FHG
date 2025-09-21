@@ -14,7 +14,10 @@ export class PaystackCore {
 
   public static initialize(config: PaystackConfig): void {
     PaystackCore.config = config;
-    PaystackCore.logger.info('Paystack service initialized');
+    // Only log Paystack initialization in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      PaystackCore.logger.debug('Paystack service initialized');
+    }
   }
 
   protected static generateReference(): string {

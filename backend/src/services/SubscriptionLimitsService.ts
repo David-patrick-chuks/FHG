@@ -135,12 +135,15 @@ export class SubscriptionLimitsService {
         return activityDate >= today && activityDate < tomorrow;
       });
 
-      SubscriptionLimitsService.logger.info('Daily usage calculation', {
-        userId,
-        totalActivities: activities.length,
-        todayActivities: todayActivities.length,
-        activityTypes: todayActivities.map(a => a.type)
-      });
+      // Only log daily usage calculation in debug mode to reduce noise
+      if (process.env.LOG_LEVEL === 'debug') {
+        SubscriptionLimitsService.logger.debug('Daily usage calculation', {
+          userId,
+          totalActivities: activities.length,
+          todayActivities: todayActivities.length,
+          activityTypes: todayActivities.map(a => a.type)
+        });
+      }
 
       let totalUrlsUsed = 0;
       todayActivities.forEach(activity => {
@@ -157,14 +160,17 @@ export class SubscriptionLimitsService {
         
         totalUrlsUsed += urlCount;
         
-        SubscriptionLimitsService.logger.info('Activity counted for usage', {
-          userId,
-          activityType: activity.type,
-          activityId: activity._id,
-          urlCount,
-          totalUrlsUsed,
-          metadata: activity.metadata
-        });
+        // Only log activity counting in debug mode to reduce noise
+        if (process.env.LOG_LEVEL === 'debug') {
+          SubscriptionLimitsService.logger.debug('Activity counted for usage', {
+            userId,
+            activityType: activity.type,
+            activityId: activity._id,
+            urlCount,
+            totalUrlsUsed,
+            metadata: activity.metadata
+          });
+        }
       });
 
       const limits = await this.getSubscriptionLimits(userId);
@@ -199,7 +205,10 @@ export class SubscriptionLimitsService {
     try {
       // This will be called by the EmailExtractorActivityService when logging extraction started
       // The actual logging is handled there, this is just for tracking usage
-      SubscriptionLimitsService.logger.info(`Extraction usage logged: ${urlCount} URLs for user ${userId}, type: ${extractionType}`);
+      // Only log usage logging in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        SubscriptionLimitsService.logger.debug(`Extraction usage logged: ${urlCount} URLs for user ${userId}, type: ${extractionType}`);
+      }
     } catch (error) {
       SubscriptionLimitsService.logger.error('Error logging extraction usage:', error);
     }

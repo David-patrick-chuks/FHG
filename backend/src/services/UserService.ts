@@ -85,7 +85,10 @@ export class UserService {
       // Generate JWT token
       const token = this.generateToken((user._id as any).toString());
 
-      UserService.logger.info('User logged in successfully', { userId: user._id, email: user.email });
+      // Only log successful login in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        UserService.logger.debug('User logged in successfully', { userId: user._id, email: user.email });
+      }
       
       return {
         success: true,

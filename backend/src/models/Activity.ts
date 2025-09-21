@@ -202,7 +202,10 @@ export class ActivityModel {
     if (!ActivityModel.instance) {
       try {
         ActivityModel.instance = mongoose.model<IActivityDocument>('Activity', activitySchema);
-        ActivityModel.logger.info('Activity model initialized successfully');
+        // Only log model initialization in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          ActivityModel.logger.debug('Activity model initialized successfully');
+        }
       } catch (error) {
         ActivityModel.logger.error('Error initializing Activity model:', error);
         throw error;

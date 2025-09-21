@@ -68,12 +68,15 @@ export class EmailExtractorController {
 
       const urlArray = urlValidationResult.sanitizedValue as string[];
 
-      EmailExtractorController.logger.info('Starting extraction with URLs', { 
-        userId, 
-        urlArray, 
-        extractionType,
-        urlCount: urlArray.length 
-      });
+      // Only log extraction start in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorController.logger.debug('Starting extraction with URLs', { 
+          userId, 
+          urlArray, 
+          extractionType,
+          urlCount: urlArray.length 
+        });
+      }
       
       const result = await EmailExtractorCore.startExtraction(userId, urlArray, extractionType);
       

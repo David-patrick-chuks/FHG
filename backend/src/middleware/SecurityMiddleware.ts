@@ -57,8 +57,9 @@ export class SecurityMiddleware {
     const url = req.originalUrl || req.url;
     const importantEndpoints = ['/api/auth/', '/api/payments/', '/api/admin/'];
     
-    if (importantEndpoints.some(endpoint => url.startsWith(endpoint))) {
-      SecurityMiddleware.logger.info('API Request', {
+    // Only log API requests in debug mode
+    if (process.env.LOG_LEVEL === 'debug' && importantEndpoints.some(endpoint => url.startsWith(endpoint))) {
+      SecurityMiddleware.logger.debug('API Request', {
         requestId: res.locals.requestId,
         method: req.method,
         url: req.originalUrl,
@@ -71,9 +72,9 @@ export class SecurityMiddleware {
     res.end = function(chunk?: any, encoding?: any, cb?: any) {
       const responseTime = Date.now() - startTime;
       
-      // Only log responses for important endpoints or errors
-      if (importantEndpoints.some(endpoint => url.startsWith(endpoint)) || res.statusCode >= 400) {
-        SecurityMiddleware.logger.info('API Response', {
+      // Only log responses for important endpoints or errors in debug mode
+      if (process.env.LOG_LEVEL === 'debug' && (importantEndpoints.some(endpoint => url.startsWith(endpoint)) || res.statusCode >= 400)) {
+        SecurityMiddleware.logger.debug('API Response', {
           requestId: res.locals.requestId,
           statusCode: res.statusCode,
           responseTime: `${responseTime}ms`

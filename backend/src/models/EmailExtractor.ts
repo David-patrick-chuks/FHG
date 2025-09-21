@@ -230,13 +230,15 @@ emailExtractionSchema.statics.updateExtractionResult = async function(
   
   await extraction.save();
   
-  // Log result update for debugging
-  console.log(`Result updated for job ${jobId}, URL ${url}:`, {
-    status,
-    emailCount: emails.length,
-    progressCount: existingResult.progress?.length || 0,
-    currentStep: existingResult.currentStep
-  });
+  // Only log result updates in debug mode
+  if (process.env.LOG_LEVEL === 'debug') {
+    console.log(`Result updated for job ${jobId}, URL ${url}:`, {
+      status,
+      emailCount: emails.length,
+      progressCount: existingResult.progress?.length || 0,
+      currentStep: existingResult.currentStep
+    });
+  }
   
   return true;
 };
@@ -303,13 +305,15 @@ emailExtractionSchema.statics.updateExtractionProgress = async function(
   
   await extraction.save();
   
-  // Log progress update for debugging
-  console.log(`Progress updated for job ${jobId}, URL ${url}, step ${step}:`, {
-    status,
-    message,
-    progressCount: result.progress.length,
-    currentStep: result.currentStep
-  });
+  // Only log progress updates in debug mode
+  if (process.env.LOG_LEVEL === 'debug') {
+    console.log(`Progress updated for job ${jobId}, URL ${url}, step ${step}:`, {
+      status,
+      message,
+      progressCount: result.progress.length,
+      currentStep: result.currentStep
+    });
+  }
   
   return true;
 };
@@ -342,7 +346,10 @@ export class EmailExtractionModel {
     if (!EmailExtractionModel.instance) {
       try {
         EmailExtractionModel.instance = mongoose.model<IEmailExtractionDocument>('EmailExtraction', emailExtractionSchema);
-        EmailExtractionModel.logger.info('EmailExtraction model initialized successfully');
+        // Only log model initialization in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          EmailExtractionModel.logger.debug('EmailExtraction model initialized successfully');
+        }
       } catch (error) {
         EmailExtractionModel.logger.error('Error initializing EmailExtraction model:', error);
         throw error;

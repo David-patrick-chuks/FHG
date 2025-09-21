@@ -33,7 +33,10 @@ export class Application {
 
   private loadEnvironment(): void {
     dotenv.config();
-    this.logger.info('📋 Environment configuration loaded');
+    // Only log environment loading in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      this.logger.debug('📋 Environment configuration loaded');
+    }
   }
 
   private setupGracefulShutdown(): void {

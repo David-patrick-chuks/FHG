@@ -1,6 +1,6 @@
+import dotenv from 'dotenv';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import { Logger } from '../utils/Logger';
-import dotenv from 'dotenv';
 dotenv.config();
 
 export class DatabaseConnection {
@@ -30,7 +30,10 @@ export class DatabaseConnection {
    */
   public async connect(): Promise<void> {
     if (this.connection?.readyState === 1) {
-      this.logger.info('Database already connected');
+      // Only log database connection status in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        this.logger.debug('Database already connected');
+      }
       return;
     }
 
@@ -45,7 +48,10 @@ export class DatabaseConnection {
     while (retryCount < maxRetries) {
     try {
       this.isConnecting = true;
-        this.logger.info(`Initiating database connection... (Attempt ${retryCount + 1}/${maxRetries})`);
+        // Only log database connection attempts in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          this.logger.debug(`Initiating database connection... (Attempt ${retryCount + 1}/${maxRetries})`);
+        }
 
       const options: ConnectOptions = {
         maxPoolSize: parseInt(process.env['MONGODB_MAX_POOL_SIZE'] || '10'),
@@ -77,7 +83,10 @@ export class DatabaseConnection {
       }
 
       this.setupConnectionEventHandlers();
-        this.logger.info('✅ Database connected successfully');
+        // Only log successful database connection in debug mode
+        if (process.env.LOG_LEVEL === 'debug') {
+          this.logger.debug('✅ Database connected successfully');
+        }
         return; // Success, exit retry loop
 
     } catch (error) {

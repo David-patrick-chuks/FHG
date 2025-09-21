@@ -10,7 +10,10 @@ export class HtmlFetcher {
    */
   public static async fetchHtml(url: string): Promise<string | null> {
     try {
-      HtmlFetcher.logger.info('Fetching HTML content', { url });
+      // Only log HTML fetching in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        HtmlFetcher.logger.debug('Fetching HTML content', { url });
+      }
       
       const response = await axios.get(url, {
         timeout: this.REQUEST_TIMEOUT,
@@ -29,11 +32,14 @@ export class HtmlFetcher {
         return null;
       }
       
-      HtmlFetcher.logger.info('HTML content fetched successfully', { 
-        url, 
-        contentLength: response.data?.length || 0,
-        status: response.status 
-      });
+      // Only log successful HTML fetch in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        HtmlFetcher.logger.debug('HTML content fetched successfully', { 
+          url, 
+          contentLength: response.data?.length || 0,
+          status: response.status 
+        });
+      }
       
       return response.data;
     } catch (error: any) {

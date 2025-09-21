@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
+import dotenv from 'dotenv';
 import { ApiResponse } from '../types';
 import { Logger } from '../utils/Logger';
-import dotenv from 'dotenv';
 dotenv.config();
 
 export class AIService {
@@ -38,7 +38,10 @@ export class AIService {
       this.keyUsageCounts.set(key, 0);
     });
 
-    AIService.logger.info(`Initialized ${this.apiKeys.length} API keys for load balancing`);
+    // Only log AI service initialization in debug mode
+    if (process.env.LOG_LEVEL === 'debug') {
+      AIService.logger.debug(`Initialized ${this.apiKeys.length} API keys for load balancing`);
+    }
   }
 
   /**
