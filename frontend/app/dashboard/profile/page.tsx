@@ -68,6 +68,7 @@ export default function ProfilePage() {
   const [apiUsage, setApiUsage] = useState<ApiUsage | null>(null);
   const [isGeneratingKey, setIsGeneratingKey] = useState(false);
   const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
+  const [showApiKey, setShowApiKey] = useState(false);
   const fetchInProgress = useRef(false);
   const hasFetchedData = useRef(false);
 
@@ -226,13 +227,19 @@ export default function ProfilePage() {
         
         setMessage({
           type: "success",
-          text: "API key generated successfully! Copy it now - you won't be able to see it again.",
+          text: "API key generated successfully! You can now copy and use it.",
         });
 
-        // Clear the generated API key display after 30 seconds
-        setTimeout(() => {
-          setGeneratedApiKey(null);
-        }, 30000);
+        // Show the API key for copying
+        setShowApiKey(true);
+        
+        // Also ensure the apiKeyInfo is updated to show the key
+        setApiKeyInfo({
+          hasApiKey: true,
+          apiKey: response.data.apiKey,
+          createdAt: response.data.createdAt,
+          lastUsed: response.data.lastUsed,
+        });
       } else {
         setMessage({
           type: "error",
@@ -252,6 +259,11 @@ export default function ProfilePage() {
     try {
       await navigator.clipboard.writeText(text);
       setMessage({ type: "success", text: "API key copied to clipboard!" });
+      // Hide the generated API key after copying
+      if (generatedApiKey) {
+        setGeneratedApiKey(null);
+        setShowApiKey(false);
+      }
     } catch (error) {
       setMessage({ type: "error", text: "Failed to copy to clipboard" });
     }
@@ -342,6 +354,7 @@ export default function ProfilePage() {
               apiUsage={apiUsage}
               generatedApiKey={generatedApiKey}
               isGeneratingKey={isGeneratingKey}
+              showApiKey={showApiKey}
               onGenerateApiKey={handleGenerateApiKey}
               onCopyToClipboard={copyToClipboard}
             />

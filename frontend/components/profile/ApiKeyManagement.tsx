@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Copy, Key, RefreshCw } from 'lucide-react';
+import { CheckCircle, Copy, Eye, EyeOff, Key, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 
 interface ApiKeyInfo {
@@ -34,6 +34,7 @@ interface ApiKeyManagementProps {
   apiUsage: ApiUsage | null;
   generatedApiKey: string | null;
   isGeneratingKey: boolean;
+  showApiKey: boolean;
   onGenerateApiKey: () => Promise<void>;
   onCopyToClipboard: (text: string) => Promise<void>;
 }
@@ -43,10 +44,12 @@ export function ApiKeyManagement({
   apiUsage,
   generatedApiKey,
   isGeneratingKey,
+  showApiKey,
   onGenerateApiKey,
   onCopyToClipboard
 }: ApiKeyManagementProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleString('en-US', {
@@ -70,7 +73,7 @@ export function ApiKeyManagement({
 
   return (
     <div className="space-y-4">
-      {!apiKeyInfo?.hasApiKey ? (
+      {!apiKeyInfo?.hasApiKey && !generatedApiKey ? (
         <div className="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
           <Key className="h-8 w-8 text-gray-400 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
@@ -126,7 +129,7 @@ export function ApiKeyManagement({
           )}
 
           {/* API Key Info - Show existing API key */}
-          {apiKeyInfo?.hasApiKey && apiKeyInfo.apiKey && (
+          {(apiKeyInfo?.hasApiKey && apiKeyInfo.apiKey) && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -154,10 +157,22 @@ export function ApiKeyManagement({
                 <Label className="text-sm font-medium">API Key</Label>
                 <div className="flex items-center gap-2 mt-1">
                   <Input
-                    value={apiKeyInfo.apiKey}
+                    value={isApiKeyVisible ? apiKeyInfo.apiKey : '••••••••••••••••••••••••••••••••'}
                     readOnly
                     className="font-mono text-sm bg-gray-50 dark:bg-gray-800"
                   />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsApiKeyVisible(!isApiKeyVisible)}
+                    className="text-gray-600 hover:text-gray-700"
+                  >
+                    {isApiKeyVisible ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -172,7 +187,7 @@ export function ApiKeyManagement({
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Copy this API key to use in your applications
+                  {isApiKeyVisible ? 'Copy this API key to use in your applications' : 'Click the eye icon to reveal your API key'}
                 </p>
               </div>
 
