@@ -15,6 +15,7 @@ export class PaystackService {
   public static getUserPayments = PaystackPayment.getUserPayments;
   public static getAllPayments = PaystackPayment.getAllPayments;
   public static getPaymentStats = PaystackPayment.getPaymentStats;
+  public static exportPayments = PaystackPayment.exportPayments;
 
   // Receipt methods
   public static generateReceipt = PaystackReceipt.generateReceipt;
@@ -34,3 +35,4 @@ export { PaystackConfig } from './PaystackCore';
 export { PaystackPayment } from './PaystackPayment';
 export { PaystackReceiptNew as PaystackReceipt } from './PaystackReceiptNew';
 export { PaystackSubscription } from './PaystackSubscription';
+

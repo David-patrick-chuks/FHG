@@ -36,7 +36,8 @@ export class EmailSender {
       }
 
       // Check if bot can send email
-      if (!bot.canSendEmail()) {
+      const canSend = await bot.canSendEmail();
+      if (!canSend) {
         return {
           success: false,
           message: 'Bot has reached daily email limit',
@@ -60,6 +61,7 @@ export class EmailSender {
         campaignId,
         botId,
         recipientEmail,
+        subject,
         message,
         status: EmailStatus.SENT,
         sentAt: new Date()
@@ -108,6 +110,25 @@ export class EmailSender {
             error: error instanceof Error ? error.message : 'Unknown error'
           });
         }
+      } else {
+        // Even if no generatedMessageId is provided, we should still try to mark the message as sent
+        // This handles cases where the email is sent directly without going through the generation process
+        try {
+          const campaign = await CampaignModel.findById(campaignId);
+          if (campaign) {
+            await campaign.markMessageAsSent(recipientEmail);
+            EmailSender.logger.info('Message marked as sent (no generatedMessageId)', {
+              campaignId,
+              recipientEmail
+            });
+          }
+        } catch (error) {
+          EmailSender.logger.warn('Failed to mark message as sent (no generatedMessageId)', {
+            campaignId,
+            recipientEmail,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
       }
 
       EmailSender.logger.info('Email sent successfully', {
@@ -137,6 +158,7 @@ export class EmailSender {
           campaignId,
           botId,
           recipientEmail,
+          subject,
           message,
           status: EmailStatus.FAILED,
           sentAt: new Date(),
@@ -186,7 +208,8 @@ export class EmailSender {
         const { email, message } = emailItem;
 
         // Check if bot can still send emails
-        if (!bot.canSendEmail()) {
+        const canStillSend = await bot.canSendEmail();
+        if (!canStillSend) {
           EmailSender.logger.warn('Bot reached daily limit during bulk send', { 
             botId, 
             sent, 

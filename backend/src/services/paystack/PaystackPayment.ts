@@ -522,6 +522,150 @@ export class PaystackPayment extends PaystackCore {
     }
   }
 
+  public static async exportPayments(
+    options: {
+      status?: string;
+      subscriptionTier?: string;
+      billingCycle?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+      format?: 'csv' | 'excel';
+    } = {}
+  ): Promise<ApiResponse<Buffer>> {
+    try {
+      const {
+        status,
+        subscriptionTier,
+        billingCycle,
+        search,
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        format = 'csv'
+      } = options;
+
+      // Build query (same as getAllPayments but without pagination)
+      const query: any = {};
+
+      // Add filters
+      if (status) {
+        query.status = status;
+      }
+      if (subscriptionTier) {
+        query.subscriptionTier = subscriptionTier;
+      }
+      if (billingCycle) {
+        query.billingCycle = billingCycle;
+      }
+
+      // Add search functionality
+      if (search) {
+        query.$or = [
+          { reference: { $regex: search, $options: 'i' } },
+          { userId: { $regex: search, $options: 'i' } }
+        ];
+      }
+
+      // Get all payments matching the query
+      const payments = await PaymentModel.find(query)
+        .sort({ [sortBy]: sortOrder })
+        .populate('userId', 'email username')
+        .lean();
+
+      if (format === 'csv') {
+        // Generate CSV content
+        const csvContent = PaystackPayment.generateCSV(payments);
+        const buffer = Buffer.from(csvContent, 'utf-8');
+
+        return {
+          success: true,
+          message: 'Payments exported successfully',
+          data: buffer,
+          timestamp: new Date()
+        };
+      } else {
+        // For Excel format, we would need a library like 'xlsx'
+        // For now, return CSV as fallback
+        const csvContent = PaystackPayment.generateCSV(payments);
+        const buffer = Buffer.from(csvContent, 'utf-8');
+
+        return {
+          success: true,
+          message: 'Payments exported successfully (CSV format)',
+          data: buffer,
+          timestamp: new Date()
+        };
+      }
+    } catch (error: any) {
+      PaystackPayment.logger.error('Error exporting payments:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+
+      return {
+        success: false,
+        message: 'Failed to export payments',
+        timestamp: new Date()
+      };
+    }
+  }
+
+  private static generateCSV(payments: any[]): string {
+    const headers = [
+      'Reference',
+      'User ID',
+      'User Email',
+      'Username',
+      'Amount (NGN)',
+      'Currency',
+      'Subscription Tier',
+      'Billing Cycle',
+      'Status',
+      'Payment Method',
+      'Created At',
+      'Paid At',
+      'Subscription Expires At',
+      'Gateway Response',
+      'Failure Reason'
+    ];
+
+    const rows = payments.map(payment => [
+      payment.reference || '',
+      payment.userId?._id || payment.userId || '',
+      payment.userId?.email || '',
+      payment.userId?.username || '',
+      payment.amount || 0,
+      payment.currency || 'NGN',
+      payment.subscriptionTier || '',
+      payment.billingCycle || '',
+      payment.status || '',
+      payment.paymentMethod || '',
+      payment.createdAt ? new Date(payment.createdAt).toISOString() : '',
+      payment.paidAt ? new Date(payment.paidAt).toISOString() : '',
+      payment.subscriptionExpiresAt ? new Date(payment.subscriptionExpiresAt).toISOString() : '',
+      payment.gatewayResponse || '',
+      payment.failureReason || ''
+    ]);
+
+    // Escape CSV values and handle commas/quotes
+    const escapeCSV = (value: any): string => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvRows = [
+      headers.map(escapeCSV).join(','),
+      ...rows.map(row => row.map(escapeCSV).join(','))
+    ];
+
+    return csvRows.join('\n');
+  }
+
   private static calculateSubscriptionExpiration(billingCycle: BillingCycle): Date {
     const now = new Date();
     if (billingCycle === BillingCycle.MONTHLY) {

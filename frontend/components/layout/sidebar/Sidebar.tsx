@@ -36,24 +36,24 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <div className={cn(
-      "fixed inset-y-0 left-0 z-50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-all duration-200 ease-in-out lg:translate-x-0 flex flex-col shadow-xl",
-      sidebarOpen ? "translate-x-0" : "-translate-x-full",
-      sidebarCollapsed ? "w-16" : "w-64"
+      "fixed inset-y-0 left-0 z-50 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/50 transform transition-all duration-200 ease-in-out flex flex-col shadow-xl",
+      sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full",
+      sidebarCollapsed ? "lg:hidden" : "lg:translate-x-0 lg:w-64"
     )}>
       <SidebarHeader 
         onClose={onClose} 
         onToggleCollapse={onToggleCollapse}
-        collapsed={sidebarCollapsed}
+        collapsed={sidebarOpen ? false : sidebarCollapsed}
       />
       <SidebarNavigation 
         sidebarItems={sidebarItems} 
         onItemClick={onClose}
-        collapsed={sidebarCollapsed}
+        collapsed={sidebarOpen ? false : sidebarCollapsed}
       />
       <SidebarUserSection 
         user={user} 
         onLogout={onLogout}
-        collapsed={sidebarCollapsed}
+        collapsed={sidebarOpen ? false : sidebarCollapsed}
       />
     </div>
   );

@@ -66,6 +66,13 @@ export class SentEmailModel {
           message: 'Please provide a valid email address'
         }
       },
+      subject: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 5,
+        maxlength: 200
+      },
       message: {
         type: String,
         required: true,

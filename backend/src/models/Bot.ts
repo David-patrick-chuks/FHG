@@ -124,6 +124,18 @@ export class BotModel {
       }
 
       try {
+        // Check if we need to reset daily count (new day)
+        if (this['lastEmailSentAt']) {
+          const lastSentDate = new Date(this['lastEmailSentAt']);
+          const today = new Date();
+          
+          // If last email was sent on a different day, reset the count
+          if (lastSentDate.toDateString() !== today.toDateString()) {
+            this['dailyEmailCount'] = 0;
+            await this['save']();
+          }
+        }
+
         const user = await UserModel.findById(this['userId']);
         if (!user || !user.hasActiveSubscription()) {
           return false;

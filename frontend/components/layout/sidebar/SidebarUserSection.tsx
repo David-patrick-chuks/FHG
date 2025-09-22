@@ -46,17 +46,17 @@ export function SidebarUserSection({ user, onLogout, collapsed }: SidebarUserSec
         </>
       ) : (
         <div className="flex flex-col items-center space-y-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-medium">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-base font-medium">
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <button
             onClick={onLogout}
-            className="flex items-center justify-center w-8 h-8 text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 rounded-lg transition-all duration-300 group relative"
+            className="flex items-center justify-center w-10 h-10 text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 rounded-lg transition-all duration-300 group relative"
             title="Logout"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-5 w-5" />
             {/* Tooltip */}
             <div className="absolute left-full ml-2 px-2 py-1 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
               Logout

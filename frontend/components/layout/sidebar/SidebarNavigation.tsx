@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface SidebarItem {
   label: string;
@@ -38,7 +38,7 @@ export function SidebarNavigation({ sidebarItems, onItemClick, collapsed }: Side
         href={item.href}
         className={cn(
           "flex items-center text-sm font-medium rounded-lg transition-all duration-300 group relative",
-          collapsed ? "px-3 py-3 justify-center" : "px-3 py-2",
+          collapsed ? "px-4 py-4 justify-center" : "px-3 py-2",
           isActive
             ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 shadow-sm"
             : "text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-800/60 hover:shadow-sm"
@@ -47,7 +47,7 @@ export function SidebarNavigation({ sidebarItems, onItemClick, collapsed }: Side
         title={collapsed ? item.label : undefined}
       >
         <item.icon className={cn(
-          "h-5 w-5",
+          collapsed ? "h-6 w-6" : "h-5 w-5",
           collapsed ? "" : "mr-3",
           isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400"
         )} />
@@ -78,7 +78,10 @@ export function SidebarNavigation({ sidebarItems, onItemClick, collapsed }: Side
   };
 
   return (
-    <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+    <nav className={cn(
+      "flex-1 px-4 py-6",
+      collapsed ? "space-y-2 overflow-hidden" : "space-y-2 overflow-y-auto sidebar-scrollbar"
+    )}>
       {/* Regular navigation items */}
       {regularItems.map(renderNavigationItem)}
       

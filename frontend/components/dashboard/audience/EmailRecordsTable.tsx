@@ -57,7 +57,7 @@ export function EmailRecordsTable({ emailRecords }: EmailRecordsTableProps) {
     <Card>
       <CardContent className="pt-6">
         {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto table-scrollbar">
           <table className="w-full">
             <thead>
               <tr className="border-b">

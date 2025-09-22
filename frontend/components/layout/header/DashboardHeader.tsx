@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, PanelLeft } from 'lucide-react';
 
 interface DashboardHeaderProps {
   title?: string | React.ReactNode;
@@ -9,6 +9,8 @@ interface DashboardHeaderProps {
   actions?: React.ReactNode;
   navigation?: React.ReactNode;
   onMenuClick: () => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export function DashboardHeader({ 
@@ -16,7 +18,9 @@ export function DashboardHeader({
   description, 
   actions, 
   navigation,
-  onMenuClick 
+  onMenuClick,
+  sidebarCollapsed = false,
+  onToggleSidebar
 }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 px-4 sm:px-6 py-3 sm:py-4 shadow-sm">
@@ -25,6 +29,7 @@ export function DashboardHeader({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           {/* Title and description section */}
           <div className="flex items-start space-x-3 min-w-0 flex-1">
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="sm"
@@ -33,6 +38,19 @@ export function DashboardHeader({
             >
               <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
+            
+            {/* Desktop sidebar toggle button */}
+            {onToggleSidebar && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden lg:flex hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 flex-shrink-0 mt-0.5"
+                onClick={onToggleSidebar}
+                title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+              >
+                <PanelLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            )}
             <div className="min-w-0 flex-1">
               {title && (
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white leading-tight">

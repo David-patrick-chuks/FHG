@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Logger } from '../utils/Logger';
+import { SystemActivityService } from '../services/SystemActivityService';
+import { ActivityType } from '../types';
 
 export class AdminMiddleware {
   private static logger: Logger = new Logger();
@@ -27,6 +29,23 @@ export class AdminMiddleware {
           ip: req.ip,
           userAgent: req.get('User-Agent')
         });
+
+        // Log unauthorized admin access attempts
+        AdminMiddleware.logSystemActivity(
+          ActivityType.SECURITY_LOGIN_FAILED,
+          'Unauthorized Admin Access Attempt',
+          `Non-admin user attempted to access admin endpoint: ${req.originalUrl}`,
+          'high',
+          'security',
+          {
+            userId: user.id,
+            email: user.email,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            endpoint: req.originalUrl,
+            method: req.method
+          }
+        );
 
         res.status(403).json({
           success: false,
@@ -74,4 +93,30 @@ export class AdminMiddleware {
       next();
     }
   };
+
+  /**
+   * Helper method to log system activities
+   */
+  private static async logSystemActivity(
+    type: ActivityType,
+    title: string,
+    description: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    source: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await SystemActivityService.logSystemEvent(
+        type,
+        title,
+        description,
+        severity,
+        source,
+        metadata
+      );
+    } catch (logError) {
+      // Don't let logging errors break admin middleware
+      AdminMiddleware.logger.error('Failed to log system activity:', logError);
+    }
+  }
 }

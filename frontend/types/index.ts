@@ -195,6 +195,7 @@ export interface Template extends BaseEntity {
   status: TemplateStatus;
   isPublic: boolean;
   isApproved: boolean;
+  isRejected: boolean;
   approvedBy?: string;
   approvedAt?: Date;
   rejectionReason?: string;
@@ -211,6 +212,12 @@ export interface Template extends BaseEntity {
   featured: boolean;
   featuredAt?: Date;
   originalTemplateId?: string;
+  isCloned?: boolean;
+  clonedFrom?: string;
+  clonedAt?: Date;
+  version?: number;
+  lastUpdatedByOwner?: Date;
+  hasUpdates?: boolean;
 }
 
 export interface CreateTemplateRequest {

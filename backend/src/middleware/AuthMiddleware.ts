@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from 'express';
 import UserModel from '../models/User';
 import { DatabaseSecurityService } from '../services/DatabaseSecurityService';
 import { JwtService } from '../services/JwtService';
+import { SystemActivityService } from '../services/SystemActivityService';
 import { Logger } from '../utils/Logger';
+import { ActivityType } from '../types';
 
 export class AuthMiddleware {
   private static logger: Logger = new Logger();
@@ -80,14 +82,44 @@ export class AuthMiddleware {
         name: error?.name
       });
       
-      // Handle specific JWT errors
+      // Handle specific JWT errors and log security events
       if (error.message === 'Invalid token' || error.message === 'Token has been revoked') {
+        // Log invalid token attempts
+        AuthMiddleware.logSystemActivity(
+          ActivityType.SECURITY_LOGIN_FAILED,
+          'Invalid Token Attempt',
+          `Invalid or revoked token attempt from ${req.ip}`,
+          'medium',
+          'security',
+          {
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            endpoint: req.originalUrl,
+            errorType: 'invalid_token'
+          }
+        );
+        
         res.status(401).json({
           success: false,
           message: 'Invalid token',
           timestamp: new Date()
         });
       } else if (error.message === 'Token expired') {
+        // Log expired token attempts
+        AuthMiddleware.logSystemActivity(
+          ActivityType.SECURITY_LOGIN_FAILED,
+          'Expired Token Attempt',
+          `Expired token attempt from ${req.ip}`,
+          'low',
+          'security',
+          {
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            endpoint: req.originalUrl,
+            errorType: 'expired_token'
+          }
+        );
+        
         res.status(401).json({
           success: false,
           message: 'Token expired',
@@ -100,6 +132,21 @@ export class AuthMiddleware {
           timestamp: new Date()
         });
       } else {
+        // Log authentication failures
+        AuthMiddleware.logSystemActivity(
+          ActivityType.SECURITY_LOGIN_FAILED,
+          'Authentication Failure',
+          `Authentication failed: ${error.message}`,
+          'medium',
+          'security',
+          {
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            endpoint: req.originalUrl,
+            errorType: 'auth_failure'
+          }
+        );
+        
         res.status(500).json({
           success: false,
           message: 'Authentication failed',
@@ -550,6 +597,32 @@ export class AuthMiddleware {
     if ((AuthMiddleware as any).rateLimitStore) {
       (AuthMiddleware as any).rateLimitStore.clear();
       AuthMiddleware.logger.info('Rate limit store cleared');
+    }
+  }
+
+  /**
+   * Helper method to log system activities
+   */
+  private static async logSystemActivity(
+    type: ActivityType,
+    title: string,
+    description: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    source: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await SystemActivityService.logSystemEvent(
+        type,
+        title,
+        description,
+        severity,
+        source,
+        metadata
+      );
+    } catch (logError) {
+      // Don't let logging errors break authentication
+      AuthMiddleware.logger.error('Failed to log system activity:', logError);
     }
   }
 }

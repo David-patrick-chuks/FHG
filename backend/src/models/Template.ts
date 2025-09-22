@@ -172,6 +172,29 @@ export class TemplateModel {
         type: String,
         ref: 'Template'
       },
+      isCloned: {
+        type: Boolean,
+        default: false
+      },
+      clonedFrom: {
+        type: String,
+        ref: 'Template'
+      },
+      clonedAt: {
+        type: Date
+      },
+      version: {
+        type: Number,
+        default: 1
+      },
+      lastUpdatedByOwner: {
+        type: Date,
+        default: Date.now
+      },
+      hasUpdates: {
+        type: Boolean,
+        default: false
+      },
       samples: [{
         _id: {
           type: String,
@@ -278,6 +301,44 @@ export class TemplateModel {
       };
     };
 
+    templateSchema.methods['cloneTemplate'] = async function(newUserId: string): Promise<ITemplateDocument> {
+      const clonedTemplate = new this.constructor({
+        ...this.toObject(),
+        _id: undefined,
+        userId: newUserId,
+        isCloned: true,
+        clonedFrom: this._id,
+        clonedAt: new Date(),
+        isPublic: false,
+        isApproved: false,
+        status: TemplateStatus.DRAFT,
+        usageCount: 0,
+        rating: { average: 0, count: 0 },
+        reviews: [],
+        featured: false,
+        featuredAt: undefined,
+        hasUpdates: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      return await clonedTemplate.save();
+    };
+
+    templateSchema.methods['markAsUpdated'] = async function(): Promise<void> {
+      this.version += 1;
+      this.lastUpdatedByOwner = new Date();
+      this.hasUpdates = true;
+      await this.save();
+    };
+
+    templateSchema.methods['markClonesAsUpdated'] = async function(): Promise<void> {
+      await this.constructor.updateMany(
+        { clonedFrom: this._id },
+        { hasUpdates: true }
+      );
+    };
+
     // Static methods
     templateSchema.statics['findByUserId'] = function(userId: string): Promise<ITemplateDocument[]> {
       return this.find({ userId }).sort({ createdAt: -1 });
@@ -319,6 +380,27 @@ export class TemplateModel {
         isApproved: true,
         status: TemplateStatus.APPROVED
       }).sort({ score: { $meta: 'textScore' } });
+    };
+
+    templateSchema.statics['findClonedTemplates'] = function(userId: string): Promise<ITemplateDocument[]> {
+      return this.find({ 
+        userId, 
+        isCloned: true 
+      }).sort({ createdAt: -1 });
+    };
+
+    templateSchema.statics['findTemplatesWithUpdates'] = function(userId: string): Promise<ITemplateDocument[]> {
+      return this.find({ 
+        userId, 
+        isCloned: true, 
+        hasUpdates: true 
+      }).sort({ lastUpdatedByOwner: -1 });
+    };
+
+    templateSchema.statics['getClonedCount'] = function(originalTemplateId: string): Promise<number> {
+      return this.countDocuments({ 
+        clonedFrom: originalTemplateId 
+      });
     };
 
     return mongoose.model<ITemplateDocument, ITemplateModel>('Template', templateSchema);

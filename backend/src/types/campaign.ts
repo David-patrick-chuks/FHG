@@ -25,6 +25,8 @@ export interface IGeneratedMessage {
   personalizationData?: Record<string, any>;
   isSent: boolean;
   sentAt?: Date;
+  isRead: boolean;
+  readAt?: Date;
   createdAt: Date;
 }
 

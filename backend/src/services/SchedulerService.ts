@@ -1,6 +1,8 @@
+import BotModel from '../models/Bot';
 import CampaignModel from '../models/Campaign';
 import { CampaignStatus } from '../types';
 import { Logger } from '../utils/Logger';
+import { BotService } from './BotService';
 import { CampaignService } from './CampaignService';
 
 export class SchedulerService {
@@ -23,12 +25,24 @@ export class SchedulerService {
     this.intervalId = setInterval(async () => {
       try {
         await this.processScheduledCampaigns();
+        
+        // Check and complete campaigns every 5 minutes
+        if (Date.now() % (5 * 60 * 1000) < 60000) {
+          await CampaignService.checkAndCompleteCampaigns();
+        }
+        
         // Clean up sent messages every hour (60 minutes)
         if (Date.now() % (60 * 60 * 1000) < 60000) {
           await CampaignService.cleanupSentMessages();
         }
+        
+        // Reset daily email counts at midnight (00:00)
+        const now = new Date();
+        if (now.getHours() === 0 && now.getMinutes() === 0) {
+          await this.resetDailyEmailCounts();
+        }
       } catch (error) {
-        this.logger.error('Error processing scheduled campaigns:', error);
+        this.logger.error('Error processing scheduled tasks:', error);
       }
     }, 60000); // Check every minute
 
@@ -134,6 +148,15 @@ export class SchedulerService {
     } catch (error) {
       this.logger.error('Error cancelling scheduled campaign:', error);
       return false;
+    }
+  }
+
+  private static async resetDailyEmailCounts(): Promise<void> {
+    try {
+      await BotService.resetAllDailyEmailCounts();
+      this.logger.info('Daily email counts reset for all bots');
+    } catch (error) {
+      this.logger.error('Error resetting daily email counts:', error);
     }
   }
 }

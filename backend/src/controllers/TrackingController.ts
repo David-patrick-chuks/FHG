@@ -7,6 +7,55 @@ export class TrackingController {
   private static logger: Logger = new Logger();
 
   /**
+   * Handle email delivery tracking
+   */
+  public static async trackEmailDelivery(req: Request, res: Response): Promise<void> {
+    try {
+      const { cid, tid } = req.query; // campaignId, transactionId (emailId)
+
+      TrackingController.logger.info('Email delivery tracking request', {
+        campaignId: cid,
+        emailId: tid,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      const result = await TrackingService.trackEmailDelivery(
+        cid as string,
+        tid as string
+      );
+
+      if (result.success) {
+        TrackingController.logger.info('Email delivery tracking successful', {
+          campaignId: cid,
+          emailId: tid,
+          wasAlreadyDelivered: result.data?.wasAlreadyDelivered
+        });
+      } else {
+        TrackingController.logger.warn('Email delivery tracking failed', {
+          campaignId: cid,
+          emailId: tid,
+          error: result.message
+        });
+      }
+
+      // Send a simple OK response for delivery tracking
+      res.status(200).json({
+        success: true,
+        message: 'Delivery tracking recorded',
+        timestamp: new Date()
+      });
+    } catch (error) {
+      TrackingController.logger.error('Error in email delivery tracking:', error);
+      res.status(200).json({
+        success: false,
+        message: 'Delivery tracking failed',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
    * Handle email open tracking
    */
   public static async trackEmailOpen(req: Request, res: Response): Promise<void> {

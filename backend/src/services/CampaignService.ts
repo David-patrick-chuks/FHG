@@ -2,9 +2,10 @@ import BotModel from '../models/Bot';
 import CampaignModel, { ICampaignDocument } from '../models/Campaign';
 import TemplateModel from '../models/Template';
 import UserModel from '../models/User';
-import { ApiResponse, CampaignStatus, CreateCampaignRequest } from '../types';
+import { ApiResponse, CampaignStatus, CreateCampaignRequest, ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 import { PaginationParams, PaginationResult, PaginationUtils } from '../utils/PaginationUtils';
+import { ActivityService } from './ActivityService';
 import { QueueService } from './QueueService';
 
 export class CampaignService {
@@ -34,7 +35,11 @@ export class CampaignService {
       startedAt: campaignObj.startedAt?.toISOString(),
       completedAt: campaignObj.completedAt?.toISOString(),
       createdAt: campaignObj.createdAt?.toISOString(),
-      updatedAt: campaignObj.updatedAt?.toISOString()
+      updatedAt: campaignObj.updatedAt?.toISOString(),
+      // Add statistics
+      progress: campaign.getProgress(),
+      readStats: campaign.getReadStats(),
+      sentStats: campaign.getSentStats()
     };
   }
 
@@ -233,6 +238,55 @@ export class CampaignService {
     } catch (error) {
       CampaignService.logger.error('Error retrieving campaigns:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Check and complete campaigns that have finished sending all emails
+   */
+  public static async checkAndCompleteCampaigns(): Promise<void> {
+    try {
+      // Find running campaigns where all emails have been sent
+      const runningCampaigns = await CampaignModel.find({
+        status: CampaignStatus.RUNNING
+      });
+
+      for (const campaign of runningCampaigns) {
+        try {
+          const sentCount = campaign.sentEmails.length;
+          const totalCount = campaign.emailList.length;
+          
+          if (sentCount >= totalCount && totalCount > 0) {
+            // All emails have been sent, mark campaign as completed
+            campaign.status = CampaignStatus.COMPLETED;
+            campaign.completedAt = new Date();
+            await campaign.save();
+
+            // Log campaign completion activity
+            await ActivityService.logCampaignActivity(
+              campaign.userId,
+              ActivityType.CAMPAIGN_COMPLETED,
+              campaign.name,
+              (campaign._id as any).toString(),
+              `Automatically completed - all ${totalCount} emails sent successfully`
+            );
+
+            CampaignService.logger.info('Campaign automatically completed', {
+              campaignId: campaign._id,
+              campaignName: campaign.name,
+              totalEmails: totalCount,
+              sentEmails: sentCount
+            });
+          }
+        } catch (error) {
+          CampaignService.logger.error('Error checking campaign completion', {
+            campaignId: campaign._id,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+    } catch (error) {
+      CampaignService.logger.error('Error during campaign completion check', error);
     }
   }
 
@@ -698,6 +752,24 @@ export class CampaignService {
         startTime
       );
 
+      // Log campaign started activity
+      await ActivityService.logCampaignActivity(
+        userId,
+        ActivityType.CAMPAIGN_STARTED,
+        campaign.name,
+        (campaign._id as any).toString(),
+        `Targeting ${campaign.emailList.length} recipients with ${campaign.emailInterval > 0 ? `${campaign.emailInterval} ${campaign.emailIntervalUnit} intervals` : 'no intervals'}`
+      );
+
+      // Log campaign started activity
+      await ActivityService.logCampaignActivity(
+        userId,
+        ActivityType.CAMPAIGN_STARTED,
+        campaign.name,
+        (campaign._id as any).toString(),
+        `Started with ${campaign.emailList.length} emails, interval: ${campaign.emailInterval} ${campaign.emailIntervalUnit}`
+      );
+
       CampaignService.logger.info('Campaign started successfully', {
         campaignId: campaign._id,
         userId,
@@ -853,6 +925,15 @@ export class CampaignService {
 
       // Complete campaign
       await campaign.completeCampaign();
+
+      // Log campaign completion activity
+      await ActivityService.logCampaignActivity(
+        userId,
+        ActivityType.CAMPAIGN_COMPLETED,
+        campaign.name,
+        (campaign._id as any).toString(),
+        `Campaign completed with ${campaign.emailList.length} total emails`
+      );
 
       CampaignService.logger.info('Campaign completed successfully', {
         campaignId: campaign._id,

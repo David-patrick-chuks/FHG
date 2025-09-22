@@ -61,6 +61,46 @@ export class AdminRoutes {
       AdminController.getSystemActivityStats
     );
 
+    // System activities
+    router.get('/system-activities', 
+      ValidationMiddleware.validatePagination,
+      ValidationMiddleware.validateDateRange,
+      AdminController.getSystemActivities
+    );
+
+    router.get('/system-activities/critical', 
+      AdminController.getCriticalSystemActivities
+    );
+
+    router.put('/system-activities/:activityId/resolve', 
+      AdminController.resolveSystemActivity
+    );
+
+    // Incident management
+    router.get('/incidents', 
+      AdminController.getAllIncidents
+    );
+
+    router.get('/incidents/active', 
+      AdminController.getActiveIncidents
+    );
+
+    router.get('/incidents/:incidentId', 
+      AdminController.getIncidentById
+    );
+
+    router.post('/incidents', 
+      AdminController.createIncident
+    );
+
+    router.put('/incidents/:incidentId', 
+      AdminController.updateIncident
+    );
+
+    router.put('/incidents/:incidentId/resolve', 
+      AdminController.resolveIncident
+    );
+
     // Admin actions
     router.get('/actions', 
       ValidationMiddleware.validatePagination,

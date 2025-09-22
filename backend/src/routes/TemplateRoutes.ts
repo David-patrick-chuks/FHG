@@ -16,6 +16,7 @@ export class TemplateRoutes {
     router.get('/community', TemplateController.getCommunityTemplates);
     router.get('/popular', TemplateController.getPopularTemplates);
     router.get('/counts', TemplateController.getTemplateCounts);
+    router.get('/stats', TemplateController.getTemplateStats);
     router.get('/:id', TemplateController.getTemplate);
     router.put('/:id', TemplateController.updateTemplate);
     router.delete('/:id', TemplateController.deleteTemplate);
@@ -23,6 +24,11 @@ export class TemplateRoutes {
     // Template usage and reviews
     router.post('/:id/use', TemplateController.useTemplate);
     router.post('/:id/review', TemplateController.reviewTemplate);
+
+    // Cloning and update management
+    router.get('/cloned', TemplateController.getClonedTemplates);
+    router.get('/updates', TemplateController.getTemplatesWithUpdates);
+    router.post('/:id/mark-update-read', TemplateController.markTemplateUpdateAsRead);
 
     // Admin-only routes
     router.get('/admin/pending-approvals', AdminMiddleware.requireAdmin, TemplateController.getPendingApprovals);

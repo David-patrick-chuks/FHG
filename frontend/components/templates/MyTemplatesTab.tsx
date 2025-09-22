@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
 import { format } from 'date-fns';
-import { Calendar, Copy, Edit, Eye, FileText, MoreVertical, Star, Tag, Trash2, Users } from 'lucide-react';
+import { BellRing, Calendar, Copy, Edit, Eye, FileText, MoreVertical, Star, Tag, Trash2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ interface MyTemplatesTabProps {
   error: string | null;
   onTemplateUpdated: (template: Template) => void;
   onTemplateDeleted: (templateId: string) => void;
+  onTemplateCreated: (template: Template) => void;
   onRefresh: () => void;
 }
 
@@ -30,6 +31,7 @@ export function MyTemplatesTab({
   error,
   onTemplateUpdated,
   onTemplateDeleted,
+  onTemplateCreated,
   onRefresh
 }: MyTemplatesTabProps) {
   const router = useRouter();
@@ -82,8 +84,13 @@ export function MyTemplatesTab({
       const response = await TemplatesAPI.createTemplate(duplicateData);
       
       if (response.success && response.data) {
-        toast.success('Template duplicated successfully!');
-        onRefresh(); // Refresh the templates list
+        // Add the duplicated template to the list without refreshing
+        onTemplateCreated(response.data);
+        
+        toast.success('Template duplicated successfully!', {
+          description: `"${duplicateData.name}" has been added to your templates.`,
+          duration: 4000,
+        });
       } else {
         toast.error(response.message || 'Failed to duplicate template');
       }
@@ -120,6 +127,7 @@ export function MyTemplatesTab({
           setDeleteDialogOpen(false);
           setTemplateToDelete(null);
           setDeleteSuccess(false);
+          setDeleting(false); // Reset deleting state
         }, 1500);
         
       } else {
@@ -129,6 +137,19 @@ export function MyTemplatesTab({
     } catch (error) {
       toast.error('Failed to delete template');
       setDeleting(false);
+    }
+  };
+
+  const handleMarkUpdateAsRead = async (templateId: string) => {
+    try {
+      const response = await TemplatesAPI.markTemplateUpdateAsRead(templateId);
+      if (response.success) {
+        // Update the template in local state to remove the update flag
+        onTemplateUpdated(response.data);
+        toast.success('Update notification marked as read');
+      }
+    } catch (error) {
+      toast.error('Failed to mark update as read');
     }
   };
 
@@ -259,6 +280,13 @@ export function MyTemplatesTab({
                           Featured
                         </Badge>
                       )}
+                      {template.hasUpdates && (
+                        <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-sm cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all"
+                               onClick={() => handleMarkUpdateAsRead(template._id)}>
+                          <BellRing className="w-3 h-3 mr-1" />
+                          Update Available
+                        </Badge>
+                      )}
                     </div>
                     <CardDescription className="line-clamp-2 text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                       {template.description}
@@ -289,6 +317,9 @@ export function MyTemplatesTab({
                       <DropdownMenuItem 
                         className="text-red-600"
                         onClick={() => {
+                          // Reset all modal states before opening
+                          setDeleteSuccess(false);
+                          setDeleting(false);
                           setTemplateToDelete(template);
                           setDeleteDialogOpen(true);
                         }}
@@ -303,7 +334,15 @@ export function MyTemplatesTab({
               <CardContent className="pt-0 space-y-4">
                 {/* Status and Category */}
                 <div className="flex items-center justify-between">
-                  {getStatusBadge(template.status)}
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(template.status)}
+                    {template.isCloned && (
+                      <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-sm">
+                        <Copy className="w-3 h-3 mr-1" />
+                        Cloned
+                      </Badge>
+                    )}
+                  </div>
                   <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-sm">
                     {getCategoryLabel(template.category)}
                   </Badge>
@@ -392,7 +431,18 @@ export function MyTemplatesTab({
       )}
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog 
+        open={deleteDialogOpen} 
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) {
+            // Reset all states when modal is closed
+            setDeleteSuccess(false);
+            setDeleting(false);
+            setTemplateToDelete(null);
+          }
+        }}
+      >
         <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">

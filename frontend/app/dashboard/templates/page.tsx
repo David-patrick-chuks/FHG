@@ -17,10 +17,10 @@ export default function TemplatesPage() {
   const [myTemplates, setMyTemplates] = useState<Template[]>([]);
   const [communityTemplates, setCommunityTemplates] = useState<Template[]>([]);
   const [popularTemplates, setPopularTemplates] = useState<Template[]>([]);
-  const [templateCounts, setTemplateCounts] = useState({
+  const [templateStats, setTemplateStats] = useState({
     myTemplates: 0,
     communityTemplates: 0,
-    totalUsage: 0
+    totalUserUsage: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +35,10 @@ export default function TemplatesPage() {
       setLoading(true);
       setError(null);
 
-      // Load template counts (optimized single API call)
-      const countsResponse = await TemplatesAPI.getTemplateCounts();
-      if (countsResponse.success && countsResponse.data) {
-        setTemplateCounts(countsResponse.data);
+      // Load template stats (optimized single API call)
+      const statsResponse = await TemplatesAPI.getTemplateStats();
+      if (statsResponse.success && statsResponse.data) {
+        setTemplateStats(statsResponse.data);
       }
 
       // Load my templates
@@ -60,8 +60,18 @@ export default function TemplatesPage() {
     }
   };
 
-  const handleTemplateCreated = (newTemplate: Template) => {
+  const handleTemplateCreated = async (newTemplate: Template) => {
     setMyTemplates(prev => [newTemplate, ...prev]);
+    
+    // Update stats to reflect the new template
+    try {
+      const statsResponse = await TemplatesAPI.getTemplateStats();
+      if (statsResponse.success && statsResponse.data) {
+        setTemplateStats(statsResponse.data);
+      }
+    } catch (err) {
+      console.error('Failed to refresh template stats:', err);
+    }
   };
 
   const handleTemplateUpdated = (updatedTemplate: Template) => {
@@ -81,19 +91,19 @@ export default function TemplatesPage() {
   };
 
   const handleTemplateAdded = async () => {
-    // Refresh my templates and counts when a template is added from community
+    // Refresh my templates and stats when a template is added from community
     try {
-      const [myTemplatesResponse, countsResponse] = await Promise.all([
+      const [myTemplatesResponse, statsResponse] = await Promise.all([
         TemplatesAPI.getMyTemplates(),
-        TemplatesAPI.getTemplateCounts()
+        TemplatesAPI.getTemplateStats()
       ]);
       
       if (myTemplatesResponse.success && myTemplatesResponse.data) {
         setMyTemplates(myTemplatesResponse.data);
       }
       
-      if (countsResponse.success && countsResponse.data) {
-        setTemplateCounts(countsResponse.data);
+      if (statsResponse.success && statsResponse.data) {
+        setTemplateStats(statsResponse.data);
       }
     } catch (err) {
       console.error('Failed to refresh my templates:', err);
@@ -121,7 +131,7 @@ export default function TemplatesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">My Templates</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateCounts.myTemplates}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateStats.myTemplates}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -133,7 +143,7 @@ export default function TemplatesPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Community Templates</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateCounts.communityTemplates}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateStats.communityTemplates}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -144,8 +154,8 @@ export default function TemplatesPage() {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Usage</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateCounts.totalUsage}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Templates Used</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{templateStats.totalUserUsage}</p>
               </div>
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <Star className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -177,6 +187,7 @@ export default function TemplatesPage() {
                 error={error}
                 onTemplateUpdated={handleTemplateUpdated}
                 onTemplateDeleted={handleTemplateDeleted}
+                onTemplateCreated={handleTemplateCreated}
                 onRefresh={loadInitialData}
               />
             </TabsContent>

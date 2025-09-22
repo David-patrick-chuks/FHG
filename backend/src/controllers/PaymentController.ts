@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
-import { PaystackService } from '../services/PaystackService';
 import { PaymentCleanupService } from '../services/PaymentCleanupService';
+import { PaystackService } from '../services/PaystackService';
 import { ValidationService } from '../services/ValidationService';
 import { InitializePaymentRequest, VerifyPaymentRequest } from '../types';
 import { Logger } from '../utils/Logger';
@@ -766,6 +766,76 @@ export class PaymentController {
       }
     } catch (error: any) {
       PaymentController.logger.error('Error in cleanupPaymentByReference controller:', {
+        message: error?.message || 'Unknown error',
+        stack: error?.stack,
+        name: error?.name
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * Export payments to CSV (Admin only)
+   */
+  public static async exportPayments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const isAdmin = (req as any).user['isAdmin'];
+      
+      if (!isAdmin) {
+        res.status(403).json({
+          success: false,
+          message: 'Admin access required',
+          timestamp: new Date()
+        });
+        return;
+      }
+      
+      // Extract query parameters
+      const {
+        status,
+        subscriptionTier,
+        billingCycle,
+        search,
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        format = 'csv'
+      } = req.query;
+
+      const options = {
+        status: status as string,
+        subscriptionTier: subscriptionTier as string,
+        billingCycle: billingCycle as string,
+        search: search as string,
+        sortBy: sortBy as string,
+        sortOrder: sortOrder as 'asc' | 'desc',
+        format: format as 'csv' | 'excel'
+      };
+
+      const result = await PaystackService.exportPayments(options);
+
+      if (result.success && result.data) {
+        // Set headers for file download
+        const timestamp = new Date().toISOString().split('T')[0];
+        const filename = `payments-export-${timestamp}.csv`;
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Length', result.data.length);
+        
+        res.status(200).send(result.data);
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to export payments',
+          timestamp: new Date()
+        });
+      }
+    } catch (error: any) {
+      PaymentController.logger.error('Error in exportPayments controller:', {
         message: error?.message || 'Unknown error',
         stack: error?.stack,
         name: error?.name

@@ -7,12 +7,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminActivityStats, AdminAPI, PlatformStats, SubscriptionStats, SystemActivityStats } from '@/lib/api/admin';
 import {
     Activity,
+    BarChart3,
     Bot,
+    CreditCard,
     Crown,
     DollarSign,
     FileText,
     Loader2,
     Mail,
+    PieChart,
     RefreshCw,
     Shield,
     Users,
@@ -45,7 +48,7 @@ export default function AdminDashboardPage() {
       const [platformResponse, subscriptionResponse, adminActivityResponse, systemActivityResponse] = await Promise.all([
         AdminAPI.getPlatformStats(),
         AdminAPI.getSubscriptionStats(),
-        AdminAPI.getAdminActivityStats(),
+        AdminAPI.getGeneralAdminActivityStats(),
         AdminAPI.getSystemActivityStats()
       ]);
 
@@ -206,16 +209,16 @@ export default function AdminDashboardPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Emails Sent</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Subscriptions</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatNumber(platformStats.totalEmailsSent)}
+                      {formatNumber(platformStats.totalSubscriptions)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatNumber(platformStats.emailsSentToday)} today
+                      {formatNumber(platformStats.activeSubscriptions)} active
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-                    <Mail className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    <CreditCard className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>
               </CardContent>
@@ -223,7 +226,8 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {subscriptionStats && (
+        {/* Revenue Statistics */}
+        {platformStats && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-6">
@@ -231,10 +235,10 @@ export default function AdminDashboardPage() {
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(subscriptionStats.revenue.total)}
+                      {formatCurrency(platformStats.revenueStats.totalRevenue)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatCurrency(subscriptionStats.revenue.monthly)} monthly
+                      {formatNumber(platformStats.revenueStats.subscriptionCount)} subscriptions
                     </p>
                   </div>
                   <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
@@ -248,39 +252,16 @@ export default function AdminDashboardPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Free Users</p>
-                    <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                      {formatNumber(subscriptionStats.freeUsers)}
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {formatCurrency(platformStats.revenueStats.averageRevenue)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {subscriptionStats.totalSubscriptions > 0 
-                        ? Math.round((subscriptionStats.freeUsers / subscriptionStats.totalSubscriptions) * 100)
-                        : 0}% of total
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gray-100 dark:bg-gray-900/20 rounded-lg">
-                    <Users className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pro Users</p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {formatNumber(subscriptionStats.proUsers)}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {subscriptionStats.totalSubscriptions > 0 
-                        ? Math.round((subscriptionStats.proUsers / subscriptionStats.totalSubscriptions) * 100)
-                        : 0}% of total
+                      per subscription
                     </p>
                   </div>
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                    <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>
@@ -290,14 +271,31 @@ export default function AdminDashboardPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Enterprise Users</p>
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                      {formatNumber(subscriptionStats.enterpriseUsers)}
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Basic Tier Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {formatCurrency(platformStats.revenueStats.revenueByTier.basic)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {subscriptionStats.totalSubscriptions > 0 
-                        ? Math.round((subscriptionStats.enterpriseUsers / subscriptionStats.totalSubscriptions) * 100)
-                        : 0}% of total
+                      Basic subscriptions
+                    </p>
+                  </div>
+                  <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                    <Zap className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Premium Tier Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {formatCurrency(platformStats.revenueStats.revenueByTier.premium)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Premium subscriptions
                     </p>
                   </div>
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
@@ -307,6 +305,89 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Revenue Breakdown Chart */}
+        {platformStats && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PieChart className="w-5 h-5" />
+                Revenue Breakdown by Tier
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                    <span className="font-medium text-gray-900 dark:text-white">Free</span>
+                  </div>
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">
+                    {formatCurrency(platformStats.revenueStats.revenueByTier.free)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                    <span className="font-medium text-gray-900 dark:text-white">Basic</span>
+                  </div>
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">
+                    {formatCurrency(platformStats.revenueStats.revenueByTier.basic)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                    <span className="font-medium text-gray-900 dark:text-white">Premium</span>
+                  </div>
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">
+                    {formatCurrency(platformStats.revenueStats.revenueByTier.premium)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* System Activity Statistics */}
+        {systemActivityStats && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                System Activity (Last 7 Days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {formatNumber(systemActivityStats.totalActions)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Actions</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {formatNumber(systemActivityStats.uniqueAdmins)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Admins</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {formatNumber(systemActivityStats.averageActionsPerDay)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Avg Actions/Day</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {Object.keys(systemActivityStats.actionsByType).length}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Action Types</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Quick Actions */}
@@ -368,43 +449,98 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        {adminActivityStats && adminActivityStats.recentActions.length > 0 && (
+        {/* Admin Activity Statistics */}
+        {adminActivityStats && (
           <Card>
             <CardHeader>
-              <CardTitle>Recent Admin Actions</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Admin Activity Overview
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {adminActivityStats.recentActions.slice(0, 5).map((action) => (
-                  <div
-                    key={action._id}
-                    className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                        <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {action.action.replace(/_/g, ' ').toLowerCase()}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {action.targetType}: {action.targetId}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(action.createdAt)}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {action.adminId}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {formatNumber(adminActivityStats.totalActions)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Actions</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {Object.keys(adminActivityStats.actionsByType).length}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Action Types</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {Object.keys(adminActivityStats.actionsByAdmin).length}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Admins</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {formatNumber(adminActivityStats.recentActions.length)}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Recent Actions</p>
+                </div>
               </div>
+
+              {/* Action Types Breakdown */}
+              {Object.keys(adminActivityStats.actionsByType).length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Actions by Type</h4>
+                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                    {Object.entries(adminActivityStats.actionsByType).map(([actionType, count]) => (
+                      <div key={actionType} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {actionType.replace(/_/g, ' ').toLowerCase()}
+                        </span>
+                        <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                          {formatNumber(count)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent Actions */}
+              {adminActivityStats.recentActions.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Recent Actions</h4>
+                  <div className="space-y-3">
+                    {adminActivityStats.recentActions.slice(0, 5).map((action) => (
+                      <div
+                        key={action._id}
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                            <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {action.action.replace(/_/g, ' ').toLowerCase()}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {action.targetType}: {action.targetId}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {formatDate(action.createdAt)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {action.adminId}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

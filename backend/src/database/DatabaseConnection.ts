@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import mongoose, { Connection, ConnectOptions } from 'mongoose';
 import { Logger } from '../utils/Logger';
+import { SystemActivityService } from '../services/SystemActivityService';
+import { ActivityType } from '../types';
 dotenv.config();
 
 export class DatabaseConnection {
@@ -115,22 +117,71 @@ export class DatabaseConnection {
 
     this.connection.on('connected', () => {
       this.logger.info('MongoDB connected successfully');
+      // Log successful database connection
+      this.logSystemActivity(
+        ActivityType.SYSTEM_MAINTENANCE,
+        'Database Connected',
+        'MongoDB database connection established successfully',
+        'low',
+        'database',
+        { connectionState: 'connected' }
+      );
     });
 
     this.connection.on('error', (error: Error) => {
       this.logger.error('MongoDB connection error:', error);
+      // Log database connection errors
+      this.logSystemActivity(
+        ActivityType.SYSTEM_ERROR,
+        'Database Connection Error',
+        `MongoDB connection error: ${error.message}`,
+        'high',
+        'database',
+        { 
+          errorName: error.name,
+          errorMessage: error.message,
+          connectionState: 'error'
+        }
+      );
     });
 
     this.connection.on('disconnected', () => {
       this.logger.warn('MongoDB disconnected');
+      // Log database disconnection
+      this.logSystemActivity(
+        ActivityType.SYSTEM_ERROR,
+        'Database Disconnected',
+        'MongoDB database connection lost',
+        'high',
+        'database',
+        { connectionState: 'disconnected' }
+      );
     });
 
     this.connection.on('reconnected', () => {
       this.logger.info('MongoDB reconnected');
+      // Log database reconnection
+      this.logSystemActivity(
+        ActivityType.SYSTEM_MAINTENANCE,
+        'Database Reconnected',
+        'MongoDB database connection restored',
+        'medium',
+        'database',
+        { connectionState: 'reconnected' }
+      );
     });
 
     this.connection.on('close', () => {
       this.logger.info('MongoDB connection closed');
+      // Log database connection closure
+      this.logSystemActivity(
+        ActivityType.SYSTEM_MAINTENANCE,
+        'Database Connection Closed',
+        'MongoDB database connection closed',
+        'low',
+        'database',
+        { connectionState: 'closed' }
+      );
     });
   }
 
@@ -263,6 +314,32 @@ export class DatabaseConnection {
     } catch (error) {
       this.logger.error('Failed to get database stats:', (error as Error).message);
       return null;
+    }
+  }
+
+  /**
+   * Helper method to log system activities
+   */
+  private async logSystemActivity(
+    type: ActivityType,
+    title: string,
+    description: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    source: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await SystemActivityService.logSystemEvent(
+        type,
+        title,
+        description,
+        severity,
+        source,
+        metadata
+      );
+    } catch (logError) {
+      // Don't let logging errors break database operations
+      this.logger.error('Failed to log system activity:', logError);
     }
   }
 }

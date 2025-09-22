@@ -1,9 +1,10 @@
 import AdminActionModel, { IAdminActionDocument } from '../models/AdminAction';
 import BotModel from '../models/Bot';
 import CampaignModel from '../models/Campaign';
+import PaymentModel from '../models/Payment';
 import SubscriptionModel from '../models/Subscription';
 import UserModel from '../models/User';
-import { ApiResponse, SubscriptionStatus, SubscriptionTier } from '../types';
+import { ApiResponse, SubscriptionStatus, SubscriptionTier, PaymentStatus } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class AdminService {
@@ -36,7 +37,26 @@ export class AdminService {
     }
   }
 
-  public static async getAllUsers(): Promise<ApiResponse<any[]>> {
+  public static async getAllUsers(): Promise<ApiResponse<{
+    users: any[];
+    stats: {
+      totalUsers: number;
+      activeUsers: number;
+      inactiveUsers: number;
+      adminUsers: number;
+      usersBySubscription: {
+        free: number;
+        basic: number;
+        premium: number;
+      };
+      usersByStatus: {
+        active: number;
+        inactive: number;
+      };
+      recentUsers: number;
+      usersWithApiKeys: number;
+    };
+  }>> {
     try {
       const users = await UserModel.find({}).select('-password');
       
@@ -45,11 +65,54 @@ export class AdminService {
         ...user.toObject(),
         _id: (user._id as any).toString()
       }));
+
+      // Calculate user statistics
+      const totalUsers = users.length;
+      const activeUsers = users.filter(user => user.isActive).length;
+      const inactiveUsers = totalUsers - activeUsers;
+      const adminUsers = users.filter(user => user.isAdmin).length;
+      
+      // Users by subscription tier
+      const usersBySubscription = {
+        free: users.filter(user => user.subscription === 'free').length,
+        basic: users.filter(user => user.subscription === 'basic').length,
+        premium: users.filter(user => user.subscription === 'premium').length
+      };
+
+      // Users by status
+      const usersByStatus = {
+        active: activeUsers,
+        inactive: inactiveUsers
+      };
+
+      // Recent users (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentUsers = users.filter(user => 
+        user.createdAt && new Date(user.createdAt) >= sevenDaysAgo
+      ).length;
+
+      // Users with API keys
+      const usersWithApiKeys = users.filter(user => user.apiKeyCreatedAt).length;
+
+      const stats = {
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        adminUsers,
+        usersBySubscription,
+        usersByStatus,
+        recentUsers,
+        usersWithApiKeys
+      };
       
       return {
         success: true,
         message: 'Users retrieved successfully',
-        data: serializedUsers,
+        data: {
+          users: serializedUsers,
+          stats
+        },
         timestamp: new Date()
       };
     } catch (error) {
@@ -380,15 +443,46 @@ export class AdminService {
         BotModel.countDocuments({ isActive: true }),
         CampaignModel.countDocuments(),
         CampaignModel.countDocuments({ status: { $in: ['RUNNING', 'PAUSED'] } }),
-        SubscriptionModel.countDocuments(),
-        SubscriptionModel.countDocuments({ status: SubscriptionStatus.ACTIVE, isActive: true })
+        PaymentModel.countDocuments({ status: PaymentStatus.COMPLETED }),
+        PaymentModel.countDocuments({ status: PaymentStatus.COMPLETED })
       ]);
 
-      // Get revenue stats for last 30 days
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
-      const revenueStats = await SubscriptionModel.getRevenueStats(startDate, endDate);
+      // Get revenue stats from payments
+      const paymentStats = await PaymentModel.getPaymentStats();
+      
+      // Get revenue breakdown by subscription tier from payments
+      const revenueByTier = await PaymentModel.aggregate([
+        {
+          $match: { status: PaymentStatus.COMPLETED }
+        },
+        {
+          $group: {
+            _id: '$subscriptionTier',
+            total: { $sum: '$amount' }
+          }
+        }
+      ]);
+
+      // Format revenue by tier
+      const revenueByTierFormatted = {
+        free: 0,
+        basic: 0,
+        premium: 0
+      };
+
+      revenueByTier.forEach((item: any) => {
+        const tier = item._id?.toLowerCase();
+        if (tier && revenueByTierFormatted.hasOwnProperty(tier)) {
+          revenueByTierFormatted[tier] = item.total;
+        }
+      });
+
+      const revenueStats = {
+        totalRevenue: paymentStats.totalAmount,
+        subscriptionCount: paymentStats.successfulPayments,
+        averageRevenue: paymentStats.successfulPayments > 0 ? paymentStats.totalAmount / paymentStats.successfulPayments : 0,
+        revenueByTier: revenueByTierFormatted
+      };
 
       const stats = {
         totalUsers,

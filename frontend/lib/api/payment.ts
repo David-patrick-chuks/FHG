@@ -191,4 +191,59 @@ export class PaymentAPI {
       throw error;
     }
   }
+
+  /**
+   * Export payments to CSV (Admin only)
+   */
+  static async exportPayments(filters?: PaymentHistoryFilters): Promise<void> {
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, value.toString());
+          }
+        });
+      }
+      
+      const queryString = params.toString();
+      const url = queryString ? `${config.api.baseUrl}${this.baseUrl}/admin/export?${queryString}` : `${config.api.baseUrl}${this.baseUrl}/admin/export`;
+      
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Get filename from Content-Disposition header or use default
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'payments-export.csv';
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+        
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error('Failed to export payments');
+      }
+    } catch (error) {
+      console.error('Error exporting payments:', error);
+      throw error;
+    }
+  }
 }

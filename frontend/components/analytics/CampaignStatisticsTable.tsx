@@ -19,7 +19,7 @@ export function CampaignStatisticsTable({ campaignStats }: CampaignStatisticsTab
       </CardHeader>
       <CardContent>
         {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto table-scrollbar">
           <table className="w-full">
             <thead>
               <tr className="border-b">

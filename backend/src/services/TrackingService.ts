@@ -6,6 +6,67 @@ export class TrackingService {
   private static logger: Logger = new Logger();
 
   /**
+   * Track email delivery event
+   */
+  public static async trackEmailDelivery(campaignId: string, emailId: string): Promise<{
+    success: boolean;
+    message: string;
+    data?: { recipientEmail: string; wasAlreadyDelivered: boolean };
+  }> {
+    try {
+      if (!campaignId || !emailId) {
+        return {
+          success: false,
+          message: 'Campaign ID and Email ID are required'
+        };
+      }
+
+      // Find the sent email record
+      const sentEmail = await SentEmailModel.findOne({
+        campaignId,
+        _id: emailId
+      });
+
+      if (!sentEmail) {
+        TrackingService.logger.warn('Sent email not found for delivery tracking', { campaignId, emailId });
+        return {
+          success: false,
+          message: 'Email record not found'
+        };
+      }
+
+      const wasAlreadyDelivered = sentEmail.status === EmailStatus.DELIVERED || 
+                                 sentEmail.status === EmailStatus.OPENED || 
+                                 sentEmail.status === EmailStatus.REPLIED;
+
+      // Mark email as delivered if it hasn't been delivered yet
+      if (sentEmail.status === EmailStatus.SENT) {
+        await sentEmail.markAsDelivered();
+        TrackingService.logger.info('Email marked as delivered', {
+          campaignId,
+          emailId,
+          recipientEmail: sentEmail.recipientEmail
+        });
+      }
+
+      return {
+        success: true,
+        message: 'Email delivery tracking updated successfully',
+        data: {
+          recipientEmail: sentEmail.recipientEmail,
+          wasAlreadyDelivered
+        }
+      };
+    } catch (error) {
+      TrackingService.logger.error('Error tracking email delivery:', error);
+      return {
+        success: false,
+        message: 'Failed to track email delivery'
+      };
+    }
+  }
+
+  /**
    * Track email open event
    */
   public static async trackEmailOpen(campaignId: string, emailId: string): Promise<{
@@ -45,6 +106,25 @@ export class TrackingService {
           emailId,
           recipientEmail: sentEmail.recipientEmail
         });
+
+        // Also update the campaign's generated message as read
+        try {
+          const CampaignModel = await import('../models/Campaign');
+          const campaign = await CampaignModel.default.findById(campaignId);
+          if (campaign) {
+            await campaign.markMessageAsRead(sentEmail.recipientEmail);
+            TrackingService.logger.info('Campaign message marked as read', {
+              campaignId,
+              recipientEmail: sentEmail.recipientEmail
+            });
+          }
+        } catch (error) {
+          TrackingService.logger.warn('Failed to update campaign message as read', {
+            campaignId,
+            recipientEmail: sentEmail.recipientEmail,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
       }
 
       return {

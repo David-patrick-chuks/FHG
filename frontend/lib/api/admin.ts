@@ -23,11 +23,18 @@ export interface PlatformStats {
   activeBots: number;
   totalCampaigns: number;
   activeCampaigns: number;
-  totalEmailsSent: number;
-  emailsSentToday: number;
-  newUsersToday: number;
-  newUsersThisWeek: number;
-  newUsersThisMonth: number;
+  totalSubscriptions: number;
+  activeSubscriptions: number;
+  revenueStats: {
+    totalRevenue: number;
+    subscriptionCount: number;
+    averageRevenue: number;
+    revenueByTier: {
+      free: number;
+      basic: number;
+      premium: number;
+    };
+  };
 }
 
 export interface SubscriptionStats {
@@ -50,7 +57,7 @@ export interface AdminActivityStats {
   totalActions: number;
   actionsByType: Record<string, number>;
   actionsByAdmin: Record<string, number>;
-  recentActions: Array<{
+  recentActions?: Array<{
     _id: string;
     adminId: string;
     action: string;
@@ -58,17 +65,70 @@ export interface AdminActivityStats {
     targetId: string;
     details: any;
     ipAddress: string;
-    userAgent: string;
+    userAgent?: string;
     createdAt: string;
   }>;
 }
 
 export interface SystemActivityStats {
-  totalActions: number;
-  uniqueAdmins: number;
-  actionsByType: Record<string, number>;
-  actionsByTarget: Record<string, number>;
-  averageActionsPerDay: number;
+  totalActivities: number;
+  activitiesByType: Record<string, number>;
+  activitiesBySeverity: Record<string, number>;
+  activitiesByCategory: Record<string, number>;
+  resolvedCount: number;
+  unresolvedCount: number;
+  averageResolutionTime: number;
+}
+
+export interface SystemActivity {
+  _id: string;
+  type: string;
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  category: 'error' | 'maintenance' | 'backup' | 'security' | 'performance' | 'other';
+  source: string;
+  metadata: Record<string, any>;
+  resolved: boolean;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  timestamp: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Incident {
+  _id: string;
+  title: string;
+  description: string;
+  impact: 'minor' | 'major' | 'critical';
+  affectedServices: string[];
+  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+  updates: IncidentUpdate[];
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+}
+
+export interface IncidentUpdate {
+  timestamp: string;
+  message: string;
+  status: string;
+  author?: string;
+}
+
+export interface CreateIncidentData {
+  title: string;
+  description: string;
+  impact: 'minor' | 'major' | 'critical';
+  affectedServices: string[];
+  initialMessage?: string;
+}
+
+export interface UpdateIncidentData {
+  message: string;
+  status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+  author?: string;
 }
 
 export interface UpdateSubscriptionRequest {
@@ -90,7 +150,24 @@ export class AdminAPI {
    */
   static async getAllUsers(page: number = 1, limit: number = 20): Promise<ApiResponse<AdminUser[] | {
     users: AdminUser[];
-    pagination: {
+    stats: {
+      totalUsers: number;
+      activeUsers: number;
+      inactiveUsers: number;
+      adminUsers: number;
+      usersBySubscription: {
+        free: number;
+        basic: number;
+        premium: number;
+      };
+      usersByStatus: {
+        active: number;
+        inactive: number;
+      };
+      recentUsers: number;
+      usersWithApiKeys: number;
+    };
+    pagination?: {
       page: number;
       limit: number;
       total: number;
@@ -99,7 +176,24 @@ export class AdminAPI {
   }>> {
     return apiClient.get<AdminUser[] | {
       users: AdminUser[];
-      pagination: {
+      stats: {
+        totalUsers: number;
+        activeUsers: number;
+        inactiveUsers: number;
+        adminUsers: number;
+        usersBySubscription: {
+          free: number;
+          basic: number;
+          premium: number;
+        };
+        usersByStatus: {
+          active: number;
+          inactive: number;
+        };
+        recentUsers: number;
+        usersWithApiKeys: number;
+      };
+      pagination?: {
         page: number;
         limit: number;
         total: number;
@@ -216,6 +310,88 @@ export class AdminAPI {
    */
   static async getSystemActivityStats(days: number = 7): Promise<ApiResponse<SystemActivityStats>> {
     return apiClient.get<SystemActivityStats>(`${this.baseUrl}/stats/system-activity?days=${days}`);
+  }
+
+  /**
+   * Get system activities with filtering
+   */
+  static async getSystemActivities(params?: {
+    limit?: number;
+    skip?: number;
+    days?: number;
+    type?: string;
+    severity?: string;
+    category?: string;
+    resolved?: boolean;
+  }): Promise<ApiResponse<SystemActivity[]>> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.skip) queryParams.append('skip', params.skip.toString());
+    if (params?.days) queryParams.append('days', params.days.toString());
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.severity) queryParams.append('severity', params.severity);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.resolved !== undefined) queryParams.append('resolved', params.resolved.toString());
+    
+    const query = queryParams.toString();
+    return apiClient.get<SystemActivity[]>(`${this.baseUrl}/system-activities${query ? `?${query}` : ''}`);
+  }
+
+  /**
+   * Get critical system activities
+   */
+  static async getCriticalSystemActivities(hours: number = 24): Promise<ApiResponse<SystemActivity[]>> {
+    return apiClient.get<SystemActivity[]>(`${this.baseUrl}/system-activities/critical?hours=${hours}`);
+  }
+
+  /**
+   * Resolve a system activity
+   */
+  static async resolveSystemActivity(activityId: string): Promise<ApiResponse<SystemActivity>> {
+    return apiClient.put<SystemActivity>(`${this.baseUrl}/system-activities/${activityId}/resolve`);
+  }
+
+  /**
+   * Get all incidents
+   */
+  static async getAllIncidents(): Promise<ApiResponse<Incident[]>> {
+    return apiClient.get<Incident[]>(`${this.baseUrl}/incidents`);
+  }
+
+  /**
+   * Get active incidents
+   */
+  static async getActiveIncidents(): Promise<ApiResponse<Incident[]>> {
+    return apiClient.get<Incident[]>(`${this.baseUrl}/incidents/active`);
+  }
+
+  /**
+   * Get incident by ID
+   */
+  static async getIncidentById(incidentId: string): Promise<ApiResponse<Incident>> {
+    return apiClient.get<Incident>(`${this.baseUrl}/incidents/${incidentId}`);
+  }
+
+  /**
+   * Create new incident
+   */
+  static async createIncident(incidentData: CreateIncidentData): Promise<ApiResponse<Incident>> {
+    return apiClient.post<Incident>(`${this.baseUrl}/incidents`, incidentData);
+  }
+
+  /**
+   * Update incident
+   */
+  static async updateIncident(incidentId: string, updateData: UpdateIncidentData): Promise<ApiResponse<Incident>> {
+    return apiClient.put<Incident>(`${this.baseUrl}/incidents/${incidentId}`, updateData);
+  }
+
+  /**
+   * Resolve incident
+   */
+  static async resolveIncident(incidentId: string): Promise<ApiResponse<Incident>> {
+    return apiClient.put<Incident>(`${this.baseUrl}/incidents/${incidentId}/resolve`);
   }
 
   /**

@@ -294,6 +294,15 @@ export class TemplateService {
         };
       }
 
+      // Check if this is a cloned template
+      if (template.isCloned) {
+        return {
+          success: false,
+          message: 'Cannot update cloned templates. Please edit your own version.',
+          timestamp: new Date()
+        };
+      }
+
       // Validate samples if provided
       if (updateData.samples) {
         if (updateData.samples.length < 10) {
@@ -318,6 +327,17 @@ export class TemplateService {
       // If making public, set status to pending approval
       if (updateData.isPublic && !template.isPublic) {
         template.status = TemplateStatus.PENDING_APPROVAL;
+      }
+
+      // If this is a public template being updated, mark it as updated and notify clones
+      if (template.isPublic && template.isApproved) {
+        await template.markAsUpdated();
+        await template.markClonesAsUpdated();
+        TemplateService.logger.info('Public template updated, clones marked for update notification', {
+          templateId: template._id,
+          userId,
+          templateName: template.name
+        });
       }
 
       await template.save();
@@ -361,10 +381,11 @@ export class TemplateService {
       }
 
       // Check if template can be deleted
-      if (template.status === TemplateStatus.APPROVED && template.isPublic && template.usageCount > 0) {
+      // Allow deletion of public templates since clones will remain independent
+      if (template.status === TemplateStatus.PENDING_APPROVAL) {
         return {
           success: false,
-          message: 'Cannot delete approved public template with usage',
+          message: 'Cannot delete template that is pending approval',
           timestamp: new Date()
         };
       }
@@ -725,28 +746,28 @@ export class TemplateService {
         };
       }
 
-      // Check if user already has this template
-      TemplateService.logger.info('Checking for existing user template', { templateId, userId });
-      const existingTemplate = await TemplateModel.findOne({
+      // Check if user already has a cloned version of this template
+      TemplateService.logger.info('Checking for existing cloned template', { templateId, userId });
+      const existingClonedTemplate = await TemplateModel.findOne({
         userId,
-        originalTemplateId: templateId
+        clonedFrom: templateId
       });
 
-      if (existingTemplate) {
-        TemplateService.logger.info('User already has this template', { 
+      if (existingClonedTemplate) {
+        TemplateService.logger.info('User already has a cloned version of this template', { 
           templateId, 
           userId, 
-          existingTemplateId: existingTemplate._id 
+          existingClonedTemplateId: existingClonedTemplate._id 
         });
         return {
           success: false,
-          message: 'You already have this template in your collection',
+          message: 'You already have a copy of this template in your collection',
           timestamp: new Date()
         };
       }
 
-      // Create a copy of the template for the user
-      TemplateService.logger.info('Creating user template copy', { 
+      // Clone the template for the user
+      TemplateService.logger.info('Cloning template for user', { 
         templateId, 
         userId, 
         templateName: template.name,
@@ -754,31 +775,14 @@ export class TemplateService {
         variableCount: template.variables?.length || 0
       });
 
-      let userTemplate;
+      let clonedTemplate;
       try {
-        userTemplate = new TemplateModel({
-          userId,
-          name: template.name,
-          description: template.description,
-          category: template.category,
-          industry: template.industry,
-          targetAudience: template.targetAudience,
-          useCase: template.useCase, // Required field
-          isPublic: false, // User's copy is private by default
-          isApproved: true, // User's copy is auto-approved
-          status: TemplateStatus.APPROVED,
-          samples: template.samples || [],
-          variables: template.variables || [],
-          tags: template.tags || [],
-          originalTemplateId: templateId, // Reference to the original template
-          usageCount: 0 // Reset usage count for user's copy
-        });
-
-        await userTemplate.save();
-        TemplateService.logger.info('User template saved successfully', { 
+        // Use the new cloneTemplate method
+        clonedTemplate = await template.cloneTemplate(userId);
+        TemplateService.logger.info('Template cloned successfully', { 
           templateId, 
           userId, 
-          userTemplateId: userTemplate._id 
+          clonedTemplateId: clonedTemplate._id 
         });
 
         // Increment usage count of the original template
@@ -816,8 +820,8 @@ export class TemplateService {
 
       return {
         success: true,
-        message: 'Template added to your collection successfully',
-        data: TemplateService.serializeTemplate(userTemplate),
+        message: 'Template cloned to your collection successfully',
+        data: TemplateService.serializeTemplate(clonedTemplate),
         timestamp: new Date()
       };
     } catch (error) {
@@ -864,13 +868,14 @@ export class TemplateService {
     totalUsage: number;
   }>> {
     try {
-      // Get user's templates count
+      // Get user's templates count (including cloned templates)
       const myTemplatesCount = await TemplateModel.countDocuments({ userId });
       
       // Get community templates count (published templates)
       const communityTemplatesCount = await TemplateModel.countDocuments({ 
         isPublic: true, 
-        status: 'published' 
+        isApproved: true,
+        status: 'approved' 
       });
       
       // Get total usage count for user's templates
@@ -889,6 +894,107 @@ export class TemplateService {
       };
     } catch (error) {
       TemplateService.logger.error('Error retrieving template counts:', error);
+      throw error;
+    }
+  }
+
+  public static async getTemplateStats(userId: string): Promise<ApiResponse<{
+    myTemplates: number;
+    communityTemplates: number;
+    totalUserUsage: number;
+  }>> {
+    try {
+      // Get user's templates count (including cloned templates)
+      const myTemplatesCount = await TemplateModel.countDocuments({ userId });
+      
+      // Get community templates count (published templates)
+      const communityTemplatesCount = await TemplateModel.countDocuments({ 
+        isPublic: true, 
+        isApproved: true,
+        status: 'approved' 
+      });
+      
+      // Get total times user has used/cloned templates
+      const clonedTemplatesCount = await TemplateModel.countDocuments({ 
+        userId, 
+        isCloned: true 
+      });
+      
+      return {
+        success: true,
+        message: 'Template stats retrieved successfully',
+        data: {
+          myTemplates: myTemplatesCount,
+          communityTemplates: communityTemplatesCount,
+          totalUserUsage: clonedTemplatesCount
+        },
+        timestamp: new Date()
+      };
+    } catch (error) {
+      TemplateService.logger.error('Error retrieving template stats:', error);
+      throw error;
+    }
+  }
+
+  public static async getClonedTemplates(userId: string): Promise<ApiResponse<any[]>> {
+    try {
+      const clonedTemplates = await TemplateModel.findClonedTemplates(userId);
+      
+      return {
+        success: true,
+        message: 'Cloned templates retrieved successfully',
+        data: clonedTemplates.map(template => TemplateService.serializeTemplate(template)),
+        timestamp: new Date()
+      };
+    } catch (error) {
+      TemplateService.logger.error('Error retrieving cloned templates:', error);
+      throw error;
+    }
+  }
+
+  public static async getTemplatesWithUpdates(userId: string): Promise<ApiResponse<any[]>> {
+    try {
+      const templatesWithUpdates = await TemplateModel.findTemplatesWithUpdates(userId);
+      
+      return {
+        success: true,
+        message: 'Templates with updates retrieved successfully',
+        data: templatesWithUpdates.map(template => TemplateService.serializeTemplate(template)),
+        timestamp: new Date()
+      };
+    } catch (error) {
+      TemplateService.logger.error('Error retrieving templates with updates:', error);
+      throw error;
+    }
+  }
+
+  public static async markTemplateUpdateAsRead(templateId: string, userId: string): Promise<ApiResponse<any>> {
+    try {
+      const template = await TemplateModel.findOne({
+        _id: templateId,
+        userId,
+        isCloned: true
+      });
+
+      if (!template) {
+        return {
+          success: false,
+          message: 'Template not found or access denied',
+          timestamp: new Date()
+        };
+      }
+
+      template.hasUpdates = false;
+      await template.save();
+
+      return {
+        success: true,
+        message: 'Template update marked as read',
+        data: TemplateService.serializeTemplate(template),
+        timestamp: new Date()
+      };
+    } catch (error) {
+      TemplateService.logger.error('Error marking template update as read:', error);
       throw error;
     }
   }

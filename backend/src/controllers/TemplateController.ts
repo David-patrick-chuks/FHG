@@ -523,4 +523,125 @@ export class TemplateController {
       });
     }
   }
+
+  public static async getTemplateStats(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      const result = await TemplateService.getTemplateStats(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Template stats retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to retrieve template stats',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      TemplateController.logger.error('Error in getTemplateStats controller:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  public static async getClonedTemplates(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      const result = await TemplateService.getClonedTemplates(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Cloned templates retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to retrieve cloned templates',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      TemplateController.logger.error('Error in getClonedTemplates controller:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  public static async getTemplatesWithUpdates(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+
+      const result = await TemplateService.getTemplatesWithUpdates(userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Templates with updates retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to retrieve templates with updates',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      TemplateController.logger.error('Error in getTemplatesWithUpdates controller:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  public static async markTemplateUpdateAsRead(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const templateId = req.params.id;
+
+      const result = await TemplateService.markTemplateUpdateAsRead(templateId, userId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Template update marked as read',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to mark template update as read',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      TemplateController.logger.error('Error in markTemplateUpdateAsRead controller:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
 }

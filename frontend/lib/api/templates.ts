@@ -97,6 +97,18 @@ export class TemplatesAPI {
     }>('/templates/counts');
   }
 
+  static async getTemplateStats(): Promise<ApiResponse<{
+    myTemplates: number;
+    communityTemplates: number;
+    totalUserUsage: number;
+  }>> {
+    return apiClient.get<{
+      myTemplates: number;
+      communityTemplates: number;
+      totalUserUsage: number;
+    }>('/templates/stats');
+  }
+
   static async getTemplate(id: string): Promise<ApiResponse<Template>> {
     return apiClient.get<Template>(`/templates/${id}`);
   }
@@ -125,5 +137,18 @@ export class TemplatesAPI {
 
   static async approveTemplate(id: string, data: ApproveTemplateRequest): Promise<ApiResponse<Template>> {
     return apiClient.post<Template>(`/templates/${id}/approve`, data);
+  }
+
+  // Cloning and update management
+  static async getClonedTemplates(): Promise<ApiResponse<Template[]>> {
+    return apiClient.get<Template[]>('/templates/cloned');
+  }
+
+  static async getTemplatesWithUpdates(): Promise<ApiResponse<Template[]>> {
+    return apiClient.get<Template[]>('/templates/updates');
+  }
+
+  static async markTemplateUpdateAsRead(id: string): Promise<ApiResponse<Template>> {
+    return apiClient.post<Template>(`/templates/${id}/mark-update-read`);
   }
 }

@@ -15,6 +15,12 @@ export class TrackingRoutes {
     // These are called by email clients when loading tracking pixels
 
     /**
+     * Email delivery tracking endpoint
+     * This endpoint is called when email is delivered
+     */
+    router.get('/delivery', TrackingController.trackEmailDelivery);
+
+    /**
      * Email open tracking endpoint
      * This endpoint is called when the tracking pixel is loaded
      */

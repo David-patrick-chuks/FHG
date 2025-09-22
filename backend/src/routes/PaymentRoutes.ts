@@ -130,6 +130,13 @@ export class PaymentRoutes {
      */
     router.post('/admin/cleanup/:reference', AuthMiddleware.authenticate, PaymentController.cleanupPaymentByReference);
 
+    /**
+     * @route GET /api/payments/admin/export
+     * @desc Export payments to CSV (Admin only)
+     * @access Private (Admin)
+     */
+    router.get('/admin/export', AuthMiddleware.authenticate, PaymentController.exportPayments);
+
     return router;
   }
 }

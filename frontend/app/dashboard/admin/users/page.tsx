@@ -18,7 +18,10 @@ import {
     User,
     Users,
     XCircle,
-    Zap
+    Zap,
+    TrendingUp,
+    Key,
+    Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -28,6 +31,7 @@ export default function AdminUsersPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [userStats, setUserStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -67,24 +71,28 @@ export default function AdminUsersPage() {
         
         // Handle both possible response structures
         if (Array.isArray(response.data)) {
-          // Direct array response
+          // Direct array response (old format)
           console.log('Using direct array response, users count:', response.data.length);
           setUsers(response.data);
+          setUserStats(null);
           setTotalPages(1); // Default to 1 page if no pagination info
         } else if (response.data.users) {
-          // Nested structure with users and pagination
+          // New nested structure with users and stats
           console.log('Using nested response, users count:', response.data.users.length);
           setUsers(response.data.users);
+          setUserStats(response.data.stats);
           setTotalPages(response.data.pagination?.totalPages || 1);
         } else {
           console.log('No valid data structure found');
           setUsers([]);
+          setUserStats(null);
           setTotalPages(1);
         }
       } else {
         console.log('API call failed or no data:', response);
         toast.error('Failed to load users');
         setUsers([]);
+        setUserStats(null);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -320,8 +328,132 @@ export default function AdminUsersPage() {
               </div>
             </div>
 
+            {/* User Statistics */}
+            {userStats && (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {userStats.totalUsers}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {userStats.activeUsers} active
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                        <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Admin Users</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {userStats.adminUsers}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {userStats.totalUsers > 0 ? Math.round((userStats.adminUsers / userStats.totalUsers) * 100) : 0}% of total
+                        </p>
+                      </div>
+                      <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                        <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Recent Users</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {userStats.recentUsers}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Last 7 days
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                        <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">API Users</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {userStats.usersWithApiKeys}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {userStats.totalUsers > 0 ? Math.round((userStats.usersWithApiKeys / userStats.totalUsers) * 100) : 0}% of total
+                        </p>
+                      </div>
+                      <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                        <Key className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Subscription Breakdown */}
+            {userStats && (
+              <Card className="border-0 shadow-md mb-6">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    Subscription Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                        <span className="font-medium text-gray-900 dark:text-white">Free</span>
+                      </div>
+                      <span className="font-semibold text-gray-600 dark:text-gray-400">
+                        {userStats.usersBySubscription.free}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                        <span className="font-medium text-gray-900 dark:text-white">Basic</span>
+                      </div>
+                      <span className="font-semibold text-gray-600 dark:text-gray-400">
+                        {userStats.usersBySubscription.basic}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
+                        <span className="font-medium text-gray-900 dark:text-white">Premium</span>
+                      </div>
+                      <span className="font-semibold text-gray-600 dark:text-gray-400">
+                        {userStats.usersBySubscription.premium}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* User List */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4 custom-scrollbar max-h-96 overflow-y-auto">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <div

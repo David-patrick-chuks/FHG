@@ -11,8 +11,11 @@ export interface ICampaignDocument extends Omit<ICampaign, '_id'>, Document {
   cancelCampaign(): Promise<void>;
   addSentEmail(emailData: Partial<ISentEmail>): Promise<void>;
   markMessageAsSent(recipientEmail: string): Promise<void>;
+  markMessageAsRead(recipientEmail: string): Promise<void>;
   deleteSentMessages(): Promise<void>;
   getProgress(): { sent: number; total: number; percentage: number };
+  getReadStats(): { read: number; total: number; percentage: number };
+  getSentStats(): { sent: number; total: number; percentage: number };
   scheduledFor?: Date;
   isScheduled: boolean;
 }
@@ -117,6 +120,13 @@ export class CampaignModel {
           default: false
         },
         sentAt: {
+          type: Date
+        },
+        isRead: {
+          type: Boolean,
+          default: false
+        },
+        readAt: {
           type: Date
         },
         createdAt: {
@@ -261,6 +271,22 @@ export class CampaignModel {
       return { sent, total, percentage };
     };
 
+    campaignSchema.methods['getReadStats'] = function(): { read: number; total: number; percentage: number } {
+      const read = this['generatedMessages'].filter((msg: any) => msg.isRead).length;
+      const total = this['generatedMessages'].length;
+      const percentage = total > 0 ? Math.round((read / total) * 100) : 0;
+      
+      return { read, total, percentage };
+    };
+
+    campaignSchema.methods['getSentStats'] = function(): { sent: number; total: number; percentage: number } {
+      const sent = this['generatedMessages'].filter((msg: any) => msg.isSent).length;
+      const total = this['generatedMessages'].length;
+      const percentage = total > 0 ? Math.round((sent / total) * 100) : 0;
+      
+      return { sent, total, percentage };
+    };
+
     campaignSchema.methods['addGeneratedMessages'] = async function(messages: any[]): Promise<void> {
       this['generatedMessages'] = messages;
       await this['save']();
@@ -286,6 +312,16 @@ export class CampaignModel {
         }
         
         await this['save']();
+      }
+    };
+
+    campaignSchema.methods['markMessageAsRead'] = async function(recipientEmail: string): Promise<void> {
+      const message = this['generatedMessages'].find((msg: any) => msg.recipientEmail === recipientEmail);
+      if (message) {
+        message.isRead = true;
+        message.readAt = new Date();
+        await this['save']();
+        console.log(`Message marked as read for ${recipientEmail} in campaign ${this['_id']}`);
       }
     };
 

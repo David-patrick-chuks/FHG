@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { AdminService } from '../services/AdminService';
+import { SystemActivityService } from '../services/SystemActivityService';
+import { IncidentService } from '../services/IncidentService';
 import { Logger } from '../utils/Logger';
 
 export class AdminController {
@@ -482,7 +484,7 @@ export class AdminController {
         ip: req.ip
       });
 
-      const result = await AdminService.getSystemActivityStats(days);
+      const result = await SystemActivityService.getSystemActivityStats(days);
 
       if (result.success) {
         res.status(200).json({
@@ -562,6 +564,415 @@ export class AdminController {
       }
     } catch (error) {
       AdminController.logger.error('Admin data cleanup error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get system activities with filtering
+   */
+  public static async getSystemActivities(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const {
+        limit = 50,
+        skip = 0,
+        days = 7,
+        type,
+        severity,
+        category,
+        resolved
+      } = req.query;
+
+      // Validate parameters
+      const limitNum = parseInt(limit as string);
+      const skipNum = parseInt(skip as string);
+      const daysNum = parseInt(days as string);
+
+      if (limitNum < 1 || limitNum > 100) {
+        res.status(400).json({
+          success: false,
+          message: 'Limit must be between 1 and 100',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (skipNum < 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Skip must be 0 or greater',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (daysNum < 1 || daysNum > 365) {
+        res.status(400).json({
+          success: false,
+          message: 'Days must be between 1 and 365',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('System activities request', {
+        adminId,
+        limit: limitNum,
+        skip: skipNum,
+        days: daysNum,
+        type,
+        severity,
+        category,
+        resolved,
+        ip: req.ip
+      });
+
+      const result = await SystemActivityService.getSystemActivities({
+        limit: limitNum,
+        skip: skipNum,
+        days: daysNum,
+        type: type as any,
+        severity: severity as string,
+        category: category as string,
+        resolved: resolved === 'true' ? true : resolved === 'false' ? false : undefined
+      });
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'System activities retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('System activities error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Resolve a system activity
+   */
+  public static async resolveSystemActivity(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const { activityId } = req.params;
+
+      if (!activityId) {
+        res.status(400).json({
+          success: false,
+          message: 'Activity ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('Resolve system activity request', {
+        adminId,
+        activityId,
+        ip: req.ip
+      });
+
+      const result = await SystemActivityService.resolveActivity(activityId, adminId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'System activity resolved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Resolve system activity error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get critical system activities
+   */
+  public static async getCriticalSystemActivities(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const hours = parseInt(req.query['hours'] as string) || 24;
+
+      // Validate hours parameter
+      if (hours < 1 || hours > 168) { // Max 1 week
+        res.status(400).json({
+          success: false,
+          message: 'Hours must be between 1 and 168',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('Critical system activities request', {
+        adminId,
+        hours,
+        ip: req.ip
+      });
+
+      const result = await SystemActivityService.getCriticalActivities(hours);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Critical system activities retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Critical system activities error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get all incidents
+   */
+  public static async getAllIncidents(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+
+      AdminController.logger.info('Get all incidents request', {
+        adminId,
+        ip: req.ip
+      });
+
+      const result = await IncidentService.getAllIncidents();
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Incidents retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Get all incidents error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get active incidents
+   */
+  public static async getActiveIncidents(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+
+      AdminController.logger.info('Get active incidents request', {
+        adminId,
+        ip: req.ip
+      });
+
+      const result = await IncidentService.getActiveIncidents();
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Active incidents retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Get active incidents error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Get incident by ID
+   */
+  public static async getIncidentById(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const { incidentId } = req.params;
+
+      if (!incidentId) {
+        res.status(400).json({
+          success: false,
+          message: 'Incident ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('Get incident by ID request', {
+        adminId,
+        incidentId,
+        ip: req.ip
+      });
+
+      const result = await IncidentService.getIncidentById(incidentId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Incident retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Get incident by ID error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Create new incident
+   */
+  public static async createIncident(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const incidentData = req.body;
+
+      // Validate required fields
+      if (!incidentData.title || !incidentData.description || !incidentData.impact) {
+        res.status(400).json({
+          success: false,
+          message: 'Title, description, and impact are required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('Create incident request', {
+        adminId,
+        title: incidentData.title,
+        impact: incidentData.impact,
+        ip: req.ip
+      });
+
+      const result = await IncidentService.createIncident(incidentData);
+
+      if (result.success) {
+        res.status(201).json({
+          success: true,
+          message: 'Incident created successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Create incident error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Update incident
+   */
+  public static async updateIncident(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const { incidentId } = req.params;
+      const updateData = req.body;
+
+      if (!incidentId) {
+        res.status(400).json({
+          success: false,
+          message: 'Incident ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (!updateData.message || !updateData.status) {
+        res.status(400).json({
+          success: false,
+          message: 'Message and status are required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('Update incident request', {
+        adminId,
+        incidentId,
+        status: updateData.status,
+        ip: req.ip
+      });
+
+      const result = await IncidentService.updateIncident(incidentId, {
+        ...updateData,
+        author: adminId
+      });
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Incident updated successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Update incident error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
+  /**
+   * Resolve incident
+   */
+  public static async resolveIncident(req: Request, res: Response): Promise<void> {
+    try {
+      const adminId = (req as any).user['id'];
+      const { incidentId } = req.params;
+
+      if (!incidentId) {
+        res.status(400).json({
+          success: false,
+          message: 'Incident ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      AdminController.logger.info('Resolve incident request', {
+        adminId,
+        incidentId,
+        ip: req.ip
+      });
+
+      const result = await IncidentService.resolveIncident(incidentId, adminId);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'Incident resolved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      AdminController.logger.error('Resolve incident error:', error);
       ErrorHandler.handle(error, req, res, () => {});
     }
   }

@@ -1,4 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
+import { IncidentService } from '../services/IncidentService';
+import { SystemActivityService } from '../services/SystemActivityService';
+import { ActivityType } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class ErrorHandler {
@@ -23,7 +26,7 @@ export class ErrorHandler {
     let details: any = null;
     let isDevelopment = process.env['NODE_ENV'] === 'development';
 
-    // Handle different types of errors
+    // Handle different types of errors and log system activities
     if (error.name === 'ValidationError') {
       statusCode = 400;
       message = 'Validation Error';
@@ -39,16 +42,57 @@ export class ErrorHandler {
       } else {
         statusCode = 500;
         message = 'Database Error';
+        // Log database errors as system activities
+        ErrorHandler.logSystemActivity(
+          ActivityType.SYSTEM_ERROR,
+          'Database Operation Failed',
+          `MongoDB error: ${error.message}`,
+          'high',
+          'database',
+          {
+            errorCode: error.code,
+            operation: req.method,
+            endpoint: req.originalUrl,
+            userId: (req as any).user?.id || 'anonymous'
+          }
+        );
       }
     } else if (error.name === 'JsonWebTokenError') {
       statusCode = 401;
       message = 'Invalid token';
+      // Log security events
+      ErrorHandler.logSystemActivity(
+        ActivityType.SECURITY_LOGIN_FAILED,
+        'Invalid JWT Token',
+        `Invalid token attempt from ${req.ip}`,
+        'medium',
+        'security',
+        {
+          ip: req.ip,
+          userAgent: req.get('User-Agent'),
+          endpoint: req.originalUrl
+        }
+      );
     } else if (error.name === 'TokenExpiredError') {
       statusCode = 401;
       message = 'Token expired';
     } else if (error.name === 'UnauthorizedError') {
       statusCode = 401;
       message = 'Unauthorized';
+      // Log unauthorized access attempts
+      ErrorHandler.logSystemActivity(
+        ActivityType.SECURITY_LOGIN_FAILED,
+        'Unauthorized Access Attempt',
+        `Unauthorized access attempt to ${req.originalUrl}`,
+        'medium',
+        'security',
+        {
+          ip: req.ip,
+          userAgent: req.get('User-Agent'),
+          endpoint: req.originalUrl,
+          method: req.method
+        }
+      );
     } else if (error.name === 'ForbiddenError') {
       statusCode = 403;
       message = 'Forbidden';
@@ -58,11 +102,45 @@ export class ErrorHandler {
     } else if (error.name === 'RateLimitExceeded') {
       statusCode = 429;
       message = 'Too many requests';
+      // Log rate limiting events
+      ErrorHandler.logSystemActivity(
+        ActivityType.SYSTEM_ERROR,
+        'Rate Limit Exceeded',
+        `Rate limit exceeded for ${req.ip}`,
+        'medium',
+        'performance',
+        {
+          ip: req.ip,
+          endpoint: req.originalUrl,
+          userAgent: req.get('User-Agent')
+        }
+      );
     } else if (error.status) {
       statusCode = error.status;
       message = error.message || 'Error occurred';
     } else if (error.message) {
       message = error.message;
+    }
+
+    // Log critical system errors (500 status codes)
+    if (statusCode >= 500) {
+      ErrorHandler.logSystemActivity(
+        ActivityType.SYSTEM_ERROR,
+        'Internal Server Error',
+        `Unexpected error: ${error.message || 'Unknown error'}`,
+        'critical',
+        'error',
+        {
+          errorName: error.name,
+          endpoint: req.originalUrl,
+          method: req.method,
+          userId: (req as any).user?.id || 'anonymous',
+          ip: req.ip
+        }
+      );
+
+      // Create incident for critical errors that affect multiple users
+      ErrorHandler.createIncidentForCriticalError(error, req);
     }
 
     // Don't expose internal errors in production
@@ -195,5 +273,84 @@ export class ErrorHandler {
     // This will be implemented in the main application
     
     process.exit(0);
+  }
+
+  /**
+   * Helper method to log system activities
+   */
+  private static async logSystemActivity(
+    type: ActivityType,
+    title: string,
+    description: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    source: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await SystemActivityService.logSystemEvent(
+        type,
+        title,
+        description,
+        severity,
+        source,
+        metadata
+      );
+    } catch (logError) {
+      // Don't let logging errors break the main error handling
+      ErrorHandler.logger.error('Failed to log system activity:', logError);
+    }
+  }
+
+  /**
+   * Helper method to create incidents for critical errors
+   */
+  private static async createIncidentForCriticalError(error: any, req: Request): Promise<void> {
+    try {
+      // Only create incidents for certain types of critical errors
+      const criticalErrorTypes = [
+        'MongoError',
+        'DatabaseError',
+        'ConnectionError',
+        'TimeoutError'
+      ];
+
+      if (criticalErrorTypes.includes(error.name)) {
+        const incidentTitle = `Critical ${error.name}: ${req.originalUrl}`;
+        const incidentDescription = `Critical error affecting multiple users: ${error.message}`;
+
+        const result = await IncidentService.createIncidentFromSystemActivity({
+          title: incidentTitle,
+          description: incidentDescription,
+          severity: 'critical',
+          source: 'error_handler',
+          metadata: {
+            errorName: error.name,
+            endpoint: req.originalUrl,
+            method: req.method,
+            userId: (req as any).user?.id || 'anonymous',
+            ip: req.ip,
+            timestamp: new Date().toISOString()
+          }
+        });
+
+        // Log the result for monitoring
+        if (result.success) {
+          ErrorHandler.logger.info('Incident created from critical error', {
+            incidentId: result.data?._id,
+            errorName: error.name,
+            endpoint: req.originalUrl
+          });
+        } else {
+          ErrorHandler.logger.info('Incident creation prevented (duplicate or rate limited)', {
+            reason: result.message,
+            errorName: error.name,
+            endpoint: req.originalUrl
+          });
+        }
+      }
+    } catch (incidentError) {
+      // Don't let incident creation errors break error handling
+      ErrorHandler.logger.error('Failed to create incident for critical error:', incidentError);
+    }
   }
 }

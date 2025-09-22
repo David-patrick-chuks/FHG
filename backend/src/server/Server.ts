@@ -8,7 +8,9 @@ import { HealthService } from '../services/HealthService';
 import { MiddlewareService } from '../services/MiddlewareService';
 import { RouteService } from '../services/RouteService';
 import { ServerLifecycleService } from '../services/ServerLifecycleService';
+import { SystemActivityService } from '../services/SystemActivityService';
 import { Logger } from '../utils/Logger';
+import { ActivityType } from '../types';
 
 export class Server {
   private app: Application;
@@ -94,12 +96,39 @@ export class Server {
     // Start payment cleanup job
     PaymentCleanupJob.start();
     this.logger.info('Payment cleanup job started');
+
+    // Log server startup
+    await this.logSystemActivity(
+      ActivityType.SYSTEM_MAINTENANCE,
+      'Server Started',
+      `Application server started successfully on port ${this.port}`,
+      'low',
+      'server',
+      {
+        port: this.port,
+        environment: process.env.NODE_ENV || 'development',
+        nodeVersion: process.version
+      }
+    );
   }
 
   /**
    * Gracefully stop the server
    */
   public async stop(): Promise<void> {
+    // Log server shutdown
+    await this.logSystemActivity(
+      ActivityType.SYSTEM_MAINTENANCE,
+      'Server Shutdown',
+      'Application server is shutting down gracefully',
+      'low',
+      'server',
+      {
+        port: this.port,
+        environment: process.env.NODE_ENV || 'development'
+      }
+    );
+
     // Stop payment cleanup job
     PaymentCleanupJob.stop();
     this.logger.info('Payment cleanup job stopped');
@@ -119,5 +148,31 @@ export class Server {
    */
   public getStatus(): { running: boolean; port: number; uptime: number } {
     return this.lifecycleService.getStatus(this.port);
+  }
+
+  /**
+   * Helper method to log system activities
+   */
+  private async logSystemActivity(
+    type: ActivityType,
+    title: string,
+    description: string,
+    severity: 'low' | 'medium' | 'high' | 'critical',
+    source: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await SystemActivityService.logSystemEvent(
+        type,
+        title,
+        description,
+        severity,
+        source,
+        metadata
+      );
+    } catch (logError) {
+      // Don't let logging errors break server operations
+      this.logger.error('Failed to log system activity:', logError);
+    }
   }
 }

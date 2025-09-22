@@ -3,16 +3,18 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { PlanLimitModal } from '@/components/modals/PlanLimitModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { BotsAPI } from '@/lib/api';
 import { Bot } from '@/types';
-import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, Plus, Search, Trash2 } from 'lucide-react';
+import { Bot as BotIcon, ChevronLeft, ChevronRight, Edit, Grid3X3, List, MoreVertical, Plus, Power, PowerOff, Search, Trash2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -275,10 +277,34 @@ export default function BotsPage() {
     return initials;
   };
 
-  const getBotStatusColor = (isActive: boolean) => {
-    return isActive 
-      ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20'
-      : 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-800';
+  const getBotStatusBadge = (bot: Bot) => {
+    if (bot.isActive) {
+      return (
+        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800">
+          <Power className="w-3 h-3 mr-1" />
+          Active
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="secondary" className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+          <PowerOff className="w-3 h-3 mr-1" />
+          Inactive
+        </Badge>
+      );
+    }
+  };
+
+  const getCampaignBadge = (hasActiveCampaign: boolean) => {
+    if (hasActiveCampaign) {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800">
+          <BotIcon className="w-3 h-3 mr-1" />
+          Running Campaign
+        </Badge>
+      );
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -566,92 +592,98 @@ export default function BotsPage() {
           <>
             {viewMode === 'list' ? (
               <div className="space-y-4">
-            {bots.map((bot) => (
-                  <Card key={bot._id} className={`hover:shadow-md transition-shadow ${!bot.isActive ? 'opacity-60 border-dashed border-2 border-gray-300 dark:border-gray-600' : ''}`}>
-                    <CardContent className="pt-6">
-                      {/* Mobile-first responsive layout */}
-                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        {/* Bot info section */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-                          <Avatar className="h-12 w-12 flex-shrink-0">
-                            <AvatarImage className='bg-white'  src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
-                            <AvatarFallback>{getBotAvatar(bot)}</AvatarFallback>
+                {bots.map((bot) => (
+                  <Card key={bot._id} className={`hover:shadow-lg transition-all duration-200 border-l-4 ${bot.isActive ? 'border-l-green-500' : 'border-l-gray-300'} ${!bot.isActive ? 'opacity-75' : ''}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4 flex-1">
+                          <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-gray-100 dark:ring-gray-800">
+                            <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                              {getBotAvatar(bot)}
+                            </AvatarFallback>
                           </Avatar>
+                          
                           <div className="flex-1 min-w-0">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                 {bot.name}
                               </h3>
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium w-fit ${getBotStatusColor(bot.isActive)}`}>
-                                  {bot.isActive ? 'Active' : 'Inactive'}
-                                </span>
-                                {botActiveCampaigns[bot._id] && (
-                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                                    Running Campaign
-                                  </span>
-                                )}
-                              </div>
+                              {getBotStatusBadge(bot)}
+                              {getCampaignBadge(botActiveCampaigns[bot._id])}
                             </div>
-                            <p className="text-gray-600 dark:text-gray-400 mb-3 text-sm sm:text-base">
+                            
+                            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
                               {bot.description || 'No description provided'}
                             </p>
-                            {/* Bot stats - responsive grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                                <span className="font-medium sm:font-normal">Daily Limit:</span>
-                                <span className="font-semibold sm:font-normal">{bot.dailyEmailLimit}</span>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="flex flex-col">
+                                <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Daily Limit</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">{bot.dailyEmailLimit}</span>
                               </div>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                                <span className="font-medium sm:font-normal">Sent Today:</span>
-                                <span className="font-semibold sm:font-normal">{bot.emailsSentToday}</span>
+                              <div className="flex flex-col">
+                                <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Sent Today</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">{bot.emailsSentToday}</span>
                               </div>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                                <span className="font-medium sm:font-normal">From:</span>
-                                <span className="font-semibold sm:font-normal truncate">{bot.smtpConfig?.fromEmail || bot.email}</span>
+                              <div className="flex flex-col">
+                                <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">From Email</span>
+                                <span className="font-semibold text-gray-900 dark:text-white truncate text-xs">
+                                  {bot.smtpConfig?.fromEmail || bot.email}
+                                </span>
                               </div>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                                <span className="font-medium sm:font-normal">Created:</span>
-                                <span className="font-semibold sm:font-normal">{new Date(bot.createdAt).toLocaleDateString()}</span>
+                              <div className="flex flex-col">
+                                <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Created</span>
+                                <span className="font-semibold text-gray-900 dark:text-white">
+                                  {new Date(bot.createdAt).toLocaleDateString()}
+                                </span>
                               </div>
                             </div>
                           </div>
                         </div>
-                        
-                        {/* Action buttons - responsive layout */}
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:flex-shrink-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleToggleBotStatus(bot)}
-                            className="w-full sm:w-auto"
-                            disabled={bot.isActive && botActiveCampaigns[bot._id]}
-                            title={bot.isActive && botActiveCampaigns[bot._id] ? "Cannot deactivate bot with active campaigns" : bot.isActive ? "Deactivate bot" : "Activate bot"}
-                          >
-                            {bot.isActive ? 'Deactivate' : 'Activate'}
-                          </Button>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => handleToggleBotStatus(bot)}
+                              disabled={bot.isActive && botActiveCampaigns[bot._id]}
+                              className="cursor-pointer"
+                            >
+                              {bot.isActive ? (
+                                <>
+                                  <PowerOff className="mr-2 h-4 w-4" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <Power className="mr-2 h-4 w-4" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
                               onClick={() => handleEditBot(bot)}
-                              className="flex-1 sm:flex-none"
                               disabled={botActiveCampaigns[bot._id]}
-                              title={botActiveCampaigns[bot._id] ? "Cannot edit bot with active campaigns" : "Edit bot"}
+                              className="cursor-pointer"
                             >
-                              <Edit className="w-4 h-4 sm:mr-1" />
-                              <span className="sm:inline hidden">Edit</span>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Bot
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
                               onClick={() => handleDeleteBot(bot)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-none"
+                              className="cursor-pointer text-red-600 focus:text-red-600"
                             >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Bot
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </CardContent>
                   </Card>
@@ -660,85 +692,99 @@ export default function BotsPage() {
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {bots.map((bot) => (
-                  <Card key={bot._id} className={`hover:shadow-md transition-shadow ${!bot.isActive ? 'opacity-60 border-dashed border-2 border-gray-300 dark:border-gray-600' : ''}`}>
+                  <Card key={bot._id} className={`group hover:shadow-xl transition-all duration-300 border-l-4 ${bot.isActive ? 'border-l-green-500 hover:border-l-green-600' : 'border-l-gray-300'} ${!bot.isActive ? 'opacity-75' : ''}`}>
                     <CardHeader className="pb-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=40x40`} />
-                            <AvatarFallback>{getBotAvatar(bot)}</AvatarFallback>
+                          <Avatar className="h-12 w-12 ring-2 ring-gray-100 dark:ring-gray-800 group-hover:ring-blue-200 dark:group-hover:ring-blue-800 transition-all">
+                            <AvatarImage src={`https://robohash.org/${bot._id}?set=set1&size=48x48`} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                              {getBotAvatar(bot)}
+                            </AvatarFallback>
                           </Avatar>
-                          <div>
-                            <CardTitle className="text-lg">{bot.name}</CardTitle>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getBotStatusColor(bot.isActive)}`}>
-                                {bot.isActive ? 'Active' : 'Inactive'}
-                              </span>
-                              {botActiveCampaigns[bot._id] && (
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                                  Running Campaign
-                                </span>
-                              )}
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg truncate">{bot.name}</CardTitle>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              {getBotStatusBadge(bot)}
+                              {getCampaignBadge(botActiveCampaigns[bot._id])}
                             </div>
                           </div>
                         </div>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => handleToggleBotStatus(bot)}
+                              disabled={bot.isActive && botActiveCampaigns[bot._id]}
+                              className="cursor-pointer"
+                            >
+                              {bot.isActive ? (
+                                <>
+                                  <PowerOff className="mr-2 h-4 w-4" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <Power className="mr-2 h-4 w-4" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleEditBot(bot)}
+                              disabled={botActiveCampaigns[bot._id]}
+                              className="cursor-pointer"
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Bot
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteBot(bot)}
+                              className="cursor-pointer text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Bot
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                      <CardDescription className="line-clamp-2">
+                      <CardDescription className="line-clamp-2 mt-3">
                         {bot.description || 'No description provided'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Daily Limit:</span>
-                          <span className="font-medium">{bot.dailyEmailLimit}</span>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex flex-col">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Daily Limit</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{bot.dailyEmailLimit}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Sent Today:</span>
-                          <span className="font-medium">{bot.emailsSentToday}</span>
+                        <div className="flex flex-col">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Sent Today</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{bot.emailsSentToday}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">From Email:</span>
-                          <span className="font-medium text-xs truncate max-w-24">{bot.smtpConfig?.fromEmail || bot.email}</span>
+                        <div className="flex flex-col col-span-2">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">From Email</span>
+                          <span className="font-semibold text-gray-900 dark:text-white truncate text-xs">
+                            {bot.smtpConfig?.fromEmail || bot.email}
+                          </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Created:</span>
-                          <span className="font-medium">{new Date(bot.createdAt).toLocaleDateString()}</span>
+                        <div className="flex flex-col col-span-2">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Created</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {new Date(bot.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleToggleBotStatus(bot)}
-                          disabled={bot.isActive && botActiveCampaigns[bot._id]}
-                          title={bot.isActive && botActiveCampaigns[bot._id] ? "Cannot deactivate bot with active campaigns" : bot.isActive ? "Deactivate bot" : "Activate bot"}
-                        >
-                          {bot.isActive ? 'Deactivate' : 'Activate'}
-                        </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                          onClick={() => handleEditBot(bot)}
-                          disabled={botActiveCampaigns[bot._id]}
-                          title={botActiveCampaigns[bot._id] ? "Cannot edit bot with active campaigns" : "Edit bot"}
-                          >
-                          <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                          onClick={() => handleDeleteBot(bot)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                          <Trash2 className="w-4 h-4" />
-                      </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
             {/* Pagination */}
