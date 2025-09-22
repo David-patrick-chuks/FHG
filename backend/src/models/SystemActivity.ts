@@ -115,7 +115,13 @@ const systemActivitySchema = new Schema<ISystemActivityDocument>({
   }
 }, {
   timestamps: true,
-  collection: 'system_activities'
+  collection: 'system_activities',
+  toJSON: {
+    transform: function(doc, ret) {
+      ret._id = ret._id.toString();
+      return ret;
+    }
+  }
 });
 
 // Indexes for better query performance

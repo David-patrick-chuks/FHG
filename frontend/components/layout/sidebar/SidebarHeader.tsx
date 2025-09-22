@@ -29,7 +29,7 @@ export function SidebarHeader({ onClose, onToggleCollapse, collapsed }: SidebarH
       </div>
       
       <div className="flex items-center space-x-1">
-        {/* Desktop toggle button */}
+        {/* Desktop toggle button - only show on large screens when sidebar is not in mobile mode */}
         <Button
           variant="ghost"
           size="sm"
@@ -43,7 +43,7 @@ export function SidebarHeader({ onClose, onToggleCollapse, collapsed }: SidebarH
           )}
         </Button>
         
-        {/* Mobile close button */}
+        {/* Mobile close button - only show on mobile screens */}
         <Button
           variant="ghost"
           size="sm"

@@ -242,19 +242,17 @@ export default function AdminPaymentsPage() {
             disabled={loading}
             className="h-9 sm:h-10 px-3 sm:px-4 text-sm sm:text-base"
           >
-            <RefreshCw className={`w-4 h-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-            <span className="sm:hidden">↻</span>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline ml-2">Refresh</span>
           </Button>
           <Button
             variant="outline"
             onClick={handleExport}
-            disabled={loading}
+            disabled={loading || !payments.length}
             className="h-9 sm:h-10 px-3 sm:px-4 text-sm sm:text-base"
           >
-            <Download className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Export</span>
-            <span className="sm:hidden">↓</span>
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline ml-2">Export</span>
           </Button>
         </div>
       }

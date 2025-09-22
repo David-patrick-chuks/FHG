@@ -43,17 +43,17 @@ export function Sidebar({
       <SidebarHeader 
         onClose={onClose} 
         onToggleCollapse={onToggleCollapse}
-        collapsed={sidebarOpen ? false : sidebarCollapsed}
+        collapsed={sidebarCollapsed}
       />
       <SidebarNavigation 
         sidebarItems={sidebarItems} 
         onItemClick={onClose}
-        collapsed={sidebarOpen ? false : sidebarCollapsed}
+        collapsed={sidebarCollapsed}
       />
       <SidebarUserSection 
         user={user} 
         onLogout={onLogout}
-        collapsed={sidebarOpen ? false : sidebarCollapsed}
+        collapsed={sidebarCollapsed}
       />
     </div>
   );

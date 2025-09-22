@@ -273,66 +273,12 @@ export default function AdminUsersPage() {
         </Button>
       }
     >
-      <div className="space-y-4 sm:space-y-6">
-        {/* Filters */}
-        <Card className="border-0 shadow-md">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              User Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-6">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search by email or username..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-10 sm:h-11 text-sm sm:text-base"
-                  />
-                </div>
-              </div>
-              <div className="w-full sm:w-48">
-                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Status
-                </label>
-                <select
-                  id="status-filter"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 h-10 sm:h-11 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm sm:text-base"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                </select>
-              </div>
-              <div className="w-full sm:w-48">
-                <label htmlFor="subscription-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Plan
-                </label>
-                <select
-                  id="subscription-filter"
-                  value={subscriptionFilter}
-                  onChange={(e) => setSubscriptionFilter(e.target.value)}
-                  className="w-full px-3 py-2 h-10 sm:h-11 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm sm:text-base"
-                >
-                  <option value="all">All Plans</option>
-                  <option value="free">Free</option>
-                  <option value="pro">Pro</option>
-                  <option value="enterprise">Enterprise</option>
-                </select>
-              </div>
-            </div>
-
+      <div className="space-y-6">
             {/* User Statistics */}
             {userStats && (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="border-0 shadow-md">
-                  <CardContent className="p-4">
+              <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
@@ -351,7 +297,7 @@ export default function AdminUsersPage() {
                 </Card>
 
                 <Card className="border-0 shadow-md">
-                  <CardContent className="p-4">
+              <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Admin Users</p>
@@ -370,7 +316,7 @@ export default function AdminUsersPage() {
                 </Card>
 
                 <Card className="border-0 shadow-md">
-                  <CardContent className="p-4">
+              <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Recent Users</p>
@@ -389,7 +335,7 @@ export default function AdminUsersPage() {
                 </Card>
 
                 <Card className="border-0 shadow-md">
-                  <CardContent className="p-4">
+              <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">API Users</p>
@@ -411,7 +357,7 @@ export default function AdminUsersPage() {
 
             {/* Subscription Breakdown */}
             {userStats && (
-              <Card className="border-0 shadow-md mb-6">
+          <Card className="border-0 shadow-md">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -452,52 +398,128 @@ export default function AdminUsersPage() {
               </Card>
             )}
 
+        {/* Search and Filters */}
+        <Card className="border-0 shadow-md">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by email or username..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="w-full md:w-48">
+                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Status
+                </label>
+                <select
+                  id="status-filter"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+              <div className="w-full md:w-48">
+                <label htmlFor="subscription-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Plan
+                </label>
+                <select
+                  id="subscription-filter"
+                  value={subscriptionFilter}
+                  onChange={(e) => setSubscriptionFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Plans</option>
+                  <option value="free">Free</option>
+                  <option value="pro">Pro</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
             {/* User List */}
-            <div className="space-y-3 sm:space-y-4 custom-scrollbar max-h-96 overflow-y-auto">
+        <Card className="border-0 shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Users ({filteredUsers.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <div
                     key={user._id}
-                    className="bg-white dark:bg-gray-800 rounded-lg border-0 shadow-md p-4 sm:p-6 hover:shadow-lg transition-all duration-200"
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                          <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
-                            <h3 className="font-semibold capitalize text-gray-900 dark:text-white text-sm sm:text-base truncate">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                               {user.username}
                             </h3>
                             {user.isAdmin && (
-                              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 text-xs">
+                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
                                 <Shield className="w-3 h-3 mr-1" />Admin
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                        
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">
                             {user.email}
                           </p>
-                          <div className="flex flex-wrap items-center gap-2 mt-2">
-                            {getSubscriptionBadge(user.subscription)}
-                            {getStatusBadge(user.isActive)}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              {user.subscription}
+                            </span>
                           </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              {user.isActive ? 'Active' : 'Suspended'}
+                            </span>
                         </div>
+
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              {formatDate(user.createdAt)}
+                            </span>
                       </div>
                       
-                      <div className="flex flex-col sm:items-end gap-3">
-                        <div className="text-right">
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                            Joined: {formatDate(user.createdAt)}
-                          </p>
                           {user.lastLoginAt && (
-                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                              Last login: {formatDate(user.lastLoginAt)}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {formatDate(user.lastLoginAt)}
+                              </span>
+                            </div>
                           )}
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+
+                        <div className="flex flex-wrap gap-2">
+                          {getSubscriptionBadge(user.subscription)}
+                          {getStatusBadge(user.isActive)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-4">
                           <Button
                             variant="outline"
                             size="sm"
@@ -511,48 +533,50 @@ export default function AdminUsersPage() {
                               });
                               setShowUpdateModal(true);
                             }}
-                            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-8 sm:h-9 text-xs sm:text-sm"
+                          className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                           >
-                            <Edit className="w-3 h-3 mr-1" />
-                            <span className="hidden sm:inline">Edit</span>
-                            <span className="sm:hidden">Edit</span>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
                           </Button>
+                        
                           {user.isActive ? (
                             <Button
-                              variant="outline"
                               size="sm"
                               onClick={() => {
                                 setSelectedUser(user);
                                 setSuspendData({ reason: '' });
                                 setShowSuspendModal(true);
                               }}
-                              className="border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20 h-8 sm:h-9 text-xs sm:text-sm"
+                            className="bg-red-600 hover:bg-red-700"
                             >
-                              <Ban className="w-3 h-3 mr-1" />
-                              <span className="hidden sm:inline">Suspend</span>
-                              <span className="sm:hidden">Suspend</span>
+                            <Ban className="w-4 h-4 mr-2" />
+                            Suspend
                             </Button>
                           ) : (
                             <Button
-                              variant="outline"
                               size="sm"
                               onClick={() => handleActivateUser(user._id)}
-                              className="border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-900/20 h-8 sm:h-9 text-xs sm:text-sm"
+                            className="bg-green-600 hover:bg-green-700"
                             >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              <span className="hidden sm:inline">Activate</span>
-                              <span className="sm:hidden">Activate</span>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Activate
                             </Button>
                           )}
-                        </div>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No users found</p>
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No users found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {users.length === 0 
+                      ? "No users have been created yet." 
+                      : "No users match your current filters."}
+                  </p>
                 </div>
               )}
             </div>
@@ -566,12 +590,10 @@ export default function AdminUsersPage() {
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-8 sm:h-9 text-xs sm:text-sm"
                   >
-                    <span className="hidden sm:inline">Previous</span>
-                    <span className="sm:hidden">←</span>
+                    Previous
                   </Button>
-                  <span className="px-3 py-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <span className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
@@ -579,10 +601,8 @@ export default function AdminUsersPage() {
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-8 sm:h-9 text-xs sm:text-sm"
                   >
-                    <span className="hidden sm:inline">Next</span>
-                    <span className="sm:hidden">→</span>
+                    Next
                   </Button>
                 </div>
               </div>
@@ -592,12 +612,12 @@ export default function AdminUsersPage() {
 
         {/* Update Subscription Modal */}
         {showUpdateModal && selectedUser && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2 border-blue-200/50 dark:border-blue-700/50 shadow-2xl">
-              <CardHeader className="border-b border-blue-200/50 dark:border-blue-700/50">
-                <CardTitle className="text-lg sm:text-xl font-semibold text-blue-900 dark:text-blue-100">Update Subscription</CardTitle>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg">
+              <CardHeader>
+                <CardTitle>Update Subscription</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+              <CardContent className="space-y-4">
                 <div>
                   <label htmlFor="subscription-tier" className="block text-sm font-medium mb-2">Subscription Tier</label>
                   <select
@@ -644,17 +664,17 @@ export default function AdminUsersPage() {
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <div className="flex gap-3 pt-4">
                   <Button
                     onClick={handleUpdateSubscription}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10 sm:h-11"
+                    className="flex-1"
                   >
                     Update Subscription
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setShowUpdateModal(false)}
-                    className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11"
+                    className="flex-1"
                   >
                     Cancel
                   </Button>
@@ -666,12 +686,12 @@ export default function AdminUsersPage() {
 
         {/* Suspend User Modal */}
         {showSuspendModal && selectedUser && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-2 border-red-200/50 dark:border-red-700/50 shadow-2xl">
-              <CardHeader className="border-b border-red-200/50 dark:border-red-700/50">
-                <CardTitle className="text-lg sm:text-xl font-semibold text-red-900 dark:text-red-100">Suspend User</CardTitle>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg">
+              <CardHeader>
+                <CardTitle>Suspend User</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+              <CardContent className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Reason for suspension</label>
                   <Input
@@ -680,10 +700,10 @@ export default function AdminUsersPage() {
                     placeholder="Enter reason for suspension..."
                   />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <div className="flex gap-3 pt-4">
                   <Button
                     onClick={handleSuspendUser}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white h-10 sm:h-11"
+                    className="flex-1 bg-red-600 hover:bg-red-700"
                     disabled={!suspendData.reason.trim()}
                   >
                     Suspend User
@@ -691,7 +711,7 @@ export default function AdminUsersPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowSuspendModal(false)}
-                    className="flex-1 border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900/20 h-10 sm:h-11"
+                    className="flex-1"
                   >
                     Cancel
                   </Button>

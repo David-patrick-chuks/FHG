@@ -5,6 +5,7 @@ import { Logger } from '../utils/Logger';
 
 export class SystemActivityService {
   private static logger: Logger = new Logger();
+  private static activityCreationCache = new Map<string, number>(); // Cache for rate limiting
 
   /**
    * Create a new system activity
@@ -192,7 +193,7 @@ export class SystemActivityService {
   }
 
   /**
-   * Create system activities for common events
+   * Create system activities for common events with duplicate prevention
    */
   public static async logSystemEvent(
     type: ActivityType,
@@ -203,6 +204,40 @@ export class SystemActivityService {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
+      // Check for duplicates within the last 5 minutes
+      const duplicateKey = `${type}:${title}:${source}`;
+      const now = Date.now();
+      const lastCreation = SystemActivityService.activityCreationCache.get(duplicateKey);
+      
+      if (lastCreation && (now - lastCreation) < 300000) { // 5 minutes rate limit
+        SystemActivityService.logger.debug('System activity creation rate limited', {
+          type,
+          title,
+          source,
+          timeSinceLastCreation: now - lastCreation
+        });
+        return;
+      }
+
+      // Check for recent duplicate in database (within 1 minute)
+      const oneMinuteAgo = new Date(now - 60000);
+      const existingActivity = await SystemActivityModel.findOne({
+        type,
+        title,
+        source,
+        timestamp: { $gte: oneMinuteAgo }
+      });
+
+      if (existingActivity) {
+        SystemActivityService.logger.debug('Duplicate system activity prevented', {
+          type,
+          title,
+          source,
+          existingActivityId: existingActivity._id
+        });
+        return;
+      }
+
       const category = this.getCategoryFromType(type);
       await this.createSystemActivity({
         type,
@@ -213,6 +248,17 @@ export class SystemActivityService {
         source,
         metadata
       });
+
+      // Update rate limit cache
+      SystemActivityService.activityCreationCache.set(duplicateKey, now);
+      
+      // Clean up old cache entries (older than 1 hour)
+      const oneHourAgo = now - 3600000;
+      for (const [key, timestamp] of SystemActivityService.activityCreationCache.entries()) {
+        if (timestamp < oneHourAgo) {
+          SystemActivityService.activityCreationCache.delete(key);
+        }
+      }
     } catch (error) {
       SystemActivityService.logger.error('Error logging system event:', error);
     }

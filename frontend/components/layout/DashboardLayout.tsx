@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUnreadCount } from '@/contexts/UnreadCountContext';
 import {
     Activity,
+    AlertTriangle,
     BarChart3,
     Bot,
     CreditCard,
@@ -115,6 +116,11 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
       href: '/dashboard/admin/templates',
       icon: FileText,
     },
+    {
+      label: 'Incident Management',
+      href: '/dashboard/admin/incidents',
+      icon: AlertTriangle,
+    },
   ];
 
   return isAdmin ? [...regularItems, ...adminItems] : regularItems;
@@ -136,7 +142,7 @@ export function DashboardLayout({
   navigation
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Start collapsed by default
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Start expanded by default
   const { user, logout } = useAuth();
   const { unreadCount } = useUnreadCount();
   const pathname = usePathname();
