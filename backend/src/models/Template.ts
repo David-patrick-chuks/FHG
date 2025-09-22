@@ -10,6 +10,9 @@ export interface ITemplateDocument extends Omit<ITemplate, '_id'>, Document {
   removeSample(sampleId: string): Promise<void>;
   incrementUsageCount(): Promise<void>;
   getUsageStats(): { totalUsage: number; recentUsage: number };
+  cloneTemplate(newUserId: string): Promise<ITemplateDocument>;
+  markAsUpdated(): Promise<void>;
+  markClonesAsUpdated(): Promise<void>;
 }
 
 export interface ITemplateModel extends Model<ITemplateDocument> {
@@ -19,6 +22,8 @@ export interface ITemplateModel extends Model<ITemplateDocument> {
   findTemplatesByStatus(status: TemplateStatus): Promise<ITemplateDocument[]>;
   findPopularTemplates(limit?: number): Promise<ITemplateDocument[]>;
   findTemplatesBySearch(query: string): Promise<ITemplateDocument[]>;
+  findClonedTemplates(userId: string): Promise<ITemplateDocument[]>;
+  findTemplatesWithUpdates(userId: string): Promise<ITemplateDocument[]>;
 }
 
 export class TemplateModel {
@@ -302,7 +307,8 @@ export class TemplateModel {
     };
 
     templateSchema.methods['cloneTemplate'] = async function(newUserId: string): Promise<ITemplateDocument> {
-      const clonedTemplate = new this.constructor({
+      const TemplateModel = this.constructor as any;
+      const clonedTemplate = new TemplateModel({
         ...this.toObject(),
         _id: undefined,
         userId: newUserId,
@@ -333,7 +339,8 @@ export class TemplateModel {
     };
 
     templateSchema.methods['markClonesAsUpdated'] = async function(): Promise<void> {
-      await this.constructor.updateMany(
+      const TemplateModel = this.constructor as any;
+      await TemplateModel.updateMany(
         { clonedFrom: this._id },
         { hasUpdates: true }
       );

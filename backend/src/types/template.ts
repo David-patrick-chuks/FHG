@@ -78,6 +78,12 @@ export interface ITemplate {
   featured: boolean;
   featuredAt?: Date;
   originalTemplateId?: string;
+  isCloned?: boolean;
+  clonedFrom?: string;
+  clonedAt?: Date;
+  version?: number;
+  hasUpdates?: boolean;
+  lastUpdatedByOwner?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -563,6 +563,7 @@ export class QueueService {
                   aiCallNumber: Math.floor(index / MAX_VARIATION_COUNT) + 1
                 },
                 isSent: false,
+                isRead: false,
                 createdAt: new Date()
               });
               
@@ -588,6 +589,7 @@ export class QueueService {
                   campaignName: campaign.name
                 },
                 isSent: false,
+                isRead: false,
                 createdAt: new Date()
               });
             }
@@ -636,6 +638,7 @@ export class QueueService {
                 fallback: true
               },
               isSent: false,
+              isRead: false,
               createdAt: new Date()
             });
           });
@@ -695,6 +698,7 @@ export class QueueService {
               fallbackUsed: true
             },
             isSent: false,
+            isRead: false,
             createdAt: new Date()
           });
         });

@@ -64,8 +64,8 @@ async function seedIncidents() {
           logger.info(`Created incident: ${incidentData.title}`);
           
           // Add some updates to make it more realistic
-          if (result.data) {
-            const incidentId = result.data._id;
+        if (result.data && result.data._id) {
+          const incidentId = result.data._id;
             
             // Add investigation update
             await IncidentService.updateIncident(incidentId, {

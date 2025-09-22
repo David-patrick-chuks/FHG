@@ -153,7 +153,7 @@ export class SchedulerService {
 
   private static async resetDailyEmailCounts(): Promise<void> {
     try {
-      await BotService.resetAllDailyEmailCounts();
+      await BotService.resetDailyEmailCounts();
       this.logger.info('Daily email counts reset for all bots');
     } catch (error) {
       this.logger.error('Error resetting daily email counts:', error);

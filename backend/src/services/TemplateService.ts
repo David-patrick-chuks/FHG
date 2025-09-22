@@ -813,7 +813,7 @@ export class TemplateService {
 
       TemplateService.logger.info('Template added to user collection', {
         originalTemplateId: template._id,
-        userTemplateId: userTemplate._id,
+        userTemplateId: template._id,
         userId,
         templateName: template.name
       });
