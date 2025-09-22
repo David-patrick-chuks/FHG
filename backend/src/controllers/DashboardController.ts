@@ -1,0 +1,327 @@
+import { Response } from 'express';
+import { BotModel } from '../models/Bot';
+import { CampaignModel } from '../models/Campaign';
+import { SentEmailModel } from '../models/SentEmail';
+import { ActivityService } from '../services/ActivityService';
+import { AuthenticatedRequest } from '../types';
+import { Logger } from '../utils/Logger';
+
+export class DashboardController {
+  private static logger: Logger = new Logger();
+
+  private static formatTimeAgo(timestamp: Date): string {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - new Date(timestamp).getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 2592000) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    } else {
+      return new Date(timestamp).toLocaleDateString();
+    }
+  }
+
+  public static async getDashboardStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+      
+      // Get user's subscription details from the user object (from middleware)
+      const userSubscription = user.subscriptionTier || 'FREE';
+      const userSubscriptionStatus = user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt) ? 'expired' : 'active';
+      
+      // Get user's bots
+      const bots = await BotModel.getInstance().find({ userId: user.id });
+      const activeBots = bots.filter(bot => bot.isActive);
+      
+      // Get user's campaigns
+      const campaigns = await CampaignModel.getInstance().find({ userId: user.id });
+      const activeCampaigns = campaigns.filter(campaign => campaign.status === 'running');
+      
+      // Get email statistics for the current month
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const emailsThisMonth = await SentEmailModel.getInstance().countDocuments({
+        userId: user.id,
+        sentAt: { $gte: startOfMonth }
+      });
+      
+      // Calculate real open and reply rates from sent emails
+      let totalOpenRate = 0;
+      let totalReplyRate = 0;
+      let campaignCount = 0;
+      
+      // Get campaign IDs for this user
+      const campaignIds = campaigns.map(campaign => (campaign._id as any).toString());
+      
+      if (campaignIds.length > 0) {
+        // Get aggregated email stats for all user's campaigns
+        const emailStats = await SentEmailModel.getInstance().aggregate([
+          {
+            $match: {
+              campaignId: { $in: campaignIds }
+            }
+          },
+          {
+            $group: {
+              _id: '$campaignId',
+              totalSent: { $sum: 1 },
+              totalOpened: {
+                $sum: {
+                  $cond: [
+                    { $in: ['$status', ['opened', 'replied']] },
+                    1,
+                    0
+                  ]
+                }
+              },
+              totalReplied: {
+                $sum: {
+                  $cond: [
+                    { $eq: ['$status', 'replied'] },
+                    1,
+                    0
+                  ]
+                }
+              }
+            }
+          }
+        ]);
+        
+        // Calculate rates for each campaign
+        emailStats.forEach(stat => {
+          if (stat.totalSent > 0) {
+            const openRate = (stat.totalOpened / stat.totalSent) * 100;
+            const replyRate = (stat.totalReplied / stat.totalSent) * 100;
+            
+            totalOpenRate += openRate;
+            totalReplyRate += replyRate;
+            campaignCount++;
+          }
+        });
+      }
+      
+      const averageOpenRate = campaignCount > 0 ? totalOpenRate / campaignCount : 0;
+      const averageReplyRate = campaignCount > 0 ? totalReplyRate / campaignCount : 0;
+      const averageClickRate = 0; // Click tracking not implemented yet
+      
+      const stats = {
+        totalCampaigns: campaigns.length,
+        activeCampaigns: activeCampaigns.length,
+        totalEmailsSent: emailsThisMonth,
+        totalEmailsToday: 0, // Will be calculated separately if needed
+        averageOpenRate: Math.round(averageOpenRate * 100) / 100,
+        averageClickRate: Math.round(averageClickRate * 100) / 100,
+        averageReplyRate: Math.round(averageReplyRate * 100) / 100,
+        totalBots: bots.length,
+        activeBots: activeBots.length,
+        subscription: {
+          tier: userSubscription,
+          status: userSubscriptionStatus,
+          expiresAt: user.subscriptionExpiresAt
+        }
+      };
+      
+      res.status(200).json({
+        success: true,
+        data: stats
+      });
+      
+    } catch (error) {
+      DashboardController.logger.error('Error fetching dashboard stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch dashboard statistics'
+      });
+    }
+  }
+
+  public static async getRecentActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+
+      // Get query parameters for pagination
+      const limit = parseInt(req.query.limit as string) || 20;
+      const skip = parseInt(req.query.skip as string) || 0;
+      
+      // Get recent activities from the ActivityService
+      const result = await ActivityService.getUserActivities(
+        user.id,
+        limit,
+        skip
+      );
+
+      if (result.success && result.data) {
+        // Transform activities to match frontend expectations
+        const activities = result.data.map(activity => ({
+          id: activity._id.toString(),
+          type: activity.type,
+          title: activity.title,
+          description: activity.description,
+          time: DashboardController.formatTimeAgo(activity.timestamp),
+          timestamp: activity.timestamp.toISOString(),
+          isRead: activity.isRead,
+          readAt: activity.readAt ? activity.readAt.toISOString() : null,
+          metadata: activity.metadata
+        }));
+
+        res.status(200).json({
+          success: true,
+          data: activities,
+          pagination: {
+            limit,
+            skip,
+            total: activities.length
+          }
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'Failed to fetch recent activity'
+        });
+      }
+      
+    } catch (error) {
+      DashboardController.logger.error('Error fetching recent activity:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch recent activity'
+      });
+    }
+  }
+
+  public static async getQuickOverview(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+      
+      // Get quick counts
+      const botCount = await BotModel.getInstance().countDocuments({ userId: user.id });
+      const campaignCount = await CampaignModel.getInstance().countDocuments({ userId: user.id });
+      const emailCount = await SentEmailModel.getInstance().countDocuments({ userId: user.id });
+      
+      // Get subscription info from user object
+      const userSubscription = user.subscriptionTier || 'FREE';
+      const userSubscriptionStatus = user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt) ? 'expired' : 'active';
+      
+      const overview = {
+        botCount,
+        campaignCount,
+        emailCount,
+        subscription: {
+          tier: userSubscription,
+          status: userSubscriptionStatus
+        }
+      };
+      
+      res.status(200).json({
+        success: true,
+        data: overview
+      });
+      
+    } catch (error) {
+      DashboardController.logger.error('Error fetching quick overview:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch quick overview'
+      });
+    }
+  }
+
+  public static async getUnreadCount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+
+      const result = await ActivityService.getUnreadCount(user.id);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          data: { unreadCount: result.data },
+          timestamp: new Date()
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'Failed to fetch unread count'
+        });
+      }
+    } catch (error) {
+      DashboardController.logger.error('Error fetching unread count:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch unread count'
+      });
+    }
+  }
+
+  public static async markAllAsRead(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not authenticated'
+        });
+        return;
+      }
+
+      const result = await ActivityService.markAllAsRead(user.id);
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: 'All activities marked as read',
+          timestamp: new Date()
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: result.message || 'Failed to mark activities as read'
+        });
+      }
+    } catch (error) {
+      DashboardController.logger.error('Error marking activities as read:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to mark activities as read'
+      });
+    }
+  }
+}
