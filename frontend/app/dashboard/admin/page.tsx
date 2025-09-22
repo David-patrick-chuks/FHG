@@ -363,27 +363,27 @@ export default function AdminDashboardPage() {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(systemActivityStats.totalActions)}
+                    {formatNumber(systemActivityStats.totalActivities)}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Actions</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Activities</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(systemActivityStats.uniqueAdmins)}
+                    {formatNumber(systemActivityStats.activitiesByType.SYSTEM_ERROR || 0)}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Admins</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">System Errors</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(systemActivityStats.averageActionsPerDay)}
+                    {formatNumber(systemActivityStats.activitiesByType.SECURITY_LOGIN_FAILED || 0)}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Avg Actions/Day</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Security Events</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {Object.keys(systemActivityStats.actionsByType).length}
+                    {Object.keys(systemActivityStats.activitiesByType).length}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Action Types</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Activity Types</p>
                 </div>
               </div>
             </CardContent>
@@ -480,7 +480,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {formatNumber(adminActivityStats.recentActions.length)}
+                    {formatNumber(adminActivityStats.recentActions?.length || 0)}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Recent Actions</p>
                 </div>
@@ -506,7 +506,7 @@ export default function AdminDashboardPage() {
               )}
 
               {/* Recent Actions */}
-              {adminActivityStats.recentActions.length > 0 && (
+              {adminActivityStats.recentActions && adminActivityStats.recentActions.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Recent Actions</h4>
                   <div className="space-y-3">
