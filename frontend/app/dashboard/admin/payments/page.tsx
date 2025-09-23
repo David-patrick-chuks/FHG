@@ -403,31 +403,31 @@ export default function AdminPaymentsPage() {
 
                     {/* Desktop Layout */}
                     <div className="hidden sm:flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                          <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {payment.subscriptionTier.toUpperCase()} - {payment.billingCycle}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Reference: {payment.reference}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            User: {payment.userId}
-                          </p>
-                        </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                        <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-gray-900 dark:text-white">
-                          {formatPrice(payment.amount)}
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {payment.subscriptionTier.toUpperCase()} - {payment.billingCycle}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatDate(payment.createdAt)}
+                          Reference: {payment.reference}
                         </p>
-                        <div className="mt-2">
-                          {getStatusBadge(payment.status)}
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          User: {payment.userId}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {formatPrice(payment.amount)}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {formatDate(payment.createdAt)}
+                      </p>
+                      <div className="mt-2">
+                        {getStatusBadge(payment.status)}
                         </div>
                       </div>
                     </div>

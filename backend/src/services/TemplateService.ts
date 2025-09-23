@@ -848,8 +848,7 @@ export class TemplateService {
 
   public static async getAllTemplatesForAdmin(): Promise<ApiResponse<any[]>> {
     try {
-      const model = TemplateModel.getInstance();
-      const templates = await model.find({}).sort({ createdAt: -1 });
+      const templates = await TemplateModel.find({}).sort({ createdAt: -1 });
       
       return {
         success: true,

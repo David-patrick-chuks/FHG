@@ -510,35 +510,35 @@ export default function AdminDashboardPage() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Recent Actions</h4>
                   <div className="space-y-3">
-                    {adminActivityStats.recentActions.slice(0, 5).map((action) => (
-                      <div
-                        key={action._id}
-                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                            <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {action.action.replace(/_/g, ' ').toLowerCase()}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {action.targetType}: {action.targetId}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatDate(action.createdAt)}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {action.adminId}
-                          </p>
-                        </div>
+                {adminActivityStats.recentActions.slice(0, 5).map((action) => (
+                  <div
+                    key={action._id}
+                    className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                        <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       </div>
-                    ))}
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {action.action.replace(/_/g, ' ').toLowerCase()}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {action.targetType}: {action.targetId}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatDate(action.createdAt)}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {action.adminId}
+                      </p>
+                    </div>
                   </div>
+                ))}
+              </div>
                 </div>
               )}
             </CardContent>
