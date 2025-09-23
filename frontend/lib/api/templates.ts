@@ -135,6 +135,10 @@ export class TemplatesAPI {
     return apiClient.get<Template[]>('/templates/admin/pending-approvals');
   }
 
+  static async getAllTemplatesForAdmin(): Promise<ApiResponse<Template[]>> {
+    return apiClient.get<Template[]>('/templates/admin/all');
+  }
+
   static async approveTemplate(id: string, data: ApproveTemplateRequest): Promise<ApiResponse<Template>> {
     return apiClient.post<Template>(`/templates/${id}/approve`, data);
   }

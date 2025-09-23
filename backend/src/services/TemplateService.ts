@@ -846,6 +846,23 @@ export class TemplateService {
     }
   }
 
+  public static async getAllTemplatesForAdmin(): Promise<ApiResponse<any[]>> {
+    try {
+      const model = TemplateModel.getInstance();
+      const templates = await model.find({}).sort({ createdAt: -1 });
+      
+      return {
+        success: true,
+        message: 'All templates retrieved successfully',
+        data: templates.map(template => TemplateService.serializeTemplate(template)),
+        timestamp: new Date()
+      };
+    } catch (error) {
+      TemplateService.logger.error('Error retrieving all templates for admin:', error);
+      throw error;
+    }
+  }
+
   public static async getPopularTemplates(limit: number = 10): Promise<ApiResponse<any[]>> {
     try {
       const templates = await TemplateModel.findPopularTemplates(limit);

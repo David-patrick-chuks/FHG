@@ -72,8 +72,8 @@ export default function AdminTemplatesPage() {
   const fetchAllTemplates = async () => {
     try {
       setLoading(true);
-      // Get all community templates (this should include all templates for admin)
-      const response = await TemplatesAPI.getCommunityTemplates({ limit: 1000 });
+      // Get all templates for admin (including pending, approved, and rejected)
+      const response = await TemplatesAPI.getAllTemplatesForAdmin();
       if (response.success && response.data) {
         setAllTemplates(response.data);
       } else {

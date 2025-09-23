@@ -32,6 +32,7 @@ export class TemplateRoutes {
 
     // Admin-only routes
     router.get('/admin/pending-approvals', AdminMiddleware.requireAdmin, TemplateController.getPendingApprovals);
+    router.get('/admin/all', AdminMiddleware.requireAdmin, TemplateController.getAllTemplatesForAdmin);
     router.post('/:id/approve', AdminMiddleware.requireAdmin, TemplateController.approveTemplate);
 
     return router;
