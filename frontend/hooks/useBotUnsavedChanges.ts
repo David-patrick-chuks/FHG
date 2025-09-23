@@ -31,6 +31,18 @@ export function useBotUnsavedChanges({
   const initialStep = useRef<number>(1);
   const initialVerificationStatus = useRef<'idle' | 'success' | 'error'>('idle');
 
+  // Function to reset initial state (call this after successful submission)
+  const resetInitialState = () => {
+    initialFormData.current = {
+      name: '',
+      description: '',
+      email: '',
+      password: ''
+    };
+    initialStep.current = 1;
+    initialVerificationStatus.current = 'idle';
+  };
+
   // Check for unsaved changes
   const hasUnsavedChanges = useMemo(() => {
     // Check if any form data has changed
@@ -54,6 +66,7 @@ export function useBotUnsavedChanges({
   }, [formData, currentStep, verificationStatus]);
 
   return {
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    resetInitialState
   };
 }

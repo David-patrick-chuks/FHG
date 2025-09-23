@@ -422,83 +422,110 @@ export class EmailExtractorCore {
         scannedUrls.add(url);
         
         await updateProgress('homepage_email_extraction', 'completed', `Found ${homepageEmails?.length || 0} email(s) on homepage`, {
-          emails: homepageEmails || []
+          emails: homepageEmails || [],
+          totalEmailsSoFar: found.size
         });
       } else {
         await updateProgress('homepage_scan', 'failed', 'Failed to fetch homepage content');
       }
 
       // Step 2: Quick contact page check (most likely to have emails)
-      if (found.size === 0) {
-        await updateProgress('contact_pages', 'processing', 'Scanning contact and about pages...');
-        const contactUrls = this.getTopContactUrls(url);
-        const contactEmails = await this.scanUrlsInParallel(contactUrls, updateProgress, 'contact_pages');
-        if (contactEmails && Array.isArray(contactEmails)) {
-          contactEmails.forEach(email => found.add(email));
-        }
-        
-        await updateProgress('contact_pages', 'completed', `Found ${contactEmails?.length || 0} email(s) from contact pages`, {
-          emails: contactEmails || []
-        });
-      } else {
-        await updateProgress('contact_pages', 'skipped', 'Skipped contact pages - emails already found');
+      await updateProgress('contact_pages', 'processing', 'Scanning contact and about pages...');
+      const contactUrls = this.getTopContactUrls(url);
+      const contactEmails = await this.scanUrlsInParallel(contactUrls, updateProgress, 'contact_pages');
+      if (contactEmails && Array.isArray(contactEmails)) {
+        contactEmails.forEach(email => found.add(email));
       }
+      
+      await updateProgress('contact_pages', 'completed', `Found ${contactEmails?.length || 0} email(s) from contact pages`, {
+        emails: contactEmails || [],
+        totalEmailsSoFar: found.size
+      });
 
       // Step 3: Enhanced Puppeteer scan with comprehensive crawling
-      if (found.size === 0) {
-        await updateProgress('puppeteer_scan', 'processing', 'Launching advanced browser scanning with stealth mode...');
-        // Only log Puppeteer usage in debug mode
-        if (process.env.LOG_LEVEL === 'debug') {
-          EmailExtractorCore.logger.debug('Using enhanced Puppeteer for comprehensive deep scanning', { url });
-        }
-        const puppeteerEmails = await this.extractEmailsWithPuppeteer(url);
-        if (puppeteerEmails && Array.isArray(puppeteerEmails)) {
-          puppeteerEmails.forEach(email => found.add(email));
-        }
-        
-        await updateProgress('puppeteer_scan', 'completed', `Advanced browser scan found ${puppeteerEmails?.length || 0} email(s)`, {
-          emails: puppeteerEmails || []
-        });
-      } else {
-        await updateProgress('puppeteer_scan', 'skipped', 'Skipped advanced browser scan - emails already found');
+      await updateProgress('puppeteer_scan', 'processing', 'Launching advanced browser scanning with stealth mode...');
+      // Only log Puppeteer usage in debug mode
+      if (process.env.LOG_LEVEL === 'debug') {
+        EmailExtractorCore.logger.debug('Using enhanced Puppeteer for comprehensive deep scanning', { url });
       }
+      const puppeteerEmails = await this.extractEmailsWithPuppeteer(url);
+      if (puppeteerEmails && Array.isArray(puppeteerEmails)) {
+        puppeteerEmails.forEach(email => found.add(email));
+      }
+      
+      await updateProgress('puppeteer_scan', 'completed', `Advanced browser scan found ${puppeteerEmails?.length || 0} email(s)`, {
+        emails: puppeteerEmails || [],
+        totalEmailsSoFar: found.size
+      });
 
       // Step 4: WHOIS lookup (fast and often effective)
-      if (found.size === 0) {
-        await updateProgress('whois_lookup', 'processing', 'Querying domain registration database (WHOIS)...');
-        const whoisEmails = await WhoisExtractor.extractEmailsFromWhois(url);
-        if (whoisEmails && Array.isArray(whoisEmails)) {
-          whoisEmails.forEach(email => found.add(email));
-        }
-        
-        if (whoisEmails && whoisEmails.length > 0) {
-          await updateProgress('whois_lookup', 'completed', `WHOIS database found ${whoisEmails.length} email(s)`, {
-            emails: whoisEmails
-          });
-        } else {
-          await updateProgress('whois_lookup', 'completed', 'WHOIS lookup completed - no emails found');
-        }
+      await updateProgress('whois_lookup', 'processing', 'Querying domain registration database (WHOIS)...');
+      const whoisEmails = await WhoisExtractor.extractEmailsFromWhois(url);
+      if (whoisEmails && Array.isArray(whoisEmails)) {
+        whoisEmails.forEach(email => found.add(email));
+      }
+      
+      if (whoisEmails && whoisEmails.length > 0) {
+        await updateProgress('whois_lookup', 'completed', `WHOIS database found ${whoisEmails.length} email(s)`, {
+          emails: whoisEmails,
+          totalEmailsSoFar: found.size
+        });
       } else {
-        await updateProgress('whois_lookup', 'skipped', 'Skipped WHOIS lookup - emails already found');
+        await updateProgress('whois_lookup', 'completed', 'WHOIS lookup completed - no emails found', {
+          totalEmailsSoFar: found.size
+        });
       }
 
+      // Step 5: Social Media extraction (comprehensive social platform scanning)
+      await updateProgress('social_media_scan', 'processing', 'Scanning social media platforms for contact information...');
+      const socialMediaEmails = await this.extractEmailsFromSocialMedia(url);
+      if (socialMediaEmails && Array.isArray(socialMediaEmails)) {
+        socialMediaEmails.forEach(email => found.add(email));
+      }
+      
+      if (socialMediaEmails && socialMediaEmails.length > 0) {
+        await updateProgress('social_media_scan', 'completed', `Social media scan found ${socialMediaEmails.length} email(s)`, {
+          emails: socialMediaEmails,
+          totalEmailsSoFar: found.size
+        });
+      } else {
+        await updateProgress('social_media_scan', 'completed', 'Social media scan completed - no emails found', {
+          totalEmailsSoFar: found.size
+        });
+      }
 
-      await updateProgress('extraction_complete', 'completed', `Email extraction completed successfully! Found ${found.size} email(s)`, {
-        totalEmails: found.size,
+      // Step 6: Final deduplication and validation
+      await updateProgress('final_deduplication', 'processing', 'Performing final deduplication and validation...');
+      const finalEmails = Array.from(found);
+      const uniqueEmails = [...new Set(finalEmails)]; // Remove duplicates
+      
+      await updateProgress('final_deduplication', 'completed', `Final deduplication complete! ${finalEmails.length} total emails found, ${uniqueEmails.length} unique emails`, {
+        totalEmailsFound: finalEmails.length,
+        uniqueEmails: uniqueEmails.length,
+        duplicatesRemoved: finalEmails.length - uniqueEmails.length,
+        finalEmails: uniqueEmails
+      });
+
+      await updateProgress('extraction_complete', 'completed', `Comprehensive email extraction completed successfully! Found ${uniqueEmails.length} unique email(s)`, {
+        totalEmails: uniqueEmails.length,
+        totalEmailsBeforeDeduplication: finalEmails.length,
+        duplicatesRemoved: finalEmails.length - uniqueEmails.length,
         scannedUrls: scannedUrls.size,
-        emails: Array.from(found)
+        emails: uniqueEmails
       });
 
       // Only log extraction completion in debug mode
       if (process.env.LOG_LEVEL === 'debug') {
         EmailExtractorCore.logger.debug('Email extraction completed', { 
           url, 
-          emailsFound: found.size, 
+          emailsFound: uniqueEmails.length,
+          totalEmailsBeforeDeduplication: finalEmails.length,
+          duplicatesRemoved: finalEmails.length - uniqueEmails.length,
           pagesScanned: scannedUrls.size 
         });
       }
 
-      return Array.from(found);
+      return uniqueEmails;
     } catch (error) {
       await updateProgress('extraction_failed', 'failed', `Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       EmailExtractorCore.logger.error('Error extracting emails from URL', { url, error });

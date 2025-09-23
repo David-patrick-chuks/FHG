@@ -1,6 +1,9 @@
+import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { ErrorHandler } from '../middleware/ErrorHandler';
 import { ValidationMiddleware } from '../middleware/ValidationMiddleware';
+import SessionModel from '../models/Session';
+import UserModel from '../models/User';
 import { ActivityService } from '../services/ActivityService';
 import { JwtService } from '../services/JwtService';
 import { UserService } from '../services/UserService';
@@ -11,7 +14,7 @@ import { Logger } from '../utils/Logger';
 export class AuthController {
   private static logger: Logger = new Logger();
 
-  private static generateToken(user: any, rememberMe: boolean = false): { accessToken: string; refreshToken: string; expiresIn: number } {
+  private static generateToken(user: any, rememberMe: boolean = false, sessionId?: string): { accessToken: string; refreshToken: string; expiresIn: number } {
     const payload = {
       userId: user._id.toString(),
       email: user.email,
@@ -19,8 +22,32 @@ export class AuthController {
       isAdmin: user.isAdmin || false
     };
     
-    const tokenPair = JwtService.generateTokenPair(payload, rememberMe);
+    const tokenPair = JwtService.generateTokenPair(payload, rememberMe, sessionId);
     return tokenPair;
+  }
+
+  /**
+   * Get device information from request
+   */
+  private static getDeviceInfo(req: Request): any {
+    const userAgent = req.get('User-Agent') || '';
+    const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+    
+    // Simple device type detection
+    let deviceType = 'unknown';
+    if (/mobile|android|iphone|ipad/i.test(userAgent)) {
+      deviceType = 'mobile';
+    } else if (/tablet|ipad/i.test(userAgent)) {
+      deviceType = 'tablet';
+    } else if (/desktop|windows|mac|linux/i.test(userAgent)) {
+      deviceType = 'desktop';
+    }
+
+    return {
+      userAgent,
+      ipAddress,
+      deviceType
+    };
   }
 
   /**
@@ -207,8 +234,36 @@ export class AuthController {
       const result = await UserService.loginUser(req.body);
 
       if (result.success && result.data) {
+        const user = result.data.user;
+        
+        // Generate unique session ID
+        const sessionId = crypto.randomUUID();
+        
+        // Get device information
+        const deviceInfo = AuthController.getDeviceInfo(req);
+        
+        // Check if user allows multiple sessions
+        if (!user.allowMultipleSessions) {
+          // Invalidate all existing sessions for single session mode
+          await SessionModel.invalidateUserSessions((user._id as any).toString());
+          
+          AuthController.logger.info('Invalidated existing sessions for single session mode', {
+            userId: (user._id as any).toString(),
+            email: user.email
+          });
+        }
+        
+        // Create new session
+        await SessionModel.createSession((user._id as any).toString(), sessionId, deviceInfo);
+        
+        // Update user's current session ID
+        await UserModel.findByIdAndUpdate(user._id, {
+          currentSessionId: sessionId,
+          lastLoginAt: new Date()
+        });
+        
         // Remove sensitive fields from response and properly serialize
-        const userData = { ...result.data.user.toObject() };
+        const userData = { ...user.toObject() };
         delete userData.password;
         delete userData.passwordResetToken;
         delete userData.passwordResetExpires;
@@ -231,8 +286,8 @@ export class AuthController {
           apiKeyLastUsed: userData.apiKeyLastUsed?.toISOString()
         };
 
-        // Generate tokens with appropriate expiration based on rememberMe
-        const tokens = AuthController.generateToken(result.data.user, rememberMe);
+        // Generate tokens with session ID
+        const tokens = AuthController.generateToken(user, rememberMe, sessionId);
 
         // Set HTTP-only cookies
         AuthController.setAuthCookies(res, tokens, rememberMe);
@@ -676,11 +731,28 @@ export class AuthController {
 
   public static async logout(req: Request, res: Response): Promise<void> {
     try {
+      // Get user info and session ID from token
+      const user = (req as any).user;
+      const sessionId = user?.sessionId;
+      
+      // Invalidate current session if sessionId exists
+      if (sessionId) {
+        await SessionModel.findOneAndUpdate(
+          { sessionId, isActive: true },
+          { isActive: false, lastAccessedAt: new Date() }
+        );
+        
+        AuthController.logger.info('Session invalidated on logout', {
+          userId: user?.id,
+          sessionId
+        });
+      }
+      
       // Clear authentication cookies
       AuthController.clearAuthCookies(res);
 
       // Log logout activity if user is authenticated
-      const userId = (req as any).user?.id;
+      const userId = user?.id;
       if (userId) {
         await ActivityService.logUserActivity(userId, ActivityType.USER_LOGOUT);
       }

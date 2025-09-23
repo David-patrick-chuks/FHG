@@ -42,6 +42,23 @@ export function useCampaignUnsavedChanges({
   const initialUploadedFileName = useRef<string>('');
   const initialStep = useRef<number>(1);
 
+  // Function to reset initial state (call this after successful submission)
+  const resetInitialState = () => {
+    initialFormData.current = {
+      name: '',
+      description: '',
+      botId: '',
+      templateId: '',
+      emailList: '',
+      scheduledFor: undefined,
+      emailInterval: 0,
+      emailIntervalUnit: 'minutes'
+    };
+    initialUploadedEmails.current = [];
+    initialUploadedFileName.current = '';
+    initialStep.current = 1;
+  };
+
   // Check for unsaved changes
   const hasUnsavedChanges = useMemo(() => {
     // Check if any form data has changed
@@ -70,6 +87,7 @@ export function useCampaignUnsavedChanges({
   }, [formData, uploadedEmails, uploadedFileName, currentStep]);
 
   return {
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    resetInitialState
   };
 }

@@ -1,9 +1,9 @@
-import BotModel from '../models/Bot';
 import CampaignModel from '../models/Campaign';
 import { CampaignStatus } from '../types';
 import { Logger } from '../utils/Logger';
 import { BotService } from './BotService';
 import { CampaignService } from './CampaignService';
+import { SessionService } from './SessionService';
 
 export class SchedulerService {
   private static logger: Logger = new Logger();
@@ -34,6 +34,11 @@ export class SchedulerService {
         // Clean up sent messages every hour (60 minutes)
         if (Date.now() % (60 * 60 * 1000) < 60000) {
           await CampaignService.cleanupSentMessages();
+        }
+        
+        // Clean up expired sessions every hour (60 minutes)
+        if (Date.now() % (60 * 60 * 1000) < 60000) {
+          await SessionService.cleanupExpiredSessions();
         }
         
         // Reset daily email counts at midnight (00:00)

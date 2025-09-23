@@ -78,7 +78,7 @@ export class SystemEmailService {
       const transporter = await this.getTransporter();
 
       const mailOptions = {
-        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        from: `"MAILQUILL TEAM" <${process.env.EMAIL_FROM_ADDRESS || process.env.SMTP_AUTH_USER || 'noreply@mailquill.com'}>`,
         to: email,
         subject: 'Password Reset - Email Outreach Bot',
         html: EmailTemplates.generatePasswordResetLinkHTML(username, resetLink),
@@ -106,7 +106,7 @@ export class SystemEmailService {
       const transporter = await this.getTransporter();
 
       const mailOptions = {
-        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        from: `"MAILQUILL TEAM" <${process.env.EMAIL_FROM_ADDRESS || process.env.SMTP_AUTH_USER || 'noreply@mailquill.com'}>`,
         to: email,
         subject: `Campaign Completed: ${campaignName}`,
         html: EmailTemplates.generateCampaignCompletionHTML(campaignName, totalEmails, successCount),
@@ -133,7 +133,7 @@ export class SystemEmailService {
       const transporter = await this.getTransporter();
 
       const mailOptions = {
-        from: process.env.EMAIL_FROM_ADDRESS || 'noreply@yourdomain.com',
+        from: `"MAILQUILL TEAM" <${process.env.EMAIL_FROM_ADDRESS || process.env.SMTP_AUTH_USER || 'noreply@mailquill.com'}>`,
         to: email,
         subject: `Subscription Expires in ${daysUntilExpiry} Days`,
         html: EmailTemplates.generateSubscriptionExpiryHTML(username, daysUntilExpiry),

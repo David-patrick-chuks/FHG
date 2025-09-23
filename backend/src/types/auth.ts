@@ -8,6 +8,7 @@ export interface JwtPayload {
   email: string;
   username: string;
   isAdmin: boolean;
+  sessionId?: string;
   iat?: number;
   exp?: number;
 }

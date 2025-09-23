@@ -95,10 +95,10 @@ export class PaystackReceiptNew extends PaystackCore {
         const doc = new PDFDocument({
           size: 'A4',
           margins: {
-            top: 50,
-            bottom: 50,
-            left: 50,
-            right: 50
+            top: 60,
+            bottom: 60,
+            left: 60,
+            right: 60
           }
         });
 
@@ -108,77 +108,70 @@ export class PaystackReceiptNew extends PaystackCore {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        // Header with brand colors
-        doc.rect(0, 0, 595, 100)
-           .fill('#1e3a8a');
+        // Header with modern branding
+        doc.rect(0, 0, 495, 100)
+           .fill('#1e40af');
 
-        // Logo placeholder (we'll use text for now)
         doc.fillColor('white')
-           .fontSize(24)
+           .fontSize(28)
            .font('Helvetica-Bold')
-           .text('MQ', 50, 30);
-
-        // Company name and tagline
-        doc.fillColor('white')
-           .fontSize(20)
-           .font('Helvetica-Bold')
-           .text('MailQuill', 100, 25);
+           .text('MailQuill', 60, 30);
 
         doc.fontSize(12)
            .font('Helvetica')
-           .text('Email Marketing Platform', 100, 50);
+           .text('Email Marketing Platform', 60, 60);
 
         // Receipt title
-        doc.fontSize(16)
+        doc.fillColor('#1e40af')
+           .fontSize(20)
            .font('Helvetica-Bold')
-           .text('PAYMENT RECEIPT', 0, 80, { align: 'center' });
+           .text('PAYMENT RECEIPT', 60, 120, { align: 'left' });
 
         // Receipt number
-        doc.fillColor('black')
+        doc.fillColor('#6b7280')
            .fontSize(10)
            .font('Helvetica')
-           .text(`Receipt # ${safePayment.reference}`, 450, 30);
+           .text(`Receipt # ${safePayment.reference}`, 400, 70);
 
         // Payment summary box
-        doc.rect(50, 120, 495, 80)
-           .fill('#e6f0ff')
-           .stroke('#cce0ff');
+        doc.rect(60, 160, 375, 90)
+           .fill('#eff6ff')
+           .stroke('#bfdbfe');
 
-        doc.fillColor('#1e3a8a')
-           .fontSize(14)
+        doc.fillColor('#1e40af')
+           .fontSize(16)
            .font('Helvetica-Bold')
-           .text('Payment Summary', 70, 130);
+           .text('Payment Summary', 70, 170);
 
-        doc.fillColor('#059669')
-           .fontSize(24)
+        doc.fillColor('#10b981')
+           .fontSize(28)
            .font('Helvetica-Bold')
-           .text(formatCurrency(safePayment.amount), 0, 150, { align: 'center' });
+           .text(formatCurrency(safePayment.amount), 70, 190);
 
         // Status badge
-        doc.rect(250, 170, 80, 20)
-           .fill('#059669');
+        doc.rect(300, 190, 90, 25)
+           .fill('#10b981');
 
         doc.fillColor('white')
-           .fontSize(10)
+           .fontSize(12)
            .font('Helvetica-Bold')
-           .text(safePayment.status.toUpperCase(), 0, 175, { align: 'center' });
+           .text(safePayment.status.toUpperCase(), 305, 195);
 
         // Payment details section
-        doc.fillColor('black')
-           .fontSize(14)
+        doc.fillColor('#1e40af')
+           .fontSize(16)
            .font('Helvetica-Bold')
-           .text('Payment Details', 50, 230);
+           .text('Payment Details', 60, 270);
 
-        // Draw line under section title
-        doc.moveTo(50, 250)
-           .lineTo(545, 250)
-           .stroke('#e0e0e0');
+        doc.moveTo(60, 290)
+           .lineTo(435, 290)
+           .stroke('#e5e7eb');
 
-        let yPosition = 270;
+        let yPosition = 310;
 
         // Payment details table
         const paymentDetails = [
-          ['Transaction Reference', safePayment.reference],
+          ['Transaction Ref', safePayment.reference],
           ['Subscription Plan', `${safePayment.subscriptionTier.charAt(0).toUpperCase() + safePayment.subscriptionTier.slice(1)} - ${safePayment.billingCycle.charAt(0).toUpperCase() + safePayment.billingCycle.slice(1)}`],
           ['Payment Date', formatDate(safePayment.paidAt)],
           ['Payment Method', 'Paystack'],
@@ -186,12 +179,12 @@ export class PaystackReceiptNew extends PaystackCore {
         ];
 
         paymentDetails.forEach(([label, value]) => {
-          doc.fillColor('#555')
+          doc.fillColor('#6b7280')
              .fontSize(10)
              .font('Helvetica-Bold')
-             .text(label, 50, yPosition);
+             .text(label, 60, yPosition);
 
-          doc.fillColor('#333')
+          doc.fillColor('#374151')
              .font('Helvetica')
              .text(value, 200, yPosition);
 
@@ -199,16 +192,16 @@ export class PaystackReceiptNew extends PaystackCore {
         });
 
         // Customer information section
-        yPosition += 20;
-        doc.fillColor('black')
-           .fontSize(14)
+        yPosition += 30;
+        doc.fillColor('#1e40af')
+           .fontSize(16)
            .font('Helvetica-Bold')
-           .text('Customer Information', 50, yPosition);
+           .text('Customer Information', 60, yPosition);
 
         yPosition += 20;
-        doc.moveTo(50, yPosition)
-           .lineTo(545, yPosition)
-           .stroke('#e0e0e0');
+        doc.moveTo(60, yPosition)
+           .lineTo(435, yPosition)
+           .stroke('#e5e7eb');
 
         yPosition += 20;
 
@@ -219,12 +212,12 @@ export class PaystackReceiptNew extends PaystackCore {
         ];
 
         customerDetails.forEach(([label, value]) => {
-          doc.fillColor('#555')
+          doc.fillColor('#6b7280')
              .fontSize(10)
              .font('Helvetica-Bold')
-             .text(label, 50, yPosition);
+             .text(label, 60, yPosition);
 
-          doc.fillColor('#333')
+          doc.fillColor('#374151')
              .font('Helvetica')
              .text(value, 200, yPosition);
 
@@ -233,29 +226,26 @@ export class PaystackReceiptNew extends PaystackCore {
 
         // Footer
         yPosition += 40;
-        doc.rect(0, yPosition, 595, 50)
-           .fill('#f4f7f6');
+        doc.rect(60, yPosition, 375, 60)
+           .fill('#f9fafb');
 
-        doc.fillColor('#1e3a8a')
+        doc.fillColor('#1e40af')
            .fontSize(12)
            .font('Helvetica-Bold')
-           .text('Thank you for choosing MailQuill!', 0, yPosition + 10, { align: 'center' });
+           .text('Thank you for choosing MailQuill!', 60, yPosition + 10, { align: 'left' });
 
-        doc.fillColor('#777')
+        doc.fillColor('#6b7280')
            .fontSize(10)
            .font('Helvetica')
-           .text('This receipt serves as proof of payment for your MailQuill subscription.', 0, yPosition + 25, { align: 'center' });
+           .text('This receipt serves as proof of payment for your subscription.', 60, yPosition + 25, { align: 'left' });
 
-        doc.text('Please keep this receipt for your records.', 0, yPosition + 35, { align: 'center' });
+        doc.text('Please keep this receipt for your records.', 60, yPosition + 35, { align: 'left' });
 
         // Watermark
-        doc.fillColor('#1e3a8a', 0.1)
-           .fontSize(60)
+        doc.fillColor('#1e40af', 0.1)
+           .fontSize(50)
            .font('Helvetica-Bold')
-           .text('MailQuill', 0, 300, { 
-             align: 'center',
-             // angle: -45  // Removed because 'angle' is not a valid TextOptions property in pdfkit
-           });
+           .text('MailQuill', 60, 400, { align: 'center' });
 
         // Finalize the PDF
         doc.end();

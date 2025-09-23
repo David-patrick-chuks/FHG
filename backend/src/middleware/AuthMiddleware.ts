@@ -3,8 +3,8 @@ import UserModel from '../models/User';
 import { DatabaseSecurityService } from '../services/DatabaseSecurityService';
 import { JwtService } from '../services/JwtService';
 import { SystemActivityService } from '../services/SystemActivityService';
-import { Logger } from '../utils/Logger';
 import { ActivityType } from '../types';
+import { Logger } from '../utils/Logger';
 
 export class AuthMiddleware {
   private static logger: Logger = new Logger();
@@ -29,7 +29,7 @@ export class AuthMiddleware {
       }
 
       // Verify token using secure JWT service
-      const decoded = JwtService.verifyAccessToken(token);
+      const decoded = await JwtService.verifyAccessToken(token);
       
       // Verify user still exists and is active using secure query
       const sanitizedUserId = DatabaseSecurityService.sanitizeObjectId(decoded.userId);
@@ -293,13 +293,13 @@ export class AuthMiddleware {
     AuthMiddleware.requireSubscriptionTier('ENTERPRISE', req, res, next);
   }
 
-  public static optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+  public static async optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
     try {
       const token = JwtService.extractToken(req);
       
       if (token) {
         try {
-          const decoded = JwtService.verifyAccessToken(token);
+          const decoded = await JwtService.verifyAccessToken(token);
           const sanitizedUserId = DatabaseSecurityService.sanitizeObjectId(decoded.userId);
           if (!sanitizedUserId) {
             next();

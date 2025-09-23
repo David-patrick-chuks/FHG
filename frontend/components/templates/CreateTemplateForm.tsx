@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { TemplatesAPI } from '@/lib/api/templates';
 import { validateTemplateData, ValidationError } from '@/lib/utils/templateValidation';
@@ -186,52 +187,94 @@ export function CreateTemplateForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-      <TemplateBasicInfo formData={formData} setFormData={setFormData} />
-      
-      <TemplateVariables formData={formData} setFormData={setFormData} />
-      
-      <TemplateSamples formData={formData} setFormData={setFormData} />
-      
-      <TemplateTags formData={formData} setFormData={setFormData} />
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Template Information</CardTitle>
+            <CardDescription>
+              Basic details about your email template
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TemplateBasicInfo formData={formData} setFormData={setFormData} />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Template Variables</CardTitle>
+            <CardDescription>
+              Define variables that can be customized in your template
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TemplateVariables formData={formData} setFormData={setFormData} />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Email Samples</CardTitle>
+            <CardDescription>
+              Create sample emails using your template and variables
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TemplateSamples formData={formData} setFormData={setFormData} />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Tags & Settings</CardTitle>
+            <CardDescription>
+              Add tags and configure template settings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TemplateTags formData={formData} setFormData={setFormData} />
+            
+            {/* Public Template Option - Only show if not cloned */}
+            {!isCloned && (
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg mt-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Make this template public</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Public templates are available to all users after admin approval
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.isPublic}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: checked }))}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Public Template Option - Only show if not cloned */}
-      {!isCloned && (
-        <div className="flex items-center justify-between p-4 bg-gradient-to-br from-blue-50/50 to-cyan-50/50 dark:from-blue-900/10 dark:to-cyan-900/10 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div>
-            <h4 className="font-medium text-blue-700 dark:text-blue-300">Make this template public</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Public templates are available to all users after admin approval
-            </p>
-          </div>
-          <Switch
-            checked={formData.isPublic}
-            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: checked }))}
-          />
+        {/* Submit Button */}
+        <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/dashboard/templates')}
+            className="order-2 sm:order-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={!canCreateTemplate || isLoading}
+            className="order-1 sm:order-2"
+          >
+            {isLoading 
+              ? (isEditMode ? 'Updating...' : 'Creating...') 
+              : (isEditMode ? 'Update Template' : 'Create Template')
+            }
+          </Button>
         </div>
-      )}
-
-      {/* Submit Button */}
-      <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push('/dashboard/templates')}
-          className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base order-2 sm:order-1"
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={!canCreateTemplate || isLoading}
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base order-1 sm:order-2"
-        >
-          {isLoading 
-            ? (isEditMode ? 'Updating...' : 'Creating...') 
-            : (isEditMode ? 'Update Template' : 'Create Template')
-          }
-        </Button>
-      </div>
+      </form>
 
       {/* Template Validation Modal */}
       <TemplateValidationModal
@@ -251,6 +294,6 @@ export function CreateTemplateForm({
           onIgnore={ignoreValidation}
         />
       )}
-    </form>
+    </div>
   );
 }

@@ -39,6 +39,7 @@ export class RouteService {
               cookies: '/api/cookies',
               incidents: '/api/incidents',
               publicApi: '/api/public',
+              sessions: '/api/sessions',
               subscriptions: '/api/subscriptions',
               templates: '/api/templates',
               tracking: '/api/tracking',

@@ -118,6 +118,8 @@ export default function CreateBotPage() {
       });
 
       if (response.success) {
+        // Reset the unsaved changes state before redirecting
+        resetInitialState();
         // Redirect back to bots page
         router.push('/dashboard/bots');
       } else {
@@ -146,7 +148,7 @@ export default function CreateBotPage() {
                      verificationStatus === 'success';
 
   // Detect unsaved changes
-  const { hasUnsavedChanges } = useBotUnsavedChanges({
+  const { hasUnsavedChanges, resetInitialState } = useBotUnsavedChanges({
     formData,
     currentStep,
     verificationStatus

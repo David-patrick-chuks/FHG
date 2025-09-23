@@ -14,6 +14,7 @@ import { IncidentRoutes } from './IncidentRoutes';
 import { PaymentRoutes } from './PaymentRoutes';
 import { PublicApiRoutes } from './PublicApiRoutes';
 import { QueueRoutes } from './QueueRoutes';
+import { SessionRoutes } from './SessionRoutes';
 import { SubscriptionRoutes } from './SubscriptionRoutes';
 import { TemplateRoutes } from './TemplateRoutes';
 import { TrackingRoutes } from './TrackingRoutes';
@@ -110,6 +111,7 @@ export class Routes {
     router.use(IncidentRoutes.getBasePath(), IncidentRoutes.getRouter());
     router.use(PaymentRoutes.getBasePath(), PaymentRoutes.getRouter());
     router.use(PublicApiRoutes.getBasePath(), PublicApiRoutes.getRouter());
+    router.use(SessionRoutes.getBasePath(), SessionRoutes.getRouter());
     router.use(SubscriptionRoutes.getBasePath(), SubscriptionRoutes.getRouter());
     router.use(TemplateRoutes.getBasePath(), TemplateRoutes.getRouter());
     router.use(AdminRoutes.getBasePath(), AdminRoutes.getRouter());
@@ -142,6 +144,7 @@ export class Routes {
           '/api/cookies',
           '/api/incidents',
           '/api/public',
+          '/api/sessions',
           '/api/subscriptions',
           '/api/templates',
           '/api/tracking',
@@ -166,6 +169,7 @@ export class Routes {
       IncidentRoutes.getBasePath(),
       PaymentRoutes.getBasePath(),
       PublicApiRoutes.getBasePath(),
+      SessionRoutes.getBasePath(),
       SubscriptionRoutes.getBasePath(),
       TemplateRoutes.getBasePath(),
       AdminRoutes.getBasePath(),
@@ -193,6 +197,7 @@ export class Routes {
       totalRoutes += this.countRoutesInModule(IncidentRoutes);
       totalRoutes += this.countRoutesInModule(PaymentRoutes);
       totalRoutes += this.countRoutesInModule(PublicApiRoutes);
+      totalRoutes += this.countRoutesInModule(SessionRoutes);
       totalRoutes += this.countRoutesInModule(SubscriptionRoutes);
       totalRoutes += this.countRoutesInModule(TemplateRoutes);
       totalRoutes += this.countRoutesInModule(AdminRoutes);

@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { JwtPayload, TokenPair } from '../types';
 import { Logger } from '../utils/Logger';
+import SessionModel from '../models/Session';
 
 export class JwtService {
   private static logger: Logger = new Logger();
@@ -66,12 +67,17 @@ export class JwtService {
   /**
    * Generate secure token pair
    */
-  public static generateTokenPair(payload: Omit<JwtPayload, 'iat' | 'exp'>, rememberMe: boolean = false): TokenPair {
+  public static generateTokenPair(payload: Omit<JwtPayload, 'iat' | 'exp'>, rememberMe: boolean = false, sessionId?: string): TokenPair {
     try {
       const secret = this.getSecret();
       
-      // Generate access token
-    const accessToken = jwt.sign(payload as object, secret, {
+      // Generate access token with session ID
+      const accessTokenPayload = {
+        ...payload,
+        ...(sessionId && { sessionId })
+      };
+      
+      const accessToken = jwt.sign(accessTokenPayload, secret, {
         expiresIn: this.ACCESS_TOKEN_EXPIRY,
         algorithm: 'HS256',
         issuer: 'email-outreach-bot',
@@ -82,7 +88,8 @@ export class JwtService {
       const refreshPayload = {
         userId: payload.userId,
         type: 'refresh',
-        tokenId: crypto.randomUUID()
+        tokenId: crypto.randomUUID(),
+        ...(sessionId && { sessionId })
       };
 
       const refreshExpiry = rememberMe ? 
@@ -130,7 +137,7 @@ export class JwtService {
   /**
    * Verify and decode access token
    */
-  public static verifyAccessToken(token: string): JwtPayload {
+  public static async verifyAccessToken(token: string): Promise<JwtPayload> {
     try {
       const secret = this.getSecret();
       
@@ -148,6 +155,23 @@ export class JwtService {
       // Validate payload structure
       if (!decoded.userId || !decoded.email || !decoded.username) {
         throw new Error('Invalid token payload');
+      }
+
+      // Validate session if sessionId is present
+      if (decoded.sessionId) {
+        const session = await SessionModel.findOne({
+          sessionId: decoded.sessionId,
+          userId: decoded.userId,
+          isActive: true,
+          expiresAt: { $gt: new Date() }
+        });
+
+        if (!session) {
+          throw new Error('Session has been invalidated');
+        }
+
+        // Update last accessed time
+        await SessionModel.updateLastAccessed(decoded.sessionId);
       }
 
       return decoded;

@@ -56,20 +56,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-          Template Information
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Basic details about your email template
-        </p>
-      </div>
 
       {/* Basic Information */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="name" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+            <Label htmlFor="name" className="font-medium">
               Template Name *
             </Label>
             <div className="flex items-center gap-1">
@@ -101,12 +93,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             onBlur={() => markFieldAsTouched('name')}
             placeholder="e.g., Sales Follow-up Template"
             required
-            className={`h-10 sm:h-11 text-sm sm:text-base transition-all duration-200 ${
+            className={`${
               shouldShowValidation('name', nameInfo.isValid)
                 ? (nameInfo.isValid 
-                    ? 'border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400' 
-                    : 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400')
-                : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-400'
+                    ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
+                    : 'border-red-300 focus:border-red-500 focus:ring-red-500')
+                : ''
             }`}
           />
           {shouldShowValidation('name', nameInfo.isValid) && !nameInfo.isValid && nameInfo.message && (
@@ -118,14 +110,14 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+          <Label htmlFor="category" className="font-medium">
             Category *
           </Label>
           <Select
             value={formData.category}
             onValueChange={(value: TemplateCategory) => setFormData(prev => ({ ...prev, category: value }))}
           >
-            <SelectTrigger className="h-10 sm:h-11 text-sm sm:text-base border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400">
+            <SelectTrigger>
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -141,7 +133,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="description" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+          <Label htmlFor="description" className="font-medium">
             Description *
           </Label>
           <div className="flex items-center gap-1">
@@ -174,12 +166,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
           placeholder="Describe what this template is used for..."
           rows={3}
           required
-          className={`text-sm sm:text-base transition-all duration-200 ${
+          className={`${
             shouldShowValidation('description', descriptionInfo.isValid)
               ? (descriptionInfo.isValid 
-                  ? 'border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400' 
-                  : 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400')
-              : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-400'
+                  ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
+                  : 'border-red-300 focus:border-red-500 focus:ring-red-500')
+              : ''
           }`}
         />
         {shouldShowValidation('description', descriptionInfo.isValid) && !descriptionInfo.isValid && descriptionInfo.message && (
@@ -192,7 +184,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="useCase" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+          <Label htmlFor="useCase" className="font-medium">
             Use Case *
           </Label>
           <div className="flex items-center gap-1">
@@ -225,12 +217,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
           placeholder="Describe when and why to use this template..."
           rows={3}
           required
-          className={`text-sm sm:text-base transition-all duration-200 ${
+          className={`${
             shouldShowValidation('useCase', useCaseInfo.isValid)
               ? (useCaseInfo.isValid 
-                  ? 'border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400' 
-                  : 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400')
-              : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-400'
+                  ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
+                  : 'border-red-300 focus:border-red-500 focus:ring-red-500')
+              : ''
           }`}
         />
         {shouldShowValidation('useCase', useCaseInfo.isValid) && !useCaseInfo.isValid && useCaseInfo.message && (
@@ -244,7 +236,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
       <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="industry" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+            <Label htmlFor="industry" className="font-medium">
               Industry (Optional)
             </Label>
             <div className="flex items-center gap-1">
@@ -275,12 +267,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             }}
             onBlur={() => markFieldAsTouched('industry')}
             placeholder="e.g., Technology, Healthcare"
-            className={`h-10 sm:h-11 text-sm sm:text-base transition-all duration-200 ${
+            className={`${
               shouldShowValidation('industry', industryInfo.isValid)
                 ? (industryInfo.isValid 
-                    ? 'border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400' 
-                    : 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400')
-                : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-400'
+                    ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
+                    : 'border-red-300 focus:border-red-500 focus:ring-red-500')
+                : ''
             }`}
           />
           {shouldShowValidation('industry', industryInfo.isValid) && !industryInfo.isValid && (
@@ -293,7 +285,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="targetAudience" className="text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base">
+            <Label htmlFor="targetAudience" className="font-medium">
               Target Audience (Optional)
             </Label>
             <div className="flex items-center gap-1">
@@ -324,12 +316,12 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             }}
             onBlur={() => markFieldAsTouched('targetAudience')}
             placeholder="e.g., B2B Sales Teams"
-            className={`h-10 sm:h-11 text-sm sm:text-base transition-all duration-200 ${
+            className={`${
               shouldShowValidation('targetAudience', targetAudienceInfo.isValid)
                 ? (targetAudienceInfo.isValid 
-                    ? 'border-blue-200 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-800 dark:focus:border-blue-400' 
-                    : 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400')
-                : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:focus:border-blue-400'
+                    ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
+                    : 'border-red-300 focus:border-red-500 focus:ring-red-500')
+                : ''
             }`}
           />
           {shouldShowValidation('targetAudience', targetAudienceInfo.isValid) && !targetAudienceInfo.isValid && (

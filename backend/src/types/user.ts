@@ -20,6 +20,8 @@ export interface IUser {
   apiKey?: string;
   apiKeyCreatedAt?: Date;
   apiKeyLastUsed?: Date;
+  allowMultipleSessions?: boolean;
+  currentSessionId?: string;
 }
 
 export interface IAdminAction {

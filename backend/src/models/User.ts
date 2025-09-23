@@ -99,6 +99,14 @@ export class UserModel {
       lastLoginAt: {
         type: Date
       },
+      currentSessionId: {
+        type: String,
+        sparse: true
+      },
+      allowMultipleSessions: {
+        type: Boolean,
+        default: false
+      },
       passwordResetToken: {
         type: String,
         sparse: true
@@ -295,7 +303,7 @@ export class UserModel {
 
     userSchema.statics['createUser'] = async function(userData: Partial<IUser>): Promise<IUserDocument> {
       const user = new this(userData);
-      return user.save();
+      return await user.save() as IUserDocument;
     };
 
     userSchema.statics['findByApiKey'] = function(apiKey: string): Promise<IUserDocument | null> {
