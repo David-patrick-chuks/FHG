@@ -1,5 +1,3 @@
-'use client';
-
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Card, CardContent } from '@/components/ui/card';
 import { generatePageMetadata } from '@/lib/seo';
