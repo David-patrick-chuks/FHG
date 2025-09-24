@@ -24,10 +24,14 @@ export class CampaignService {
       emailList: campaignObj.emailList,
       botId: campaignObj.botId.toString(),
       templateId: campaignObj.templateId?.toString(),
-      generatedMessages: campaignObj.generatedMessages || [],
+      generatedMessages: (campaignObj.generatedMessages || []).map((message: any) => ({
+        ...message,
+        _id: message._id.toString(),
+        sentAt: message.sentAt?.toISOString()
+      })),
       status: campaignObj.status,
       selectedMessageIndex: campaignObj.selectedMessageIndex,
-      sentEmails: campaignObj.sentEmails || [], // Include sentEmails array, default to empty array
+      sentEmails: (campaignObj.sentEmails || []).map((sentEmailId: any) => sentEmailId.toString()),
       scheduledFor: campaignObj.scheduledFor?.toISOString(),
       isScheduled: campaignObj.isScheduled,
       emailInterval: campaignObj.emailInterval,

@@ -22,7 +22,10 @@ export function EmailRecipients({ campaign }: EmailRecipientsProps) {
   const currentEmails = campaign.emailList.slice(startIndex, endIndex);
 
   const getStatusBadge = (email: string) => {
-    const isSent = (campaign.sentEmails || []).includes(email);
+    // Check if there's a generated message for this email that has been sent
+    const generatedMessage = campaign.generatedMessages?.find(msg => msg.recipientEmail === email);
+    const isSent = generatedMessage?.isSent || false;
+    
     return isSent ? (
       <Badge className="bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300 border-cyan-200 dark:border-cyan-700">
         <Mail className="w-3 h-3 mr-1" />
