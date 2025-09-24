@@ -1,11 +1,18 @@
-import { SystemActivityModel, ISystemActivityDocument } from '../models/SystemActivity';
-import { ActivityType } from '../types';
-import { ApiResponse } from '../types';
+import mongoose from 'mongoose';
+import { ISystemActivityDocument, SystemActivityModel } from '../models/SystemActivity';
+import { ActivityType, ApiResponse } from '../types';
 import { Logger } from '../utils/Logger';
 
 export class SystemActivityService {
   private static logger: Logger = new Logger();
   private static activityCreationCache = new Map<string, number>(); // Cache for rate limiting
+
+  /**
+   * Check if database is connected
+   */
+  private static isDatabaseConnected(): boolean {
+    return mongoose.connection.readyState === 1;
+  }
 
   /**
    * Create a new system activity
@@ -204,6 +211,16 @@ export class SystemActivityService {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
+      // Check if database is connected before attempting to log
+      if (!SystemActivityService.isDatabaseConnected()) {
+        SystemActivityService.logger.debug('Database not connected, skipping system activity log', {
+          type,
+          title,
+          source
+        });
+        return;
+      }
+
       // Check for duplicates within the last 5 minutes
       const duplicateKey = `${type}:${title}:${source}`;
       const now = Date.now();

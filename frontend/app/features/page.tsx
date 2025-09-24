@@ -2,6 +2,8 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Breadcrumbs, breadcrumbConfigs } from '@/components/seo/Breadcrumbs';
+import { generatePageMetadata } from '@/lib/seo';
 import {
     ArrowRight,
     BarChart3,
@@ -13,6 +15,9 @@ import {
     Zap
 } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = generatePageMetadata('features');
 
 export default function FeaturesPage() {
   const features = [

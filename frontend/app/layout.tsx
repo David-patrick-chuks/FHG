@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { UnreadCountProvider } from "@/contexts/UnreadCountContext"
+import { OrganizationJsonLd, WebsiteJsonLd, SoftwareApplicationJsonLd } from "@/components/seo/JsonLd"
+import { generateMetadata as generateSEOMetadata, seoConfigs } from "@/lib/seo"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
 import type React from "react"
@@ -31,12 +33,7 @@ const jetBrainsMono = JetBrains_Mono({
   display: "swap",
 })
 
-export const metadata: Metadata = {
-  title: "MailQuill - AI-Powered Email Marketing Platform",
-  description:
-    "Create, automate, and optimize email campaigns with AI technology that delivers results. Transform your email marketing with intelligent automation.",
-    generator: 'v0.app'
-}
+export const metadata: Metadata = generateSEOMetadata(seoConfigs.home)
 
 export default function RootLayout({
   children,
@@ -45,6 +42,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <OrganizationJsonLd />
+        <WebsiteJsonLd />
+        <SoftwareApplicationJsonLd />
+      </head>
       <body className={`${dmSansHeading.variable} ${dmSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}>
          <ThemeProvider
           attribute="class"

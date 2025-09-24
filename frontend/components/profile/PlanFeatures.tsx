@@ -14,14 +14,14 @@ export function PlanFeatures({ user }: PlanFeaturesProps) {
     const plan = subscription.toLowerCase();
     switch (plan) {
       case 'enterprise':
-        return { bots: '∞', emails: '∞', campaigns: '∞' };
+        return { bots: '∞', emails: '∞', campaigns: '∞', extractions: '10,000' };
       case 'premium':
-        return { bots: '50', emails: '50,000', campaigns: '50' };
+        return { bots: '50', emails: '50,000', campaigns: '50', extractions: '10,000' };
       case 'basic':
-        return { bots: '10', emails: '10,000', campaigns: '10' };
+        return { bots: '10', emails: '10,000', campaigns: '10', extractions: '1,000' };
       case 'free':
       default:
-        return { bots: '2', emails: '1,000', campaigns: '2' };
+        return { bots: '2', emails: '1,000', campaigns: '2', extractions: '100' };
     }
   };
 
@@ -29,7 +29,7 @@ export function PlanFeatures({ user }: PlanFeaturesProps) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="text-center p-4 border rounded-lg">
           <div className="text-2xl font-bold text-blue-600">
             {limits.bots}
@@ -49,6 +49,13 @@ export function PlanFeatures({ user }: PlanFeaturesProps) {
             {limits.campaigns}
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-400">Campaigns</div>
+        </div>
+        
+        <div className="text-center p-4 border rounded-lg">
+          <div className="text-2xl font-bold text-orange-600">
+            {limits.extractions}
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Email Extractions/day</div>
         </div>
       </div>
 

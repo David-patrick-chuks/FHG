@@ -1,11 +1,16 @@
 'use client';
 
 import { PricingHeader, PricingPageContent } from '@/components/pricing';
+import { Breadcrumbs, breadcrumbConfigs } from '@/components/seo/Breadcrumbs';
+import { generatePageMetadata } from '@/lib/seo';
 import { PaymentAPI } from '@/lib/api/payment';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = generatePageMetadata('pricing');
 
 function PricingContent() {
   const router = useRouter();

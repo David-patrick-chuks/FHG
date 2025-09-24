@@ -29,20 +29,90 @@ export class EmailParser {
   }
 
   /**
+   * Enhanced email validation to filter out false positives
+   */
+  private static isValidEmail(email: string): boolean {
+    if (!email || typeof email !== 'string') return false;
+    
+    // Basic validation using validator
+    if (!validator.isEmail(email)) return false;
+    
+    // Additional checks to filter out common false positives
+    const lowercaseEmail = email.toLowerCase();
+    
+    // Filter out JavaScript variables and React components
+    if (lowercaseEmail.includes('react') || 
+        lowercaseEmail.includes('component') ||
+        lowercaseEmail.includes('modal') ||
+        lowercaseEmail.includes('dialog') ||
+        lowercaseEmail.includes('form') ||
+        lowercaseEmail.includes('input') ||
+        lowercaseEmail.includes('button') ||
+        lowercaseEmail.includes('state') ||
+        lowercaseEmail.includes('props') ||
+        lowercaseEmail.includes('hook') ||
+        lowercaseEmail.includes('context') ||
+        lowercaseEmail.includes('provider')) {
+      return false;
+    }
+    
+    // Filter out malformed URLs that contain @
+    if (lowercaseEmail.startsWith('www.') || 
+        lowercaseEmail.startsWith('http') ||
+        lowercaseEmail.includes('cdn') ||
+        lowercaseEmail.includes('static') ||
+        lowercaseEmail.includes('assets') ||
+        lowercaseEmail.includes('js') ||
+        lowercaseEmail.includes('css') ||
+        lowercaseEmail.includes('.min.') ||
+        lowercaseEmail.includes('bundle') ||
+        lowercaseEmail.includes('chunk')) {
+      return false;
+    }
+    
+    // Filter out common false patterns
+    if (lowercaseEmail.includes('@') && 
+        (lowercaseEmail.includes('.js') || 
+         lowercaseEmail.includes('.ts') || 
+         lowercaseEmail.includes('.tsx') || 
+         lowercaseEmail.includes('.jsx') ||
+         lowercaseEmail.includes('.min') ||
+         lowercaseEmail.includes('.bundle'))) {
+      return false;
+    }
+    
+    // Filter out very short local parts (likely not real emails)
+    const localPart = email.split('@')[0];
+    if (localPart.length < 2) return false;
+    
+    // Filter out emails with suspicious patterns
+    if (localPart.includes('.') && localPart.split('.').length > 3) return false;
+    
+    // Filter out emails that look like variable names
+    if (/^[a-z_]+$/.test(localPart) && localPart.length > 10) return false;
+    
+    return true;
+  }
+
+  /**
    * Extract emails from HTML content - Enhanced with multiple techniques
    */
   public static extractEmailsFromHtml(html: string): string[] {
-    const emails: string[] = [];
+    const emails: Set<string> = new Set();
     
     // Return empty array if html is null or undefined
     if (!html || typeof html !== 'string') {
-      return emails;
+      return [];
     }
     
-    // Method 1: Standard regex extraction
+    // Method 1: Standard regex extraction with validation
     const matches = html.match(this.EMAIL_REGEX);
     if (matches) {
-      emails.push(...matches);
+      matches.forEach(email => {
+        if (this.isValidEmail(email)) {
+          emails.add(email.toLowerCase());
+        }
+      });
     }
 
     // Method 2: Extract from mailto links with base64 decoding
@@ -60,8 +130,8 @@ export class EmailParser {
       }
       
       const email = mailto.split('?')[0].split('&')[0];
-      if (validator.isEmail(email)) {
-        emails.push(email);
+      if (this.isValidEmail(email)) {
+        emails.add(email.toLowerCase());
       }
     });
 
@@ -70,8 +140,8 @@ export class EmailParser {
       const email = $1(element).attr('data-email') || 
                    $1(element).attr('data-contact') || 
                    $1(element).attr('data-mail');
-      if (email && email.includes('@')) {
-        emails.push(email);
+      if (email && this.isValidEmail(email)) {
+        emails.add(email.toLowerCase());
       }
     });
 
@@ -81,7 +151,11 @@ export class EmailParser {
       if (title) {
         const titleMatches = title.match(this.EMAIL_REGEX);
         if (titleMatches) {
-          emails.push(...titleMatches);
+          titleMatches.forEach(email => {
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
+            }
+          });
         }
       }
     });
@@ -92,7 +166,11 @@ export class EmailParser {
       if (alt) {
         const altMatches = alt.match(this.EMAIL_REGEX);
         if (altMatches) {
-          emails.push(...altMatches);
+          altMatches.forEach(email => {
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
+            }
+          });
         }
       }
     });
@@ -102,7 +180,9 @@ export class EmailParser {
     if (jsMatches && Array.isArray(jsMatches)) {
       jsMatches.forEach(match => {
         const email = match.replace(/['"`]/g, '');
-        emails.push(email);
+        if (this.isValidEmail(email)) {
+          emails.add(email.toLowerCase());
+        }
       });
     }
 
@@ -111,8 +191,8 @@ export class EmailParser {
     if (jsonMatches && Array.isArray(jsonMatches)) {
       jsonMatches.forEach(match => {
         const emailMatch = match.match(/"email":\s*"([^"]+)"/);
-        if (emailMatch && emailMatch[1].includes('@')) {
-          emails.push(emailMatch[1]);
+        if (emailMatch && this.isValidEmail(emailMatch[1])) {
+          emails.add(emailMatch[1].toLowerCase());
         }
       });
     }
@@ -123,7 +203,11 @@ export class EmailParser {
       if (content) {
         const metaMatches = content.match(this.EMAIL_REGEX);
         if (metaMatches) {
-          emails.push(...metaMatches);
+          metaMatches.forEach(email => {
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
+            }
+          });
         }
       }
     });
@@ -134,7 +218,11 @@ export class EmailParser {
       commentMatches.forEach(comment => {
         const commentEmailMatches = comment.match(this.EMAIL_REGEX);
         if (commentEmailMatches) {
-          emails.push(...commentEmailMatches);
+          commentEmailMatches.forEach(email => {
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
+            }
+          });
         }
       });
     }
@@ -142,8 +230,8 @@ export class EmailParser {
     // Method 10: Look for emails in hidden elements
     $1('input[type="email"], input[name*="email"], input[id*="email"]').each((_, element) => {
       const value = $1(element).attr('value') || $1(element).attr('placeholder');
-      if (value && value.includes('@')) {
-        emails.push(value);
+      if (value && this.isValidEmail(value)) {
+        emails.add(value.toLowerCase());
       }
     });
 
@@ -175,8 +263,8 @@ export class EmailParser {
         if (matches && Array.isArray(matches)) {
           matches.forEach(match => {
             const emailMatch = match.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,})/);
-            if (emailMatch) {
-              emails.push(emailMatch[1]);
+            if (emailMatch && this.isValidEmail(emailMatch[1])) {
+              emails.add(emailMatch[1].toLowerCase());
             }
           });
         }
@@ -204,7 +292,12 @@ export class EmailParser {
             }
             return foundEmails;
           };
-          emails.push(...extractEmailsFromObject(data));
+          const extractedEmails = extractEmailsFromObject(data);
+          extractedEmails.forEach(email => {
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
+            }
+          });
         }
       } catch (error) {
         // Invalid JSON, skip
@@ -217,7 +310,11 @@ export class EmailParser {
       if (content) {
         const microdataMatches = content.match(this.EMAIL_REGEX);
         if (microdataMatches) {
-          emails.push(...microdataMatches);
+          microdataMatches.forEach(email => {
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
+            }
+          });
         }
       }
     });
@@ -247,8 +344,8 @@ export class EmailParser {
     if (reversedMatches && Array.isArray(reversedMatches)) {
       reversedMatches.forEach(email => {
         const revEmail = email.split('').reverse().join('');
-        if (validator.isEmail(revEmail)) {
-          emails.push(revEmail);
+        if (this.isValidEmail(revEmail)) {
+          emails.add(revEmail.toLowerCase());
         }
       });
     }
@@ -259,8 +356,8 @@ export class EmailParser {
         const textMatches = textContent.match(pattern);
         if (textMatches && Array.isArray(textMatches)) {
           textMatches.forEach(email => {
-            if (validator.isEmail(email)) {
-              emails.push(email);
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
             }
           });
         }
@@ -281,8 +378,8 @@ export class EmailParser {
         const sectionMatches = decodedSectionText.match(this.EMAIL_REGEX);
         if (sectionMatches && Array.isArray(sectionMatches)) {
           sectionMatches.forEach(email => {
-            if (validator.isEmail(email)) {
-              emails.push(email);
+            if (this.isValidEmail(email)) {
+              emails.add(email.toLowerCase());
             }
           });
         }
@@ -290,7 +387,7 @@ export class EmailParser {
     }
 
     // Clean and normalize emails
-    const cleanedEmails = emails
+    const cleanedEmails = Array.from(emails)
       .map(email => email.toLowerCase().trim())
       .filter(email => {
         // Basic validation
@@ -450,9 +547,11 @@ export class EmailParser {
             scriptArray.forEach(script => {
               try {
                 const data = JSON.parse((script as any)?.innerHTML || '{}');
-                function findEmails(obj: any) {
+                const findEmails = (obj: any) => {
                   if (typeof obj === 'string' && /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(obj)) {
-                    emails.push(obj);
+                    if (EmailParser.isValidEmail(obj)) {
+                      emails.push(obj.toLowerCase());
+                    }
                   }
                   if (typeof obj === 'object' && obj) {
                     const values = Object.values(obj);
@@ -495,7 +594,13 @@ export class EmailParser {
                 let text = el.innerText;
                 text = text.replace(/\[at\]/g, '@').replace(/\[dot\]/g, '.');
                 const matches = text.match(/[\w\.-]+@[\w\.-]+\.\w+/g);
-                if (matches && Array.isArray(matches)) emails.push(...matches);
+                if (matches && Array.isArray(matches)) {
+                  matches.forEach(email => {
+                    if (EmailParser.isValidEmail(email)) {
+                      emails.push(email.toLowerCase());
+                    }
+                  });
+                }
               });
             }
           });

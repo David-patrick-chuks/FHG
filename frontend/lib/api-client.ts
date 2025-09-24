@@ -126,20 +126,29 @@ class ApiClient {
               (responseData.message && (
                 responseData.message.toLowerCase().includes('invalid token') ||
                 responseData.message.toLowerCase().includes('unauthorized') ||
-                responseData.message.toLowerCase().includes('authentication failed')
+                responseData.message.toLowerCase().includes('authentication failed') ||
+                responseData.message.toLowerCase().includes('session has been invalidated') ||
+                responseData.message.toLowerCase().includes('token has been revoked')
               )) ||
               (responseData.error && (
                 responseData.error.toLowerCase().includes('invalid token') ||
                 responseData.error.toLowerCase().includes('unauthorized') ||
-                responseData.error.toLowerCase().includes('authentication failed')
+                responseData.error.toLowerCase().includes('authentication failed') ||
+                responseData.error.toLowerCase().includes('session has been invalidated') ||
+                responseData.error.toLowerCase().includes('token has been revoked')
               )));
 
           if (isAuthError && !isLogoutInProgress) {
             console.warn('Authentication error detected, triggering logout');
             isLogoutInProgress = true; // Set flag to prevent multiple triggers
             
-            // Show toast notification
-            showToast('Your session has expired. Please sign in again.', 'warning');
+            // Show toast notification with more specific message for session invalidation
+            const isSessionInvalidated = responseData.message?.toLowerCase().includes('session has been invalidated') ||
+                                       responseData.error?.toLowerCase().includes('session has been invalidated');
+            const toastMessage = isSessionInvalidated 
+              ? 'You have been logged out because you signed in on another device.'
+              : 'Your session has expired. Please sign in again.';
+            showToast(toastMessage, 'warning');
             
             // Show logout overlay and trigger global logout if available
             if (globalSetLoggingOut && globalLogout) {

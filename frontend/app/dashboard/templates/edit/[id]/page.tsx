@@ -58,6 +58,7 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
   };
 
   const handleTemplateUpdated = (updatedTemplate: Template) => {
+    setHasUnsavedChanges(false); // Reset unsaved changes state
     toast.success('Template updated successfully!');
     router.push('/dashboard/templates');
   };
@@ -106,7 +107,13 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
       actions={
         <Button
           variant="outline"
-          onClick={() => router.push('/dashboard/templates')}
+          onClick={() => {
+            if (hasUnsavedChanges) {
+              setShowConfirmModal(true);
+            } else {
+              router.push('/dashboard/templates');
+            }
+          }}
           className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

@@ -77,8 +77,8 @@ export default function BotsPage() {
       setShowPlanLimitModal(true);
     }
   };
-
-  // Set user plan from auth context
+        
+        // Set user plan from auth context
   useEffect(() => {
     if (user?.subscription) {
       setUserPlan(user.subscription as 'free' | 'basic' | 'premium');
@@ -147,8 +147,8 @@ export default function BotsPage() {
 
       if (response.success) {
         await fetchBots(); // Refresh the list
-        setIsDeleteDialogOpen(false);
-        setDeletingBot(null);
+    setIsDeleteDialogOpen(false);
+    setDeletingBot(null);
         toast.success('Bot deleted successfully');
       } else {
         toast.error(response.error || 'Failed to delete bot');
@@ -180,27 +180,27 @@ export default function BotsPage() {
           {/* Loading skeleton */}
           <Card className="animate-pulse">
             <CardContent className="pt-6">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="hover:shadow-md transition-shadow animate-pulse">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="hover:shadow-md transition-shadow animate-pulse">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                          <div className="space-y-2">
-                            <div className="h-5 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                            <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
                       <div className="space-y-2">
-                        <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="h-5 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    </div>
+                  </div>
+                      <div className="space-y-2">
+                    <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
             </CardContent>
           </Card>
         </div>
@@ -234,17 +234,17 @@ export default function BotsPage() {
     <DashboardLayout
       title="Bots"
       description="Manage your AI-powered email bots and their configurations"
-      actions={
-        bots.length > 0 ? (
-          <Button 
-            onClick={handleCreateBotClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Bot
-          </Button>
-        ) : undefined
-      }
+        actions={
+          bots.length > 0 ? (
+            <Button 
+              onClick={handleCreateBotClick}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Bot
+            </Button>
+          ) : undefined
+        }
     >
       <div className="space-y-6">
         {/* Message for users redirected from campaign creation */}
@@ -319,10 +319,10 @@ export default function BotsPage() {
                     Some bots are inactive due to subscription limits. Upgrade your plan to reactivate them automatically.
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+            )}
 
         {/* Bots List */}
         {bots.length === 0 ? (
@@ -330,31 +330,31 @@ export default function BotsPage() {
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <BotIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No bots found
-                </h3>
+              </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  {searchQuery 
+                {searchQuery 
                     ? 'Try adjusting your search criteria.'
                     : 'Get started by creating your first AI-powered email bot.'
-                  }
-                </p>
-                {!searchQuery && (
+                }
+              </p>
+              {!searchQuery && (
                   <Button 
                     onClick={handleCreateBotClick}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Bot
-                  </Button>
-                )}
+                Create Your First Bot
+              </Button>
+              )}
               </div>
             </CardContent>
           </Card>
         ) : (
           <>
             <div className={viewMode === 'list' ? 'space-y-4' : 'grid gap-6 md:grid-cols-2 lg:grid-cols-3'}>
-              {bots.map((bot) => (
+            {bots.map((bot) => (
                 <BotCard
                   key={bot._id}
                   bot={bot}
@@ -364,8 +364,8 @@ export default function BotsPage() {
                   onEdit={handleEditBot}
                   onDelete={handleDeleteBot}
                 />
-              ))}
-            </div>
+            ))}
+          </div>
 
             {/* Pagination */}
             <BotPagination
@@ -394,15 +394,15 @@ export default function BotsPage() {
           isDeleting={isDeleting}
         />
 
-        {/* Plan Limit Modal */}
-        <PlanLimitModal
-          isOpen={showPlanLimitModal}
-          onClose={() => setShowPlanLimitModal(false)}
-          currentPlan={userPlan}
+      {/* Plan Limit Modal */}
+      <PlanLimitModal
+        isOpen={showPlanLimitModal}
+        onClose={() => setShowPlanLimitModal(false)}
+        currentPlan={userPlan}
           limitType="bots"
           currentCount={bots.length}
           maxLimit={getMaxBots(userPlan)}
-        />
+      />
       </div>
     </DashboardLayout>
   );

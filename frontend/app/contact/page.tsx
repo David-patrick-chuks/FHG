@@ -7,16 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ContactAPI, ContactFormData } from '@/lib/api';
+import { generatePageMetadata } from '@/lib/seo';
 import {
-  CheckCircle,
-  Mail,
-  MessageSquare,
-  Phone,
-  Send
+    CheckCircle,
+    Mail,
+    MessageSquare,
+    Phone,
+    Send
 } from 'lucide-react';
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
+
+export const metadata: Metadata = generatePageMetadata('contact');
 
 export default function ContactPage() {
   const [formData, setFormData] = useState<ContactFormData>({

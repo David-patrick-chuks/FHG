@@ -36,7 +36,6 @@ export function ConfirmationModal({
 }: ConfirmationModalProps) {
   const handleConfirm = () => {
     onConfirm();
-    onClose();
   };
 
   return (

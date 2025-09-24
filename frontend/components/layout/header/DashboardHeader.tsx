@@ -39,14 +39,14 @@ export function DashboardHeader({
               <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
             
-            {/* Desktop sidebar toggle button */}
-            {onToggleSidebar && (
+            {/* Desktop sidebar toggle button - only show when sidebar is collapsed */}
+            {onToggleSidebar && sidebarCollapsed && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="hidden lg:flex hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 flex-shrink-0 mt-0.5"
                 onClick={onToggleSidebar}
-                title={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+                title="Show sidebar"
               >
                 <PanelLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>

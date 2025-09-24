@@ -38,7 +38,7 @@ export function CampaignScheduler({
   const [timingOption, setTimingOption] = useState<'now' | 'schedule'>(
     isScheduled ? 'schedule' : 'now'
   );
-  const [scheduleConfirmed, setScheduleConfirmed] = useState(isScheduled);
+  const [scheduleConfirmed, setScheduleConfirmed] = useState(!isScheduled); // Default to true for "Start Now"
 
   // Notify parent component when schedule confirmation state changes
   useEffect(() => {

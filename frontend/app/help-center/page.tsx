@@ -4,19 +4,23 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { generatePageMetadata } from '@/lib/seo';
 import {
-  Clock,
-  ExternalLink,
-  FileText,
-  HelpCircle,
-  MessageSquare,
-  Search,
-  Shield,
-  Users,
-  Zap
+    Clock,
+    ExternalLink,
+    FileText,
+    HelpCircle,
+    MessageSquare,
+    Search,
+    Shield,
+    Users,
+    Zap
 } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
+
+export const metadata: Metadata = generatePageMetadata('help');
 
 export default function HelpCenterPage() {
   const [searchQuery, setSearchQuery] = useState('');

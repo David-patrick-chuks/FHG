@@ -329,14 +329,17 @@ export class DatabaseConnection {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
-      await SystemActivityService.logSystemEvent(
-        type,
-        title,
-        description,
-        severity,
-        source,
-        metadata
-      );
+      // Only log if database is connected to avoid circular issues
+      if (this.isConnected()) {
+        await SystemActivityService.logSystemEvent(
+          type,
+          title,
+          description,
+          severity,
+          source,
+          metadata
+        );
+      }
     } catch (logError) {
       // Don't let logging errors break database operations
       this.logger.error('Failed to log system activity:', logError);

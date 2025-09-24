@@ -6,13 +6,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Brain className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-semibold text-gray-900 dark:text-white">MailQuill</span>
-        </div>
+      
 
         {/* 404 Content */}
         <div className="mb-8">

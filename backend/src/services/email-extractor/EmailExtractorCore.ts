@@ -383,13 +383,64 @@ export class EmailExtractorCore {
     jobId: string, 
     updateProgress: (step: string, status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped', message?: string, details?: any) => Promise<void>
   ): Promise<string[]> {
-    // Add timeout to prevent hanging extractions
-    return Promise.race([
-      this.performExtraction(url, jobId, updateProgress),
-      new Promise<string[]>((_, reject) => 
-        setTimeout(() => reject(new Error('Extraction timeout')), this.EXTRACTION_TIMEOUT)
-      )
-    ]);
+    let foundEmails: string[] = [];
+    
+    try {
+      // Add timeout to prevent hanging extractions, but preserve any emails found
+      const result = await Promise.race([
+        this.performExtraction(url, jobId, updateProgress),
+        new Promise<string[]>((_, reject) => 
+          setTimeout(() => reject(new Error('Extraction timeout')), this.EXTRACTION_TIMEOUT)
+        )
+      ]);
+      
+      return result;
+    } catch (error) {
+      // If we get a timeout error, check if we have any emails from the progress
+      if (error instanceof Error && error.message === 'Extraction timeout') {
+        // Try to get emails from the final progress step
+        try {
+          const extraction = await EmailExtractionModel.getExtractionByJobId(jobId);
+          if (extraction) {
+            const result = extraction.results.find(r => r.url === url);
+            if (result && result.progress) {
+              // Look for the final extraction step that contains emails
+              const finalStep = result.progress.find(p => 
+                p.step === 'extraction_complete' && 
+                p.status === 'completed' && 
+                p.details && 
+                p.details.emails && 
+                Array.isArray(p.details.emails)
+              );
+              
+              if (finalStep && finalStep.details.emails.length > 0) {
+                EmailExtractorCore.logger.info('Recovered emails from timeout', {
+                  jobId,
+                  url,
+                  emailCount: finalStep.details.emails.length,
+                  message: 'Extraction timed out but emails were successfully extracted'
+                });
+                
+                // Update the progress to show timeout but with recovered emails
+                await updateProgress('extraction_timeout_recovery', 'completed', 
+                  `Extraction timed out but recovered ${finalStep.details.emails.length} email(s) from completed steps`);
+                
+                return finalStep.details.emails;
+              }
+            }
+          }
+        } catch (recoveryError) {
+          EmailExtractorCore.logger.error('Failed to recover emails from timeout', {
+            jobId,
+            url,
+            recoveryError: recoveryError instanceof Error ? recoveryError.message : 'Unknown error'
+          });
+        }
+      }
+      
+      // If no emails could be recovered, throw the original error
+      throw error;
+    }
   }
 
   private static async performExtraction(
@@ -616,7 +667,7 @@ export class EmailExtractorCore {
   private static readonly CONTACT_PATHS = [
     '/contact', '/contact-us', '/about', '/about-us', '/support'
   ];
-  private static readonly EXTRACTION_TIMEOUT = 30000; // 30 seconds max per URL
+  private static readonly EXTRACTION_TIMEOUT = 60000; // 60 seconds max per URL (increased for comprehensive extraction)
   private static readonly BUSINESS_PATHS = [
     '/business', '/partnership', '/team', '/company'
   ];

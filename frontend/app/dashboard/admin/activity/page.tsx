@@ -103,14 +103,14 @@ export default function AdminActivityPage() {
         const incidentsResponse = await AdminAPI.getAllIncidents();
         if (incidentsResponse.success && incidentsResponse.data) {
           setIncidents(incidentsResponse.data);
-        }
-      } catch (error) {
-        console.error('Failed to load activity data:', error);
-        toast.error('Failed to load activity data');
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Failed to load activity data:', error);
+      toast.error('Failed to load activity data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -393,10 +393,10 @@ export default function AdminActivityPage() {
                   <option value="all">All Types</option>
                   {activeTab === 'admin' ? (
                     <>
-                      <option value="user">User</option>
-                      <option value="bot">Bot</option>
-                      <option value="campaign">Campaign</option>
-                      <option value="subscription">Subscription</option>
+                  <option value="user">User</option>
+                  <option value="bot">Bot</option>
+                  <option value="campaign">Campaign</option>
+                  <option value="subscription">Subscription</option>
                     </>
                   ) : activeTab === 'system' ? (
                     <>
@@ -500,9 +500,9 @@ export default function AdminActivityPage() {
                       </div>
                     </div>
                   ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>No system activities found</p>
                     <p className="text-sm mt-2">System events will appear here when they occur</p>
                   </div>
@@ -553,7 +553,7 @@ export default function AdminActivityPage() {
                             <Badge variant="outline" className="text-xs">
                               {incident.affectedServices.length} services
                             </Badge>
-                          </div>
+                </div>
                           <div className="mt-2">
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               Created: {formatDate(incident.createdAt)}

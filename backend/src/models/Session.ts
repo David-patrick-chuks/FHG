@@ -81,7 +81,7 @@ const sessionSchema = new Schema<ISessionDocument>({
 // Indexes for efficient queries
 sessionSchema.index({ userId: 1, isActive: 1 });
 sessionSchema.index({ sessionId: 1, isActive: 1 });
-sessionSchema.index({ expiresAt: 1 });
+// Note: expiresAt already has a TTL index defined in the schema field
 
 // Static methods
 sessionSchema.statics.createSession = async function(

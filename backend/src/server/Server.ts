@@ -162,14 +162,17 @@ export class Server {
     metadata?: Record<string, any>
   ): Promise<void> {
     try {
-      await SystemActivityService.logSystemEvent(
-        type,
-        title,
-        description,
-        severity,
-        source,
-        metadata
-      );
+      // Only log if database is connected to avoid connection issues
+      if (this.lifecycleService.isDatabaseConnected()) {
+        await SystemActivityService.logSystemEvent(
+          type,
+          title,
+          description,
+          severity,
+          source,
+          metadata
+        );
+      }
     } catch (logError) {
       // Don't let logging errors break server operations
       this.logger.error('Failed to log system activity:', logError);

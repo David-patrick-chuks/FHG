@@ -12,20 +12,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ApproveTemplateRequest, CreateTemplateRequest, TemplatesAPI, UpdateTemplateRequest } from '@/lib/api/templates';
 import { Template } from '@/types';
 import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Edit,
-  Eye,
-  FileText,
-  Loader2,
-  Plus,
-  RefreshCw,
-  Search,
-  Tag,
-  Trash2,
-  User,
-  XCircle
+    Calendar,
+    CheckCircle,
+    Clock,
+    Edit,
+    Eye,
+    FileText,
+    Loader2,
+    Plus,
+    RefreshCw,
+    Search,
+    Tag,
+    Trash2,
+    User,
+    XCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

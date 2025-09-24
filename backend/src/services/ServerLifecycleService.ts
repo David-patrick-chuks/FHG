@@ -169,4 +169,11 @@ export class ServerLifecycleService {
   public getServer(): any {
     return this.server;
   }
+
+  /**
+   * Check if database is connected
+   */
+  public isDatabaseConnected(): boolean {
+    return this.database.isConnected();
+  }
 }

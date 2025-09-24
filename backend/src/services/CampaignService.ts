@@ -119,7 +119,10 @@ export class CampaignService {
         isPublic: template.isPublic,
         samplesCount: template.samples?.length || 0,
         originalTemplateId: template.originalTemplateId, // Check if this is a cloned template
-        canUseInCampaign: template.isApproved, // Only approval matters now
+        templateOwnerId: template.userId,
+        currentUserId: userId,
+        isOwner: template.userId.toString() === userId,
+        canUseInCampaign: template.userId.toString() === userId || template.isApproved, // Owner can always use, others need approval
         isDevelopment: process.env.NODE_ENV === 'development' || 
                       process.env.API_BASE_URL?.includes('localhost') ||
                       process.env.API_BASE_URL?.includes('127.0.0.1')
@@ -134,11 +137,14 @@ export class CampaignService {
         };
       }
 
-      // Check if template is approved
-      // Templates can be used if they are:
-      // 1. Public and approved (community templates)
-      // 2. Private but approved (user's own templates or cloned templates)
-      if (!template.isApproved) {
+      // Check if user can use this template
+      // Users can use templates if:
+      // 1. They own the template (regardless of approval status)
+      // 2. The template is approved (for community templates)
+      const isTemplateOwner = template.userId.toString() === userId;
+      const isApprovedTemplate = template.isApproved;
+      
+      if (!isTemplateOwner && !isApprovedTemplate) {
         return {
           success: false,
           message: `Template "${template.name}" must be approved to be used in campaigns. Please wait for admin approval or use an approved template.`,

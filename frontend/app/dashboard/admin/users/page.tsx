@@ -9,19 +9,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminAPI, AdminUser, SuspendUserRequest, UpdateSubscriptionRequest } from '@/lib/api/admin';
 import {
     Ban,
+    Calendar,
     CheckCircle,
     Crown,
     Edit,
+    Key,
     RefreshCw,
     Search,
     Shield,
+    TrendingUp,
     User,
     Users,
     XCircle,
-    Zap,
-    TrendingUp,
-    Key,
-    Calendar
+    Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -357,13 +357,13 @@ export default function AdminUsersPage() {
 
             {/* Subscription Breakdown */}
             {userStats && (
-          <Card className="border-0 shadow-md">
-                <CardHeader className="pb-4">
+        <Card className="border-0 shadow-md">
+          <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     Subscription Breakdown
-                  </CardTitle>
-                </CardHeader>
+            </CardTitle>
+          </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -514,11 +514,11 @@ export default function AdminUsersPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                          {getSubscriptionBadge(user.subscription)}
-                          {getStatusBadge(user.isActive)}
+                            {getSubscriptionBadge(user.subscription)}
+                            {getStatusBadge(user.isActive)}
                         </div>
                       </div>
-
+                      
                       <div className="flex items-center gap-2 ml-4">
                           <Button
                             variant="outline"

@@ -51,6 +51,7 @@ export function useUnsavedChanges({
   }, [hasUnsavedChanges]);
 
   const confirmLeave = useCallback(() => {
+    setShowConfirmModal(false);
     if (pendingNavigation === 'back') {
       originalBack.current();
     } else if (pendingNavigation) {
@@ -61,6 +62,7 @@ export function useUnsavedChanges({
   }, [pendingNavigation, onConfirmLeave]);
 
   const cancelLeave = useCallback(() => {
+    setShowConfirmModal(false);
     setPendingNavigation(null);
     onCancelLeave?.();
   }, [onCancelLeave]);

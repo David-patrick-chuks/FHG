@@ -1,7 +1,11 @@
 'use client';
 
 import { ApiDocsContent, ApiDocsSidebar } from '@/components/api-docs';
+import { generatePageMetadata } from '@/lib/seo';
+import type { Metadata } from 'next';
 import { useState } from 'react';
+
+export const metadata: Metadata = generatePageMetadata('apiDocs');
 
 export default function ApiDocsPage() {
   const [activeSection, setActiveSection] = useState('overview');

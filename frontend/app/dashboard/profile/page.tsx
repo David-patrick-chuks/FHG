@@ -7,6 +7,7 @@ import {
     PlanFeatures,
     ProfileInformation,
 } from "@/components/profile";
+import { SessionManager } from "@/components/session/SessionManager";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -360,6 +361,9 @@ export default function ProfilePage() {
             />
           </CardContent>
         </Card>
+
+        {/* Session Management */}
+        <SessionManager />
 
         {/* Plan Features */}
         <Card>
