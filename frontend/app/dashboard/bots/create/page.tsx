@@ -30,6 +30,7 @@ export default function CreateBotPage() {
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isCreatingBot, setIsCreatingBot] = useState(false);
 
   const steps = [
     { id: 1, title: 'Basic Info', description: 'Set up your bot foundation' },
@@ -109,6 +110,7 @@ export default function CreateBotPage() {
     }
 
     setIsLoading(true);
+    setIsCreatingBot(true); // Set flag to bypass unsaved changes check
     try {
       const response = await BotsAPI.createBot({
           name: formData.name,
@@ -137,6 +139,7 @@ export default function CreateBotPage() {
       }
     } finally {
       setIsLoading(false);
+      setIsCreatingBot(false); // Reset flag
     }
   };
 
@@ -147,12 +150,15 @@ export default function CreateBotPage() {
                      formData.password.trim() &&
                      verificationStatus === 'success';
 
-  // Detect unsaved changes
+  // Detect unsaved changes (but not when creating bot)
   const { hasUnsavedChanges, resetInitialState } = useBotUnsavedChanges({
     formData,
     currentStep,
     verificationStatus
   });
+  
+  // Override hasUnsavedChanges when creating bot
+  const shouldShowUnsavedChanges = hasUnsavedChanges && !isCreatingBot;
 
   // Handle unsaved changes navigation
   const {
@@ -162,7 +168,7 @@ export default function CreateBotPage() {
     cancelLeave,
     message
   } = useUnsavedChanges({
-    hasUnsavedChanges,
+    hasUnsavedChanges: shouldShowUnsavedChanges,
     message: 'You have unsaved changes to your bot. Are you sure you want to leave? Your progress will be lost.'
   });
 

@@ -19,16 +19,16 @@ export function useUnsavedChanges({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const router = useRouter();
-  const originalPush = useRef(router.push);
-  const originalBack = useRef(router.back);
-  const originalReplace = useRef(router.replace);
+  const originalPush = useRef<typeof router.push>();
+  const originalBack = useRef<typeof router.back>();
+  const originalReplace = useRef<typeof router.replace>();
 
   const handleNavigation = useCallback((url: string) => {
     if (hasUnsavedChanges) {
       setPendingNavigation(url);
       setShowConfirmModal(true);
     } else {
-      originalPush.current(url);
+      originalPush.current?.(url);
     }
   }, [hasUnsavedChanges]);
 
@@ -37,7 +37,7 @@ export function useUnsavedChanges({
       setPendingNavigation('back');
       setShowConfirmModal(true);
     } else {
-      originalBack.current();
+      originalBack.current?.();
     }
   }, [hasUnsavedChanges]);
 
@@ -46,16 +46,16 @@ export function useUnsavedChanges({
       setPendingNavigation(url);
       setShowConfirmModal(true);
     } else {
-      originalReplace.current(url);
+      originalReplace.current?.(url);
     }
   }, [hasUnsavedChanges]);
 
   const confirmLeave = useCallback(() => {
     setShowConfirmModal(false);
     if (pendingNavigation === 'back') {
-      originalBack.current();
+      originalBack.current?.();
     } else if (pendingNavigation) {
-      originalPush.current(pendingNavigation);
+      originalPush.current?.(pendingNavigation);
     }
     setPendingNavigation(null);
     onConfirmLeave?.();
@@ -100,14 +100,21 @@ export function useUnsavedChanges({
 
   // Override router methods
   useEffect(() => {
+    // Store original methods
+    originalPush.current = router.push;
+    originalBack.current = router.back;
+    originalReplace.current = router.replace;
+
+    // Override with our handlers
     router.push = handleNavigation;
     router.back = handleBack;
     router.replace = handleReplace;
 
     return () => {
-      router.push = originalPush.current;
-      router.back = originalBack.current;
-      router.replace = originalReplace.current;
+      // Restore original methods
+      if (originalPush.current) router.push = originalPush.current;
+      if (originalBack.current) router.back = originalBack.current;
+      if (originalReplace.current) router.replace = originalReplace.current;
     };
   }, [router, handleNavigation, handleBack, handleReplace]);
 

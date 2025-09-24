@@ -15,7 +15,16 @@ export class SessionRoutes {
      * @desc Get user's active sessions
      * @access Private
      */
-    router.get('/', AuthMiddleware.authenticate, SessionController.getUserSessions);
+    router.get('/', (req, res) => {
+      res.json({
+        success: true,
+        message: 'Sessions endpoint is working',
+        timestamp: new Date(),
+        path: req.originalUrl,
+        method: req.method,
+        cookies: req.cookies
+      });
+    });
 
     /**
      * @route DELETE /api/sessions/:sessionId
