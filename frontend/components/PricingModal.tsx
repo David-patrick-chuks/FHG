@@ -35,13 +35,12 @@ const plans: Plan[] = [
       '1,000 Daily Emails',
       '100 Campaigns',
       '100 Email Extractions/day',
-      'Basic Analytics',
       'Email Support'
     ],
     limitations: [
       'Limited bot customization',
       'Basic email templates',
-      'Standard analytics'
+      'No analytics access'
     ],
     color: 'border-gray-200'
   },
