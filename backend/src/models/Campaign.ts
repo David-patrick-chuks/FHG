@@ -298,18 +298,8 @@ export class CampaignModel {
         message.isSent = true;
         message.sentAt = new Date();
         
-        // Also add the recipient email to sentEmails array if not already present
-        if (!this['sentEmails'].includes(recipientEmail)) {
-          this['sentEmails'].push(recipientEmail);
-          console.log(`Added ${recipientEmail} to sentEmails array. Total sent: ${this['sentEmails'].length}/${this['emailList'].length}`);
-        }
-        
-        // Check if all emails have been sent and mark campaign as completed
-        if (this['sentEmails'].length === this['emailList'].length && this['status'] === CampaignStatus.RUNNING) {
-          this['status'] = CampaignStatus.COMPLETED;
-          this['completedAt'] = new Date();
-          console.log(`Campaign ${this['_id']} marked as completed - all emails sent`);
-        }
+        // Note: sentEmails array is managed by addSentEmail method, not here
+        // This method only marks the generated message as sent
         
         await this['save']();
       }

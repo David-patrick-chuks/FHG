@@ -52,7 +52,16 @@ export class EmailParser {
         lowercaseEmail.includes('props') ||
         lowercaseEmail.includes('hook') ||
         lowercaseEmail.includes('context') ||
-        lowercaseEmail.includes('provider')) {
+        lowercaseEmail.includes('provider') ||
+        lowercaseEmail.includes('facebook') ||
+        lowercaseEmail.includes('sso') ||
+        lowercaseEmail.includes('window') ||
+        lowercaseEmail.includes('location') ||
+        lowercaseEmail.includes('origin') ||
+        lowercaseEmail.includes('alloy') ||
+        lowercaseEmail.includes('sbydre') ||
+        lowercaseEmail.includes('xst') ||
+        lowercaseEmail.includes('init')) {
       return false;
     }
     
@@ -90,6 +99,34 @@ export class EmailParser {
     
     // Filter out emails that look like variable names
     if (/^[a-z_]+$/.test(localPart) && localPart.length > 10) return false;
+    
+    // Filter out emails that look like JavaScript/CSS artifacts
+    if (localPart.includes('.') && localPart.split('.').some(part => 
+        part.length <= 2 || 
+        /^[a-z]{1,3}$/.test(part) ||
+        part.includes('sso') ||
+        part.includes('init') ||
+        part.includes('loc') ||
+        part.includes('origin')
+    )) {
+      return false;
+    }
+    
+    // Filter out emails with suspicious domain patterns
+    const domain = email.split('@')[1];
+    if (domain && (
+        domain.includes('.init') ||
+        domain.includes('.origin') ||
+        domain.includes('asite.com') ||
+        domain.includes('or.com') ||
+        domain.includes('sbydre.com') ||
+        domain.includes('e.init')
+    )) {
+      return false;
+    }
+    
+    // Filter out emails that are too short overall (likely artifacts)
+    if (email.length < 8) return false;
     
     return true;
   }

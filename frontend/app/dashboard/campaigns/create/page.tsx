@@ -16,10 +16,13 @@ import { useCampaignUnsavedChanges } from '@/hooks/useCampaignUnsavedChanges';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function CreateCampaignPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+  
   const {
     // State
     currentStep,
@@ -55,13 +58,16 @@ export default function CreateCampaignPage() {
     setScheduleConfirmed
   } = useCampaignCreation();
 
-  // Detect unsaved changes
+  // Detect unsaved changes (but not when creating campaign)
   const { hasUnsavedChanges } = useCampaignUnsavedChanges({
     formData,
     uploadedEmails,
     uploadedFileName,
     currentStep
   });
+  
+  // Override hasUnsavedChanges when creating campaign
+  const shouldShowUnsavedChanges = hasUnsavedChanges && !isCreatingCampaign;
 
   // Handle unsaved changes navigation
   const {
@@ -71,9 +77,23 @@ export default function CreateCampaignPage() {
     cancelLeave,
     message
   } = useUnsavedChanges({
-    hasUnsavedChanges,
-    message: 'You have unsaved changes to your campaign. Are you sure you want to leave? Your progress will be lost.'
+    hasUnsavedChanges: shouldShowUnsavedChanges,
+    message: 'You have unsaved changes to your campaign. Are you sure you want to leave? Your progress will be lost.',
+    onConfirmLeave: () => {
+      // Direct navigation to campaigns page when user confirms leave
+      router.push('/dashboard/campaigns');
+    }
   });
+
+  // Wrapper function to handle campaign creation with unsaved changes bypass
+  const handleCreateCampaignWithBypass = async () => {
+    try {
+      setIsCreatingCampaign(true);
+      await handleCreateCampaign();
+    } finally {
+      setIsCreatingCampaign(false);
+    }
+  };
 
   const steps = [
     { id: 1, title: 'Campaign Basics', description: 'Set up your campaign foundation' },
@@ -221,7 +241,7 @@ export default function CreateCampaignPage() {
                 
                 <div className="order-1 sm:order-2 space-y-2">
                   <Button
-                    onClick={handleCreateCampaign}
+                    onClick={handleCreateCampaignWithBypass}
                     disabled={!canCreateCampaign || isFormDisabled}
                     className="h-11 sm:h-12 px-4 sm:px-6 lg:px-8 w-full text-sm sm:text-base bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                   >

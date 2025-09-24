@@ -527,7 +527,9 @@ export class EmailExtractorCore {
         });
       }
 
-      // Step 5: Social Media extraction (comprehensive social platform scanning)
+      // Step 5: Social Media extraction (disabled due to false positives)
+      // TODO: Re-enable when better filtering is implemented
+      /*
       await updateProgress('social_media_scan', 'processing', 'Scanning social media platforms for contact information...');
       const socialMediaEmails = await this.extractEmailsFromSocialMedia(url);
       if (socialMediaEmails && Array.isArray(socialMediaEmails)) {
@@ -544,6 +546,7 @@ export class EmailExtractorCore {
           totalEmailsSoFar: found.size
         });
       }
+      */
 
       // Step 6: Final deduplication and validation
       await updateProgress('final_deduplication', 'processing', 'Performing final deduplication and validation...');

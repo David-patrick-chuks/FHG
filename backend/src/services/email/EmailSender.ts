@@ -90,12 +90,13 @@ export class EmailSender {
       // Increment bot's daily email count
       await bot.incrementDailyEmailCount();
 
-      // Mark generated message as sent if generatedMessageId is provided
+      // Mark generated message as sent and add to campaign's sentEmails array
       if (generatedMessageId) {
         try {
           const campaign = await CampaignModel.findById(campaignId);
           if (campaign) {
             await campaign.markMessageAsSent(recipientEmail);
+            await campaign.addSentEmail(sentEmail);
             EmailSender.logger.info('Generated message marked as sent', {
               campaignId,
               recipientEmail,
@@ -117,6 +118,7 @@ export class EmailSender {
           const campaign = await CampaignModel.findById(campaignId);
           if (campaign) {
             await campaign.markMessageAsSent(recipientEmail);
+            await campaign.addSentEmail(sentEmail);
             EmailSender.logger.info('Message marked as sent (no generatedMessageId)', {
               campaignId,
               recipientEmail
