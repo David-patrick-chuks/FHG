@@ -24,20 +24,20 @@ export class TokenRefreshMiddleware {
       // If we have a valid access token, continue normally
       if (accessToken) {
         try {
-          JwtService.verifyAccessToken(accessToken);
+          await JwtService.verifyAccessToken(accessToken);
           // Access token is valid, continue
           next();
           return;
         } catch (error) {
           // Only try to refresh if the error is specifically about expiration
-          // Don't refresh for other errors like "Token has been revoked"
+          // Don't refresh for other errors like "Token has been revoked" or "Session has been invalidated"
           if (error instanceof Error && error.message === 'Token expired') {
             TokenRefreshMiddleware.logger.info('Access token expired, attempting refresh', {
               ip: req.ip,
               userAgent: req.get('User-Agent')
             });
           } else {
-            // For other errors (like revoked tokens), don't try to refresh
+            // For other errors (like revoked tokens or invalidated sessions), don't try to refresh
             TokenRefreshMiddleware.logger.warn('Access token invalid, not attempting refresh', {
               error: error instanceof Error ? error.message : 'Unknown error',
               ip: req.ip

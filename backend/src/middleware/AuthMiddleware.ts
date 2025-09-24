@@ -31,6 +31,13 @@ export class AuthMiddleware {
       // Verify token using secure JWT service
       const decoded = await JwtService.verifyAccessToken(token);
       
+      // Log decoded token for debugging
+      AuthMiddleware.logger.info('Decoded JWT token', {
+        userId: decoded.userId,
+        sessionId: decoded.sessionId,
+        email: decoded.email
+      });
+      
       // Verify user still exists and is active using secure query
       const sanitizedUserId = DatabaseSecurityService.sanitizeObjectId(decoded.userId);
       if (!sanitizedUserId) {

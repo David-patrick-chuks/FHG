@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import SessionModel from '../models/Session';
 import { JwtPayload, TokenPair } from '../types';
 import { Logger } from '../utils/Logger';
-import SessionModel from '../models/Session';
 
 export class JwtService {
   private static logger: Logger = new Logger();
@@ -76,6 +76,13 @@ export class JwtService {
         ...payload,
         ...(sessionId && { sessionId })
       };
+      
+      // Log token payload for debugging
+      JwtService.logger.info('Generating access token with payload', {
+        userId: payload.userId,
+        sessionId,
+        hasSessionId: !!sessionId
+      });
       
       const accessToken = jwt.sign(accessTokenPayload, secret, {
         expiresIn: this.ACCESS_TOKEN_EXPIRY,
@@ -170,8 +177,16 @@ export class JwtService {
           throw new Error('Session has been invalidated');
         }
 
-        // Update last accessed time
-        await SessionModel.updateLastAccessed(decoded.sessionId);
+        // Update last accessed time (don't fail if this fails)
+        try {
+          await SessionModel.updateLastAccessed(decoded.sessionId);
+        } catch (updateError) {
+          // Log but don't fail the token verification if last accessed update fails
+          JwtService.logger.warn('Failed to update last accessed time for session', {
+            sessionId: decoded.sessionId,
+            error: updateError instanceof Error ? updateError.message : 'Unknown error'
+          });
+        }
       }
 
       return decoded;

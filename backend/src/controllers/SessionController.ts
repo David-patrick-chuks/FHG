@@ -107,6 +107,12 @@ export class SessionController {
       const userId = (req as any).user?.id;
       const currentSessionId = (req as any).user?.sessionId;
       
+      SessionController.logger.info('Invalidate all other sessions request', {
+        userId,
+        currentSessionId,
+        userObject: (req as any).user
+      });
+      
       if (!userId) {
         res.status(401).json({
           success: false,
