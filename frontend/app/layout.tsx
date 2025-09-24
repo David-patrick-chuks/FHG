@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { UnreadCountProvider } from "@/contexts/UnreadCountContext"
 import { OrganizationJsonLd, WebsiteJsonLd, SoftwareApplicationJsonLd } from "@/components/seo/JsonLd"
+import { ConditionalSupportBot } from "@/components/support/ConditionalSupportBot"
 import { generateMetadata as generateSEOMetadata, seoConfigs } from "@/lib/seo"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
@@ -62,6 +63,7 @@ export default function RootLayout({
               <CookieConsentBanner />
               <Toaster />
               <ConditionalAnalytics />
+              <ConditionalSupportBot />
             </UnreadCountProvider>
           </AuthProvider>
         </ThemeProvider>
