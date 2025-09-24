@@ -96,7 +96,10 @@ export class EmailSender {
           const campaign = await CampaignModel.findById(campaignId);
           if (campaign) {
             await campaign.markMessageAsSent(recipientEmail);
-            await campaign.addSentEmail(sentEmail);
+            await campaign.addSentEmail({
+              ...sentEmail.toObject(),
+              _id: (sentEmail._id as any).toString()
+            });
             EmailSender.logger.info('Generated message marked as sent', {
               campaignId,
               recipientEmail,
@@ -118,7 +121,10 @@ export class EmailSender {
           const campaign = await CampaignModel.findById(campaignId);
           if (campaign) {
             await campaign.markMessageAsSent(recipientEmail);
-            await campaign.addSentEmail(sentEmail);
+            await campaign.addSentEmail({
+              ...sentEmail.toObject(),
+              _id: (sentEmail._id as any).toString()
+            });
             EmailSender.logger.info('Message marked as sent (no generatedMessageId)', {
               campaignId,
               recipientEmail
