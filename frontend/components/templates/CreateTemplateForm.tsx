@@ -69,6 +69,25 @@ export function CreateTemplateForm({
     ...initialData
   });
 
+  // Update initial data when initialData changes (for edit mode)
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      initialFormData.current = {
+        name: '',
+        description: '',
+        category: 'sales',
+        industry: '',
+        targetAudience: '',
+        isPublic: false,
+        useCase: '',
+        variables: [],
+        tags: [],
+        samples: [],
+        ...initialData
+      };
+    }
+  }, [initialData, isEditMode]);
+
   // Check for unsaved changes
   const hasUnsavedChanges = useMemo(() => {
     if (!isEditMode) return false;
@@ -80,6 +99,11 @@ export function CreateTemplateForm({
   useEffect(() => {
     onUnsavedChangesChange?.(hasUnsavedChanges);
   }, [hasUnsavedChanges, onUnsavedChangesChange]);
+
+  // Function to reset initial data (call this after successful update)
+  const resetInitialData = () => {
+    initialFormData.current = { ...formData };
+  };
 
   // Validation
   const canCreateTemplate = formData.name.trim() && 
@@ -167,6 +191,11 @@ export function CreateTemplateForm({
       if (response.success && response.data) {
         const successMessage = isEditMode ? 'Template updated successfully!' : 'Template created successfully!';
         toast.success(successMessage);
+        
+        // Reset initial data after successful update to prevent unsaved changes detection
+        if (isEditMode) {
+          resetInitialData();
+        }
         
         if (onTemplateCreated) {
           onTemplateCreated(response.data);

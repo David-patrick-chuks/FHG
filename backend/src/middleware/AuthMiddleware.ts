@@ -60,7 +60,8 @@ export class AuthMiddleware {
         username: user.username,
         subscriptionTier: user.subscription,
         subscriptionExpiresAt: user.subscriptionExpiresAt,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        sessionId: decoded.sessionId
       };
 
       // Only log authentication for important endpoints or first-time access
@@ -129,6 +130,27 @@ export class AuthMiddleware {
         res.status(401).json({
           success: false,
           message: 'Token not active',
+          timestamp: new Date()
+        });
+      } else if (error.message === 'Session has been invalidated') {
+        // Log session invalidation attempts
+        AuthMiddleware.logSystemActivity(
+          ActivityType.SECURITY_LOGIN_FAILED,
+          'Session Invalidated',
+          `Session invalidation attempt from ${req.ip}`,
+          'medium',
+          'security',
+          {
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            endpoint: req.originalUrl,
+            errorType: 'session_invalidated'
+          }
+        );
+        
+        res.status(401).json({
+          success: false,
+          message: 'Session has been invalidated. Please log in again.',
           timestamp: new Date()
         });
       } else {

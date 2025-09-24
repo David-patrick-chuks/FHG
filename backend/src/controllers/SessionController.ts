@@ -11,6 +11,7 @@ export class SessionController {
   public static async getUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user?.id;
+      const currentSessionId = (req as any).user?.sessionId;
       
       if (!userId) {
         res.status(401).json({
@@ -26,6 +27,7 @@ export class SessionController {
       res.status(200).json({
         success: true,
         data: sessions,
+        currentSessionId: currentSessionId,
         timestamp: new Date()
       });
     } catch (error: any) {

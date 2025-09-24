@@ -2,32 +2,32 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
-    AccountDetails,
-    ApiKeyManagement,
-    PlanFeatures,
-    ProfileInformation,
+  AccountDetails,
+  ApiKeyManagement,
+  PlanFeatures,
+  ProfileInformation,
 } from "@/components/profile";
 import { SessionManager } from "@/components/session/SessionManager";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Icons } from "@/components/ui/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiClient } from "@/lib/api-client";
 import { User } from "@/types";
 import {
-    AlertCircle,
-    CheckCircle,
-    CreditCard,
-    Key,
-    Shield,
-    User as UserIcon,
+  AlertCircle,
+  CheckCircle,
+  CreditCard,
+  Key,
+  Shield,
+  User as UserIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -154,10 +154,10 @@ export default function ProfilePage() {
       }
     };
 
-    if (user?.id) {
+    if (user?._id) {
       fetchApiInfo();
     }
-  }, [user?.id]); // Only depend on user ID to prevent unnecessary re-fetches
+  }, [user?._id]); // Only depend on user ID to prevent unnecessary re-fetches
 
   // Cleanup effect to clear generated API key when component unmounts
   useEffect(() => {
@@ -172,7 +172,7 @@ export default function ProfilePage() {
   useEffect(() => {
     hasFetchedData.current = false;
     fetchInProgress.current = false;
-  }, [user?.id]);
+  }, [user?._id]);
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     setIsLoading(true);
@@ -338,7 +338,7 @@ export default function ProfilePage() {
         </div>
 
         {/* API Key Management */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
@@ -360,7 +360,7 @@ export default function ProfilePage() {
               onCopyToClipboard={copyToClipboard}
             />
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Session Management */}
         <SessionManager />

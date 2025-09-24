@@ -27,6 +27,7 @@ interface SessionManagerProps {
 export function SessionManager({ className }: SessionManagerProps) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>();
   const [allowMultipleSessions, setAllowMultipleSessions] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -34,18 +35,20 @@ export function SessionManager({ className }: SessionManagerProps) {
   // Load sessions and settings
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user?.allowMultipleSessions]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [sessionsData] = await Promise.all([
-        SessionAPI.getSessions(),
-        // Note: We don't have a way to get the current user's allowMultipleSessions setting yet
-        // This would need to be added to the user profile API
-      ]);
+      const sessionsResponse = await SessionAPI.getSessions();
       
-      setSessions(sessionsData);
+      setSessions(sessionsResponse.sessions);
+      setCurrentSessionId(sessionsResponse.currentSessionId);
+      
+      // Get the user's allowMultipleSessions setting from the user context
+      if (user?.allowMultipleSessions !== undefined) {
+        setAllowMultipleSessions(user.allowMultipleSessions);
+      }
     } catch (error) {
       console.error('Failed to load session data:', error);
       toast.error('Failed to load session data');
@@ -202,7 +205,7 @@ export function SessionManager({ className }: SessionManagerProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-medium">Active Sessions ({sessions.length})</h4>
-              {sessions.length > 1 && (
+              {sessions.length > 1 && currentSessionId && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -225,30 +228,40 @@ export function SessionManager({ className }: SessionManagerProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {sessions.map((session) => (
-                  <div
-                    key={session.sessionId}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                        {getDeviceIcon(session.deviceInfo.deviceType)}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="secondary" 
-                            className={getDeviceTypeColor(session.deviceInfo.deviceType)}
-                          >
-                            {session.deviceInfo.deviceType || 'Unknown'}
-                          </Badge>
-                          {session.deviceInfo.ipAddress && (
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <MapPin className="w-3 h-3" />
-                              {session.deviceInfo.ipAddress}
-                            </div>
-                          )}
+                {sessions.map((session) => {
+                  const isCurrentSession = session.sessionId === currentSessionId;
+                  return (
+                    <div
+                      key={session.sessionId}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                          {getDeviceIcon(session.deviceInfo.deviceType)}
                         </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant="secondary" 
+                              className={getDeviceTypeColor(session.deviceInfo.deviceType)}
+                            >
+                              {session.deviceInfo.deviceType || 'Unknown'}
+                            </Badge>
+                            {isCurrentSession && (
+                              <Badge 
+                                variant="default" 
+                                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              >
+                                Current Session
+                              </Badge>
+                            )}
+                            {session.deviceInfo.ipAddress && (
+                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <MapPin className="w-3 h-3" />
+                                {session.deviceInfo.ipAddress}
+                              </div>
+                            )}
+                          </div>
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
@@ -269,7 +282,8 @@ export function SessionManager({ className }: SessionManagerProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => handleInvalidateSession(session.sessionId)}
-                      disabled={actionLoading === session.sessionId}
+                      disabled={actionLoading === session.sessionId || isCurrentSession}
+                      title={isCurrentSession ? "Cannot delete current session" : "Delete session"}
                     >
                       {actionLoading === session.sessionId ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
@@ -278,7 +292,8 @@ export function SessionManager({ className }: SessionManagerProps) {
                       )}
                     </Button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

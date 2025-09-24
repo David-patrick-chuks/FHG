@@ -169,7 +169,11 @@ export default function CreateBotPage() {
     message
   } = useUnsavedChanges({
     hasUnsavedChanges: shouldShowUnsavedChanges,
-    message: 'You have unsaved changes to your bot. Are you sure you want to leave? Your progress will be lost.'
+    message: 'You have unsaved changes to your bot. Are you sure you want to leave? Your progress will be lost.',
+    onConfirmLeave: () => {
+      // Direct navigation to bots page when user confirms leave
+      router.push('/dashboard/bots');
+    }
   });
 
   return (

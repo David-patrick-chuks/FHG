@@ -22,6 +22,7 @@ export interface User extends BaseEntity {
   apiKey?: string;
   apiKeyCreatedAt?: Date;
   apiKeyLastUsed?: Date;
+  allowMultipleSessions?: boolean;
 }
 
 export interface UserProfile {

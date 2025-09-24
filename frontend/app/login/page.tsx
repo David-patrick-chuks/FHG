@@ -162,9 +162,6 @@ export default function LoginPage() {
                     />
                     <label htmlFor="rememberMe" className="text-sm text-gray-700 dark:text-gray-300">
                       <span className="font-medium">Remember me</span>
-                      <span className="block text-xs text-gray-500 dark:text-gray-400">
-                        Stay signed in for 30 days
-                      </span>
                     </label>
                   </div>
 
@@ -195,7 +192,7 @@ export default function LoginPage() {
               <div className="mt-6 p-4 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl backdrop-blur-sm">
                 <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                   <p>• <strong>Remember me:</strong> Stay signed in for 30 days</p>
-                  <p>• <strong>Without remember me:</strong> Sign out after 24 hours of inactivity</p>
+                  <p>• <strong>Without remember me:</strong> Stay signed in for 7 days</p>
                 </div>
               </div>
             </div>

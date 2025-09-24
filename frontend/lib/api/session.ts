@@ -18,13 +18,21 @@ export interface SessionStats {
   sessionsByUser: number;
 }
 
+export interface SessionsResponse {
+  data: Session[];
+  currentSessionId?: string;
+}
+
 export class SessionAPI {
   /**
    * Get user's active sessions
    */
-  static async getSessions(): Promise<Session[]> {
-    const response = await apiClient.get<Session[]>('/sessions');
-    return response.data || [];
+  static async getSessions(): Promise<{ sessions: Session[]; currentSessionId?: string }> {
+    const response = await apiClient.get<SessionsResponse>('/sessions');
+    return {
+      sessions: response.data || [],
+      currentSessionId: response.currentSessionId
+    };
   }
 
   /**
