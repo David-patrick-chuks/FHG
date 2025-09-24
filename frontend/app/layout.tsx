@@ -63,7 +63,7 @@ export default function RootLayout({
               <CookieConsentBanner />
               <Toaster />
               <ConditionalAnalytics />
-              <ConditionalSupportBot />
+              {/* <ConditionalSupportBot /> */}
             </UnreadCountProvider>
           </AuthProvider>
         </ThemeProvider>
