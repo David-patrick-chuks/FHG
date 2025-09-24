@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { UnreadCountProvider } from "@/contexts/UnreadCountContext"
-import { generateMetadata as generateSEOMetadata, seoConfigs } from "@/lib/seo"
+import { generateMetadata as generateSEOMetadata, seoConfigs, viewport } from "@/lib/seo"
 import type { Metadata } from "next"
 import { DM_Sans, JetBrains_Mono } from "next/font/google"
 import type React from "react"
@@ -34,6 +34,7 @@ const jetBrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = generateSEOMetadata(seoConfigs.home)
+export { viewport }
 
 export default function RootLayout({
   children,

@@ -1,10 +1,11 @@
-import { generatePageMetadata } from '@/lib/seo';
+import { generatePageMetadata, viewport } from '@/lib/seo';
 import { Loader2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PricingContent } from './PricingContent';
 
 export const metadata: Metadata = generatePageMetadata('pricing');
+export { viewport };
 
 export default function PricingPage() {
   return (

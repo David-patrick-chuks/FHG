@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { generatePageMetadata } from '@/lib/seo';
+import { generatePageMetadata, viewport } from '@/lib/seo';
 import {
     Mail,
     MessageSquare,
@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { ContactForm } from './ContactForm';
 
 export const metadata: Metadata = generatePageMetadata('contact');
+export { viewport };
 
 export default function ContactPage() {
 

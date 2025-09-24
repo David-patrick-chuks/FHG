@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Breadcrumbs, breadcrumbConfigs } from '@/components/seo/Breadcrumbs';
-import { generatePageMetadata } from '@/lib/seo';
+import { generatePageMetadata, viewport } from '@/lib/seo';
 import {
   ArrowRight,
   Globe,
@@ -12,6 +12,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = generatePageMetadata('about');
+export { viewport };
 
 export default function AboutPage() {
   const values = [
@@ -32,7 +33,6 @@ export default function AboutPage() {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <Breadcrumbs items={breadcrumbConfigs.about} className="mb-4" />
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div>

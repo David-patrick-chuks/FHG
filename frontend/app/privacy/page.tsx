@@ -1,9 +1,10 @@
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Card, CardContent } from '@/components/ui/card';
-import { generatePageMetadata } from '@/lib/seo';
+import { generatePageMetadata, viewport } from '@/lib/seo';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = generatePageMetadata('privacy');
+export { viewport };
 
 export default function PrivacyPolicyPage() {
   return (

@@ -1,6 +1,5 @@
 'use client';
 
-import { Breadcrumbs, breadcrumbConfigs } from '@/components/seo/Breadcrumbs';
 import { OverallStatus, RecentIncidents, ServiceStatus, SystemMetrics } from '@/components/system-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,6 @@ export function SystemStatusClient() {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <Breadcrumbs items={breadcrumbConfigs.systemStatus} className="mb-4" />
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div>

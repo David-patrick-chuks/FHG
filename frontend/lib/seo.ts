@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 
 export interface SEOConfig {
   title: string;
@@ -146,12 +146,6 @@ export function generateMetadata(config: SEOConfig): Metadata {
     classification: 'Email Marketing Software',
     applicationName: 'MailQuill',
     referrer: 'origin-when-cross-origin',
-    colorScheme: 'dark light',
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-      maximumScale: 1,
-    },
     other: {
       'application-name': 'MailQuill',
       'apple-mobile-web-app-title': 'MailQuill',
@@ -581,4 +575,13 @@ export function generateHelpArticleMetadata(article: {
       url: `/help-center/${article.slug}`,
     },
   });
+}
+
+// Viewport configuration for Next.js 14+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  colorScheme: 'dark light',
+  themeColor: '#2563eb',
 }
