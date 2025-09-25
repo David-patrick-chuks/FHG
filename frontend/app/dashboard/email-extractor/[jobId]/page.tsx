@@ -373,7 +373,7 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
         title={`Extraction Details - Job ${job.jobId.slice(-8)}`}
         description="Detailed view of email extraction job"
       >
-        <div className="relative space-y-6">
+        <div className="relative space-y-6 overflow-hidden">
           {/* Back Button */}
           <div className="group relative">
             <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5"></div>
@@ -392,17 +392,19 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
           {/* Job Overview */}
           <div className="group relative">
             <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-            <div className="relative p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(job.status)}
-                    <span className="text-2xl font-bold text-slate-900 dark:text-white">Job {job.jobId.slice(-8)}</span>
-                    <Badge className={`${getStatusColor(job.status)} border-0 shadow-sm`}>
+            <div className="relative p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(job.status)}
+                      <span className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Job {job.jobId.slice(-8)}</span>
+                    </div>
+                    <Badge className={`${getStatusColor(job.status)} border-0 shadow-sm w-fit`}>
                       {job.status.toUpperCase()}
                     </Badge>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-300">
+                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 break-words">
                     {job.urls.length} URLs • {job.totalEmails} emails found
                     {job.duration && (
                       <span className="ml-2">
@@ -411,11 +413,11 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                     Started: {new Date(job.createdAt).toLocaleString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
@@ -459,17 +461,21 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
                 </h4>
                 <div className="grid gap-3">
                   {job.urls.map((url, index) => (
-                    <div key={index} className="flex items-center gap-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-4 py-3 rounded-lg shadow-sm">
-                      <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400 flex-shrink-0" />
-                      <span className="text-slate-700 dark:text-slate-300 font-mono text-sm flex-1">{url}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(url, '_blank')}
-                        className="h-8 w-8 p-0 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
+                    <div key={index} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-4 py-3 rounded-lg shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-slate-700 dark:text-slate-300 font-mono text-sm break-all">{url}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(url, '_blank')}
+                          className="h-8 w-8 p-0 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300 flex-shrink-0"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -483,20 +489,24 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
                 </h4>
                 <div className="space-y-3">
                   {progressSteps.map((step, index) => (
-                    <div key={index} className="flex items-center gap-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-4 py-3 rounded-lg shadow-sm">
-                      {getStepIcon(step.status)}
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-900 dark:text-white">{step.name}</span>
-                          {step.duration && (
-                            <span className="text-sm text-slate-600 dark:text-slate-400">
-                              {formatDuration(step.duration)}
-                            </span>
+                    <div key={index} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-4 py-3 rounded-lg shadow-sm">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {getStepIcon(step.status)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span className="font-medium text-slate-900 dark:text-white break-words">{step.name}</span>
+                            {step.duration && (
+                              <span className="text-sm text-slate-600 dark:text-slate-400 flex-shrink-0">
+                                {formatDuration(step.duration)}
+                              </span>
+                            )}
+                          </div>
+                          {step.details && (
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 break-words">{step.details}</p>
                           )}
                         </div>
-                        {step.details && (
-                          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{step.details}</p>
-                        )}
                       </div>
                     </div>
                   ))}
@@ -513,9 +523,11 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
                   <div className="space-y-4">
                     {job.results.map((result, index) => (
                       <div key={index} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 rounded-lg shadow-sm p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="font-mono text-sm text-slate-700 dark:text-slate-300">{result.url}</span>
-                          <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <span className="font-mono text-sm text-slate-700 dark:text-slate-300 break-all">{result.url}</span>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-sm text-slate-600 dark:text-slate-400 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 px-2 py-1 rounded">
                               {result.emails.length} emails
                             </span>
@@ -534,17 +546,19 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
                         {result.emails.length > 0 && (
                           <div className="grid gap-2">
                             {result.emails.map((email, emailIndex) => (
-                              <div key={emailIndex} className="flex items-center gap-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/40 dark:border-slate-700/40 px-3 py-2 rounded shadow-sm">
-                                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                                <span className="text-slate-700 dark:text-slate-300 flex-1">{email}</span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => copyEmails([email])}
-                                  className="h-6 w-6 p-0 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300"
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
+                              <div key={emailIndex} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/40 dark:border-slate-700/40 px-3 py-2 rounded shadow-sm">
+                                <div className="flex items-center gap-3">
+                                  <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                  <span className="text-slate-700 dark:text-slate-300 flex-1 break-all">{email}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => copyEmails([email])}
+                                    className="h-6 w-6 p-0 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300 flex-shrink-0"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
                             ))}
                           </div>

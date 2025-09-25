@@ -19,33 +19,47 @@ interface PerformanceTrendsChartProps {
 }
 
 export function PerformanceTrendsChart({ campaignStats }: PerformanceTrendsChartProps) {
-  // Generate performance trends data for the chart
+  // Use actual campaign stats data for the chart
   const generatePerformanceTrends = () => {
+    console.log('PerformanceTrendsChart received campaignStats:', campaignStats);
     if (!campaignStats.length) return [];
 
-    // Group stats by date (simplified - in real app you'd have actual date data)
-    const trends = [];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    
-    for (let i = 0; i < 7; i++) {
-      const dayStats = campaignStats[i % campaignStats.length];
+    // Use the actual data from campaignStats (which now comes from emailTrends)
+    const trends = campaignStats.map((stat, index) => ({
+      date: stat.campaignId.replace('trend-', '') || `Day ${index + 1}`,
+      emails: stat.sent || 0,
+      sent: stat.sent || 0,
+      delivered: stat.delivered || 0,
+      opened: stat.opened || 0,
+      replied: stat.replied || 0,
+      bounced: stat.bounced || 0,
+      openRate: stat.openRate || 0,
+      replyRate: (stat.replyRate || 0) * 100
+    }));
+
+    // If we only have one data point, add a second point to make the chart more visible
+    if (trends.length === 1) {
+      const singlePoint = trends[0];
       trends.push({
-        date: days[i],
-        emails: dayStats?.sent || 0,
-        sent: dayStats?.sent || 0,
-        delivered: dayStats?.delivered || 0,
-        opened: dayStats?.opened || 0,
-        replied: dayStats?.replied || 0,
-        bounced: dayStats?.bounced || 0,
-        openRate: (dayStats?.openRate || 0) * 100,
-        replyRate: (dayStats?.replyRate || 0) * 100
+        ...singlePoint,
+        date: 'Today',
+        emails: singlePoint.emails,
+        sent: singlePoint.sent,
+        delivered: singlePoint.delivered,
+        opened: singlePoint.opened,
+        replied: singlePoint.replied,
+        bounced: singlePoint.bounced,
+        openRate: singlePoint.openRate,
+        replyRate: singlePoint.replyRate
       });
     }
 
+    console.log('Generated performance trends:', trends);
     return trends;
   };
 
   const performanceTrends = generatePerformanceTrends();
+  console.log('Final performanceTrends for chart:', performanceTrends);
 
   return (
     <Card>
@@ -116,7 +130,7 @@ export function PerformanceTrendsChart({ campaignStats }: PerformanceTrendsChart
                 No Performance Data Yet
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
-                Performance trends will appear here once you start sending campaigns and collecting email data.
+                Performance trends will appear here once you start sending campaigns and collecting email data. Your campaigns are running, but we need more data points to show meaningful trends.
               </p>
             </div>
           )}

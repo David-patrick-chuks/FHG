@@ -14,7 +14,7 @@ export function ActivityList({ activities, currentPage, pageSize }: ActivityList
   );
 
   return (
-    <div className="group relative">
+    <div className="group relative overflow-hidden">
       <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 transition-all duration-300"></div>
       <div className="relative p-4 sm:p-6">
         <div className="space-y-3 sm:space-y-4">

@@ -60,30 +60,32 @@ export class TrackingController {
    */
   public static async trackEmailOpen(req: Request, res: Response): Promise<void> {
     try {
-      const { cid, tid } = req.query; // campaignId, transactionId (emailId)
+      // Support both old and new parameter names for backward compatibility
+      const campaignId = (req.query.cid || req.query.ref) as string; // campaignId
+      const emailId = (req.query.tid || req.query.id) as string; // emailId
 
       TrackingController.logger.info('Email open tracking request', {
-        campaignId: cid,
-        emailId: tid,
+        campaignId: campaignId,
+        emailId: emailId,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
 
       const result = await TrackingService.trackEmailOpen(
-        cid as string,
-        tid as string
+        campaignId,
+        emailId
       );
 
       if (result.success) {
         TrackingController.logger.info('Email tracking successful', {
-          campaignId: cid,
-          emailId: tid,
+          campaignId: campaignId,
+          emailId: emailId,
           wasAlreadyOpened: result.data?.wasAlreadyOpened
         });
       } else {
         TrackingController.logger.warn('Email tracking failed', {
-          campaignId: cid,
-          emailId: tid,
+          campaignId: campaignId,
+          emailId: emailId,
           error: result.message
         });
       }

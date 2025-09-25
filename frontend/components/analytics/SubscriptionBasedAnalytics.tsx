@@ -266,15 +266,36 @@ export function SubscriptionBasedAnalytics({ className }: SubscriptionBasedAnaly
         }] : []
       };
 
+      // Convert emailTrends to campaignStats format for the chart
+      const campaignStats = analyticsData.emailTrends.map(trend => ({
+        campaignId: `trend-${trend.date}`,
+        total: trend.emailsSent,
+        sent: trend.emailsSent,
+        delivered: trend.emailsSent, // Assuming delivered equals sent for now
+        opened: trend.emailsOpened,
+        replied: 0, // Not available in emailTrends
+        failed: 0, // Not available in emailTrends
+        bounced: 0, // Not available in emailTrends
+        deliveryRate: 1, // Assuming 100% delivery for now
+        openRate: trend.openRate, // Keep as percentage (0-100)
+        replyRate: 0 // Not available in emailTrends
+      }));
+
+      console.log('Analytics data for chart:', {
+        emailTrends: analyticsData.emailTrends,
+        campaignStats,
+        hasData: campaignStats.length > 0
+      });
+
       return (
         <div className={`space-y-4 sm:space-y-6 ${className}`}>
           <AnalyticsMetricsCards trackingSummary={trackingSummary} />
           
-          <PerformanceTrendsChart campaignStats={[] as any} />
+          <PerformanceTrendsChart campaignStats={campaignStats} />
           
           <TopPerformingCampaigns trackingSummary={trackingSummary} />
           
-          <CampaignStatisticsTable campaignStats={[] as any} />
+          <CampaignStatisticsTable campaignStats={campaignStats} />
 
           {!analyticsData.metrics.totalCampaigns && <AnalyticsEmptyState />}
         </div>

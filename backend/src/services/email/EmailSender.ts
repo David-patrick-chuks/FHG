@@ -79,9 +79,17 @@ export class EmailSender {
         subject: subject,
         html: trackedMessage,
         headers: {
+          // Keep internal tracking headers for our system
           'X-Campaign-ID': campaignId,
           'X-Bot-ID': botId,
-          'X-Email-ID': (sentEmail._id as any).toString()
+          'X-Email-ID': (sentEmail._id as any).toString(),
+          // Add legitimate-looking headers
+          'List-Unsubscribe': `<mailto:unsubscribe@${bot.email.split('@')[1]}?subject=unsubscribe>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          'X-Mailer': 'MailQuill Email Marketing Platform',
+          'X-Priority': '3',
+          'X-MSMail-Priority': 'Normal',
+          'Importance': 'Normal'
         }
       };
 

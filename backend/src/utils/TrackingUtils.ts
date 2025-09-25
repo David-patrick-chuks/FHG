@@ -8,7 +8,8 @@ export class TrackingUtils {
    */
   public static generateTrackingUrl(campaignId: string, emailId: string): string {
     const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
-    return `${baseUrl}/track/open?cid=${campaignId}&tid=${emailId}`;
+    // Make it look like a legitimate analytics endpoint instead of obvious tracking
+    return `${baseUrl}/analytics/pixel.png?ref=${campaignId}&id=${emailId}`;
   }
 
   /**
@@ -19,9 +20,10 @@ export class TrackingUtils {
     emailId: string, 
     originalUrl: string
   ): string {
-    const baseUrl = process.env.API_BASE_UR || 'http://localhost:5000';
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
     const encodedUrl = encodeURIComponent(originalUrl);
-    return `${baseUrl}/track/click?cid=${campaignId}&tid=${emailId}&url=${encodedUrl}`;
+    // Make it look like a legitimate redirect endpoint
+    return `${baseUrl}/redirect?ref=${campaignId}&id=${emailId}&url=${encodedUrl}`;
   }
 
   /**
@@ -29,12 +31,18 @@ export class TrackingUtils {
    */
   public static addTrackingPixel(htmlContent: string, trackingUrl: string): string {
     // Check if the content already has a tracking pixel
-    if (htmlContent.includes('tracking-pixel')) {
+    if (htmlContent.includes('analytics-pixel')) {
       return htmlContent;
     }
 
-    // Add tracking pixel at the end of the email
-    const trackingPixel = `<img src="${trackingUrl}" width="1" height="1" style="display:none;" class="tracking-pixel" alt="" />`;
+    // Create a more legitimate-looking tracking pixel that appears as a footer image
+    const trackingPixel = `
+      <div style="margin-top: 20px; text-align: center; font-size: 10px; color: #888;">
+        <img src="${trackingUrl}" width="1" height="1" style="display:none;" class="analytics-pixel" alt="Analytics" />
+        <p style="margin: 0; color: #888; font-family: Arial, sans-serif;">
+          This email was sent to you because you subscribed to our updates.
+        </p>
+      </div>`;
     
     // If the content has a closing body tag, insert before it
     if (htmlContent.includes('</body>')) {

@@ -299,15 +299,15 @@ export default function AdminTemplatesPage() {
 
   const getStatusBadge = (template: Template) => {
     if (template.isApproved) {
-      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+      return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 text-xs">
         <CheckCircle className="w-3 h-3 mr-1" />Approved
       </Badge>;
     } else if (template.isRejected) {
-      return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+      return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 text-xs">
         <XCircle className="w-3 h-3 mr-1" />Rejected
       </Badge>;
     } else {
-      return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+      return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 text-xs">
         <Clock className="w-3 h-3 mr-1" />Pending
       </Badge>;
     }
@@ -340,16 +340,17 @@ export default function AdminTemplatesPage() {
             variant="outline"
             onClick={fetchAllTemplates}
             disabled={loading}
+            className="h-9 px-3 text-sm"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button
             onClick={() => setShowCreateDialog(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 h-9 px-3 text-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create Template
+            Create
           </Button>
         </div>
       }
@@ -425,19 +426,19 @@ export default function AdminTemplatesPage() {
         {/* Search and Filters */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
+            <div className="flex flex-col gap-4">
+              <div className="w-full">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     placeholder="Search templates by name, description, or category..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-10 text-sm"
                   />
                 </div>
               </div>
-              <div className="w-full md:w-48">
+              <div className="w-full">
                 <Label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Status
                 </Label>
@@ -445,7 +446,7 @@ export default function AdminTemplatesPage() {
                   id="status-filter"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 h-10 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   aria-label="Filter by status"
                 >
                   <option value="all">All Status</option>
@@ -454,7 +455,7 @@ export default function AdminTemplatesPage() {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
-              <div className="w-full md:w-48">
+              <div className="w-full">
                 <Label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category
                 </Label>
@@ -462,7 +463,7 @@ export default function AdminTemplatesPage() {
                   id="category-filter"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 h-10 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   aria-label="Filter by category"
                 >
                   <option value="all">All Categories</option>
@@ -501,12 +502,116 @@ export default function AdminTemplatesPage() {
                 {filteredTemplates.map((template) => (
                   <div
                     key={template._id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    {/* Mobile Layout */}
+                    <div className="block sm:hidden space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
+                              {template.name}
+                            </h3>
+                            {getStatusBadge(template)}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                            {template.description}
+                          </p>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {template.tags && template.tags.slice(0, 3).map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {template.tags && template.tags.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{template.tags.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <p>Category: {template.category}</p>
+                        {template.industry && <p>Industry: {template.industry}</p>}
+                        <p>Created: {formatDate(template.createdAt)}</p>
+                        <p>Samples: {template.samples?.length || 0}</p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`/dashboard/templates/preview/${template._id}`, '_blank')}
+                          className="text-xs px-2 py-1 h-7"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          Preview
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(template)}
+                          disabled={processingId === template._id}
+                          className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs px-2 py-1 h-7"
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                        
+                        {!template.isApproved && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(template._id)}
+                            disabled={processingId === template._id}
+                            className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 h-7"
+                          >
+                            {processingId === template._id ? (
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            ) : (
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                            )}
+                            Approve
+                          </Button>
+                        )}
+                        
+                        {!template.isRejected && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openRejectDialog(template)}
+                            disabled={processingId === template._id}
+                            className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs px-2 py-1 h-7"
+                          >
+                            {processingId === template._id ? (
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            ) : (
+                              <XCircle className="w-3 h-3 mr-1" />
+                            )}
+                            Reject
+                          </Button>
+                        )}
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDeleteDialog(template)}
+                          disabled={processingId === template._id}
+                          className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs px-2 py-1 h-7"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                             {template.name}
                           </h3>
                           {getStatusBadge(template)}
@@ -559,7 +664,7 @@ export default function AdminTemplatesPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 ml-4">
+                      <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                         <Button
                           variant="outline"
                           size="sm"

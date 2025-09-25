@@ -14,10 +14,10 @@ export function RecentActivity({ activities }: RecentActivityProps) {
   const router = useRouter();
 
   return (
-    <div className="group relative">
+    <div className="group relative overflow-hidden">
       <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg shadow-slate-900/5 group-hover:shadow-xl group-hover:shadow-slate-900/10 transition-all duration-300"></div>
-      <div className="relative p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="relative p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Recent Activity</h2>
             <p className="text-slate-600 dark:text-slate-300">Latest updates from your campaigns</p>
@@ -27,7 +27,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
               variant="outline" 
               size="sm"
               onClick={() => router.push('/dashboard/activity')}
-              className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 text-cyan-600 hover:text-cyan-700 hover:bg-white/60 dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-slate-800/60 transition-all duration-300"
+              className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-white/30 dark:border-slate-700/30 text-cyan-600 hover:text-cyan-700 hover:bg-white/60 dark:text-cyan-400 dark:hover:text-cyan-300 dark:hover:bg-slate-800/60 transition-all duration-300 w-full sm:w-auto"
             >
               View All
             </Button>
@@ -40,22 +40,24 @@ export function RecentActivity({ activities }: RecentActivityProps) {
               const IconComponent = getActivityIcon(activity.type);
               const iconColor = getActivityIconColor(activity.type);
               return (
-                <div key={activity.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 rounded-xl hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300">
-                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                    <div className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 dark:border-blue-500/30 flex-shrink-0`}>
-                      <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 ${iconColor}`} />
+                <div key={activity.id} className="p-3 sm:p-4 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border border-white/30 dark:border-slate-700/30 rounded-xl hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all duration-300">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`p-1.5 sm:p-2 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 dark:border-blue-500/30 flex-shrink-0`}>
+                        <IconComponent className={`w-4 h-4 sm:w-5 sm:h-5 ${iconColor}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 dark:text-white text-sm sm:text-base break-words">{activity.title}</p>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2 break-words">
+                          {activity.description}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 dark:text-white text-sm sm:text-base truncate">{activity.title}</p>
-                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
-                        {activity.description}
-                      </p>
+                    <div className="flex justify-end items-center">
+                      <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                        {activity.time}
+                      </span>
                     </div>
-                  </div>
-                  <div className="flex justify-between sm:justify-end items-center gap-2 sm:gap-0">
-                    <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {activity.time}
-                    </span>
                   </div>
                 </div>
               );

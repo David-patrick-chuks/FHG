@@ -27,6 +27,12 @@ export class TrackingRoutes {
     router.get('/open', TrackingController.trackEmailOpen);
 
     /**
+     * Analytics pixel endpoint (disguised tracking)
+     * This endpoint serves the same tracking pixel but looks more legitimate
+     */
+    router.get('/analytics/pixel.png', TrackingController.trackEmailOpen);
+
+    /**
      * Get tracking statistics for a campaign (public)
      */
     router.get('/stats/:campaignId', TrackingController.getCampaignStats);

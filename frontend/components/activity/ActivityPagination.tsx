@@ -48,7 +48,7 @@ export function ActivityPagination({
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardContent className="p-4 sm:p-6">
         {/* Mobile Layout */}
         <div className="block sm:hidden">

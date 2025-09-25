@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { SessionAPI, Session } from '@/lib/api/session';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Smartphone, 
-  Monitor, 
-  Tablet, 
-  Trash2, 
-  Shield, 
-  AlertTriangle,
-  Clock,
-  MapPin
+import { Session, SessionAPI } from '@/lib/api/session';
+import {
+    AlertTriangle,
+    Clock,
+    MapPin,
+    Monitor,
+    Shield,
+    Smartphone,
+    Tablet,
+    Trash2
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface SessionManagerProps {
@@ -177,18 +177,20 @@ export function SessionManager({ className }: SessionManagerProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Multiple Sessions Setting */}
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="space-y-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-lg">
+            <div className="space-y-1 flex-1 min-w-0">
               <h4 className="font-medium">Allow Multiple Sessions</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 When disabled, signing in on a new device will log you out of all other devices
               </p>
             </div>
-            <Switch
-              checked={allowMultipleSessions}
-              onCheckedChange={handleToggleMultipleSessions}
-              disabled={actionLoading === 'toggle-multiple'}
-            />
+            <div className="flex-shrink-0">
+              <Switch
+                checked={allowMultipleSessions}
+                onCheckedChange={handleToggleMultipleSessions}
+                disabled={actionLoading === 'toggle-multiple'}
+              />
+            </div>
           </div>
 
           {/* Warning for single session mode */}
@@ -203,7 +205,7 @@ export function SessionManager({ className }: SessionManagerProps) {
 
           {/* Active Sessions */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h4 className="font-medium">Active Sessions ({sessions.length})</h4>
               {sessions.length > 1 && currentSessionId && (
                 <Button
@@ -211,13 +213,15 @@ export function SessionManager({ className }: SessionManagerProps) {
                   size="sm"
                   onClick={handleInvalidateAllOthers}
                   disabled={actionLoading === 'all-others'}
+                  className="w-full sm:w-auto"
                 >
                   {actionLoading === 'all-others' ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                   ) : (
                     <Trash2 className="w-4 h-4 mr-2" />
                   )}
-                  End All Other Sessions
+                  <span className="hidden sm:inline">End All Other Sessions</span>
+                  <span className="sm:hidden">End All Others</span>
                 </Button>
               )}
             </div>
@@ -233,65 +237,75 @@ export function SessionManager({ className }: SessionManagerProps) {
                   return (
                     <div
                       key={session.sessionId}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                      className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                          {getDeviceIcon(session.deviceInfo.deviceType)}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              variant="secondary" 
-                              className={getDeviceTypeColor(session.deviceInfo.deviceType)}
-                            >
-                              {session.deviceInfo.deviceType || 'Unknown'}
-                            </Badge>
-                            {isCurrentSession && (
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg flex-shrink-0">
+                            {getDeviceIcon(session.deviceInfo.deviceType)}
+                          </div>
+                          <div className="space-y-2 flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Badge 
-                                variant="default" 
-                                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                variant="secondary" 
+                                className={getDeviceTypeColor(session.deviceInfo.deviceType)}
                               >
-                                Current Session
+                                {session.deviceInfo.deviceType || 'Unknown'}
                               </Badge>
-                            )}
-                            {session.deviceInfo.ipAddress && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <MapPin className="w-3 h-3" />
-                                {session.deviceInfo.ipAddress}
+                              {isCurrentSession && (
+                                <Badge 
+                                  variant="default" 
+                                  className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                >
+                                  Current Session
+                                </Badge>
+                              )}
+                              {session.deviceInfo.ipAddress && (
+                                <div className="flex items-center gap-1 text-xs text-gray-500">
+                                  <MapPin className="w-3 h-3" />
+                                  <span className="truncate">{session.deviceInfo.ipAddress}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                <span>Last active: {getRelativeTime(session.lastAccessedAt)}</span>
+                              </div>
+                              <div className="truncate">
+                                Created: {formatDate(session.createdAt)}
+                              </div>
+                            </div>
+                            {session.deviceInfo.userAgent && (
+                              <div className="text-xs text-gray-400 break-all sm:break-normal">
+                                <span className="hidden sm:inline">{session.deviceInfo.userAgent}</span>
+                                <span className="sm:hidden">
+                                  {session.deviceInfo.userAgent.length > 50 
+                                    ? `${session.deviceInfo.userAgent.substring(0, 50)}...` 
+                                    : session.deviceInfo.userAgent}
+                                </span>
                               </div>
                             )}
                           </div>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Last active: {getRelativeTime(session.lastAccessedAt)}
-                          </div>
-                          <div>
-                            Created: {formatDate(session.createdAt)}
-                          </div>
                         </div>
-                        {session.deviceInfo.userAgent && (
-                          <div className="text-xs text-gray-400 truncate max-w-md">
-                            {session.deviceInfo.userAgent}
-                          </div>
-                        )}
+                        <div className="flex-shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleInvalidateSession(session.sessionId)}
+                            disabled={actionLoading === session.sessionId || isCurrentSession}
+                            title={isCurrentSession ? "Cannot delete current session" : "Delete session"}
+                            className="w-full sm:w-auto"
+                          >
+                            {actionLoading === session.sessionId ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleInvalidateSession(session.sessionId)}
-                      disabled={actionLoading === session.sessionId || isCurrentSession}
-                      title={isCurrentSession ? "Cannot delete current session" : "Delete session"}
-                    >
-                      {actionLoading === session.sessionId ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                      ) : (
-                        <Trash2 className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
                   );
                 })}
               </div>

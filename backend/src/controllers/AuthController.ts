@@ -236,25 +236,33 @@ export class AuthController {
       if (result.success && result.data) {
         const user = result.data.user;
         
-        // Generate unique session ID
-        const sessionId = crypto.randomUUID();
-        
         // Get device information
         const deviceInfo = AuthController.getDeviceInfo(req);
         
+        // Find or create session based on device info
+        const { session, isNewSession } = await SessionModel.findOrCreateSession((user._id as any).toString(), deviceInfo);
+        const sessionId = session.sessionId;
+        
+        AuthController.logger.info('Session management result', {
+          userId: (user._id as any).toString(),
+          email: user.email,
+          sessionId,
+          isNewSession,
+          userAgent: deviceInfo?.userAgent?.substring(0, 50) + '...',
+          ipAddress: deviceInfo?.ipAddress
+        });
+        
         // Check if user allows multiple sessions
-        if (!user.allowMultipleSessions) {
-          // Invalidate all existing sessions for single session mode
-          await SessionModel.invalidateUserSessions((user._id as any).toString());
+        if (!user.allowMultipleSessions && isNewSession) {
+          // Invalidate all other sessions for single session mode
+          await SessionModel.invalidateUserSessions((user._id as any).toString(), sessionId);
           
           AuthController.logger.info('Invalidated existing sessions for single session mode', {
             userId: (user._id as any).toString(),
-            email: user.email
+            email: user.email,
+            newSessionId: sessionId
           });
         }
-        
-        // Create new session
-        await SessionModel.createSession((user._id as any).toString(), sessionId, deviceInfo);
         
         // Update user's current session ID
         await UserModel.findByIdAndUpdate(user._id, {

@@ -20,6 +20,7 @@ export interface ISessionDocument extends ISession, Document {
 
 export interface ISessionModel extends mongoose.Model<ISessionDocument> {
   createSession(userId: string, sessionId: string, deviceInfo?: any): Promise<ISessionDocument>;
+  findOrCreateSession(userId: string, deviceInfo?: any): Promise<{ session: ISessionDocument; isNewSession: boolean }>;
   invalidateUserSessions(userId: string, excludeSessionId?: string): Promise<void>;
   getActiveSessions(userId: string): Promise<ISessionDocument[]>;
   updateLastAccessed(sessionId: string): Promise<void>;
@@ -100,6 +101,54 @@ sessionSchema.statics.createSession = async function(
   });
 
   return await session.save();
+};
+
+sessionSchema.statics.findOrCreateSession = async function(
+  userId: string, 
+  deviceInfo?: any
+): Promise<{ session: ISessionDocument; isNewSession: boolean }> {
+  // First try to find an exact match (same user agent and IP)
+  let existingSession = await this.findOne({
+    userId,
+    isActive: true,
+    expiresAt: { $gt: new Date() },
+    'deviceInfo.userAgent': deviceInfo?.userAgent,
+    'deviceInfo.ipAddress': deviceInfo?.ipAddress
+  });
+
+  // If no exact match, try to find a session with the same user agent (same browser/device)
+  if (!existingSession && deviceInfo?.userAgent) {
+    existingSession = await this.findOne({
+      userId,
+      isActive: true,
+      expiresAt: { $gt: new Date() },
+      'deviceInfo.userAgent': deviceInfo.userAgent
+    });
+  }
+
+  if (existingSession) {
+    // Update last accessed time and device info for existing session
+    existingSession.lastAccessedAt = new Date();
+    existingSession.deviceInfo = deviceInfo;
+    await existingSession.save();
+    
+    return { session: existingSession, isNewSession: false };
+  }
+
+  // No existing session found, create a new one
+  const sessionId = require('crypto').randomUUID();
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30); // 30 days expiration
+
+  const newSession = new this({
+    userId,
+    sessionId,
+    deviceInfo,
+    expiresAt
+  });
+
+  const session = await newSession.save();
+  return { session, isNewSession: true };
 };
 
 sessionSchema.statics.invalidateUserSessions = async function(
