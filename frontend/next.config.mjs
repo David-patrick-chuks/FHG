@@ -73,12 +73,7 @@ const nextConfig = {
         source: '/home',
         destination: '/',
         permanent: true,
-      },
-      {
-        source: '/signup',
-        destination: '/register',
-        permanent: true,
-      },
+      }
     ];
   },
 }
