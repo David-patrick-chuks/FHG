@@ -432,6 +432,79 @@ export class CampaignService {
     }
   }
 
+  public static async updateCampaignWithTemplateChange(
+    campaignId: string, 
+    userId: string, 
+    updateData: Partial<ICampaignDocument>,
+    regenerateMessages: boolean = false
+  ): Promise<ApiResponse<ICampaignDocument>> {
+    try {
+      const campaign = await CampaignModel.findById(campaignId);
+      if (!campaign) {
+        return {
+          success: false,
+          message: 'Campaign not found',
+          timestamp: new Date()
+        };
+      }
+
+      // Check if campaign belongs to user
+      if (campaign.userId !== userId) {
+        return {
+          success: false,
+          message: 'Access denied',
+          timestamp: new Date()
+        };
+      }
+
+      // Only allow template/bot changes for draft campaigns
+      if (campaign.status !== CampaignStatus.DRAFT && (updateData.templateId || updateData.botId)) {
+        return {
+          success: false,
+          message: 'Template and bot can only be changed for draft campaigns',
+          timestamp: new Date()
+        };
+      }
+
+      // If template or bot changed and regenerateMessages is true, regenerate messages
+      if (regenerateMessages && (updateData.templateId || updateData.botId)) {
+        // Clear existing generated messages
+        campaign.generatedMessages = [];
+        campaign.selectedMessageIndex = 0;
+        
+        // TODO: Add message regeneration logic here
+        // This would involve calling the AI message generation service
+        CampaignService.logger.info('Template/Bot changed, messages will be regenerated', {
+          campaignId: campaign._id,
+          userId,
+          newTemplateId: updateData.templateId,
+          newBotId: updateData.botId
+        });
+      }
+
+      // Update campaign data
+      Object.assign(campaign, updateData);
+      await campaign.save();
+
+      CampaignService.logger.info('Campaign updated with template/bot change', {
+        campaignId: campaign._id,
+        userId,
+        campaignName: campaign.name,
+        regenerateMessages
+      });
+
+      return {
+        success: true,
+        message: 'Campaign updated successfully',
+        data: CampaignService.serializeCampaign(campaign),
+        timestamp: new Date()
+      };
+    } catch (error) {
+      CampaignService.logger.error('Error updating campaign with template change:', error);
+      throw error;
+    }
+  }
+
   public static async updateCampaign(campaignId: string, userId: string, updateData: Partial<ICampaignDocument>): Promise<ApiResponse<ICampaignDocument>> {
     try {
       const campaign = await CampaignModel.findById(campaignId);
@@ -454,11 +527,23 @@ export class CampaignService {
 
       // Check if campaign can be updated
       if (campaign.status === CampaignStatus.RUNNING) {
-        return {
-          success: false,
-          message: 'Cannot update running campaign',
-          timestamp: new Date()
-        };
+        // For running campaigns, only allow certain fields to be updated
+        const allowedFieldsForRunning = [
+          'name', 'description', 'emailList', 'emailInterval', 
+          'emailIntervalUnit', 'scheduledFor', 'isScheduled'
+        ];
+        
+        const restrictedFields = Object.keys(updateData).filter(
+          field => !allowedFieldsForRunning.includes(field)
+        );
+        
+        if (restrictedFields.length > 0) {
+          return {
+            success: false,
+            message: `Cannot update ${restrictedFields.join(', ')} while campaign is running. Only basic settings and email list can be modified.`,
+            timestamp: new Date()
+          };
+        }
       }
 
       // Update campaign data

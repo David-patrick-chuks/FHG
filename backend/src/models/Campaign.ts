@@ -66,6 +66,13 @@ export class CampaignModel {
         trim: true,
         maxlength: 1000
       },
+      senderName: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 1,
+        maxlength: 100
+      },
       status: {
         type: String,
         enum: Object.values(CampaignStatus),

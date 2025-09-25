@@ -16,6 +16,7 @@ export function useCampaignCreation() {
     botId: '',
     templateId: '',
     emailList: '',
+    senderName: '',
     scheduledFor: undefined as Date | undefined,
     emailInterval: 0,
     emailIntervalUnit: 'minutes' as 'seconds' | 'minutes' | 'hours'
@@ -223,6 +224,7 @@ export function useCampaignCreation() {
         botId: formData.botId,
         templateId: formData.templateId,
         emailList,
+        senderName: formData.senderName,
         scheduledFor: formData.scheduledFor,
         emailInterval: formData.emailInterval,
         emailIntervalUnit: formData.emailIntervalUnit
@@ -263,7 +265,7 @@ export function useCampaignCreation() {
     return emails.length > 0;
   };
 
-  const canProceedToStep2 = Boolean(formData.name.trim() && formData.botId);
+  const canProceedToStep2 = Boolean(formData.name.trim() && formData.senderName.trim() && formData.botId);
   const canProceedToStep3 = Boolean(canProceedToStep2 && formData.templateId);
   const canProceedToStep4 = Boolean(canProceedToStep3 && hasValidEmails());
   const canCreateCampaign = Boolean(canProceedToStep4 && scheduleConfirmed);

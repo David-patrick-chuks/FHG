@@ -7,6 +7,7 @@ export interface CreateCampaignRequest {
   botId: string;
   templateId: string;
   emailList: string[];
+  senderName: string;
   scheduledFor?: Date; // Optional: when to start the campaign
   emailInterval?: number; // Optional: delay between emails (0 = send all at once)
   emailIntervalUnit?: 'seconds' | 'minutes' | 'hours'; // Optional: unit for interval

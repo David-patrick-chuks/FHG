@@ -59,8 +59,12 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
 
   const handleTemplateUpdated = (updatedTemplate: Template) => {
     setHasUnsavedChanges(false); // Reset unsaved changes state
+    setTemplate(updatedTemplate); // Update the template state with the new data
     toast.success('Template updated successfully!');
-    router.push('/dashboard/templates');
+    // Small delay to ensure state is updated before navigation
+    setTimeout(() => {
+      router.push('/dashboard/templates');
+    }, 100);
   };
 
   if (loading) {

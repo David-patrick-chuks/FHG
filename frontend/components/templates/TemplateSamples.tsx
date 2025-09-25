@@ -23,7 +23,7 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
   const isSubjectValid = newSample.subject.length <= TEMPLATE_VALIDATION_RULES.samples.subject.maxLength;
   const isBodyValid = newSample.body.length <= TEMPLATE_VALIDATION_RULES.samples.body.maxLength;
   const canAddSample = newSample.subject.trim() && 
-                      newSample.body.trim() && 
+                      newSample.body && 
                       isSubjectValid && 
                       isBodyValid && 
                       formData.samples.length < 100;
@@ -37,7 +37,7 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
     if (canAddSample) {
       // Format variable syntax before adding
       const formattedSubject = formatVariableSyntax(newSample.subject.trim());
-      const formattedBody = formatVariableSyntax(newSample.body.trim());
+      const formattedBody = formatVariableSyntax(newSample.body);
       
       const sample: TemplateSample = {
         _id: Date.now().toString(),
@@ -54,7 +54,7 @@ export function TemplateSamples({ formData, setFormData }: TemplateSamplesProps)
       setNewSample({ subject: '', body: '' });
       
       // Show toast if formatting was applied
-      if (formattedSubject !== newSample.subject.trim() || formattedBody !== newSample.body.trim()) {
+      if (formattedSubject !== newSample.subject.trim() || formattedBody !== newSample.body) {
         toast.success('Variable syntax automatically formatted');
       }
     }

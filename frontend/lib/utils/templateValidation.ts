@@ -345,18 +345,17 @@ export function validateTemplateSamples(samples: Array<{ subject: string; body: 
     }
 
     // Validate body
-    if (!sample.body || !sample.body.trim()) {
+    if (!sample.body || sample.body.trim() === '') {
       errors.push({
         field: `samples[${index}].body`,
         message: 'Email body is required'
       });
     } else {
-      const trimmedBody = sample.body.trim();
-      if (trimmedBody.length > TEMPLATE_VALIDATION_RULES.samples.body.maxLength) {
+      if (sample.body.length > TEMPLATE_VALIDATION_RULES.samples.body.maxLength) {
         errors.push({
           field: `samples[${index}].body`,
           message: TEMPLATE_VALIDATION_RULES.samples.body.message,
-          value: trimmedBody
+          value: sample.body
         });
       }
     }

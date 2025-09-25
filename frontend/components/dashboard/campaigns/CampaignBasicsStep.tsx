@@ -14,6 +14,7 @@ interface CampaignBasicsStepProps {
     name: string;
     description: string;
     botId: string;
+    senderName: string;
   };
   onFormDataChange: (data: Partial<CampaignBasicsStepProps['formData']>) => void;
   bots: Bot[];
@@ -63,6 +64,23 @@ export function CampaignBasicsStep({
             />
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Choose a descriptive name that reflects your campaign's purpose
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="senderName" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Sender Name <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="senderName"
+              value={formData.senderName}
+              onChange={(e) => onFormDataChange({ senderName: e.target.value })}
+              placeholder="e.g., David Patrick"
+              disabled={isFormDisabled}
+              className="h-11 sm:h-12 text-sm sm:text-base"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              The name that will appear as the sender in recipient's inbox
             </p>
           </div>
           

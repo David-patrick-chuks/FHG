@@ -195,6 +195,7 @@ export function CreateTemplateForm({
         // Reset initial data after successful update to prevent unsaved changes detection
         if (isEditMode) {
           resetInitialData();
+          setHasUnsavedChanges(false); // Reset unsaved changes state
         }
         
         if (onTemplateCreated) {

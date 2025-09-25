@@ -54,9 +54,10 @@ export class EmailService {
     subject: string,
     message: string,
     campaignId: string,
-    generatedMessageId?: string
+    generatedMessageId?: string,
+    senderName?: string
   ): Promise<ApiResponse<{ messageId: string; sentAt: Date }>> {
-    return EmailSender.sendEmail(botId, recipientEmail, subject, message, campaignId, generatedMessageId);
+    return EmailSender.sendEmail(botId, recipientEmail, subject, message, campaignId, generatedMessageId, senderName);
   }
 
   public static async sendBulkEmails(

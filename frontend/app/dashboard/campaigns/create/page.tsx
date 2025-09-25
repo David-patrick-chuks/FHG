@@ -133,7 +133,8 @@ export default function CreateCampaignPage() {
               formData={{
                 name: formData.name,
                 description: formData.description,
-                botId: formData.botId
+                botId: formData.botId,
+                senderName: formData.senderName
               }}
               onFormDataChange={updateFormData}
               bots={bots}

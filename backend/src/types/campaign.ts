@@ -37,6 +37,7 @@ export interface ICampaign {
   templateId: string; // Required template reference
   name: string;
   description: string;
+  senderName: string;
   status: CampaignStatus;
   emailList: string[];
   generatedMessages?: IGeneratedMessage[];
@@ -81,6 +82,7 @@ export interface CreateCampaignRequest {
   botId: string;
   templateId: string; // Required template reference
   emailList: string[];
+  senderName: string;
   scheduledFor?: Date;
   isScheduled?: boolean;
   emailInterval: number;

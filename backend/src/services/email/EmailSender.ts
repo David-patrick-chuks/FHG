@@ -22,7 +22,8 @@ export class EmailSender {
     subject: string,
     message: string,
     campaignId: string,
-    generatedMessageId?: string
+    generatedMessageId?: string,
+    senderName?: string
   ): Promise<ApiResponse<{ messageId: string; sentAt: Date }>> {
     try {
       // Get bot details
@@ -73,8 +74,9 @@ export class EmailSender {
       const trackedMessage = TrackingUtils.addTrackingPixel(message, trackingUrl);
 
       // Send email
+      const fromAddress = senderName ? `${senderName} <${bot.email}>` : bot.email;
       const mailOptions = {
-        from: bot.email,
+        from: fromAddress,
         to: recipientEmail,
         subject: subject,
         html: trackedMessage,

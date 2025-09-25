@@ -214,7 +214,6 @@ export class TemplateModel {
         body: {
           type: String,
           required: true,
-          trim: true,
           maxlength: 5000
         },
         createdAt: {

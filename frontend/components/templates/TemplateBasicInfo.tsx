@@ -93,7 +93,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             onBlur={() => markFieldAsTouched('name')}
             placeholder="e.g., Sales Follow-up Template"
             required
-            className={`${
+            className={`border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 ${
               shouldShowValidation('name', nameInfo.isValid)
                 ? (nameInfo.isValid 
                     ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
@@ -117,7 +117,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             value={formData.category}
             onValueChange={(value: TemplateCategory) => setFormData(prev => ({ ...prev, category: value }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +166,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
           placeholder="Describe what this template is used for..."
           rows={3}
           required
-          className={`${
+          className={`border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 ${
             shouldShowValidation('description', descriptionInfo.isValid)
               ? (descriptionInfo.isValid 
                   ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
@@ -217,7 +217,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
           placeholder="Describe when and why to use this template..."
           rows={3}
           required
-          className={`${
+          className={`border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 ${
             shouldShowValidation('useCase', useCaseInfo.isValid)
               ? (useCaseInfo.isValid 
                   ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
@@ -267,7 +267,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             }}
             onBlur={() => markFieldAsTouched('industry')}
             placeholder="e.g., Technology, Healthcare"
-            className={`${
+            className={`border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 ${
               shouldShowValidation('industry', industryInfo.isValid)
                 ? (industryInfo.isValid 
                     ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 
@@ -316,7 +316,7 @@ export function TemplateBasicInfo({ formData, setFormData }: TemplateBasicInfoPr
             }}
             onBlur={() => markFieldAsTouched('targetAudience')}
             placeholder="e.g., B2B Sales Teams"
-            className={`${
+            className={`border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 ${
               shouldShowValidation('targetAudience', targetAudienceInfo.isValid)
                 ? (targetAudienceInfo.isValid 
                     ? 'border-green-300 focus:border-green-500 focus:ring-green-500' 

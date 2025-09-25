@@ -18,6 +18,11 @@ interface EditCampaignFormProps {
     emailIntervalUnit: 'minutes' | 'hours' | 'days';
     scheduledFor: string;
     status: 'draft' | 'ready' | 'running' | 'paused' | 'completed' | 'stopped';
+    templateId?: string;
+    botId?: string;
+    timezone?: string;
+    businessHoursOnly?: boolean;
+    customIntervals?: boolean;
   };
   setFormData: React.Dispatch<React.SetStateAction<{
     name: string;
@@ -27,6 +32,11 @@ interface EditCampaignFormProps {
     emailIntervalUnit: 'minutes' | 'hours' | 'days';
     scheduledFor: string;
     status: 'draft' | 'ready' | 'running' | 'paused' | 'completed' | 'stopped';
+    templateId?: string;
+    botId?: string;
+    timezone?: string;
+    businessHoursOnly?: boolean;
+    customIntervals?: boolean;
   }>>;
   handleEmailListChange: (value: string) => void;
   handleSubmit: (e: React.FormEvent) => void;
@@ -46,6 +56,21 @@ export function EditCampaignForm({
 }: EditCampaignFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Status Warning for Running Campaigns */}
+      {formData.status === 'running' && (
+        <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="font-medium text-yellow-800 dark:text-yellow-200">
+              Campaign is currently running
+            </span>
+          </div>
+          <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+            Only basic settings and email list can be modified while the campaign is running. 
+            Template and bot changes are not allowed.
+          </p>
+        </div>
+      )}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Basic Information */}
         <div className="space-y-4">
@@ -136,6 +161,59 @@ export function EditCampaignForm({
               </Select>
             </div>
           </div>
+
+          {/* Advanced Scheduling Options */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="timezone" className="text-blue-700 dark:text-blue-300">Timezone</Label>
+              <Select
+                value={formData.timezone || 'UTC'}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, timezone: value }))}
+              >
+                <SelectTrigger className="border-blue-200 focus:border-blue-400 dark:border-blue-700 dark:focus:border-blue-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                  <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time</SelectItem>
+                  <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                  <SelectItem value="Europe/London">London</SelectItem>
+                  <SelectItem value="Europe/Paris">Paris</SelectItem>
+                  <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="businessHoursOnly"
+                checked={formData.businessHoursOnly || false}
+                onChange={(e) => setFormData(prev => ({ ...prev, businessHoursOnly: e.target.checked }))}
+                className="rounded border-blue-200 focus:border-blue-400"
+                aria-label="Send emails only during business hours"
+              />
+              <Label htmlFor="businessHoursOnly" className="text-blue-700 dark:text-blue-300">
+                Send emails only during business hours (9 AM - 5 PM)
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="customIntervals"
+                checked={formData.customIntervals || false}
+                onChange={(e) => setFormData(prev => ({ ...prev, customIntervals: e.target.checked }))}
+                className="rounded border-blue-200 focus:border-blue-400"
+                aria-label="Use custom intervals"
+              />
+              <Label htmlFor="customIntervals" className="text-blue-700 dark:text-blue-300">
+                Use custom intervals (advanced)
+              </Label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -153,7 +231,135 @@ export function EditCampaignForm({
         <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
           {formData.emailList.length} recipient(s) added
         </p>
+        
+        {/* Bulk Email Operations */}
+        <div className="mt-4 space-y-2">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Import emails from clipboard
+                navigator.clipboard.readText().then(text => {
+                  const emails = text.split(/[\n,;]/).map(email => email.trim()).filter(email => email);
+                  setFormData(prev => ({
+                    ...prev,
+                    emailList: [...new Set([...prev.emailList, ...emails])]
+                  }));
+                });
+              }}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/20"
+            >
+              Import from Clipboard
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Export emails to clipboard
+                navigator.clipboard.writeText(formData.emailList.join('\n'));
+              }}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/20"
+            >
+              Export to Clipboard
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Remove duplicates
+                setFormData(prev => ({
+                  ...prev,
+                  emailList: [...new Set(prev.emailList)]
+                }));
+              }}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/20"
+            >
+              Remove Duplicates
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Validate emails
+                const invalidEmails = formData.emailList.filter(email => {
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  return !emailRegex.test(email);
+                });
+                
+                if (invalidEmails.length > 0) {
+                  alert(`Invalid emails found: ${invalidEmails.join(', ')}`);
+                } else {
+                  alert('All emails are valid!');
+                }
+              }}
+              className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/20"
+            >
+              Validate Emails
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Template and Bot Selection (for draft campaigns only) */}
+      {formData.status === 'draft' && (
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="templateId" className="text-blue-700 dark:text-blue-300">Email Template</Label>
+            <Select
+              value={formData.templateId || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, templateId: value }))}
+            >
+              <SelectTrigger className="border-blue-200 focus:border-blue-400 dark:border-blue-700 dark:focus:border-blue-500">
+                <SelectValue placeholder="Select a template" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="template1">Professional Outreach</SelectItem>
+                <SelectItem value="template2">Follow-up Template</SelectItem>
+                <SelectItem value="template3">Cold Email Template</SelectItem>
+                {/* TODO: Load actual templates from API */}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="botId" className="text-blue-700 dark:text-blue-300">Email Bot</Label>
+            <Select
+              value={formData.botId || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, botId: value }))}
+            >
+              <SelectTrigger className="border-blue-200 focus:border-blue-400 dark:border-blue-700 dark:focus:border-blue-500">
+                <SelectValue placeholder="Select a bot" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bot1">David's Bot</SelectItem>
+                <SelectItem value="bot2">Marketing Bot</SelectItem>
+                <SelectItem value="bot3">Sales Bot</SelectItem>
+                {/* TODO: Load actual bots from API */}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="regenerateMessages"
+              className="rounded border-blue-200 focus:border-blue-400"
+              aria-label="Regenerate AI messages when template/bot changes"
+            />
+            <Label htmlFor="regenerateMessages" className="text-blue-700 dark:text-blue-300">
+              Regenerate AI messages when template/bot changes
+            </Label>
+          </div>
+        </div>
+      )}
 
       {/* Bot Information */}
       {bot && (

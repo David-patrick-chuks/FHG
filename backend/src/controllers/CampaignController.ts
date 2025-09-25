@@ -186,6 +186,74 @@ export class CampaignController {
     }
   }
 
+  public static async updateCampaignTemplate(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).user['id'];
+      const campaignId = req.params['id'];
+      const { templateId, botId, regenerateMessages = false } = req.body;
+
+      if (!campaignId) {
+        res.status(400).json({
+          success: false,
+          message: 'Campaign ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      if (!templateId && !botId) {
+        res.status(400).json({
+          success: false,
+          message: 'Template ID or Bot ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      CampaignController.logger.info('Campaign template/bot update request', {
+        userId,
+        campaignId,
+        templateId,
+        botId,
+        regenerateMessages,
+        ip: req.ip
+      });
+
+      const updateData: any = {};
+      if (templateId) updateData.templateId = templateId;
+      if (botId) updateData.botId = botId;
+
+      const result = await CampaignService.updateCampaignWithTemplateChange(
+        campaignId, 
+        userId, 
+        updateData, 
+        regenerateMessages
+      );
+
+      if (result.success && result.data) {
+        // Log campaign update activity
+        await ActivityService.logCampaignActivity(
+          userId,
+          ActivityType.CAMPAIGN_UPDATED,
+          result.data.name,
+          campaignId
+        );
+
+        res.status(200).json({
+          success: true,
+          message: 'Campaign template/bot updated successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      CampaignController.logger.error('Campaign template/bot update error:', error);
+      ErrorHandler.handle(error, req, res, () => {});
+    }
+  }
+
   public static async updateCampaign(req: Request, res: Response): Promise<void> {
     try {
       const userId = (req as any).user['id'];

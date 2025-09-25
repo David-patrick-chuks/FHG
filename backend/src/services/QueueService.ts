@@ -376,6 +376,13 @@ export class QueueService {
         recipientEmail
       });
 
+      // Get campaign to retrieve sender name
+      const CampaignModel = (await import('../models/Campaign')).default;
+      const campaign = await CampaignModel.findById(campaignId);
+      if (!campaign) {
+        throw new Error('Campaign not found');
+      }
+
       // Check if bot can send email
       const canSend = await BotService.canBotSendEmail(botId);
       if (!canSend) {
@@ -389,7 +396,8 @@ export class QueueService {
         subject,
         message,
         campaignId,
-        generatedMessageId
+        generatedMessageId,
+        campaign.senderName
       );
 
       if (!result.success) {

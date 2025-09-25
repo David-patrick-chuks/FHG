@@ -61,6 +61,11 @@ export class CampaignRoutes {
       CampaignController.updateCampaign
     );
 
+    router.put('/:id/template', 
+      AuthMiddleware.validateOwnership('campaign', 'id'),
+      CampaignController.updateCampaignTemplate
+    );
+
     router.delete('/:id', 
       AuthMiddleware.validateOwnership('campaign', 'id'),
       CampaignController.deleteCampaign
