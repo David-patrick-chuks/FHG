@@ -76,7 +76,7 @@ const nextConfig = {
       },
       {
         source: '/signup',
-        destination: '/register',
+        destination: '/signup',
         permanent: true,
       },
     ];
