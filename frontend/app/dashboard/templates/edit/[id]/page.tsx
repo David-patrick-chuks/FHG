@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { CreateTemplateForm } from '@/components/templates';
 import { Button } from '@/components/ui/button';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { useAuth } from '@/contexts/AuthContext';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges';
 import { TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
@@ -18,6 +19,7 @@ interface EditTemplatePageProps {
 
 export default function EditTemplatePage({ params }: EditTemplatePageProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,12 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
     message
   } = useUnsavedChanges({
     hasUnsavedChanges,
-    message: 'You have unsaved changes to your template. Are you sure you want to leave? Your changes will be lost.'
+    message: 'You have unsaved changes to your template. Are you sure you want to leave? Your changes will be lost.',
+    onConfirmLeave: () => {
+      // Redirect to admin templates page if user is admin, otherwise regular templates page
+      const redirectPath = user?.isAdmin ? '/dashboard/admin/templates' : '/dashboard/templates';
+      router.push(redirectPath);
+    }
   });
 
   useEffect(() => {
@@ -63,7 +70,9 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
     toast.success('Template updated successfully!');
     // Small delay to ensure state is updated before navigation
     setTimeout(() => {
-      router.push('/dashboard/templates');
+      // Redirect to admin templates page if user is admin, otherwise regular templates page
+      const redirectPath = user?.isAdmin ? '/dashboard/admin/templates' : '/dashboard/templates';
+      router.push(redirectPath);
     }, 100);
   };
 
@@ -115,13 +124,17 @@ export default function EditTemplatePage({ params }: EditTemplatePageProps) {
             if (hasUnsavedChanges) {
               setShowConfirmModal(true);
             } else {
-              router.push('/dashboard/templates');
+              // Redirect to admin templates page if user is admin, otherwise regular templates page
+              const redirectPath = user?.isAdmin ? '/dashboard/admin/templates' : '/dashboard/templates';
+              router.push(redirectPath);
             }
           }}
           className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20 h-10 sm:h-11 px-3 sm:px-4 text-sm sm:text-base transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          <span className="hidden sm:inline">Back to Templates</span>
+          <span className="hidden sm:inline">
+            {user?.isAdmin ? 'Back to Admin Templates' : 'Back to Templates'}
+          </span>
           <span className="sm:hidden">← Back</span>
         </Button>
       }

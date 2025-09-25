@@ -245,6 +245,19 @@ export class TemplateService {
         // Public template, anyone can access
       } else if (userId && template.userId.toString() === userId) {
         // User's own template
+      } else if (userId) {
+        // Check if user is admin
+        const UserModel = (await import('../models/User')).default;
+        const user = await UserModel.findById(userId);
+        if (user && user.isAdmin) {
+          // Admin can access any template
+        } else {
+          return {
+            success: false,
+            message: 'Access denied',
+            timestamp: new Date()
+          };
+        }
       } else {
         return {
           success: false,
@@ -276,13 +289,18 @@ export class TemplateService {
         };
       }
 
-      // Check if user owns this template
+      // Check if user owns this template or is admin
       if (template.userId.toString() !== userId) {
-        return {
-          success: false,
-          message: 'Access denied',
-          timestamp: new Date()
-        };
+        // Check if user is admin
+        const UserModel = (await import('../models/User')).default;
+        const user = await UserModel.findById(userId);
+        if (!user || !user.isAdmin) {
+          return {
+            success: false,
+            message: 'Access denied',
+            timestamp: new Date()
+          };
+        }
       }
 
       // Check if template can be updated
@@ -371,13 +389,18 @@ export class TemplateService {
         };
       }
 
-      // Check if user owns this template
+      // Check if user owns this template or is admin
       if (template.userId.toString() !== userId) {
-        return {
-          success: false,
-          message: 'Access denied',
-          timestamp: new Date()
-        };
+        // Check if user is admin
+        const UserModel = (await import('../models/User')).default;
+        const user = await UserModel.findById(userId);
+        if (!user || !user.isAdmin) {
+          return {
+            success: false,
+            message: 'Access denied',
+            timestamp: new Date()
+          };
+        }
       }
 
       // Check if template can be deleted

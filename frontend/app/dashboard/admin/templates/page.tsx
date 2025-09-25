@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
-import { ApproveTemplateRequest, CreateTemplateRequest, TemplatesAPI, UpdateTemplateRequest } from '@/lib/api/templates';
+import { ApproveTemplateRequest, CreateTemplateRequest, TemplatesAPI } from '@/lib/api/templates';
 import { Template } from '@/types';
 import {
     Calendar,
@@ -41,7 +41,6 @@ export default function AdminTemplatesPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -155,40 +154,6 @@ export default function AdminTemplatesPage() {
     }
   };
 
-  const handleUpdateTemplate = async () => {
-    if (!selectedTemplate) return;
-
-    try {
-      setProcessingId('update');
-      const updateData: UpdateTemplateRequest = {
-        name: templateForm.name,
-        description: templateForm.description,
-        category: templateForm.category,
-        industry: templateForm.industry,
-        targetAudience: templateForm.targetAudience,
-        isPublic: templateForm.isPublic,
-        useCase: templateForm.useCase,
-        variables: templateForm.variables,
-        tags: templateForm.tags,
-        samples: templateForm.samples
-      };
-      
-      const response = await TemplatesAPI.updateTemplate(selectedTemplate._id, updateData);
-      
-      if (response.success) {
-        toast.success('Template updated successfully');
-        setShowEditDialog(false);
-        resetForm();
-        fetchAllTemplates();
-      } else {
-        toast.error(response.message || 'Failed to update template');
-      }
-    } catch (error) {
-      toast.error('Failed to update template');
-    } finally {
-      setProcessingId(null);
-    }
-  };
 
   const handleDeleteTemplate = async () => {
     if (!selectedTemplate) return;
@@ -227,22 +192,6 @@ export default function AdminTemplatesPage() {
     setSelectedTemplate(null);
   };
 
-  const openEditDialog = (template: Template) => {
-    setSelectedTemplate(template);
-    setTemplateForm({
-      name: template.name,
-      description: template.description,
-      category: template.category,
-      industry: template.industry || '',
-      targetAudience: template.targetAudience || '',
-      isPublic: template.isPublic,
-      useCase: template.useCase || '',
-      variables: template.variables || [],
-      tags: template.tags || [],
-      samples: template.samples || []
-    });
-    setShowEditDialog(true);
-  };
 
   const openDeleteDialog = (template: Template) => {
     setSelectedTemplate(template);
@@ -355,9 +304,9 @@ export default function AdminTemplatesPage() {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Stats */}
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -426,8 +375,8 @@ export default function AdminTemplatesPage() {
         {/* Search and Filters */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex flex-col gap-4">
-              <div className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -438,7 +387,7 @@ export default function AdminTemplatesPage() {
                   />
                 </div>
               </div>
-              <div className="w-full">
+              <div>
                 <Label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Status
                 </Label>
@@ -455,7 +404,7 @@ export default function AdminTemplatesPage() {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
-              <div className="w-full">
+              <div>
                 <Label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category
                 </Label>
@@ -498,11 +447,11 @@ export default function AdminTemplatesPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {filteredTemplates.map((template) => (
                   <div
                     key={template._id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow"
+                    className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 sm:p-8 hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800"
                   >
                     {/* Mobile Layout */}
                     <div className="block sm:hidden space-y-3">
@@ -510,9 +459,9 @@ export default function AdminTemplatesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
-                              {template.name}
-                            </h3>
-                            {getStatusBadge(template)}
+                            {template.name}
+                          </h3>
+                          {getStatusBadge(template)}
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                             {template.description}
@@ -530,8 +479,8 @@ export default function AdminTemplatesPage() {
                             )}
                           </div>
                         </div>
-                      </div>
-                      
+                        </div>
+                        
                       <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                         <p>Category: {template.category}</p>
                         {template.industry && <p>Industry: {template.industry}</p>}
@@ -553,8 +502,7 @@ export default function AdminTemplatesPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => openEditDialog(template)}
-                          disabled={processingId === template._id}
+                          onClick={() => router.push(`/dashboard/templates/edit/${template._id}`)}
                           className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs px-2 py-1 h-7"
                         >
                           <Edit className="w-3 h-3 mr-1" />
@@ -608,55 +556,57 @@ export default function AdminTemplatesPage() {
                     </div>
 
                     {/* Desktop Layout */}
-                    <div className="hidden sm:flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                            {template.name}
-                          </h3>
-                          {getStatusBadge(template)}
-                        </div>
-                        
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    <div className="hidden sm:block">
+                      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        {/* Template Info */}
+                        <div className="xl:col-span-2 space-y-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                              {template.name}
+                            </h3>
+                            {getStatusBadge(template)}
+                          </div>
+                          
+                          <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
                           {template.description}
                         </p>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                          <div className="flex items-center gap-2">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <Tag className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               {template.category}
                             </span>
                           </div>
                           
                           {template.industry && (
-                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                               <User className="w-4 h-4 text-gray-500" />
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 {template.industry}
                               </span>
                             </div>
                           )}
 
-                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               {formatDate(template.createdAt)}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <FileText className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               {template.samples?.length || 0} samples
                             </span>
                           </div>
                         </div>
 
                         {template.tags && template.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-4">
+                            <div className="flex flex-wrap gap-2">
                             {template.tags.map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
+                                <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
                                 {tag}
                               </Badge>
                             ))}
@@ -664,40 +614,45 @@ export default function AdminTemplatesPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                        {/* Actions */}
+                        <div className="space-y-3">
+                          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Actions
+                          </div>
+                          <div className="space-y-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => window.open(`/dashboard/templates/preview/${template._id}`, '_blank')}
+                              className="w-full justify-start"
                         >
                           <Eye className="w-4 h-4 mr-2" />
-                          Preview
+                              Preview Template
                         </Button>
                         
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEditDialog(template)}
-                          disabled={processingId === template._id}
-                          className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => router.push(`/dashboard/templates/edit/${template._id}`)}
+                              className="w-full justify-start text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit Template
+                            </Button>
                         
                         {!template.isApproved && (
                           <Button
                             size="sm"
                             onClick={() => handleApprove(template._id)}
                             disabled={processingId === template._id}
-                            className="bg-green-600 hover:bg-green-700"
+                                className="w-full justify-start bg-green-600 hover:bg-green-700"
                           >
                             {processingId === template._id ? (
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             ) : (
                               <CheckCircle className="w-4 h-4 mr-2" />
                             )}
-                            Approve
+                                Approve Template
                           </Button>
                         )}
                         
@@ -707,14 +662,14 @@ export default function AdminTemplatesPage() {
                             size="sm"
                             onClick={() => openRejectDialog(template)}
                             disabled={processingId === template._id}
-                            className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                className="w-full justify-start text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
                             {processingId === template._id ? (
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             ) : (
                               <XCircle className="w-4 h-4 mr-2" />
                             )}
-                            Reject
+                                Reject Template
                           </Button>
                         )}
                         
@@ -723,11 +678,13 @@ export default function AdminTemplatesPage() {
                           size="sm"
                           onClick={() => openDeleteDialog(template)}
                           disabled={processingId === template._id}
-                          className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              className="w-full justify-start text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
+                              Delete Template
                         </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -782,7 +739,7 @@ export default function AdminTemplatesPage() {
 
         {/* Create Template Dialog */}
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Template</DialogTitle>
             </DialogHeader>
@@ -861,86 +818,6 @@ export default function AdminTemplatesPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Template Dialog */}
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Edit Template</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-template-name">Template Name</Label>
-                  <Input
-                    id="edit-template-name"
-                    value={templateForm.name}
-                    onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-                    placeholder="Enter template name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-template-category">Category</Label>
-                  <Input
-                    id="edit-template-category"
-                    value={templateForm.category}
-                    onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
-                    placeholder="Enter category"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="edit-template-description">Description</Label>
-                <Textarea
-                  id="edit-template-description"
-                  value={templateForm.description}
-                  onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
-                  placeholder="Enter template description"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-template-industry">Industry</Label>
-                  <Input
-                    id="edit-template-industry"
-                    value={templateForm.industry}
-                    onChange={(e) => setTemplateForm({ ...templateForm, industry: e.target.value })}
-                    placeholder="Enter industry"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-template-use-case">Use Case</Label>
-                  <Input
-                    id="edit-template-use-case"
-                    value={templateForm.useCase}
-                    onChange={(e) => setTemplateForm({ ...templateForm, useCase: e.target.value })}
-                    placeholder="Enter use case"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowEditDialog(false);
-                    resetForm();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUpdateTemplate}
-                  disabled={!templateForm.name || !templateForm.description || !templateForm.category || processingId === 'update'}
-                >
-                  {processingId === 'update' ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : null}
-                  Update Template
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Delete Template Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

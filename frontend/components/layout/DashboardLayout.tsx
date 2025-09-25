@@ -116,11 +116,11 @@ const getSidebarItems = (unreadCount: number, isAdmin: boolean = false): Sidebar
       href: '/dashboard/admin/templates',
       icon: FileText,
     },
-    {
-      label: 'Incident Management',
-      href: '/dashboard/admin/incidents',
-      icon: AlertTriangle,
-    },
+    // {
+    //   label: 'Incident Management',
+    //   href: '/dashboard/admin/incidents',
+    //   icon: AlertTriangle,
+    // },
   ];
 
   return isAdmin ? [...regularItems, ...adminItems] : regularItems;
