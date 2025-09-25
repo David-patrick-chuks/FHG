@@ -871,16 +871,20 @@ export class TemplateService {
 
   public static async getAllTemplatesForAdmin(): Promise<ApiResponse<any[]>> {
     try {
-      const templates = await TemplateModel.find({}).sort({ createdAt: -1 });
+      // Only fetch templates that are marked as public and need admin approval
+      const templates = await TemplateModel.find({
+        isPublic: true,
+        status: { $in: [TemplateStatus.PENDING_APPROVAL, TemplateStatus.APPROVED, TemplateStatus.REJECTED] }
+      }).sort({ createdAt: -1 });
       
       return {
         success: true,
-        message: 'All templates retrieved successfully',
+        message: 'Templates for admin approval retrieved successfully',
         data: templates.map(template => TemplateService.serializeTemplate(template)),
         timestamp: new Date()
       };
     } catch (error) {
-      TemplateService.logger.error('Error retrieving all templates for admin:', error);
+      TemplateService.logger.error('Error retrieving templates for admin approval:', error);
       throw error;
     }
   }

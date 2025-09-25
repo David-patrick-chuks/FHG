@@ -672,4 +672,32 @@ export class TemplateController {
       });
     }
   }
+
+  public static async getAllTemplatesForAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await TemplateService.getAllTemplatesForAdmin();
+
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          message: result.message || 'Templates for admin approval retrieved successfully',
+          data: result.data,
+          timestamp: new Date()
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message || 'Failed to retrieve templates for admin approval',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      TemplateController.logger.error('Error in getAllTemplatesForAdmin controller:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
 }
