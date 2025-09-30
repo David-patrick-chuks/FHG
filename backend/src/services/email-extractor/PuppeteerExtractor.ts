@@ -76,24 +76,6 @@ export class PuppeteerExtractor {
           await page.goto(productUrl, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
           await page.waitForTimeout(2000);
           
-          // Debug: Save HTML content to file
-          const htmlContent = await page.content();
-          const fs = require('fs');
-          const path = require('path');
-          const debugDir = path.join(process.cwd(), 'debug');
-          if (!fs.existsSync(debugDir)) {
-            fs.mkdirSync(debugDir, { recursive: true });
-          }
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const debugFile = path.join(debugDir, `debug-${timestamp}-${productUrl.split('/').pop()}.html`);
-          fs.writeFileSync(debugFile, htmlContent);
-          this.logger.info('🐛 Debug HTML saved', { debugFile, productUrl });
-
-          // Debug: Take screenshot of product page
-          const screenshotFile = path.join(debugDir, `screenshot-${timestamp}-product-page.png`);
-          await page.screenshot({ path: screenshotFile, fullPage: true });
-          this.logger.info('📸 Product page screenshot saved', { screenshotFile, productUrl });
-          
           // Look for add to cart button with more comprehensive selectors
           const addToCartSelectors = [
             // Shopify specific selectors - try both button types
@@ -147,36 +129,9 @@ export class PuppeteerExtractor {
               // Fallback failed
             }
             
-            // Debug: Get all buttons on the page
-            const allButtons = await page.evaluate(() => {
-              const buttons = Array.from(document.querySelectorAll('button, input[type="submit"], a[role="button"]'));
-              return buttons.map(btn => ({
-                tagName: btn.tagName,
-                className: btn.className,
-                textContent: btn.textContent?.trim().substring(0, 50),
-                id: btn.id,
-                name: btn.getAttribute('name'),
-                type: btn.getAttribute('type'),
-                'data-testid': btn.getAttribute('data-testid'),
-                'data-action': btn.getAttribute('data-action')
-              }));
-            });
-            this.logger.info('🔍 All buttons found on page', { productUrl, buttons: allButtons });
           }
 
           if (addToCartButton) {
-            // Debug: Highlight and screenshot the add to cart button
-            await page.evaluate((selector) => {
-              const button = document.querySelector(selector);
-              if (button) {
-                (button as HTMLElement).style.border = '3px solid red';
-                (button as HTMLElement).style.backgroundColor = 'yellow';
-              }
-            }, foundSelector || 'button[name="add"]');
-            
-            const highlightScreenshot = path.join(debugDir, `screenshot-${timestamp}-add-to-cart-button.png`);
-            await page.screenshot({ path: highlightScreenshot, fullPage: true });
-            this.logger.info('📸 Add to cart button highlighted and screenshot saved', { highlightScreenshot, productUrl });
 
             try {
               // For Shopify sites, try form submission first
@@ -220,11 +175,6 @@ export class PuppeteerExtractor {
             }
             await page.waitForTimeout(2000);
 
-            // Debug: Screenshot after click attempt
-            const afterClickScreenshot = path.join(debugDir, `screenshot-${timestamp}-after-click.png`);
-            await page.screenshot({ path: afterClickScreenshot, fullPage: true });
-            this.logger.info('📸 Screenshot after click attempt saved', { afterClickScreenshot, productUrl });
-
             // Try to navigate to cart/checkout with more comprehensive selectors
             const cartSelectors = [
               // Direct navigation to cart/checkout URLs
@@ -253,19 +203,6 @@ export class PuppeteerExtractor {
             }
 
             if (cartButton) {
-              // Debug: Highlight cart button and screenshot
-              await page.evaluate((selector) => {
-                const button = document.querySelector(selector);
-                if (button) {
-                  (button as HTMLElement).style.border = '3px solid blue';
-                  (button as HTMLElement).style.backgroundColor = 'lightblue';
-                }
-              }, 'a[href*="/cart"], a[href*="/checkout"]');
-              
-              const cartButtonScreenshot = path.join(debugDir, `screenshot-${timestamp}-cart-button.png`);
-              await page.screenshot({ path: cartButtonScreenshot, fullPage: true });
-              this.logger.info('📸 Cart button highlighted and screenshot saved', { cartButtonScreenshot, productUrl });
-
               await (cartButton as any).click();
               await page.waitForTimeout(3000);
             } else {
@@ -280,30 +217,6 @@ export class PuppeteerExtractor {
               }
             }
 
-            // Debug: Save HTML content of cart page
-            const cartHtmlContent = await page.content();
-            const cartHtmlFile = path.join(debugDir, `cart-debug-${timestamp}.html`);
-            fs.writeFileSync(cartHtmlFile, cartHtmlContent);
-            this.logger.info('🐛 Cart page HTML saved', { cartHtmlFile, productUrl, currentUrl: page.url() });
-
-            // Debug: Screenshot of final cart/checkout page
-            const finalScreenshot = path.join(debugDir, `screenshot-${timestamp}-final-cart.png`);
-            await page.screenshot({ path: finalScreenshot, fullPage: true });
-            this.logger.info('📸 Final cart/checkout page screenshot saved', { finalScreenshot, productUrl, currentUrl: page.url() });
-
-            // Debug: Check if cart has items
-            const cartItems = await page.evaluate(() => {
-              const cartCount = document.querySelector('.cart-count, .cart-item-count, [data-cart-count]');
-              const cartEmpty = document.querySelector('.cart-empty, .empty-cart');
-              const cartItems = document.querySelectorAll('.cart-item, .cart-line-item');
-              return {
-                cartCount: cartCount?.textContent || '0',
-                isEmpty: !!cartEmpty,
-                itemCount: cartItems.length,
-                cartText: document.body.textContent?.includes('cart') ? 'Cart mentioned' : 'No cart text'
-              };
-            });
-            this.logger.info('🛒 Cart status check', { productUrl, cartItems });
 
             // Look for checkout button and try to click it
             const checkoutButton = await page.evaluate(() => {
@@ -398,18 +311,6 @@ export class PuppeteerExtractor {
 
             if (checkoutButton.found) {
               try {
-                // Highlight and screenshot the checkout button
-                await page.evaluate((selector) => {
-                  const button = document.querySelector(selector);
-                  if (button) {
-                    (button as HTMLElement).style.border = '3px solid green';
-                    (button as HTMLElement).style.backgroundColor = 'lightgreen';
-                  }
-                }, checkoutButton.selector);
-
-                const checkoutButtonScreenshot = path.join(debugDir, `screenshot-${timestamp}-checkout-button.png`);
-                await page.screenshot({ path: checkoutButtonScreenshot, fullPage: true });
-                this.logger.info('📸 Checkout button highlighted and screenshot saved', { checkoutButtonScreenshot, productUrl });
 
                 // Try multiple click methods for better reliability
                 let clickSuccess = false;
@@ -479,11 +380,6 @@ export class PuppeteerExtractor {
                 
                 await page.waitForTimeout(3000);
 
-                // Screenshot after checkout button click
-                const afterCheckoutScreenshot = path.join(debugDir, `screenshot-${timestamp}-after-checkout.png`);
-                await page.screenshot({ path: afterCheckoutScreenshot, fullPage: true });
-                this.logger.info('📸 Screenshot after checkout button click saved', { afterCheckoutScreenshot, productUrl, newUrl: page.url() });
-
               } catch (checkoutError) {
                 this.logger.warn('❌ Error clicking checkout button', { 
                   productUrl, 
@@ -539,23 +435,6 @@ export class PuppeteerExtractor {
           await page.goto(testUrl, { waitUntil: 'networkidle0', timeout: 10000 });
           this.logger.info('✅ Successfully loaded collections page', { testUrl, currentUrl: page.url() });
 
-          // Debug: Save HTML content to file for collections page
-          const htmlContent = await page.content();
-          const fs = require('fs');
-          const pathModule = require('path');
-          const debugDir = pathModule.join(process.cwd(), 'debug');
-          if (!fs.existsSync(debugDir)) {
-            fs.mkdirSync(debugDir, { recursive: true });
-          }
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const debugFile = pathModule.join(debugDir, `collections-debug-${timestamp}.html`);
-          fs.writeFileSync(debugFile, htmlContent);
-          this.logger.info('🐛 Collections page HTML saved', { debugFile, testUrl });
-
-          // Debug: Screenshot of collections page
-          const collectionsScreenshot = pathModule.join(debugDir, `screenshot-${timestamp}-collections.png`);
-          await page.screenshot({ path: collectionsScreenshot, fullPage: true });
-          this.logger.info('📸 Collections page screenshot saved', { collectionsScreenshot, testUrl });
 
           // Look for product links with more comprehensive selectors
           const productLinks = await page.evaluate(() => {
@@ -720,18 +599,6 @@ export class PuppeteerExtractor {
       // Go to the main page first
       await page.goto(url, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
       await page.waitForTimeout(2000);
-
-      // Debug: Screenshot of homepage
-      const fs = require('fs');
-      const path = require('path');
-      const debugDir = path.join(process.cwd(), 'debug');
-      if (!fs.existsSync(debugDir)) {
-        fs.mkdirSync(debugDir, { recursive: true });
-      }
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const homepageScreenshot = path.join(debugDir, `screenshot-${timestamp}-homepage.png`);
-      await page.screenshot({ path: homepageScreenshot, fullPage: true });
-      this.logger.info('📸 Homepage screenshot saved', { homepageScreenshot, url });
 
       // Extract emails using checkout method only
       const checkoutEmails = await this.extractEmailsFromCheckout(page, url);
