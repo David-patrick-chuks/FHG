@@ -62,7 +62,40 @@ export class PuppeteerExtractor {
       let executablePath: string | undefined;
       
       if (process.env.NODE_ENV === "production") {
-        executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        // Production environment - try multiple fallback options
+        const productionPaths = [
+          process.env.PUPPETEER_EXECUTABLE_PATH,
+          '/usr/bin/google-chrome-stable',
+          '/usr/bin/google-chrome',
+          '/usr/bin/chromium-browser',
+          '/usr/bin/chromium',
+          '/usr/local/bin/google-chrome-stable',
+          '/usr/local/bin/google-chrome',
+          '/opt/google/chrome/google-chrome',
+          '/snap/bin/chromium'
+        ];
+
+        // Try to find a working Chrome executable in production
+        const { execSync } = require('child_process');
+        for (const path of productionPaths) {
+          if (!path) continue; // Skip undefined paths
+          
+          try {
+            execSync(`"${path}" --version`, { stdio: 'ignore', timeout: 5000 });
+            executablePath = path;
+            this.logger.info(`✅ Found working Chrome at: ${path}`);
+            break;
+          } catch (e) {
+            // Continue to next path
+            this.logger.debug(`❌ Chrome not found at: ${path}`);
+          }
+        }
+
+        // If no Chrome found, fall back to bundled Chromium
+        if (!executablePath) {
+          this.logger.warn('⚠️ No Chrome executable found in production, using bundled Chromium');
+          executablePath = undefined; // Use bundled Chromium
+        }
       } else {
         // Development environment - try to find Chrome/Chromium
         const { execSync } = require('child_process');
@@ -111,57 +144,94 @@ export class PuppeteerExtractor {
         platform: process.platform
       });
 
-      this.browserInstance = await puppeteerExtra.launch({
-        headless: isHeadless,
-        executablePath,
-        args: [
-          '--no-sandbox', 
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-blink-features=AutomationControlled',
-          // Additional args for better production compatibility
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-images', // Faster loading
-          '--disable-javascript-harmony-shipping',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-client-side-phishing-detection',
-          '--disable-sync',
-          '--disable-default-apps',
-          '--disable-hang-monitor',
-          '--disable-prompt-on-repost',
-          '--disable-domain-reliability',
-          '--disable-component-extensions-with-background-pages',
-          '--disable-background-networking',
-          '--disable-features=TranslateUI',
-          '--disable-ipc-flooding-protection',
-          '--no-default-browser-check',
-          '--no-pings',
-          '--password-store=basic',
-          '--use-mock-keychain',
-          '--force-color-profile=srgb',
-          '--metrics-recording-only',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
-          '--enable-automation',
-          '--password-store=basic',
-          '--use-mock-keychain'
-        ]
-      });
+      // Try to launch browser with comprehensive error handling
+      try {
+        this.browserInstance = await puppeteerExtra.launch({
+          headless: isHeadless,
+          executablePath,
+          args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--disable-blink-features=AutomationControlled',
+            // Additional args for better production compatibility
+            '--disable-extensions',
+            '--disable-plugins',
+            '--disable-images', // Faster loading
+            '--disable-javascript-harmony-shipping',
+            '--disable-background-timer-throttling',
+            '--disable-renderer-backgrounding',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-client-side-phishing-detection',
+            '--disable-sync',
+            '--disable-default-apps',
+            '--disable-hang-monitor',
+            '--disable-prompt-on-repost',
+            '--disable-domain-reliability',
+            '--disable-component-extensions-with-background-pages',
+            '--disable-background-networking',
+            '--disable-features=TranslateUI',
+            '--disable-ipc-flooding-protection',
+            '--no-default-browser-check',
+            '--no-pings',
+            '--password-store=basic',
+            '--use-mock-keychain',
+            '--force-color-profile=srgb',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--safebrowsing-disable-auto-update',
+            '--enable-automation',
+            '--password-store=basic',
+            '--use-mock-keychain'
+          ]
+        });
+      } catch (launchError: any) {
+        // If launch fails with executable path, try without it (use bundled Chromium)
+        if (executablePath) {
+          this.logger.warn('⚠️ Launch failed with specified executable, trying bundled Chromium', { 
+            executablePath, 
+            error: launchError?.message 
+          });
+          
+          try {
+            this.browserInstance = await puppeteerExtra.launch({
+              headless: isHeadless,
+              executablePath: undefined, // Use bundled Chromium
+              args: [
+                '--no-sandbox', 
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-web-security',
+                '--disable-features=VizDisplayCompositor',
+                '--disable-blink-features=AutomationControlled'
+              ]
+            });
+            this.logger.info('✅ Browser launched successfully with bundled Chromium');
+          } catch (bundledError: any) {
+            this.logger.error('❌ Failed to launch browser with bundled Chromium', { error: bundledError?.message });
+            throw new Error(`Failed to launch browser. Original error: ${launchError?.message}. Bundled Chromium error: ${bundledError?.message}`);
+          }
+        } else {
+          throw launchError;
+        }
+      }
 
       this.browserInitialized = true;
       this.logger.info('✅ Browser initialized successfully');
       return this.browserInstance;
     } catch (error: any) {
-      this.logger.error('❌ Failed to initialize browser', { error: error?.message || 'Unknown error' });
+      this.logger.error('❌ Failed to initialize browser', { 
+        error: error?.message || 'Unknown error',
+        nodeEnv: process.env.NODE_ENV,
+        platform: process.platform
+      });
       throw error;
     }
   }
@@ -956,121 +1026,13 @@ export class PuppeteerExtractor {
    * Extract emails using only checkout method (for testing)
    */
   public static async extractEmailsFromCheckoutOnly(url: string): Promise<string[]> {
-    let browser;
     const found = new Set<string>();
+    let page;
 
     try {
-      // Determine the correct executable path based on environment
-      let executablePath: string | undefined;
+      this.logger.info('🛒 Starting checkout-only extraction', { url });
       
-      if (process.env.NODE_ENV === "production") {
-        executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-      } else {
-        // Development environment - try to find Chrome/Chromium
-        const { execSync } = require('child_process');
-        try {
-          // Try to find Chrome on Windows
-          if (process.platform === 'win32') {
-            const chromePaths = [
-              'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-              'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-              process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe'
-            ];
-            
-            for (const path of chromePaths) {
-              try {
-                execSync(`"${path}" --version`, { stdio: 'ignore' });
-                executablePath = path;
-                break;
-              } catch (e) {
-                // Continue to next path
-              }
-            }
-          } else {
-            // Try to find Chrome/Chromium on macOS/Linux
-            try {
-              const chromePath = execSync('which google-chrome-stable || which google-chrome || which chromium-browser || which chromium', { encoding: 'utf8' }).trim();
-              executablePath = chromePath;
-            } catch (e) {
-              // Fall back to default Puppeteer bundled Chromium
-              executablePath = undefined;
-            }
-          }
-        } catch (e) {
-          // Fall back to default Puppeteer bundled Chromium
-          executablePath = undefined;
-        }
-      }
-
-      // Configure headless mode based on environment
-      const isHeadless = process.env.NODE_ENV === 'production' ? true : false;
-      
-      // Log the executable path and environment details
-      this.logger.info(`Puppeteer configuration`, { 
-        executablePath: executablePath || 'default bundled Chromium',
-        nodeEnv: process.env.NODE_ENV,
-        isHeadless: isHeadless,
-        platform: process.platform
-      });
-
-      browser = await puppeteerExtra.launch({
-        headless: isHeadless,
-        executablePath,
-        args: [
-          '--no-sandbox', 
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-blink-features=AutomationControlled',
-          // Additional args for better production compatibility
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-images', // Faster loading
-          '--disable-javascript-harmony-shipping',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-client-side-phishing-detection',
-          '--disable-sync',
-          '--disable-default-apps',
-          '--disable-hang-monitor',
-          '--disable-prompt-on-repost',
-          '--disable-domain-reliability',
-          '--disable-component-extensions-with-background-pages',
-          '--disable-background-networking',
-          '--disable-features=TranslateUI',
-          '--disable-ipc-flooding-protection',
-          '--no-default-browser-check',
-          '--no-pings',
-          '--password-store=basic',
-          '--use-mock-keychain',
-          '--force-color-profile=srgb',
-          '--metrics-recording-only',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
-          '--enable-automation',
-          '--password-store=basic',
-          '--use-mock-keychain'
-        ]
-      });
-      
-      const page = await browser.newPage();
-      await page.setUserAgent(this.getRandomUserAgent());
-      await page.setViewport({ width: 1920, height: 1080 });
-      
-      // Remove webdriver property to avoid detection
-      await page.evaluateOnNewDocument(() => {
-        Object.defineProperty((globalThis as any).navigator, 'webdriver', {
-          get: () => undefined,
-        });
-      });
-
-      // Go to the main page first
+      page = await this.createPage();
       await page.goto(url, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
       await page.waitForTimeout(2000);
 
@@ -1092,8 +1054,8 @@ export class PuppeteerExtractor {
       }
       return Array.from(found);
     } finally {
-      if (browser) {
-        await browser.close();
+      if (page) {
+        await page.close();
       }
     }
   }
@@ -1102,122 +1064,16 @@ export class PuppeteerExtractor {
    * Extract emails using Puppeteer - Enhanced deep scanning with comprehensive crawling
    */
   public static async extractEmailsWithPuppeteer(url: string): Promise<string[]> {
-    let browser;
     const found = new Set<string>();
     const visited = new Set<string>();
     const queue: Array<{ url: string; depth: number }> = [{ url, depth: 0 }];
     let pagesCrawled = 0;
+    let page;
 
     try {
-      // Determine the correct executable path based on environment
-      let executablePath: string | undefined;
-
-      if (process.env.NODE_ENV === "production") {
-        executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-      } else {
-        // Development environment - try to find Chrome/Chromium
-        const { execSync } = require('child_process');
-        try {
-          // Try to find Chrome on Windows
-          if (process.platform === 'win32') {
-            const chromePaths = [
-              'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-              'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-              process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe'
-            ];
-
-            for (const path of chromePaths) {
-              try {
-                execSync(`"${path}" --version`, { stdio: 'ignore' });
-                executablePath = path;
-                break;
-              } catch (e) {
-                // Continue to next path
-              }
-            }
-          } else {
-            // Try to find Chrome/Chromium on macOS/Linux
-            try {
-              const chromePath = execSync('which google-chrome-stable || which google-chrome || which chromium-browser || which chromium', { encoding: 'utf8' }).trim();
-              executablePath = chromePath;
-            } catch (e) {
-              // Fall back to default Puppeteer bundled Chromium
-              executablePath = undefined;
-            }
-          }
-        } catch (e) {
-          // Fall back to default Puppeteer bundled Chromium
-          executablePath = undefined;
-        }
-      }
-
-      // Configure headless mode based on environment
-      const isHeadless = process.env.NODE_ENV === 'production' ? true : false;
+      this.logger.info('🔍 Starting comprehensive Puppeteer extraction', { url });
       
-      // Log the executable path and environment details
-      this.logger.info(`Puppeteer configuration`, { 
-        executablePath: executablePath || 'default bundled Chromium',
-        nodeEnv: process.env.NODE_ENV,
-        isHeadless: isHeadless,
-        platform: process.platform
-      });
-      
-      browser = await puppeteerExtra.launch({
-        headless: isHeadless,
-        executablePath,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-blink-features=AutomationControlled',
-          // Additional args for better production compatibility
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-images', // Faster loading
-          '--disable-javascript-harmony-shipping',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-client-side-phishing-detection',
-          '--disable-sync',
-          '--disable-default-apps',
-          '--disable-hang-monitor',
-          '--disable-prompt-on-repost',
-          '--disable-domain-reliability',
-          '--disable-component-extensions-with-background-pages',
-          '--disable-background-networking',
-          '--disable-features=TranslateUI',
-          '--disable-ipc-flooding-protection',
-          '--no-default-browser-check',
-          '--no-pings',
-          '--password-store=basic',
-          '--use-mock-keychain',
-          '--force-color-profile=srgb',
-          '--metrics-recording-only',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
-          '--enable-automation',
-          '--password-store=basic',
-          '--use-mock-keychain'
-        ]
-      });
-
-      const page = await browser.newPage();
-      await page.setUserAgent(this.getRandomUserAgent());
-      await page.setViewport({ width: 1920, height: 1080 });
-
-      // Remove webdriver property to avoid detection
-      await page.evaluateOnNewDocument(() => {
-        Object.defineProperty((globalThis as any).navigator, 'webdriver', {
-          get: () => undefined,
-        });
-      });
+      page = await this.createPage();
 
       let noEmailsYet = true;
       let checkoutEmailsAttempted = false;
@@ -1461,8 +1317,8 @@ export class PuppeteerExtractor {
       }
       return Array.from(found);
     } finally {
-      if (browser) {
-        await browser.close();
+      if (page) {
+        await page.close();
       }
     }
   }
