@@ -51,24 +51,29 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
   const [refreshing, setRefreshing] = useState(false);
   const [progressSteps, setProgressSteps] = useState<ProgressStep[]>([
     {
-      name: '🌐 Homepage Analysis',
+      name: '🌐 Browser Initialization',
       status: 'pending',
-      details: 'Analyzing homepage structure and content'
+      details: 'Launching stealth browser for dynamic content analysis'
     },
     {
-      name: '🔍 Email Scanning',
+      name: '🛒 E-commerce Checkout',
       status: 'pending',
-      details: 'Scanning for email addresses in content'
+      details: 'Extracting emails from checkout process (most effective)'
     },
     {
-      name: '📞 Contact Pages',
+      name: '🏠 Homepage Analysis',
       status: 'pending',
-      details: 'Discovering and scanning contact pages'
+      details: 'Analyzing homepage with browser automation'
     },
     {
-      name: '🤖 Advanced Browser Scan',
+      name: '📞 Contact Page Discovery',
       status: 'pending',
-      details: 'Using stealth browser automation'
+      details: 'Finding and scanning contact pages'
+    },
+    {
+      name: '🔍 Deep Site Crawling',
+      status: 'pending',
+      details: 'Comprehensive site exploration'
     },
     {
       name: '🌍 WHOIS Database',
@@ -76,9 +81,14 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
       details: 'Querying domain registration database'
     },
     {
+      name: '🧹 Final Deduplication',
+      status: 'pending',
+      details: 'Cleaning and validating results'
+    },
+    {
       name: '🎉 Extraction Complete',
       status: 'pending',
-      details: 'Email extraction process finished'
+      details: 'Puppeteer-first email extraction finished'
     }
   ]);
   const { toast } = useToast();
@@ -132,20 +142,22 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
     const firstResult = jobData.results?.[0];
     const progress = firstResult?.progress || [];
     
-    // Map backend progress steps to frontend format
+    // Map backend progress steps to frontend format (new Puppeteer-first flow)
     const stepMapping: { [key: string]: string } = {
-      'homepage_scan': '🌐 Homepage Analysis',
-      'homepage_email_extraction': '🔍 Email Scanning',
-      'contact_pages': '📞 Contact Pages',
-      'puppeteer_scan': '🤖 Advanced Browser Scan',
+      'browser_initialization': '🌐 Browser Initialization',
+      'ecommerce_checkout': '🛒 E-commerce Checkout',
+      'homepage_analysis': '🏠 Homepage Analysis',
+      'contact_discovery': '📞 Contact Page Discovery',
+      'deep_crawling': '🔍 Deep Site Crawling',
       'whois_lookup': '🌍 WHOIS Database',
+      'final_deduplication': '🧹 Final Deduplication',
       'extraction_complete': '🎉 Extraction Complete'
     };
 
     const steps: ProgressStep[] = [];
     
-    // Add steps in order
-    const stepOrder = ['homepage_scan', 'homepage_email_extraction', 'contact_pages', 'puppeteer_scan', 'whois_lookup', 'extraction_complete'];
+    // Add steps in order (new streamlined flow)
+    const stepOrder = ['browser_initialization', 'ecommerce_checkout', 'homepage_analysis', 'contact_discovery', 'deep_crawling', 'whois_lookup', 'final_deduplication', 'extraction_complete'];
     
     stepOrder.forEach(stepKey => {
       const progressStep = progress.find(p => p.step === stepKey);
@@ -168,7 +180,7 @@ export default function EmailExtractionDetailsPage({ params }: { params: { jobId
           status = 'failed';
         } else if (jobData.status === 'processing') {
           // For processing jobs, show first step as running
-          if (stepKey === 'homepage_scan') {
+          if (stepKey === 'browser_initialization') {
             status = 'running';
           }
         }

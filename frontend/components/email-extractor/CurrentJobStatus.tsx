@@ -15,9 +15,11 @@ import {
     Database,
     Download,
     Globe,
+    Home,
     Link,
     Loader2,
-    Search,
+    Shield,
+    ShoppingCart,
     XCircle,
     Zap
 } from 'lucide-react';
@@ -92,16 +94,20 @@ function getProgressText(job: EmailExtractionJob): string {
 
 function getStepIcon(step: string) {
   switch (step) {
-    case 'homepage_scan':
+    case 'browser_initialization':
       return <Globe className="h-4 w-4" />;
-    case 'homepage_email_extraction':
-      return <Search className="h-4 w-4" />;
-    case 'contact_pages':
+    case 'ecommerce_checkout':
+      return <ShoppingCart className="h-4 w-4" />;
+    case 'homepage_analysis':
+      return <Home className="h-4 w-4" />;
+    case 'contact_discovery':
       return <Link className="h-4 w-4" />;
-    case 'puppeteer_scan':
+    case 'deep_crawling':
       return <Zap className="h-4 w-4" />;
     case 'whois_lookup':
       return <Database className="h-4 w-4" />;
+    case 'final_deduplication':
+      return <Shield className="h-4 w-4" />;
     case 'extraction_complete':
       return <CheckCircle className="h-4 w-4" />;
     default:
@@ -141,11 +147,13 @@ function getStepStatusColor(status: string) {
 
 function formatStepName(step: string): string {
   const stepNames: { [key: string]: string } = {
-    'homepage_scan': 'Homepage Analysis',
-    'homepage_email_extraction': 'Email Scanning',
-    'contact_pages': 'Contact Pages',
-    'puppeteer_scan': 'Advanced Browser Scan',
+    'browser_initialization': 'Browser Initialization',
+    'ecommerce_checkout': 'E-commerce Checkout',
+    'homepage_analysis': 'Homepage Analysis',
+    'contact_discovery': 'Contact Page Discovery',
+    'deep_crawling': 'Deep Site Crawling',
     'whois_lookup': 'WHOIS Database',
+    'final_deduplication': 'Final Deduplication',
     'extraction_complete': 'Extraction Complete'
   };
   

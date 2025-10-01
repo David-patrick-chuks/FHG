@@ -454,95 +454,107 @@ export class EmailExtractorCore {
     try {
       // Only log extraction start in debug mode
       if (process.env.LOG_LEVEL === 'debug') {
-        EmailExtractorCore.logger.debug('Starting optimized email extraction', { url });
+        EmailExtractorCore.logger.debug('Starting Puppeteer-first email extraction', { url });
       }
 
-      // Step 1: Fast homepage scan (most important - emails are usually on homepage)
-      await updateProgress('homepage_scan', 'processing', 'Analyzing homepage content...');
-      const homepageHtml = await this.fetchHtml(url);
-      if (homepageHtml) {
-        await updateProgress('homepage_scan', 'completed', 'Homepage content retrieved successfully', { 
-          contentLength: homepageHtml.length 
+      // Step 1: Browser Initialization - Launch Puppeteer with stealth mode
+      await updateProgress('browser_initialization', 'processing', 'Launching stealth browser for dynamic content analysis...');
+      try {
+        await PuppeteerExtractor.initializeBrowserForExtraction();
+        await updateProgress('browser_initialization', 'completed', 'Browser initialized successfully');
+        EmailExtractorCore.logger.info('✅ Browser initialization successful', { url });
+      } catch (error) {
+        await updateProgress('browser_initialization', 'failed', `Browser initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        EmailExtractorCore.logger.error('❌ Browser initialization failed', { url, error: error instanceof Error ? error.message : 'Unknown error' });
+        throw error; // Critical failure - cannot continue without browser
+      }
+
+      // Step 2: E-commerce Checkout Extraction (Most effective for e-commerce sites)
+      await updateProgress('ecommerce_checkout', 'processing', 'Extracting emails from checkout process...');
+      try {
+        const checkoutEmails = await PuppeteerExtractor.extractEmailsFromEcommerceCheckout(url);
+        if (checkoutEmails && Array.isArray(checkoutEmails)) {
+          checkoutEmails.forEach(email => found.add(email));
+        }
+        
+        await updateProgress('ecommerce_checkout', 'completed', `Checkout extraction found ${checkoutEmails?.length || 0} email(s)`, {
+          emails: checkoutEmails || [],
+          totalEmailsSoFar: found.size
         });
         
-        await updateProgress('homepage_email_extraction', 'processing', 'Scanning homepage for email addresses...');
-        const homepageEmails = this.extractEmailsFromHtml(homepageHtml);
+        if (checkoutEmails && checkoutEmails.length > 0) {
+          EmailExtractorCore.logger.info('✅ Checkout extraction successful', { 
+            url, 
+            count: checkoutEmails.length, 
+            emails: checkoutEmails 
+          });
+        } else {
+          EmailExtractorCore.logger.info('ℹ️ Checkout extraction completed - no emails found', { url });
+        }
+      } catch (error: any) {
+        await updateProgress('ecommerce_checkout', 'failed', `Checkout extraction failed: ${error?.message || 'Unknown error'}`);
+        EmailExtractorCore.logger.warn('Checkout extraction failed, continuing with other methods', {
+          url,
+          error: error?.message || 'Unknown error'
+        });
+      }
+
+      // Step 3: Homepage Analysis - Puppeteer-based homepage scanning
+      await updateProgress('homepage_analysis', 'processing', 'Analyzing homepage with browser automation...');
+      try {
+        const homepageEmails = await PuppeteerExtractor.extractEmailsFromHomepage(url);
         if (homepageEmails && Array.isArray(homepageEmails)) {
           homepageEmails.forEach(email => found.add(email));
         }
-        scannedUrls.add(url);
         
-        await updateProgress('homepage_email_extraction', 'completed', `Found ${homepageEmails?.length || 0} email(s) on homepage`, {
+        await updateProgress('homepage_analysis', 'completed', `Homepage analysis found ${homepageEmails?.length || 0} email(s)`, {
           emails: homepageEmails || [],
           totalEmailsSoFar: found.size
         });
-      } else {
-        await updateProgress('homepage_scan', 'failed', 'Failed to fetch homepage content');
+      } catch (error: any) {
+        await updateProgress('homepage_analysis', 'failed', `Homepage analysis failed: ${error?.message || 'Unknown error'}`);
+        EmailExtractorCore.logger.warn('Homepage analysis failed', { url, error: error?.message || 'Unknown error' });
       }
 
-      // Step 2: Quick contact page check (most likely to have emails)
-      await updateProgress('contact_pages', 'processing', 'Scanning contact and about pages...');
-      const contactUrls = this.getTopContactUrls(url);
-      const contactEmails = await this.scanUrlsInParallel(contactUrls, updateProgress, 'contact_pages');
-      if (contactEmails && Array.isArray(contactEmails)) {
-        contactEmails.forEach(email => found.add(email));
-      }
-      
-      await updateProgress('contact_pages', 'completed', `Found ${contactEmails?.length || 0} email(s) from contact pages`, {
-        emails: contactEmails || [],
-        totalEmailsSoFar: found.size
-      });
-
-      // Step 3: Enhanced Puppeteer scan with comprehensive crawling
-      await updateProgress('puppeteer_scan', 'processing', 'Launching advanced browser scanning with stealth mode...');
-      // Only log Puppeteer usage in debug mode
-      if (process.env.LOG_LEVEL === 'debug') {
-        EmailExtractorCore.logger.debug('Using enhanced Puppeteer for comprehensive deep scanning', { url });
-      }
-      const puppeteerEmails = await this.extractEmailsWithPuppeteer(url);
-      if (puppeteerEmails && Array.isArray(puppeteerEmails)) {
-        puppeteerEmails.forEach(email => found.add(email));
-      }
-      
-      await updateProgress('puppeteer_scan', 'completed', `Advanced browser scan found ${puppeteerEmails?.length || 0} email(s)`, {
-        emails: puppeteerEmails || [],
-        totalEmailsSoFar: found.size
-      });
-
-      // Step 3.5: If no emails found and in production, try checkout-only extraction
-      if (found.size === 0 && process.env.NODE_ENV === 'production') {
-        await updateProgress('checkout_fallback', 'processing', 'No emails found, attempting checkout-only extraction...');
-        EmailExtractorCore.logger.info('🛒 Production fallback: attempting checkout-only extraction', { url });
-        
-        try {
-          const checkoutEmails = await PuppeteerExtractor.extractEmailsFromCheckoutOnly(url);
-          if (checkoutEmails && Array.isArray(checkoutEmails) && checkoutEmails.length > 0) {
-            checkoutEmails.forEach(email => found.add(email));
-            await updateProgress('checkout_fallback', 'completed', `Checkout fallback found ${checkoutEmails.length} email(s)`, {
-              emails: checkoutEmails,
-              totalEmailsSoFar: found.size
-            });
-            EmailExtractorCore.logger.info('✅ Production checkout fallback successful', { 
-              url, 
-              count: checkoutEmails.length, 
-              emails: checkoutEmails 
-            });
-          } else {
-            await updateProgress('checkout_fallback', 'completed', 'Checkout fallback completed - no emails found', {
-              totalEmailsSoFar: found.size
-            });
-            EmailExtractorCore.logger.warn('❌ Production checkout fallback found no emails', { url });
-          }
-        } catch (error: any) {
-          await updateProgress('checkout_fallback', 'failed', `Checkout fallback failed: ${error?.message || 'Unknown error'}`);
-          EmailExtractorCore.logger.error('Error during production checkout fallback', {
-            url,
-            error: error?.message || 'Unknown error'
-          });
+      // Step 4: Contact Page Discovery - Puppeteer-based contact page crawling
+      await updateProgress('contact_discovery', 'processing', 'Finding and scanning contact pages...');
+      try {
+        const contactEmails = await PuppeteerExtractor.extractEmailsFromContactPages(url);
+        if (contactEmails && Array.isArray(contactEmails)) {
+          contactEmails.forEach(email => found.add(email));
         }
+        
+        await updateProgress('contact_discovery', 'completed', `Contact page discovery found ${contactEmails?.length || 0} email(s)`, {
+          emails: contactEmails || [],
+          totalEmailsSoFar: found.size
+        });
+      } catch (error: any) {
+        await updateProgress('contact_discovery', 'failed', `Contact page discovery failed: ${error?.message || 'Unknown error'}`);
+        EmailExtractorCore.logger.warn('Contact page discovery failed', { url, error: error?.message || 'Unknown error' });
       }
 
-      // Step 4: WHOIS lookup (fast and often effective)
+      // Step 5: Deep Site Crawling - Comprehensive site exploration (only if no emails found yet)
+      if (found.size === 0) {
+        await updateProgress('deep_crawling', 'processing', 'Comprehensive site exploration...');
+        try {
+          const deepCrawlEmails = await PuppeteerExtractor.extractEmailsFromDeepCrawling(url);
+          if (deepCrawlEmails && Array.isArray(deepCrawlEmails)) {
+            deepCrawlEmails.forEach(email => found.add(email));
+          }
+          
+          await updateProgress('deep_crawling', 'completed', `Deep site crawling found ${deepCrawlEmails?.length || 0} email(s)`, {
+            emails: deepCrawlEmails || [],
+            totalEmailsSoFar: found.size
+          });
+        } catch (error: any) {
+          await updateProgress('deep_crawling', 'failed', `Deep site crawling failed: ${error?.message || 'Unknown error'}`);
+          EmailExtractorCore.logger.warn('Deep site crawling failed', { url, error: error?.message || 'Unknown error' });
+        }
+      } else {
+        await updateProgress('deep_crawling', 'skipped', 'Skipping deep crawling - emails already found');
+      }
+
+      // Step 6: WHOIS Database - Domain registration lookup (fast and sometimes effective)
       await updateProgress('whois_lookup', 'processing', 'Querying domain registration database (WHOIS)...');
       const whoisEmails = await WhoisExtractor.extractEmailsFromWhois(url);
       if (whoisEmails && Array.isArray(whoisEmails)) {
@@ -581,8 +593,8 @@ export class EmailExtractorCore {
       }
       */
 
-      // Step 6: Final deduplication and validation
-      await updateProgress('final_deduplication', 'processing', 'Performing final deduplication and validation...');
+      // Step 7: Final Deduplication - Clean and validate results
+      await updateProgress('final_deduplication', 'processing', 'Cleaning and validating results...');
       const finalEmails = Array.from(found);
       const uniqueEmails = [...new Set(finalEmails)]; // Remove duplicates
       
@@ -593,13 +605,21 @@ export class EmailExtractorCore {
         finalEmails: uniqueEmails
       });
 
-      await updateProgress('extraction_complete', 'completed', `Comprehensive email extraction completed successfully! Found ${uniqueEmails.length} unique email(s)`, {
+      await updateProgress('extraction_complete', 'completed', `Puppeteer-first email extraction completed successfully! Found ${uniqueEmails.length} unique email(s)`, {
         totalEmails: uniqueEmails.length,
         totalEmailsBeforeDeduplication: finalEmails.length,
         duplicatesRemoved: finalEmails.length - uniqueEmails.length,
         scannedUrls: scannedUrls.size,
         emails: uniqueEmails
       });
+
+      // Close browser after extraction is complete
+      try {
+        await PuppeteerExtractor.closeBrowser();
+        EmailExtractorCore.logger.info('🔒 Browser closed successfully');
+      } catch (error) {
+        EmailExtractorCore.logger.warn('⚠️ Failed to close browser', { error: error instanceof Error ? error.message : 'Unknown error' });
+      }
 
       // Only log extraction completion in debug mode
       if (process.env.LOG_LEVEL === 'debug') {
@@ -614,6 +634,13 @@ export class EmailExtractorCore {
 
       return uniqueEmails;
     } catch (error) {
+      // Ensure browser is closed even on error
+      try {
+        await PuppeteerExtractor.closeBrowser();
+      } catch (closeError) {
+        EmailExtractorCore.logger.warn('⚠️ Failed to close browser after error', { error: closeError instanceof Error ? closeError.message : 'Unknown error' });
+      }
+      
       await updateProgress('extraction_failed', 'failed', `Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       EmailExtractorCore.logger.error('Error extracting emails from URL', { url, error });
       throw error;
@@ -712,6 +739,35 @@ export class EmailExtractorCore {
   ];
   private static readonly MAX_PAGES_TO_SCAN = 5; // Reduced from 20 to 5 for speed
 
+
+  /**
+   * Extract emails from homepage using Puppeteer (replaces unreliable HTML fetching)
+   */
+  private static async extractEmailsFromHomepageWithPuppeteer(url: string): Promise<string[]> {
+    try {
+      // Use a lightweight Puppeteer instance for homepage scanning
+      const { PuppeteerExtractor } = await import('./PuppeteerExtractor');
+      return await PuppeteerExtractor.extractEmailsFromCheckoutOnly(url);
+    } catch (error) {
+      EmailExtractorCore.logger.warn('Homepage Puppeteer extraction failed', { url, error: error instanceof Error ? error.message : 'Unknown error' });
+      return [];
+    }
+  }
+
+  /**
+   * Extract emails from contact pages using Puppeteer (replaces unreliable HTML fetching)
+   */
+  private static async extractEmailsFromContactPagesWithPuppeteer(url: string): Promise<string[]> {
+    try {
+      // For now, use the main Puppeteer extraction which includes contact page discovery
+      // This could be optimized further with dedicated contact page extraction
+      const { PuppeteerExtractor } = await import('./PuppeteerExtractor');
+      return await PuppeteerExtractor.extractEmailsWithPuppeteer(url);
+    } catch (error) {
+      EmailExtractorCore.logger.warn('Contact pages Puppeteer extraction failed', { url, error: error instanceof Error ? error.message : 'Unknown error' });
+      return [];
+    }
+  }
 
   // Import methods from other modules
   private static fetchHtml = HtmlFetcher.fetchHtml;

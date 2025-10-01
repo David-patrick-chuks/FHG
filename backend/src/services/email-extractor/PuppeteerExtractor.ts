@@ -14,6 +14,10 @@ export class PuppeteerExtractor {
   private static readonly MAX_PAGES = 50; // Maximum pages to crawl
   private static readonly MAX_DEPTH = 5; // Maximum crawl depth
 
+  // Browser instance for reuse across methods
+  private static browserInstance: any = null;
+  private static browserInitialized = false;
+
   private static readonly CONTACT_PATHS = [
     '/contact', '/contact-us', '/about', '/about-us',
     '/pages/contact-us', '/pages/contact', '/pages/about-us', '/pages/about',
@@ -43,6 +47,439 @@ export class PuppeteerExtractor {
   private static getRandomUserAgent(): string {
     const userAgent = new UserAgent();
     return userAgent.toString();
+  }
+
+  /**
+   * Initialize and configure browser for reuse across methods
+   */
+  private static async initializeBrowser(): Promise<any> {
+    if (this.browserInitialized && this.browserInstance) {
+      return this.browserInstance;
+    }
+
+    try {
+      // Determine the correct executable path based on environment
+      let executablePath: string | undefined;
+      
+      if (process.env.NODE_ENV === "production") {
+        executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      } else {
+        // Development environment - try to find Chrome/Chromium
+        const { execSync } = require('child_process');
+        try {
+          // Try to find Chrome on Windows
+          if (process.platform === 'win32') {
+            const chromePaths = [
+              'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+              'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+              process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe'
+            ];
+            
+            for (const path of chromePaths) {
+              try {
+                execSync(`"${path}" --version`, { stdio: 'ignore' });
+                executablePath = path;
+                break;
+              } catch (e) {
+                // Continue to next path
+              }
+            }
+          } else {
+            // Try to find Chrome/Chromium on macOS/Linux
+            try {
+              const chromePath = execSync('which google-chrome-stable || which google-chrome || which chromium-browser || which chromium', { encoding: 'utf8' }).trim();
+              executablePath = chromePath;
+            } catch (e) {
+              // Fall back to default Puppeteer bundled Chromium
+              executablePath = undefined;
+            }
+          }
+        } catch (e) {
+          // Fall back to default Puppeteer bundled Chromium
+          executablePath = undefined;
+        }
+      }
+
+      // Configure headless mode based on environment
+      const isHeadless = process.env.NODE_ENV === 'production' ? true : false;
+      
+      // Log the executable path and environment details
+      this.logger.info(`🌐 Initializing Puppeteer browser`, { 
+        executablePath: executablePath || 'default bundled Chromium',
+        nodeEnv: process.env.NODE_ENV,
+        isHeadless: isHeadless,
+        platform: process.platform
+      });
+
+      this.browserInstance = await puppeteerExtra.launch({
+        headless: isHeadless,
+        executablePath,
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--disable-blink-features=AutomationControlled',
+          // Additional args for better production compatibility
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-images', // Faster loading
+          '--disable-javascript-harmony-shipping',
+          '--disable-background-timer-throttling',
+          '--disable-renderer-backgrounding',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-client-side-phishing-detection',
+          '--disable-sync',
+          '--disable-default-apps',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-domain-reliability',
+          '--disable-component-extensions-with-background-pages',
+          '--disable-background-networking',
+          '--disable-features=TranslateUI',
+          '--disable-ipc-flooding-protection',
+          '--no-default-browser-check',
+          '--no-pings',
+          '--password-store=basic',
+          '--use-mock-keychain',
+          '--force-color-profile=srgb',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--enable-automation',
+          '--password-store=basic',
+          '--use-mock-keychain'
+        ]
+      });
+
+      this.browserInitialized = true;
+      this.logger.info('✅ Browser initialized successfully');
+      return this.browserInstance;
+    } catch (error: any) {
+      this.logger.error('❌ Failed to initialize browser', { error: error?.message || 'Unknown error' });
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new page with standard configuration
+   */
+  private static async createPage(): Promise<any> {
+    const browser = await this.initializeBrowser();
+    const page = await browser.newPage();
+    await page.setUserAgent(this.getRandomUserAgent());
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    // Remove webdriver property to avoid detection
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty((globalThis as any).navigator, 'webdriver', {
+        get: () => undefined,
+      });
+    });
+
+    return page;
+  }
+
+  /**
+   * Close browser instance
+   */
+  public static async closeBrowser(): Promise<void> {
+    if (this.browserInstance) {
+      await this.browserInstance.close();
+      this.browserInstance = null;
+      this.browserInitialized = false;
+      this.logger.info('🔒 Browser closed');
+    }
+  }
+
+  /**
+   * Step 1: Browser Initialization - Initialize browser for the extraction process
+   */
+  public static async initializeBrowserForExtraction(): Promise<void> {
+    try {
+      this.logger.info('🌐 Initializing browser for email extraction...');
+      await this.initializeBrowser();
+      this.logger.info('✅ Browser initialization completed successfully');
+    } catch (error: any) {
+      this.logger.error('❌ Browser initialization failed', { error: error?.message || 'Unknown error' });
+      throw error;
+    }
+  }
+
+  /**
+   * Step 2: E-commerce Checkout Extraction - Most effective for e-commerce sites
+   */
+  public static async extractEmailsFromEcommerceCheckout(url: string): Promise<string[]> {
+    const found = new Set<string>();
+    let page;
+
+    try {
+      this.logger.info('🛒 Starting e-commerce checkout extraction', { url });
+      
+      page = await this.createPage();
+      await page.goto(url, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
+      await page.waitForTimeout(2000);
+
+      const checkoutEmails = await this.extractEmailsFromCheckout(page, url);
+      checkoutEmails.forEach(email => found.add(email));
+
+      this.logger.info('✅ E-commerce checkout extraction completed', { 
+        url, 
+        emailsFound: found.size, 
+        emails: Array.from(found) 
+      });
+
+      return Array.from(found);
+    } catch (error: any) {
+      this.logger.warn('❌ E-commerce checkout extraction failed', { 
+        url, 
+        error: error?.message || 'Unknown error' 
+      });
+      return Array.from(found);
+    } finally {
+      if (page) {
+        await page.close();
+      }
+    }
+  }
+
+  /**
+   * Step 3: Homepage Analysis - Analyze homepage for emails and contact information
+   */
+  public static async extractEmailsFromHomepage(url: string): Promise<string[]> {
+    const found = new Set<string>();
+    let page;
+
+    try {
+      this.logger.info('🏠 Starting homepage analysis', { url });
+      
+      page = await this.createPage();
+      await page.goto(url, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
+      await page.waitForTimeout(3000);
+
+      // Extract emails from homepage
+      const pageEmails = await EmailParser.extractEmailsFromPuppeteerPage(page);
+      if (pageEmails && Array.isArray(pageEmails)) {
+        pageEmails.forEach(email => found.add(email));
+      }
+
+      this.logger.info('✅ Homepage analysis completed', { 
+        url, 
+        emailsFound: found.size, 
+        emails: Array.from(found) 
+      });
+
+      return Array.from(found);
+    } catch (error: any) {
+      this.logger.warn('❌ Homepage analysis failed', { 
+        url, 
+        error: error?.message || 'Unknown error' 
+      });
+      return Array.from(found);
+    } finally {
+      if (page) {
+        await page.close();
+      }
+    }
+  }
+
+  /**
+   * Step 4: Contact Page Discovery - Use predefined paths to find contact pages
+   */
+  public static async extractEmailsFromContactPages(url: string): Promise<string[]> {
+    const found = new Set<string>();
+    let page;
+
+    try {
+      this.logger.info('📞 Starting contact page discovery', { url });
+      
+      page = await this.createPage();
+      
+      // Combine all contact-related paths
+      const allPaths = [
+        ...this.CONTACT_PATHS,
+        ...this.BUSINESS_PATHS,
+        ...this.COMMON_CHECKOUT_PATHS
+      ];
+
+      let pagesChecked = 0;
+      const maxPagesToCheck = 15; // Limit to prevent excessive requests
+
+      for (const path of allPaths.slice(0, maxPagesToCheck)) {
+        try {
+          const testUrl = new URL(path, url).href;
+          this.logger.info('🔍 Checking contact path', { path, testUrl });
+          
+          await page.goto(testUrl, { waitUntil: 'networkidle0', timeout: 10000 });
+          await page.waitForTimeout(2000);
+
+          const pageEmails = await EmailParser.extractEmailsFromPuppeteerPage(page);
+          if (pageEmails && Array.isArray(pageEmails)) {
+            pageEmails.forEach(email => found.add(email));
+            this.logger.info('✅ Found emails on contact page', { 
+              testUrl, 
+              emailsFound: pageEmails.length, 
+              emails: pageEmails 
+            });
+          }
+
+          pagesChecked++;
+          
+          // Add delay between requests
+          if (pagesChecked < maxPagesToCheck) {
+            await page.waitForTimeout(this.CRAWL_DELAY_MS);
+          }
+        } catch (error: any) {
+          this.logger.warn('❌ Failed to check contact path', { 
+            path, 
+            testUrl: new URL(path, url).href,
+            error: error?.message || 'Unknown error' 
+          });
+        }
+      }
+
+      this.logger.info('✅ Contact page discovery completed', { 
+        url, 
+        pagesChecked,
+        emailsFound: found.size, 
+        emails: Array.from(found) 
+      });
+
+      return Array.from(found);
+    } catch (error: any) {
+      this.logger.warn('❌ Contact page discovery failed', { 
+        url, 
+        error: error?.message || 'Unknown error' 
+      });
+      return Array.from(found);
+    } finally {
+      if (page) {
+        await page.close();
+      }
+    }
+  }
+
+  /**
+   * Step 5: Deep Site Crawling - Comprehensive crawling only if no emails found yet
+   */
+  public static async extractEmailsFromDeepCrawling(url: string): Promise<string[]> {
+    const found = new Set<string>();
+    const visited = new Set<string>();
+    const queue: Array<{ url: string; depth: number }> = [{ url, depth: 0 }];
+    let pagesCrawled = 0;
+    let page;
+
+    try {
+      this.logger.info('🔍 Starting deep site crawling', { url });
+      
+      page = await this.createPage();
+
+      while (queue.length > 0 && pagesCrawled < this.MAX_PAGES) {
+        const { url: currentUrl, depth } = queue.shift()!;
+
+        if (visited.has(currentUrl) || depth > this.MAX_DEPTH) continue;
+        visited.add(currentUrl);
+
+        try {
+          this.logger.info('🌐 Crawling URL', { url: currentUrl, depth, pagesCrawled });
+
+          await page.goto(currentUrl, {
+            waitUntil: 'networkidle0',
+            timeout: this.PUPPETEER_TIMEOUT
+          });
+
+          await page.waitForTimeout(3000);
+
+          // Extract emails from page
+          const pageEmails = await EmailParser.extractEmailsFromPuppeteerPage(page);
+          if (pageEmails && Array.isArray(pageEmails)) {
+            pageEmails.forEach(email => found.add(email));
+          }
+
+          // If this is the first page, discover more links
+          if (depth === 0) {
+            const links = await page.evaluate(() => {
+              const domain = (globalThis as any).window.location.hostname;
+              const links: string[] = [];
+              const linkElements = (globalThis as any).document.querySelectorAll('a[href]');
+              if (linkElements && linkElements.length > 0) {
+                linkElements.forEach((link: any) => {
+                  const href = link.getAttribute('href');
+                  if (href) {
+                    try {
+                      const url = new URL(href, (globalThis as any).window.location.href);
+                      if (url.hostname === domain && url.href.startsWith('http') && !url.href.match(/\.(pdf|jpg|png|gif|zip)$/i)) {
+                        links.push(url.href);
+                      }
+                    } catch (e) {
+                      // Invalid URL, skip
+                    }
+                  }
+                });
+              }
+              return links;
+            });
+
+            // Add discovered links (prioritize contact-related ones)
+            if (links && Array.isArray(links)) {
+              const prioritizedLinks = links
+                .filter(link => !visited.has(link))
+                .sort((a, b) => {
+                  const aScore = a.includes('contact') || a.includes('about') || a.includes('support') ? -1 : 0;
+                  const bScore = b.includes('contact') || b.includes('about') || b.includes('support') ? -1 : 0;
+                  return aScore - bScore;
+                })
+                .slice(0, 20); // Limit to 20 new links
+
+              prioritizedLinks.forEach(link => {
+                queue.push({ url: link, depth: depth + 1 });
+              });
+            }
+          }
+
+          pagesCrawled++;
+
+          // Add delay between requests
+          if (queue.length > 0) {
+            await page.waitForTimeout(this.CRAWL_DELAY_MS + Math.random() * 1000);
+          }
+
+        } catch (error: any) {
+          const errorMessage = error?.message || 'Unknown error';
+          if (!errorMessage.includes('404') &&
+            !errorMessage.includes('timeout') &&
+            !errorMessage.includes('net::ERR_NAME_NOT_RESOLVED') &&
+            !errorMessage.includes('net::ERR_CONNECTION_REFUSED')) {
+            this.logger.warn('❌ Error crawling URL', { url: currentUrl, error: errorMessage });
+          }
+        }
+      }
+
+      this.logger.info('✅ Deep site crawling completed', { 
+        url, 
+        pagesCrawled,
+        urlsVisited: visited.size,
+        emailsFound: found.size, 
+        emails: Array.from(found) 
+      });
+
+      return Array.from(found);
+    } catch (error: any) {
+      this.logger.warn('❌ Deep site crawling failed', { 
+        url, 
+        error: error?.message || 'Unknown error' 
+      });
+      return Array.from(found);
+    } finally {
+      if (page) {
+        await page.close();
+      }
+    }
   }
 
   /**

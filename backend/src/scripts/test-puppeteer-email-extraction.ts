@@ -12,7 +12,7 @@ class PuppeteerUrlEmailExtractionTester {
    * Test URLs for real-world extraction
    */
   private static readonly TEST_URLS = [
-    'https://www.bzenpaws.com/', // E-commerce site with checkout
+    'https://www.bzenpaws.com', // E-commerce site with checkout
     // Add your test URLs here
   ];
 
@@ -167,7 +167,7 @@ async function testCheckoutDirectly() {
   console.log('🛒 Testing checkout extraction directly...\n');
   
   try {
-    const url = 'https://www.bzenpaws.com/';
+    const url = 'https://www.bzenpaws.com';
     console.log(`Testing checkout extraction for: ${url}`);
     
     const startTime = Date.now();
