@@ -233,7 +233,7 @@ export class PuppeteerExtractor {
               for (const selector of specificSelectors) {
                 const button = document.querySelector(selector);
                 if (button) {
-                  return {
+              return {
                     found: true,
                     selector: selector,
                     text: button.textContent?.trim(),
@@ -341,14 +341,14 @@ export class PuppeteerExtractor {
                 // Method 3: JavaScript click (if previous methods failed)
                 if (!clickSuccess) {
                   try {
-                    await page.evaluate((selector) => {
-                      const button = document.querySelector(selector);
-                      if (button) {
+                await page.evaluate((selector) => {
+                  const button = document.querySelector(selector);
+                  if (button) {
                         (button as HTMLElement).click();
                         return true;
-                      }
+                  }
                       return false;
-                    }, checkoutButton.selector);
+                }, checkoutButton.selector);
                     clickSuccess = true;
                     this.logger.info('✅ Checkout button clicked successfully (method 3)', { productUrl, selector: checkoutButton.selector });
                   } catch (clickError) {
@@ -710,6 +710,7 @@ export class PuppeteerExtractor {
 
       let noEmailsYet = true;
       let checkoutEmailsAttempted = false;
+      let regularCrawlingCompleted = false;
 
       while (queue.length > 0 && (pagesCrawled < this.MAX_PAGES || (noEmailsYet && pagesCrawled < this.MAX_PAGES * 2))) {
         const { url: currentUrl, depth } = queue.shift()!;
@@ -750,9 +751,9 @@ export class PuppeteerExtractor {
             PuppeteerExtractor.logger.info('❌ No emails found on page', { url: currentUrl });
           }
 
-          // If no emails found yet and we haven't tried checkout extraction, attempt it
-          if (noEmailsYet && !checkoutEmailsAttempted && depth === 0) {
-            PuppeteerExtractor.logger.info('🛒 No emails found on main pages, attempting checkout extraction...', { url: currentUrl });
+          // Try checkout extraction early if no emails found yet (but not restricted to depth 0)
+          if (noEmailsYet && !checkoutEmailsAttempted && depth <= 1) {
+            PuppeteerExtractor.logger.info('🛒 No emails found yet, attempting checkout extraction...', { url: currentUrl });
             checkoutEmailsAttempted = true;
 
             try {
@@ -883,10 +884,39 @@ export class PuppeteerExtractor {
         }
       }
 
+      // Final fallback: If no emails found through regular crawling, try checkout extraction
+      if (found.size === 0 && !checkoutEmailsAttempted) {
+        PuppeteerExtractor.logger.info('🛒 No emails found through regular crawling, attempting final checkout extraction...', { url });
+        
+        try {
+          // Go back to the original URL for checkout extraction
+          await page.goto(url, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
+          await page.waitForTimeout(2000);
+          
+          const checkoutEmails = await this.extractEmailsFromCheckout(page, url);
+          if (checkoutEmails && checkoutEmails.length > 0) {
+            checkoutEmails.forEach(email => found.add(email));
+            PuppeteerExtractor.logger.info('✅ Found emails via final checkout extraction', {
+              url,
+              count: checkoutEmails.length,
+              emails: checkoutEmails
+            });
+          } else {
+            PuppeteerExtractor.logger.info('❌ No emails found via final checkout extraction', { url });
+          }
+        } catch (error: any) {
+          PuppeteerExtractor.logger.warn('Error during final checkout email extraction', {
+            url,
+            error: error?.message || 'Unknown error'
+          });
+        }
+      }
+
       PuppeteerExtractor.logger.info('🎉 Puppeteer extraction completed', {
         totalEmails: found.size,
         pagesCrawled,
         urlsVisited: visited.size,
+        checkoutAttempted: checkoutEmailsAttempted,
         finalEmails: Array.from(found)
       });
 
