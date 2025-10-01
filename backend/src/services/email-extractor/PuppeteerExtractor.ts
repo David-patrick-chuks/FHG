@@ -87,7 +87,7 @@ export class PuppeteerExtractor {
             break;
           } catch (e) {
             // Continue to next path
-            this.logger.debug(`❌ Chrome not found at: ${path}`);
+            this.logger.info(`❌ Chrome not found at: ${path} - ${e instanceof Error ? e.message : 'Unknown error'}`);
           }
         }
 
