@@ -509,6 +509,39 @@ export class EmailExtractorCore {
         totalEmailsSoFar: found.size
       });
 
+      // Step 3.5: If no emails found and in production, try checkout-only extraction
+      if (found.size === 0 && process.env.NODE_ENV === 'production') {
+        await updateProgress('checkout_fallback', 'processing', 'No emails found, attempting checkout-only extraction...');
+        EmailExtractorCore.logger.info('🛒 Production fallback: attempting checkout-only extraction', { url });
+        
+        try {
+          const checkoutEmails = await PuppeteerExtractor.extractEmailsFromCheckoutOnly(url);
+          if (checkoutEmails && Array.isArray(checkoutEmails) && checkoutEmails.length > 0) {
+            checkoutEmails.forEach(email => found.add(email));
+            await updateProgress('checkout_fallback', 'completed', `Checkout fallback found ${checkoutEmails.length} email(s)`, {
+              emails: checkoutEmails,
+              totalEmailsSoFar: found.size
+            });
+            EmailExtractorCore.logger.info('✅ Production checkout fallback successful', { 
+              url, 
+              count: checkoutEmails.length, 
+              emails: checkoutEmails 
+            });
+          } else {
+            await updateProgress('checkout_fallback', 'completed', 'Checkout fallback completed - no emails found', {
+              totalEmailsSoFar: found.size
+            });
+            EmailExtractorCore.logger.warn('❌ Production checkout fallback found no emails', { url });
+          }
+        } catch (error: any) {
+          await updateProgress('checkout_fallback', 'failed', `Checkout fallback failed: ${error?.message || 'Unknown error'}`);
+          EmailExtractorCore.logger.error('Error during production checkout fallback', {
+            url,
+            error: error?.message || 'Unknown error'
+          });
+        }
+      }
+
       // Step 4: WHOIS lookup (fast and often effective)
       await updateProgress('whois_lookup', 'processing', 'Querying domain registration database (WHOIS)...');
       const whoisEmails = await WhoisExtractor.extractEmailsFromWhois(url);

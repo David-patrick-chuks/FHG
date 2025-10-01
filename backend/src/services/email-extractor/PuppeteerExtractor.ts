@@ -565,11 +565,19 @@ export class PuppeteerExtractor {
         }
       }
 
-      // Log the executable path being used
-      this.logger.info(`Puppeteer executable path: ${executablePath || 'default bundled Chromium'}`);
+      // Configure headless mode based on environment
+      const isHeadless = process.env.NODE_ENV === 'production' ? true : false;
+      
+      // Log the executable path and environment details
+      this.logger.info(`Puppeteer configuration`, { 
+        executablePath: executablePath || 'default bundled Chromium',
+        nodeEnv: process.env.NODE_ENV,
+        isHeadless: isHeadless,
+        platform: process.platform
+      });
 
       browser = await puppeteerExtra.launch({
-        headless: true,
+        headless: isHeadless,
         executablePath,
         args: [
           '--no-sandbox', 
@@ -581,7 +589,36 @@ export class PuppeteerExtractor {
           '--disable-gpu',
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--disable-blink-features=AutomationControlled'
+          '--disable-blink-features=AutomationControlled',
+          // Additional args for better production compatibility
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-images', // Faster loading
+          '--disable-javascript-harmony-shipping',
+          '--disable-background-timer-throttling',
+          '--disable-renderer-backgrounding',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-client-side-phishing-detection',
+          '--disable-sync',
+          '--disable-default-apps',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-domain-reliability',
+          '--disable-component-extensions-with-background-pages',
+          '--disable-background-networking',
+          '--disable-features=TranslateUI',
+          '--disable-ipc-flooding-protection',
+          '--no-default-browser-check',
+          '--no-pings',
+          '--password-store=basic',
+          '--use-mock-keychain',
+          '--force-color-profile=srgb',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--enable-automation',
+          '--password-store=basic',
+          '--use-mock-keychain'
         ]
       });
       
@@ -677,11 +714,19 @@ export class PuppeteerExtractor {
         }
       }
 
-      // Log the executable path being used
-      this.logger.info(`Puppeteer executable path: ${executablePath || 'default bundled Chromium'}`);
-
+      // Configure headless mode based on environment
+      const isHeadless = process.env.NODE_ENV === 'production' ? true : false;
+      
+      // Log the executable path and environment details
+      this.logger.info(`Puppeteer configuration`, { 
+        executablePath: executablePath || 'default bundled Chromium',
+        nodeEnv: process.env.NODE_ENV,
+        isHeadless: isHeadless,
+        platform: process.platform
+      });
+      
       browser = await puppeteerExtra.launch({
-        headless: true,
+        headless: isHeadless,
         executablePath,
         args: [
           '--no-sandbox',
@@ -693,7 +738,36 @@ export class PuppeteerExtractor {
           '--disable-gpu',
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--disable-blink-features=AutomationControlled'
+          '--disable-blink-features=AutomationControlled',
+          // Additional args for better production compatibility
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-images', // Faster loading
+          '--disable-javascript-harmony-shipping',
+          '--disable-background-timer-throttling',
+          '--disable-renderer-backgrounding',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-client-side-phishing-detection',
+          '--disable-sync',
+          '--disable-default-apps',
+          '--disable-hang-monitor',
+          '--disable-prompt-on-repost',
+          '--disable-domain-reliability',
+          '--disable-component-extensions-with-background-pages',
+          '--disable-background-networking',
+          '--disable-features=TranslateUI',
+          '--disable-ipc-flooding-protection',
+          '--no-default-browser-check',
+          '--no-pings',
+          '--password-store=basic',
+          '--use-mock-keychain',
+          '--force-color-profile=srgb',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--enable-automation',
+          '--password-store=basic',
+          '--use-mock-keychain'
         ]
       });
 
@@ -886,30 +960,51 @@ export class PuppeteerExtractor {
 
       // Final fallback: If no emails found through regular crawling, try checkout extraction
       if (found.size === 0 && !checkoutEmailsAttempted) {
-        PuppeteerExtractor.logger.info('🛒 No emails found through regular crawling, attempting final checkout extraction...', { url });
+        PuppeteerExtractor.logger.info('🛒 No emails found through regular crawling, attempting final checkout extraction...', { 
+          url, 
+          nodeEnv: process.env.NODE_ENV,
+          totalEmailsFound: found.size,
+          checkoutAttempted: checkoutEmailsAttempted
+        });
         
         try {
           // Go back to the original URL for checkout extraction
           await page.goto(url, { waitUntil: 'networkidle0', timeout: this.PUPPETEER_TIMEOUT });
           await page.waitForTimeout(2000);
           
+          PuppeteerExtractor.logger.info('🔄 Starting checkout extraction process...', { url });
           const checkoutEmails = await this.extractEmailsFromCheckout(page, url);
+          
           if (checkoutEmails && checkoutEmails.length > 0) {
             checkoutEmails.forEach(email => found.add(email));
             PuppeteerExtractor.logger.info('✅ Found emails via final checkout extraction', {
               url,
               count: checkoutEmails.length,
-              emails: checkoutEmails
+              emails: checkoutEmails,
+              nodeEnv: process.env.NODE_ENV
             });
           } else {
-            PuppeteerExtractor.logger.info('❌ No emails found via final checkout extraction', { url });
+            PuppeteerExtractor.logger.warn('❌ No emails found via final checkout extraction', { 
+              url, 
+              nodeEnv: process.env.NODE_ENV,
+              checkoutEmails: checkoutEmails
+            });
           }
         } catch (error: any) {
-          PuppeteerExtractor.logger.warn('Error during final checkout email extraction', {
+          PuppeteerExtractor.logger.error('Error during final checkout email extraction', {
             url,
-            error: error?.message || 'Unknown error'
+            nodeEnv: process.env.NODE_ENV,
+            error: error?.message || 'Unknown error',
+            stack: error?.stack
           });
         }
+      } else if (found.size === 0) {
+        PuppeteerExtractor.logger.warn('❌ No emails found and checkout already attempted', { 
+          url, 
+          nodeEnv: process.env.NODE_ENV,
+          totalEmailsFound: found.size,
+          checkoutAttempted: checkoutEmailsAttempted
+        });
       }
 
       PuppeteerExtractor.logger.info('🎉 Puppeteer extraction completed', {
