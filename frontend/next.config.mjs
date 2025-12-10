@@ -19,7 +19,7 @@ const nextConfig = {
   // Enable experimental features for better SEO
   experimental: {
     optimizeCss: true,
-    inlineCss: true,
+    // inlineCss: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   // Headers for better SEO and security

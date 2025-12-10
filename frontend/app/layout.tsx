@@ -13,6 +13,8 @@ import { DM_Sans, JetBrains_Mono } from "next/font/google"
 import type React from "react"
 import "./globals.css"
 
+import Script from "next/script"
+
 const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -47,6 +49,19 @@ export default function RootLayout({
         <OrganizationJsonLd />
         <WebsiteJsonLd />
         <SoftwareApplicationJsonLd />
+               {/* <Script
+         src="https://preview--feedbot-platform.lumi.ing/widget.js" data-agent-id="6938094b2a05c171332d82d2"
+          strategy="afterInteractive"
+        /> */}
+       <Script
+    src="https://985010e5-977e-4f75-8201-d4a4a0133ae4.canvases.tempo.build/widget.js" data-agent-id="3b3a50a8-2379-4e3a-a882-73900fb36a36"
+          strategy="afterInteractive"
+        />
+               {/* <Script
+          src="https://nocode-ai-platform.lumi.ing/embed.js"
+          data-agent-id="6925a4bcf0c10874d159ef91"
+          strategy="afterInteractive"
+        /> */}
       </head>
       <body className={`${dmSansHeading.variable} ${dmSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}>
          <ThemeProvider
